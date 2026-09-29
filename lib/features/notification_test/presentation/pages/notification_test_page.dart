@@ -39,6 +39,39 @@ class _NotificationTestPageState extends State<NotificationTestPage> {
     'ShopeePay',
   ];
 
+  final List<Map<String, String>> _chinesePresets = [
+    {
+      'label': '招商银行 (849201)',
+      'sender': '95555',
+      'otp': '849201',
+      'message': '【招商银行】您的验证码是 849201，5分钟内有效，请勿向任何人泄露。',
+    },
+    {
+      'label': '中国工商银行 (192837)',
+      'sender': '95588',
+      'otp': '192837',
+      'message': '【中国工商银行】您正在办理网银转账，动态密码为 192837，切勿向他人泄露。',
+    },
+    {
+      'label': '支付宝 (749201)',
+      'sender': 'Alipay',
+      'otp': '749201',
+      'message': '【支付宝】验证码：749201，用于登录。任何人索取均为诈骗。',
+    },
+    {
+      'label': '腾讯科技 (849201)',
+      'sender': '10690001',
+      'otp': '849201',
+      'message': '【腾讯科技】849201（动态验证码），请在30分钟内填写。',
+    },
+    {
+      'label': '建行 SMS Biến động (Toàn bộ)',
+      'sender': '95533',
+      'otp': '8888',
+      'message': '【中国建设银行】您尾号8888账户09月29日22:45支出人民币1,500.00元，活期余额12,890.50元。',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -170,6 +203,19 @@ class _NotificationTestPageState extends State<NotificationTestPage> {
             colorScheme: colorScheme,
           ),
           const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'Ngân hàng Việt Nam:',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           _BankPresetsSelector(
             presets: _bankPresets,
             selected: _senderController.text,
@@ -181,7 +227,47 @@ class _NotificationTestPageState extends State<NotificationTestPage> {
               });
             },
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'Mẫu Tiếng Trung & Toàn bộ SMS:',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _chinesePresets.map((item) {
+                final isSelected = _senderController.text == item['sender'] &&
+                    _otpController.text == item['otp'];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    label: Text(
+                      item['label']!,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        _senderController.text = item['sender']!;
+                        _otpController.text = item['otp']!;
+                        _messageController.text = item['message']!;
+                      });
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
           FilledButton.icon(
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),

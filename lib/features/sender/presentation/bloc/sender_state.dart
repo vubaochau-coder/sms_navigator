@@ -4,6 +4,8 @@ import '../../data/models/relay_log_model.dart';
 class SenderState extends Equatable {
   final bool isLoading;
   final bool isRelayEnabled;
+  final String relayMode; // 'OTP_ONLY', 'WHITELIST_ALL', 'ALL_SMS'
+  final List<String> senderWhitelist;
   final bool isPaired;
   final String pairId;
   final String deviceId;
@@ -16,6 +18,8 @@ class SenderState extends Equatable {
   const SenderState({
     this.isLoading = false,
     this.isRelayEnabled = false,
+    this.relayMode = 'OTP_ONLY',
+    this.senderWhitelist = const [],
     this.isPaired = false,
     this.pairId = '',
     this.deviceId = '',
@@ -29,6 +33,8 @@ class SenderState extends Equatable {
   SenderState copyWith({
     bool? isLoading,
     bool? isRelayEnabled,
+    String? relayMode,
+    List<String>? senderWhitelist,
     bool? isPaired,
     String? pairId,
     String? deviceId,
@@ -41,6 +47,8 @@ class SenderState extends Equatable {
     return SenderState(
       isLoading: isLoading ?? this.isLoading,
       isRelayEnabled: isRelayEnabled ?? this.isRelayEnabled,
+      relayMode: relayMode ?? this.relayMode,
+      senderWhitelist: senderWhitelist ?? this.senderWhitelist,
       isPaired: isPaired ?? this.isPaired,
       pairId: pairId ?? this.pairId,
       deviceId: deviceId ?? this.deviceId,
@@ -57,6 +65,8 @@ class SenderState extends Equatable {
   List<Object?> get props => [
         isLoading,
         isRelayEnabled,
+        relayMode,
+        senderWhitelist,
         isPaired,
         pairId,
         deviceId,

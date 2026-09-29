@@ -37,3 +37,30 @@ class SenderOtpDetectedEvent extends SenderEvent {
   @override
   List<Object?> get props => [sender, otp];
 }
+
+class SenderUpdateRelayModeEvent extends SenderEvent {
+  final String relayMode;
+
+  const SenderUpdateRelayModeEvent(this.relayMode);
+
+  @override
+  List<Object?> get props => [relayMode];
+}
+
+class SenderAddWhitelistPrefixEvent extends SenderEvent {
+  final String prefix;
+
+  const SenderAddWhitelistPrefixEvent(this.prefix);
+
+  @override
+  List<Object?> get props => [prefix];
+}
+
+class SenderRemoveWhitelistPrefixEvent extends SenderEvent {
+  final String prefix;
+
+  const SenderRemoveWhitelistPrefixEvent(this.prefix);
+
+  @override
+  List<Object?> get props => [prefix];
+}

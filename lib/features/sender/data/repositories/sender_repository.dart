@@ -4,6 +4,8 @@ import '../services/native_relay_service.dart';
 abstract class SenderRepository {
   Future<Map<String, dynamic>> getRelayStatus();
   Future<bool> setRelayEnabled(bool isEnabled);
+  Future<bool> setRelayMode(String relayMode);
+  Future<bool> setSenderWhitelist(List<String> whitelist);
   Future<List<RelayLogModel>> getRecentLogs();
   Future<bool> checkBatteryOptimization();
   Future<bool> requestBatteryOptimization();
@@ -24,6 +26,16 @@ class SenderRepositoryImpl implements SenderRepository {
   @override
   Future<bool> setRelayEnabled(bool isEnabled) async {
     return await nativeService.setRelayConfig(isRelayEnabled: isEnabled);
+  }
+
+  @override
+  Future<bool> setRelayMode(String relayMode) async {
+    return await nativeService.setRelayConfig(relayMode: relayMode);
+  }
+
+  @override
+  Future<bool> setSenderWhitelist(List<String> whitelist) async {
+    return await nativeService.setRelayConfig(senderWhitelist: whitelist);
   }
 
   @override

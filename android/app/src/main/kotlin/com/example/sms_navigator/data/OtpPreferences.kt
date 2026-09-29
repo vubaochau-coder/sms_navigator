@@ -15,6 +15,52 @@ class OtpPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_IS_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_IS_ENABLED, value).apply()
 
+    var relayMode: String
+        get() = prefs.getString(KEY_RELAY_MODE, MODE_OTP_ONLY) ?: MODE_OTP_ONLY
+        set(value) = prefs.edit().putString(KEY_RELAY_MODE, value).apply()
+
+    var senderWhitelist: List<String>
+        get() {
+            val raw = prefs.getString(KEY_SENDER_WHITELIST, "[]") ?: "[]"
+            return try {
+                val array = JSONArray(raw)
+                val list = mutableListOf<String>()
+                for (i in 0 until array.length()) {
+                    val item = array.optString(i)
+                    if (item.isNotBlank()) list.add(item.trim())
+                }
+                list
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+        set(value) {
+            val array = JSONArray()
+            value.forEach { array.put(it.trim()) }
+            prefs.edit().putString(KEY_SENDER_WHITELIST, array.toString()).apply()
+        }
+
+    /**
+     * Checks if the sender matches any whitelist entry or prefix.
+     * Supports phone number prefixes (+86, 1069, 090...), exact numbers, or Brandnames.
+     */
+    fun isSenderWhitelisted(sender: String): Boolean {
+        if (sender.isBlank()) return false
+        val cleanSender = sender.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
+        val list = senderWhitelist
+        if (list.isEmpty()) return false
+
+        return list.any { rawItem ->
+            val cleanItem = rawItem.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
+            if (cleanItem.isBlank()) false
+            else {
+                cleanSender.startsWith(cleanItem) ||
+                cleanSender == cleanItem ||
+                cleanSender.contains(cleanItem)
+            }
+        }
+    }
+
     var pairId: String?
         get() = prefs.getString(KEY_PAIR_ID, null)
         set(value) = prefs.edit().putString(KEY_PAIR_ID, value).apply()
@@ -125,6 +171,8 @@ class OtpPreferences(context: Context) {
     companion object {
         private const val PREF_NAME = "otp_relay_prefs"
         private const val KEY_IS_ENABLED = "is_relay_enabled"
+        private const val KEY_RELAY_MODE = "relay_mode"
+        private const val KEY_SENDER_WHITELIST = "sender_whitelist"
         private const val KEY_PAIR_ID = "pair_id"
         private const val KEY_SHARED_SECRET = "shared_secret"
         private const val KEY_RELAY_URL = "relay_url"
@@ -132,6 +180,10 @@ class OtpPreferences(context: Context) {
         private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_RECENT_HASHES = "recent_hashes"
         private const val KEY_RELAY_LOGS = "relay_logs"
+
+        const val MODE_OTP_ONLY = "OTP_ONLY"
+        const val MODE_WHITELIST_ALL = "WHITELIST_ALL"
+        const val MODE_ALL_SMS = "ALL_SMS"
 
         const val DEFAULT_RELAY_URL = "https://relay-otp.example.com/api/v1/relay"
     }

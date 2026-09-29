@@ -5,6 +5,8 @@ abstract class NativeRelayService {
   Future<Map<String, dynamic>> getRelayConfig();
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
+    String? relayMode,
+    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
@@ -46,7 +48,13 @@ class NativeRelayServiceImpl implements NativeRelayService {
     try {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('getRelayConfig');
       if (result == null) return {};
-      return Map<String, dynamic>.from(result);
+      final map = Map<String, dynamic>.from(result);
+      if (map['senderWhitelist'] is List) {
+        map['senderWhitelist'] = (map['senderWhitelist'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+      return map;
     } catch (_) {
       return {};
     }
@@ -55,6 +63,8 @@ class NativeRelayServiceImpl implements NativeRelayService {
   @override
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
+    String? relayMode,
+    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
@@ -64,6 +74,8 @@ class NativeRelayServiceImpl implements NativeRelayService {
     try {
       final Map<String, dynamic> params = {};
       if (isRelayEnabled != null) params['isRelayEnabled'] = isRelayEnabled;
+      if (relayMode != null) params['relayMode'] = relayMode;
+      if (senderWhitelist != null) params['senderWhitelist'] = senderWhitelist;
       if (pairId != null) params['pairId'] = pairId;
       if (sharedSecretBase64 != null) params['sharedSecretBase64'] = sharedSecretBase64;
       if (relayUrl != null) params['relayUrl'] = relayUrl;

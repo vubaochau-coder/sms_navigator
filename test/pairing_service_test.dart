@@ -15,6 +15,8 @@ class _FakeNativeRelayService implements NativeRelayService {
   @override
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
+    String? relayMode,
+    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
@@ -23,6 +25,8 @@ class _FakeNativeRelayService implements NativeRelayService {
   }) async {
     lastConfig = {
       'isRelayEnabled': isRelayEnabled,
+      'relayMode': relayMode,
+      'senderWhitelist': senderWhitelist,
       'pairId': pairId,
       'sharedSecretBase64': sharedSecretBase64,
       'relayUrl': relayUrl,

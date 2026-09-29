@@ -28,6 +28,8 @@ class MainActivity : FlutterActivity() {
                 "getRelayConfig" -> {
                     val config = mapOf(
                         "isRelayEnabled" to prefs.isRelayEnabled,
+                        "relayMode" to prefs.relayMode,
+                        "senderWhitelist" to prefs.senderWhitelist,
                         "pairId" to prefs.pairId,
                         "sharedSecretBase64" to prefs.sharedSecretBase64,
                         "relayUrl" to prefs.relayUrl,
@@ -39,6 +41,8 @@ class MainActivity : FlutterActivity() {
 
                 "setRelayConfig" -> {
                     val isEnabled = call.argument<Boolean>("isRelayEnabled")
+                    val relayMode = call.argument<String>("relayMode")
+                    val senderWhitelist = call.argument<List<String>>("senderWhitelist")
                     val pairId = call.argument<String>("pairId")
                     val sharedSecretBase64 = call.argument<String>("sharedSecretBase64")
                     val relayUrl = call.argument<String>("relayUrl")
@@ -46,6 +50,8 @@ class MainActivity : FlutterActivity() {
                     val deviceId = call.argument<String>("deviceId")
 
                     if (isEnabled != null) prefs.isRelayEnabled = isEnabled
+                    if (relayMode != null) prefs.relayMode = relayMode
+                    if (senderWhitelist != null) prefs.senderWhitelist = senderWhitelist
                     if (pairId != null) prefs.pairId = pairId
                     if (sharedSecretBase64 != null) prefs.sharedSecretBase64 = sharedSecretBase64
                     if (relayUrl != null) prefs.relayUrl = relayUrl

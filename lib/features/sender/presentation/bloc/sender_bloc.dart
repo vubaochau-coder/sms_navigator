@@ -9,6 +9,9 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
   SenderBloc({required this.repository}) : super(const SenderState()) {
     on<SenderLoadStatusEvent>(_onLoadStatus);
     on<SenderToggleRelayEvent>(_onToggleRelay);
+    on<SenderUpdateRelayModeEvent>(_onUpdateRelayMode);
+    on<SenderAddWhitelistPrefixEvent>(_onAddWhitelistPrefix);
+    on<SenderRemoveWhitelistPrefixEvent>(_onRemoveWhitelistPrefix);
     on<SenderRequestBatteryOptimizationEvent>(_onRequestBatteryOptimization);
     on<SenderUnpairEvent>(_onUnpair);
     on<SenderOtpDetectedEvent>(_onOtpDetected);
@@ -31,11 +34,18 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       final pairId = config['pairId']?.toString() ?? '';
       final deviceId = config['deviceId']?.toString() ?? '';
       final isEnabled = config['isRelayEnabled'] == true;
+      final relayMode = config['relayMode']?.toString() ?? 'OTP_ONLY';
+      final rawWhitelist = config['senderWhitelist'];
+      final List<String> senderWhitelist = (rawWhitelist is List)
+          ? rawWhitelist.map((e) => e.toString()).toList()
+          : <String>[];
       final isPaired = pairId.isNotEmpty;
 
       emit(state.copyWith(
         isLoading: false,
         isRelayEnabled: isEnabled,
+        relayMode: relayMode,
+        senderWhitelist: senderWhitelist,
         isPaired: isPaired,
         pairId: pairId,
         deviceId: deviceId,
@@ -46,6 +56,59 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       emit(state.copyWith(
         isLoading: false,
         errorMessage: 'Lỗi tải trạng thái: ${e.toString()}',
+      ));
+    }
+  }
+
+  Future<void> _onUpdateRelayMode(
+    SenderUpdateRelayModeEvent event,
+    Emitter<SenderState> emit,
+  ) async {
+    try {
+      final success = await repository.setRelayMode(event.relayMode);
+      if (success) {
+        emit(state.copyWith(relayMode: event.relayMode));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Không thể cập nhật chế độ chuyển tiếp: ${e.toString()}',
+      ));
+    }
+  }
+
+  Future<void> _onAddWhitelistPrefix(
+    SenderAddWhitelistPrefixEvent event,
+    Emitter<SenderState> emit,
+  ) async {
+    final clean = event.prefix.trim();
+    if (clean.isEmpty || state.senderWhitelist.contains(clean)) return;
+
+    final updated = List<String>.from(state.senderWhitelist)..add(clean);
+    try {
+      final success = await repository.setSenderWhitelist(updated);
+      if (success) {
+        emit(state.copyWith(senderWhitelist: updated));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Không thể thêm đầu số: ${e.toString()}',
+      ));
+    }
+  }
+
+  Future<void> _onRemoveWhitelistPrefix(
+    SenderRemoveWhitelistPrefixEvent event,
+    Emitter<SenderState> emit,
+  ) async {
+    final updated = List<String>.from(state.senderWhitelist)..remove(event.prefix);
+    try {
+      final success = await repository.setSenderWhitelist(updated);
+      if (success) {
+        emit(state.copyWith(senderWhitelist: updated));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Không thể xóa đầu số: ${e.toString()}',
       ));
     }
   }

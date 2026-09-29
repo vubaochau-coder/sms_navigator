@@ -43,17 +43,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             Log.d(TAG, "Received SMS from: $sender")
 
-            // 1. Detect & Extract OTP
-            val otpEvent = OtpParser.extractOtp(sender, messageText)
-            if (otpEvent == null) {
-                Log.d(TAG, "SMS does not contain an authentic OTP, ignoring.")
-                pendingResult.finish()
-                return
-            }
-
-            Log.i(TAG, "Detected OTP: ${otpEvent.otp} from $sender")
-
-            // 2. Check Relay Configuration
+            // 1. Check Relay Configuration first
             val prefs = OtpPreferences(context)
             if (!prefs.isRelayEnabled) {
                 Log.d(TAG, "Relay is disabled in settings, skipping.")
@@ -69,9 +59,43 @@ class SmsReceiver : BroadcastReceiver() {
                 return
             }
 
-            // 3. Deduplication Check (FR-013)
-            if (prefs.isDuplicateAndRecord(sender, otpEvent.otp)) {
-                Log.w(TAG, "Duplicate OTP received within TTL window. Dropping.")
+            // 2. Check Whitelist & Relay Mode
+            val relayMode = prefs.relayMode
+            val isWhitelisted = prefs.isSenderWhitelisted(sender)
+            val isForwardAllMode = (relayMode == OtpPreferences.MODE_ALL_SMS) ||
+                                  (relayMode == OtpPreferences.MODE_WHITELIST_ALL && isWhitelisted)
+
+            // 3. Detect OTP or Prepare Full SMS Event
+            var otpEvent = OtpParser.extractOtp(sender, messageText)
+
+            if (otpEvent == null) {
+                if (isForwardAllMode) {
+                    // When in Whitelist or Forward-All mode, relay the entire SMS even without OTP keywords
+                    val digits = OtpParser.findAnyDigits(messageText) ?: "SMS"
+                    otpEvent = com.example.sms_navigator.model.OtpEvent(
+                        sender = sender,
+                        otp = digits,
+                        fullMessage = messageText
+                    )
+                    Log.i(TAG, "Relaying full SMS from whitelisted/forward-all sender: $sender (summary tag: $digits)")
+                } else {
+                    Log.d(TAG, "SMS from $sender is not an OTP and not whitelisted for full relay, ignoring.")
+                    pendingResult.finish()
+                    return
+                }
+            } else {
+                Log.i(TAG, "Detected OTP: ${otpEvent.otp} from $sender")
+            }
+
+            // 4. Deduplication Check (FR-013)
+            val deduplicationKey = if (otpEvent.otp == "SMS") {
+                "SMS_${messageText.hashCode()}"
+            } else {
+                otpEvent.otp
+            }
+
+            if (prefs.isDuplicateAndRecord(sender, deduplicationKey)) {
+                Log.w(TAG, "Duplicate message/OTP received within TTL window. Dropping.")
                 pendingResult.finish()
                 return
             }

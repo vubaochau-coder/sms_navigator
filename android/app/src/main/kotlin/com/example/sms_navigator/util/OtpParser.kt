@@ -5,21 +5,47 @@ import java.util.regex.Pattern
 
 object OtpParser {
 
-    // Keywords that indicate an OTP / verification message
+    // Keywords that indicate an OTP / verification message (Vietnamese, English, Chinese)
     private val OTP_KEYWORDS = listOf(
+        // Vietnamese
         "otp",
         "mã",
         "ma",
-        "code",
         "xác thực",
         "xac thuc",
         "xác nhận",
         "xac nhan",
+        // English
+        "code",
         "verification",
         "verify",
         "passcode",
         "security code",
-        "one time password"
+        "one time password",
+        // Chinese (Simplified & Traditional)
+        "验证码", // Yan zheng ma (Verification code)
+        "驗證碼",
+        "校验码", // Jiao yan ma (Check code)
+        "校驗碼",
+        "动态码", // Dong tai ma (Dynamic code)
+        "動態碼",
+        "动态密码", // Dong tai mi ma (Dynamic password)
+        "動態密碼",
+        "动态口令", // Dong tai kou ling (Dynamic token)
+        "動態口令",
+        "短信口令", // Duan xin kou ling (SMS token)
+        "短信验证码", // Duan xin yan zheng ma (SMS verification code)
+        "授权码", // Shou quan ma (Authorization code)
+        "授權碼",
+        "确认码", // Que ren ma (Confirmation code)
+        "確認碼",
+        "安全码", // An quan ma (Security code)
+        "安全碼",
+        "认证码", // Ren zheng ma (Authentication code)
+        "認證碼",
+        "验证代码", // Yan zheng dai ma
+        "随机码", // Sui ji ma (Random code)
+        "口令"    // Kou ling (Passphrase/code)
     )
 
     // Negative keywords to filter out non-OTP messages (e.g. promotional or balance notifications)
@@ -35,18 +61,27 @@ object OtpParser {
         "số dư",
         "bien dong so du",
         "quang cao",
-        "quảng cáo"
+        "quảng cáo",
+        "退订回", // Chinese unsubscribe promo text
+        "回T退订"
     )
 
-    // Regex to match OTP near keywords first: e.g. "ma otp cua ban la 583921", "code: 123456"
-    private val CONTEXTUAL_OTP_REGEX = Pattern.compile(
-        """(?:otp|mã|ma|code|passcode|xác thực|xac thuc|verification)\D{0,20}(\b\d{4,8}\b)""",
+    // Contextual forward regex: Keyword precedes code
+    // Uses lookaround (?<!\d)(\d{4,8})(?!\d) instead of \b\d{4,8}\b for unicode/CJK safety
+    private val FORWARD_OTP_REGEX = Pattern.compile(
+        """(?:otp|mã|ma|code|passcode|xác thực|xac thuc|verification|verify|验证码|驗證碼|校验码|校驗碼|动态码|動態碼|动态密码|動態密碼|动态口令|動態口令|短信口令|短信验证码|授权码|授權碼|确认码|確認碼|安全码|安全碼|认证码|認證碼|验证代码|随机码|口令)\D{0,20}?(?<!\d)(\d{4,8})(?!\d)""",
         Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE
     )
 
-    // Fallback general 4-8 digits regex when strong OTP keyword is present
-    private val GENERAL_OTP_REGEX = Pattern.compile(
-        """\b\d{4,8}\b"""
+    // Contextual reverse regex: Code precedes keyword (common in Chinese: "849201（动态验证码）" or "849201 为您的验证码")
+    private val REVERSE_OTP_REGEX = Pattern.compile(
+        """(?<!\d)(\d{4,8})(?!\d)\D{0,15}?(?:为您的|是您的|（动态验证码）|作為您的|作为您的|即为|为)?(?:验证码|驗證碼|校验码|校驗碼|动态码|動態碼|动态密码|動態密碼|动态口令|動態口令|短信口令|短信验证码|授权码|授權碼|确认码|確認碼|安全码|安全碼|认证码|認證碼|验证代码|随机码|口令|otp|code)""",
+        Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE
+    )
+
+    // Fallback general 4-8 digits regex (unicode/CJK safe)
+    private val GENERAL_DIGITS_REGEX = Pattern.compile(
+        """(?<!\d)(\d{4,8})(?!\d)"""
     )
 
     /**
@@ -58,24 +93,28 @@ object OtpParser {
 
         val lowerBody = body.lowercase()
 
-        // 1. Check if contains negative keywords without strong OTP context
-        val hasNegative = NEGATIVE_KEYWORDS.any { lowerBody.contains(it) }
-
-        // 2. Check for OTP keywords
-        val hasOtpKeyword = OTP_KEYWORDS.any { lowerBody.contains(it) }
+        // 1. Check for OTP keywords
+        val hasOtpKeyword = OTP_KEYWORDS.any { lowerBody.contains(it.lowercase()) }
         if (!hasOtpKeyword) {
             return null
         }
 
-        // If it has negative keywords (e.g., "khuyen mai"), ensure it really is an OTP request before processing
-        if (hasNegative && !lowerBody.contains("otp") && !lowerBody.contains("mã xác thực") && !lowerBody.contains("verification code")) {
+        // 2. Check if contains negative keywords without strong OTP context
+        val hasNegative = NEGATIVE_KEYWORDS.any { lowerBody.contains(it.lowercase()) }
+        if (hasNegative &&
+            !lowerBody.contains("otp") &&
+            !lowerBody.contains("mã xác thực") &&
+            !lowerBody.contains("verification code") &&
+            !lowerBody.contains("验证码") &&
+            !lowerBody.contains("动态密码")
+        ) {
             return null
         }
 
-        // 3. Try contextual regex first
-        val contextualMatcher = CONTEXTUAL_OTP_REGEX.matcher(body)
-        if (contextualMatcher.find()) {
-            val code = contextualMatcher.group(1)
+        // 3. Try forward contextual regex first: "验证码是 849201", "Ma OTP: 123456"
+        val forwardMatcher = FORWARD_OTP_REGEX.matcher(body)
+        if (forwardMatcher.find()) {
+            val code = forwardMatcher.group(1)
             if (code != null && code.length in 4..8) {
                 return OtpEvent(
                     sender = sender,
@@ -85,12 +124,24 @@ object OtpParser {
             }
         }
 
-        // 4. Try fallback digits regex if strong keyword matched
-        val fallbackMatcher = GENERAL_OTP_REGEX.matcher(body)
+        // 4. Try reverse contextual regex: "849201 为您的验证码", "849201 (dynamic code)"
+        val reverseMatcher = REVERSE_OTP_REGEX.matcher(body)
+        if (reverseMatcher.find()) {
+            val code = reverseMatcher.group(1)
+            if (code != null && code.length in 4..8) {
+                return OtpEvent(
+                    sender = sender,
+                    otp = code,
+                    fullMessage = body
+                )
+            }
+        }
+
+        // 5. Try fallback digits regex if strong keyword matched
+        val fallbackMatcher = GENERAL_DIGITS_REGEX.matcher(body)
         while (fallbackMatcher.find()) {
-            val candidate = fallbackMatcher.group()
-            // Ignore obvious years (e.g. 2024, 2025, 2026) or phone numbers if not OTP
-            if (candidate.length in 4..8) {
+            val candidate = fallbackMatcher.group(1)
+            if (candidate != null && candidate.length in 4..8) {
                 return OtpEvent(
                     sender = sender,
                     otp = candidate,
@@ -99,6 +150,18 @@ object OtpParser {
             }
         }
 
+        return null
+    }
+
+    /**
+     * Finds any 4-8 digit number in the text as a representative identifier for full-SMS relay.
+     * Returns null if no suitable digits are found.
+     */
+    fun findAnyDigits(body: String): String? {
+        val matcher = GENERAL_DIGITS_REGEX.matcher(body)
+        if (matcher.find()) {
+            return matcher.group(1)
+        }
         return null
     }
 }
