@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
@@ -22,6 +21,7 @@ class _PairingSenderPageState extends State<PairingSenderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ghép Đôi Thiết Bị'),
@@ -34,109 +34,284 @@ class _PairingSenderPageState extends State<PairingSenderPage> {
 
           final payload = state.pairingPayload;
           if (payload == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Không thể tạo mã ghép đôi.'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      context
-                          .read<PairingBloc>()
-                          .add(const PairingGenerateSenderCodeEvent());
-                    },
-                    child: const Text('Thử Lại'),
-                  ),
-                ],
-              ),
+            return _ErrorView(
+              message: state.errorMessage ?? 'Không thể tạo mã ghép đôi.',
+              onRetry: () {
+                context
+                    .read<PairingBloc>()
+                    .add(const PairingGenerateSenderCodeEvent());
+              },
             );
           }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
-                  'Mã Ghép Đôi Của Bạn',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Nhập 6 số này trên Máy Nhận (Malaysia) để thiết lập kênh mã hóa E2EE an toàn.',
+                const _HeaderIcon(),
+                const SizedBox(height: 24),
+                Text('Mã Ghép Đôi', style: theme.textTheme.headlineSmall),
+                const SizedBox(height: 8),
+                Text(
+                  'Nhập mã 6 số này trên Thiết Bị Nhận để thiết lập kênh E2EE an toàn.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 28),
-                // 6-digit Code Box
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary, width: 2),
-                  ),
-                  child: Text(
-                    payload.code,
-                    style: const TextStyle(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 10,
-                      color: AppColors.primary,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                // QR Code
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: QrImageView(
-                    data: payload.code,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                  ),
-                ),
                 const SizedBox(height: 20),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock, size: 16, color: AppColors.success),
-                    SizedBox(width: 6),
-                    Text(
-                      'Kênh truyền mã hóa đầu cuối AES-256-GCM',
-                      style: TextStyle(fontSize: 12, color: AppColors.success),
-                    ),
-                  ],
-                ),
+                _CountdownChip(seconds: state.countdownSeconds),
+                const SizedBox(height: 24),
+                _CodeDisplay(code: payload.code),
+                const SizedBox(height: 24),
+                _QrCard(code: payload.code),
+                const SizedBox(height: 20),
+                const _E2eeBadge(),
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Hoàn Tất & Bắt Đầu Chuyển Tiếp'),
-                  ),
+                _ActionButtons(
+                  onRegenerate: () {
+                    context
+                        .read<PairingBloc>()
+                        .add(const PairingGenerateSenderCodeEvent());
+                  },
                 ),
+                const SizedBox(height: 12),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _HeaderIcon extends StatelessWidget {
+  const _HeaderIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.devices_rounded,
+        color: Colors.white,
+        size: 38,
+      ),
+    );
+  }
+}
+
+class _CountdownChip extends StatelessWidget {
+  const _CountdownChip({required this.seconds});
+
+  final int seconds;
+
+  String get _label {
+    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$secs';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isUrgent = seconds <= 60;
+    final background =
+        isUrgent ? colorScheme.errorContainer : colorScheme.primaryContainer;
+    final foreground =
+        isUrgent ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.timer_outlined, size: 16, color: foreground),
+          const SizedBox(width: 6),
+          Text(
+            _label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: foreground,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CodeDisplay extends StatelessWidget {
+  const _CodeDisplay({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(
+        code.length,
+        (index) => _CodeDigitBox(character: code[index]),
+      ),
+    );
+  }
+}
+
+class _CodeDigitBox extends StatelessWidget {
+  const _CodeDigitBox({required this.character});
+
+  final String character;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 48,
+      height: 64,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline, width: 1.5),
+      ),
+      child: Text(
+        character,
+        style: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _QrCard extends StatelessWidget {
+  const _QrCard({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: QrImageView(data: code, size: 180),
+    );
+  }
+}
+
+class _E2eeBadge extends StatelessWidget {
+  const _E2eeBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.tertiary;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.lock_outline_rounded, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          'Mã hóa đầu cuối AES-256-GCM',
+          style: TextStyle(fontSize: 12, color: color),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionButtons extends StatelessWidget {
+  const _ActionButtons({required this.onRegenerate});
+
+  final VoidCallback onRegenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: onRegenerate,
+            child: const Text('Tạo Lại Mã'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hoàn Tất'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 48, color: colorScheme.error),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: onRetry,
+              child: const Text('Thử Lại'),
+            ),
+          ],
+        ),
       ),
     );
   }

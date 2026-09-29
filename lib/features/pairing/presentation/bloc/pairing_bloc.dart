@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/pairing_repository.dart';
 import 'pairing_event.dart';
@@ -6,11 +8,52 @@ import 'pairing_state.dart';
 class PairingBloc extends Bloc<PairingEvent, PairingState> {
   final PairingRepository repository;
 
+  StreamSubscription<void>? _countdownSubscription;
+
   PairingBloc({required this.repository}) : super(const PairingState()) {
-    on<PairingGenerateSenderCodeEvent>(_onGenerateSenderCode);
+    on<PairingGenerateSenderCodeEvent>(
+      (event, emit) async {
+        await _onGenerateSenderCode(event, emit);
+        if (state.pairingPayload != null && state.errorMessage == null) {
+          emit(state.copyWith(
+            countdownSeconds: PairingState.defaultCountdownSeconds,
+          ));
+          _startCountdown();
+        }
+      },
+    );
+    on<PairingTimerTickedEvent>(_onTimerTicked);
     on<PairingSubmitReceiverCodeEvent>(_onSubmitReceiverCode);
     on<PairingCheckReceiverStatusEvent>(_onCheckReceiverStatus);
     on<PairingDisconnectReceiverEvent>(_onDisconnectReceiver);
+  }
+
+  void _startCountdown() {
+    _countdownSubscription?.cancel();
+    _countdownSubscription = Stream<void>.periodic(const Duration(seconds: 1))
+        .listen((_) => add(const PairingTimerTickedEvent()));
+  }
+
+  void _onTimerTicked(
+    PairingTimerTickedEvent event,
+    Emitter<PairingState> emit,
+  ) {
+    final next = state.countdownSeconds - 1;
+    if (next <= 0) {
+      emit(state.copyWith(
+        countdownSeconds: PairingState.defaultCountdownSeconds,
+      ));
+      add(const PairingGenerateSenderCodeEvent());
+      return;
+    }
+    emit(state.copyWith(countdownSeconds: next));
+  }
+
+  @override
+  Future<void> close() {
+    _countdownSubscription?.cancel();
+    _countdownSubscription = null;
+    return super.close();
   }
 
   Future<void> _onGenerateSenderCode(

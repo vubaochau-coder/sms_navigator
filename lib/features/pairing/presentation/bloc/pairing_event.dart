@@ -11,6 +11,10 @@ class PairingGenerateSenderCodeEvent extends PairingEvent {
   const PairingGenerateSenderCodeEvent();
 }
 
+class PairingTimerTickedEvent extends PairingEvent {
+  const PairingTimerTickedEvent();
+}
+
 class PairingSubmitReceiverCodeEvent extends PairingEvent {
   final String code;
 
