@@ -134,7 +134,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
           Text(
             isPaired
                 ? 'Đã kết nối an toàn (E2EE) với Máy Gửi tại Việt Nam. Mã OTP từ SIM Viettel sẽ tự động hiện lên đây trong vài giây.'
-                : 'Bạn cần nhập mã ghép đôi 6 số từ Máy Gửi để bắt đầu nhận OTP.',
+                : 'Bạn cần quét mã QR trên Máy Gửi để bắt đầu nhận OTP.',
             style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
           ),
         ],
@@ -161,7 +161,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Nhấn nút dưới đây để nhập mã 6 số từ Máy Gửi (Việt Nam).',
+            'Nhấn nút dưới đây để quét mã QR hiển thị trên Máy Gửi (Việt Nam).',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
@@ -170,7 +170,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
             width: double.infinity,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.qr_code_scanner, size: 18),
-              label: const Text('Nhập Mã Ghép Đôi'),
+              label: const Text('Quét Mã Ghép Đôi'),
               onPressed: () async {
                 await Navigator.push(
                   context,

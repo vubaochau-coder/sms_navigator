@@ -15,13 +15,18 @@ class PairingTimerTickedEvent extends PairingEvent {
   const PairingTimerTickedEvent();
 }
 
-class PairingSubmitReceiverCodeEvent extends PairingEvent {
-  final String code;
+class PairingSubmitReceiverQrEvent extends PairingEvent {
+  final String qrData;
 
-  const PairingSubmitReceiverCodeEvent(this.code);
+  const PairingSubmitReceiverQrEvent(this.qrData);
 
   @override
-  List<Object?> get props => [code];
+  List<Object?> get props => [qrData];
+}
+
+/// Alias tương thích ngược: xử lý bằng cùng handler với [PairingSubmitReceiverQrEvent].
+class PairingSubmitReceiverCodeEvent extends PairingSubmitReceiverQrEvent {
+  const PairingSubmitReceiverCodeEvent(super.qrData);
 }
 
 class PairingCheckReceiverStatusEvent extends PairingEvent {

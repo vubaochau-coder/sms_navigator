@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
@@ -13,104 +14,84 @@ class PairingReceiverPage extends StatefulWidget {
 }
 
 class _PairingReceiverPageState extends State<PairingReceiverPage> {
-  final GlobalKey<_OtpInputRowState> _otpKey = GlobalKey();
-  String _otpCode = '';
+  final MobileScannerController _controller = MobileScannerController(
+    facing: CameraFacing.back,
+    detectionSpeed: DetectionSpeed.normal,
+  );
 
-  /// Lưu lỗi đã hiển thị để tránh SnackBar/clear lặp lại khi state đổi
-  /// do countdown tick (errorMessage vẫn giữ nguyên giữa các tick).
+  /// Cờ chống quét lặp lại nhiều lần trong khi đang xử lý một mã.
+  bool _isProcessing = false;
+
+  /// Lưu lỗi đã hiển thị để tránh SnackBar lặp lại khi state đổi
+  /// do các sự kiện khác của bloc (errorMessage vẫn giữ nguyên giữa các tick).
   String? _shownError;
 
-  void _onOtpChanged(String code) {
-    setState(() => _otpCode = code);
+  void _onDetect(BarcodeCapture capture) {
+    if (_isProcessing) return;
+    for (final barcode in capture.barcodes) {
+      final rawValue = barcode.rawValue;
+      if (rawValue == null || rawValue.isEmpty) continue;
+      _isProcessing = true;
+      _shownError = null;
+      if (mounted) {
+        context.read<PairingBloc>().add(PairingSubmitReceiverQrEvent(rawValue));
+      }
+      return;
+    }
   }
 
-  void _onOtpCompleted(String code) {
-    _shownError = null;
-    context.read<PairingBloc>().add(PairingSubmitReceiverCodeEvent(code));
-  }
-
-  void _onManualSubmit() {
-    if (_otpCode.length < 6) {
+  void _onPairingStateChanged(BuildContext context, PairingState state) {
+    if (state.isSuccess && _isProcessing) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đủ 6 chữ số.')),
+        const SnackBar(content: Text('Ghép đôi thành công!')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ReceiverDashboardPage()),
       );
       return;
     }
-    _onOtpCompleted(_otpCode);
+
+    final error = state.errorMessage;
+    if (error != null && _shownError != error) {
+      _shownError = error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _isProcessing = false);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nhập Mã Ghép Đôi'),
-      ),
+      backgroundColor: Colors.black,
       body: BlocConsumer<PairingBloc, PairingState>(
-        listener: (context, state) {
-          if (state.isSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ghép đôi thành công! Thiết bị đã sẵn sàng nhận OTP.'),
-              ),
-            );
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ReceiverDashboardPage()),
-            );
-          } else if (state.errorMessage != null &&
-              _shownError != state.errorMessage) {
-            _shownError = state.errorMessage;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
-            _otpKey.currentState?.clear();
-          }
-        },
+        listener: _onPairingStateChanged,
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                const _HeaderIcon(),
-                const SizedBox(height: 24),
-                Text('Kết Nối Thiết Bị', style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 8),
-                Text(
-                  'Nhập mã 6 số hiển thị trên Thiết Bị Gửi.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.4,
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              MobileScanner(controller: _controller, onDetect: _onDetect),
+              const _ViewfinderOverlay(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _ScannerTopBar(
+                    onBack: () => Navigator.pop(context),
                   ),
-                ),
-                const SizedBox(height: 32),
-                _OtpInputRow(
-                  key: _otpKey,
-                  onChanged: _onOtpChanged,
-                  onCompleted: _onOtpCompleted,
-                ),
-                if (_otpCode.length < 6) ...[
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: state.isLoading ? null : _onManualSubmit,
-                      child: state.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Xác Nhận Ghép Đôi'),
-                    ),
-                  ),
+                  _ScannerControls(controller: _controller),
                 ],
-                const SizedBox(height: 12),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -118,169 +99,181 @@ class _PairingReceiverPageState extends State<PairingReceiverPage> {
   }
 }
 
-class _HeaderIcon extends StatelessWidget {
-  const _HeaderIcon();
+/// Lớp phủ tối mờ với lỗ cắt vuông ở giữa và viền bo góc phát sáng.
+class _ViewfinderOverlay extends StatelessWidget {
+  const _ViewfinderOverlay();
+
+  static const double _cutoutSize = 260;
+  static const double _cutoutRadius = 24;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.secondary, colorScheme.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.secondary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+    final borderColor = Theme.of(context).colorScheme.primary;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cutout = RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
+            width: _cutoutSize,
+            height: _cutoutSize,
           ),
-        ],
-      ),
-      child: const Icon(
-        Icons.phonelink_ring_outlined,
-        color: Colors.white,
-        size: 38,
-      ),
-    );
-  }
-}
-
-class _OtpInputRow extends StatefulWidget {
-  const _OtpInputRow({
-    super.key,
-    required this.onChanged,
-    required this.onCompleted,
-  });
-
-  final ValueChanged<String> onChanged;
-  final ValueChanged<String> onCompleted;
-
-  @override
-  State<_OtpInputRow> createState() => _OtpInputRowState();
-}
-
-class _OtpInputRowState extends State<_OtpInputRow> {
-  static const int _digitCount = 6;
-
-  late final List<TextEditingController> _controllers;
-  late final List<FocusNode> _focusNodes;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = List.generate(_digitCount, (_) => TextEditingController());
-    _focusNodes = List.generate(_digitCount, (_) => FocusNode());
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    for (final focusNode in _focusNodes) {
-      focusNode.dispose();
-    }
-    super.dispose();
-  }
-
-  String get _code =>
-      [for (final controller in _controllers) controller.text].join();
-
-  /// Reset toàn bộ ô input về rỗng và focus về ô đầu tiên (dùng khi có lỗi).
-  void clear() {
-    for (final controller in _controllers) {
-      controller.clear();
-    }
-    _focusNodes.first.requestFocus();
-    widget.onChanged('');
-  }
-
-  void _handleChanged(int index, String value) {
-    if (value.isNotEmpty) {
-      if (index < _digitCount - 1) {
-        _focusNodes[index + 1].requestFocus();
-      }
-    } else if (index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
-    final code = _code;
-    widget.onChanged(code);
-    if (index == _digitCount - 1 && code.length == _digitCount) {
-      widget.onCompleted(code);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(
-        _digitCount,
-        (index) => _OtpCell(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          onChanged: (value) => _handleChanged(index, value),
-        ),
-      ),
-    );
-  }
-}
-
-class _OtpCell extends StatelessWidget {
-  const _OtpCell({
-    required this.controller,
-    required this.focusNode,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListenableBuilder(
-      listenable: focusNode,
-      builder: (context, _) {
-        final isFocused = focusNode.hasFocus;
-        return Container(
-          width: 44,
-          height: 56,
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isFocused ? colorScheme.primary : colorScheme.outline,
-              width: isFocused ? 2 : 1.5,
-            ),
-          ),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-            decoration: const InputDecoration(
-              counterText: '',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            onChanged: onChanged,
-          ),
+          const Radius.circular(_cutoutRadius),
+        );
+        return CustomPaint(
+          painter: _ViewfinderPainter(rrect: cutout, borderColor: borderColor),
+          child: const SizedBox.expand(),
         );
       },
+    );
+  }
+}
+
+class _ViewfinderPainter extends CustomPainter {
+  const _ViewfinderPainter({required this.rrect, required this.borderColor});
+
+  final RRect rrect;
+  final Color borderColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final screen = Offset.zero & size;
+    final mask = Path()..addRect(screen);
+    final hole = Path()..addRRect(rrect);
+    final combined = Path.combine(PathOperation.difference, mask, hole);
+    canvas.drawPath(combined, Paint()..color = Colors.black54);
+
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..color = borderColor.withValues(alpha: 0.35);
+    canvas.drawRRect(rrect.deflate(3), glowPaint);
+
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..color = borderColor;
+    canvas.drawRRect(rrect.deflate(3), borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ViewfinderPainter oldDelegate) {
+    return oldDelegate.rrect != rrect ||
+        oldDelegate.borderColor != borderColor;
+  }
+}
+
+class _ScannerTopBar extends StatelessWidget {
+  const _ScannerTopBar({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: onBack,
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Expanded(
+              child: Text(
+                'Quét Mã Ghép Đôi',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerControls extends StatelessWidget {
+  const _ScannerControls({required this.controller});
+
+  final MobileScannerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Căn chỉnh mã QR trên Thiết Bị Gửi vào giữa khung ngắm',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.85),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 20),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ValueListenableBuilder<MobileScannerState>(
+                  valueListenable: controller,
+                  builder: (context, state, _) {
+                    final isTorchOn = state.torchState == TorchState.on;
+                    return _ScannerControlButton(
+                      icon: isTorchOn
+                          ? Icons.flash_on_rounded
+                          : Icons.flash_off_rounded,
+                      onTap: () => controller.toggleTorch(),
+                    );
+                  },
+                ),
+                const SizedBox(width: 40),
+                _ScannerControlButton(
+                  icon: Icons.cameraswitch_rounded,
+                  onTap: () => controller.switchCamera(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScannerControlButton extends StatelessWidget {
+  const _ScannerControlButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: colorScheme.primary.withValues(alpha: 0.9),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Icon(icon, color: colorScheme.onPrimary, size: 26),
+        ),
+      ),
     );
   }
 }

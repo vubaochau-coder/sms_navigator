@@ -1,0 +1,160 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
+import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
+import 'package:sms_navigator/features/pairing/data/services/pairing_service.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_event.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_state.dart';
+
+class _FakePairingRepository implements PairingRepository {
+  _FakePairingRepository({required this.onSubmitQr});
+
+  final bool Function(String qrData) onSubmitQr;
+
+  @override
+  Future<PairingPayloadModel> createSenderPairingSession() async {
+    final payload = PairingPayloadModel(
+      pairId: 'pair_fake',
+      sharedSecretBase64: 'FAKE_SECRET',
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      expiresAt: DateTime.now().millisecondsSinceEpoch + 60000,
+    );
+    return payload;
+  }
+
+  @override
+  Future<bool> applySenderPairing(PairingPayloadModel payload) async => true;
+
+  @override
+  Future<bool> submitReceiverPairingQr(String qrData) async => onSubmitQr(qrData);
+
+  @override
+  Future<bool> submitReceiverPairingCode(String code) async =>
+      submitReceiverPairingQr(code);
+
+  @override
+  Future<PairingPayloadModel?> checkReceiverPairingStatus() async => null;
+
+  @override
+  Future<bool> disconnectReceiver() async => true;
+}
+
+Future<List<PairingState>> _collectUntil(
+  PairingBloc bloc,
+  bool Function(PairingState) predicate,
+) async {
+  final states = <PairingState>[];
+  final done = Completer<void>();
+  late final StreamSubscription<PairingState> subscription;
+  subscription = bloc.stream.listen((state) {
+    states.add(state);
+    if (predicate(state) && !done.isCompleted) {
+      done.complete();
+    }
+  });
+  await done.future.timeout(const Duration(seconds: 5));
+  await subscription.cancel();
+  return states;
+}
+
+void main() {
+  test('submitting a valid QR emits success and paired state', () async {
+    final bloc = PairingBloc(
+      repository: _FakePairingRepository(onSubmitQr: (_) => true),
+    );
+
+    final statesFuture =
+        _collectUntil(bloc, (state) => state.isSuccess && state.isPaired);
+    bloc.add(const PairingSubmitReceiverQrEvent('{"v":1,"pairId":"p"}'));
+
+    final states = await statesFuture;
+    await bloc.close();
+
+    expect(states.last.isLoading, isFalse);
+    expect(states.last.isSuccess, isTrue);
+    expect(states.last.isPaired, isTrue);
+    expect(states.last.errorMessage, isNull);
+  });
+
+  test('submitting an invalid QR emits an error message', () async {
+    final bloc = PairingBloc(
+      repository: _FakePairingRepository(onSubmitQr: (_) => false),
+    );
+
+    final statesFuture =
+        _collectUntil(bloc, (state) => state.errorMessage != null);
+    bloc.add(const PairingSubmitReceiverQrEvent('bad-qr-data'));
+
+    final states = await statesFuture;
+    await bloc.close();
+
+    expect(states.last.isSuccess, isFalse);
+    expect(states.last.isPaired, isFalse);
+    expect(
+      states.last.errorMessage,
+      'Mã QR không hợp lệ hoặc đã hết hạn.',
+    );
+  });
+
+  test('legacy code event routes to the same QR handler', () async {
+    final submitted = <String>[];
+    final bloc = PairingBloc(
+      repository: _FakePairingRepository(
+        onSubmitQr: (qrData) {
+          submitted.add(qrData);
+          return false;
+        },
+      ),
+    );
+
+    final statesFuture =
+        _collectUntil(bloc, (state) => state.errorMessage != null);
+    bloc.add(const PairingSubmitReceiverCodeEvent('123456'));
+
+    final states = await statesFuture;
+    await bloc.close();
+
+    expect(submitted, ['123456']);
+    expect(states.last.errorMessage, isNotNull);
+  });
+
+  test('repository submitReceiverPairingCode forwards to QR submission',
+      () async {
+    final probe = _ForwardingServiceProbe();
+    final repo = PairingRepositoryImpl(pairingService: probe);
+
+    await repo.submitReceiverPairingCode('123456');
+
+    expect(probe.received, ['123456']);
+  });
+}
+
+class _ForwardingServiceProbe implements PairingService {
+  final List<String> received = [];
+
+  @override
+  Future<PairingPayloadModel> generateSenderPairing() async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> confirmSenderPairing(PairingPayloadModel payload) async => true;
+
+  @override
+  Future<bool> confirmReceiverPairingFromQr(String qrData) async {
+    received.add(qrData);
+    return qrData.contains('v');
+  }
+
+  @override
+  Future<bool> confirmReceiverPairing(String data) =>
+      confirmReceiverPairingFromQr(data);
+
+  @override
+  Future<PairingPayloadModel?> getReceiverPairing() async => null;
+
+  @override
+  Future<bool> clearReceiverPairing() async => true;
+}

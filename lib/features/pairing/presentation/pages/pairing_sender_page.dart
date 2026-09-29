@@ -51,10 +51,10 @@ class _PairingSenderPageState extends State<PairingSenderPage> {
                 const SizedBox(height: 8),
                 const _HeaderIcon(),
                 const SizedBox(height: 24),
-                Text('Mã Ghép Đôi', style: theme.textTheme.headlineSmall),
+                Text('Mã QR Ghép Đôi', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 8),
                 Text(
-                  'Nhập mã 6 số này trên Thiết Bị Nhận để thiết lập kênh E2EE an toàn.',
+                  'Dùng Thiết Bị Nhận để quét mã QR bên dưới, thiết lập kênh E2EE an toàn tức thì.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -62,13 +62,14 @@ class _PairingSenderPageState extends State<PairingSenderPage> {
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
+                Hero(
+                  tag: 'pairing_qr_hero',
+                  child: _QrCard(qrData: payload.toQrData()),
+                ),
+                const SizedBox(height: 16),
                 _CountdownChip(seconds: state.countdownSeconds),
                 const SizedBox(height: 24),
-                _CodeDisplay(code: payload.code),
-                const SizedBox(height: 24),
-                _QrCard(code: payload.code),
-                const SizedBox(height: 20),
                 const _E2eeBadge(),
                 const SizedBox(height: 32),
                 _ActionButtons(
@@ -113,9 +114,41 @@ class _HeaderIcon extends StatelessWidget {
         ],
       ),
       child: const Icon(
-        Icons.devices_rounded,
+        Icons.qr_code_2_rounded,
         color: Colors.white,
         size: 38,
+      ),
+    );
+  }
+}
+
+class _QrCard extends StatelessWidget {
+  const _QrCard({required this.qrData});
+
+  final String qrData;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 240,
+      height: 240,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: QrImageView(
+        data: qrData,
+        size: 200,
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -136,14 +169,12 @@ class _CountdownChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isUrgent = seconds <= 60;
-    final background =
-        isUrgent ? colorScheme.errorContainer : colorScheme.primaryContainer;
     final foreground =
-        isUrgent ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer;
+        isUrgent ? colorScheme.onError : colorScheme.onPrimaryContainer;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: background,
+        color: isUrgent ? colorScheme.error : colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -162,72 +193,6 @@ class _CountdownChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CodeDisplay extends StatelessWidget {
-  const _CodeDisplay({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(
-        code.length,
-        (index) => _CodeDigitBox(character: code[index]),
-      ),
-    );
-  }
-}
-
-class _CodeDigitBox extends StatelessWidget {
-  const _CodeDigitBox({required this.character});
-
-  final String character;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: 48,
-      height: 64,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline, width: 1.5),
-      ),
-      child: Text(
-        character,
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.primary,
-        ),
-      ),
-    );
-  }
-}
-
-class _QrCard extends StatelessWidget {
-  const _QrCard({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outline),
-      ),
-      child: QrImageView(data: code, size: 180),
     );
   }
 }
@@ -262,9 +227,10 @@ class _ActionButtons extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
+          child: OutlinedButton.icon(
             onPressed: onRegenerate,
-            child: const Text('Tạo Lại Mã'),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Làm Mới Mã QR'),
           ),
         ),
         const SizedBox(width: 12),

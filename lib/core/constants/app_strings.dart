@@ -12,8 +12,8 @@ class AppStrings {
   static const String roleReceiverDesc = 'Nhận mã OTP qua Internet và hiển thị thông báo tức thì kèm nút sao chép.';
 
   static const String pairingTitle = 'Ghép Đôi Thiết Bị';
-  static const String pairingSenderGuide = 'Quét mã QR hoặc nhập mã ghép đôi 6 số từ thiết bị Máy Nhận.';
-  static const String pairingReceiverGuide = 'Nhập mã ghép đôi hiển thị trên Máy Gửi để thiết lập kênh mã hóa E2EE.';
+  static const String pairingSenderGuide = 'Hiển thị mã QR để thiết bị Máy Nhận quét và thiết lập kênh E2EE.';
+  static const String pairingReceiverGuide = 'Quét mã QR trên Máy Gửi để thiết lập kênh mã hóa E2EE.';
 
   static const String senderDashboardTitle = 'Bảng Điều Khiển Máy Gửi';
   static const String receiverDashboardTitle = 'Danh Sách OTP Nhận Được';

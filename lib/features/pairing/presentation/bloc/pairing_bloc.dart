@@ -23,7 +23,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       },
     );
     on<PairingTimerTickedEvent>(_onTimerTicked);
-    on<PairingSubmitReceiverCodeEvent>(_onSubmitReceiverCode);
+    on<PairingSubmitReceiverQrEvent>(_onSubmitReceiverQr);
     on<PairingCheckReceiverStatusEvent>(_onCheckReceiverStatus);
     on<PairingDisconnectReceiverEvent>(_onDisconnectReceiver);
   }
@@ -76,13 +76,13 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
     }
   }
 
-  Future<void> _onSubmitReceiverCode(
-    PairingSubmitReceiverCodeEvent event,
+  Future<void> _onSubmitReceiverQr(
+    PairingSubmitReceiverQrEvent event,
     Emitter<PairingState> emit,
   ) async {
     emit(state.copyWith(isLoading: true, errorMessage: null, isSuccess: false));
     try {
-      final success = await repository.submitReceiverPairingCode(event.code);
+      final success = await repository.submitReceiverPairingQr(event.qrData);
       if (success) {
         emit(state.copyWith(
           isLoading: false,
@@ -92,13 +92,13 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       } else {
         emit(state.copyWith(
           isLoading: false,
-          errorMessage: 'Mã ghép đôi không hợp lệ. Vui lòng nhập đúng 6 số.',
+          errorMessage: 'Mã QR không hợp lệ hoặc đã hết hạn.',
         ));
       }
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: 'Lỗi xác nhận mã ghép đôi: ${e.toString()}',
+        errorMessage: 'Lỗi xác nhận ghép đôi: ${e.toString()}',
       ));
     }
   }
