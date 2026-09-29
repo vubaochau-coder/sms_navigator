@@ -60,15 +60,20 @@ class PairingServiceImpl implements PairingService {
       }
     } catch (_) {}
 
-    // Cập nhật cấu hình relay (kèm relayUrl) cho Android native.
+    // Cập nhật cấu hình relay (kèm relayUrl, deviceToken, deviceId) cho Android native.
     final serverUrl =
         await deviceStorageService?.getServerUrl() ?? ApiClient.defaultBaseUrl;
     final relayUrl = '$serverUrl/api/v1/relay';
+    final deviceToken = await deviceStorageService?.getDeviceToken();
+    final deviceId = await deviceStorageService?.getDeviceId();
+
     await nativeService.setRelayConfig(
       isRelayEnabled: true,
       pairId: payload.pairId,
       sharedSecretBase64: payload.sharedSecretBase64,
       relayUrl: relayUrl,
+      deviceToken: deviceToken,
+      deviceId: deviceId,
     );
 
     return payload;
@@ -76,10 +81,15 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<bool> confirmSenderPairing(PairingPayloadModel payload) async {
+    final deviceToken = await deviceStorageService?.getDeviceToken();
+    final deviceId = await deviceStorageService?.getDeviceId();
+
     return await nativeService.setRelayConfig(
       isRelayEnabled: true,
       pairId: payload.pairId,
       sharedSecretBase64: payload.sharedSecretBase64,
+      deviceToken: deviceToken,
+      deviceId: deviceId,
     );
   }
 
@@ -89,6 +99,12 @@ class PairingServiceImpl implements PairingService {
       final payload = PairingPayloadModel.fromQrData(qrData);
       if (payload.isExpired) return false;
 
+      // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server
+      final storedFcm = await deviceStorageService?.getFcmToken();
+      final fcmToken = (storedFcm != null && storedFcm.isNotEmpty)
+          ? storedFcm
+          : 'fcm_token_${payload.pairId}_${DateTime.now().millisecondsSinceEpoch}';
+
       // Đăng ký thiết bị nhận với server nếu có kết nối.
       try {
         if (deviceApiService != null) {
@@ -97,7 +113,10 @@ class PairingServiceImpl implements PairingService {
         if (apiClient != null) {
           await apiClient!.post(
             '/api/v1/pair/confirm',
-            body: {'pair_id': payload.pairId},
+            body: {
+              'pair_id': payload.pairId,
+              'fcm_token': fcmToken,
+            },
           );
         }
       } catch (_) {}

@@ -18,12 +18,16 @@ class _FakeNativeRelayService implements NativeRelayService {
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
+    String? deviceToken,
+    String? deviceId,
   }) async {
     lastConfig = {
       'isRelayEnabled': isRelayEnabled,
       'pairId': pairId,
       'sharedSecretBase64': sharedSecretBase64,
       'relayUrl': relayUrl,
+      'deviceToken': deviceToken,
+      'deviceId': deviceId,
     };
     return true;
   }

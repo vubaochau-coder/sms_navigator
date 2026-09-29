@@ -7,6 +7,7 @@ import '../../features/sender/data/repositories/sender_repository.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
 import '../network/api_client.dart';
 import '../services/device_storage_service.dart';
+import '../services/fcm_notification_service.dart';
 
 class DependencyContainer {
   DependencyContainer._();
@@ -27,6 +28,7 @@ class DependencyContainer {
   late final DeviceStorageService deviceStorageService;
   late final ApiClient apiClient;
   late final DeviceApiService deviceApiService;
+  late final FcmNotificationService fcmNotificationService;
 
   void init() {
     if (_initialized) return;
@@ -60,6 +62,12 @@ class DependencyContainer {
       pairingService: pairingService,
       apiClient: apiClient,
       deviceApiService: deviceApiService,
+    );
+
+    fcmNotificationService = FcmNotificationService(
+      deviceStorageService: deviceStorageService,
+      deviceApiService: deviceApiService,
+      receiverStorageService: receiverStorageService,
     );
   }
 }

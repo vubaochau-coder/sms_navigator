@@ -38,6 +38,10 @@ class OtpPreferences(context: Context) {
         }
         set(value) = prefs.edit().putString(KEY_DEVICE_ID, value).apply()
 
+    var deviceToken: String?
+        get() = prefs.getString(KEY_DEVICE_TOKEN, null)
+        set(value) = prefs.edit().putString(KEY_DEVICE_TOKEN, value).apply()
+
     /**
      * Checks if this OTP was already sent in the last 5 minutes (TTL / Deduplication).
      * If not duplicate, records it and returns false.
@@ -125,6 +129,7 @@ class OtpPreferences(context: Context) {
         private const val KEY_SHARED_SECRET = "shared_secret"
         private const val KEY_RELAY_URL = "relay_url"
         private const val KEY_DEVICE_ID = "device_id"
+        private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_RECENT_HASHES = "recent_hashes"
         private const val KEY_RELAY_LOGS = "relay_logs"
 
