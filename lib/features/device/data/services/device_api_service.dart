@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/services/device_storage_service.dart';
 
@@ -25,8 +26,8 @@ class DeviceApiServiceImpl implements DeviceApiService {
   final ApiClient apiClient;
   final DeviceStorageService storageService;
 
-  static const String _registerPath = '/api/v1/devices/register';
-  static const String _fcmTokenPath = '/api/v1/devices/fcm-token';
+  static const String _registerPath = ApiEndpoints.registerDevice;
+  static const String _fcmTokenPath = ApiEndpoints.updateFcmToken;
 
   @override
   Future<Map<String, dynamic>> registerDevice({

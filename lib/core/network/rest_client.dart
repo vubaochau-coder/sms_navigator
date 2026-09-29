@@ -1,40 +1,53 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../constants/api_endpoints.dart';
+
 part 'rest_client.g.dart';
 
 @RestApi()
 abstract class RestClient {
   factory RestClient(Dio dio, {String? baseUrl}) = _RestClient;
 
-  @POST('/api/v1/devices/register')
+  @POST(ApiEndpoints.registerDevice)
   Future<dynamic> registerDevice(@Body() Map<String, dynamic> body);
 
-  @PUT('/api/v1/devices/fcm-token')
+  @PUT(ApiEndpoints.updateFcmToken)
   Future<dynamic> updateFcmToken(@Body() Map<String, dynamic> body);
 
-  @POST('/api/v1/pair/init')
+  @POST(ApiEndpoints.initPair)
   Future<dynamic> initPair(@Body() Map<String, dynamic> body);
 
-  @POST('/api/v1/pair/confirm')
+  @POST(ApiEndpoints.confirmPair)
   Future<dynamic> confirmPair(@Body() Map<String, dynamic> body);
 
-  @GET('/api/v1/pair/status/{pairId}')
+  @GET(ApiEndpoints.pairStatus)
   Future<dynamic> getPairStatus(@Path('pairId') String pairId);
 
-  @DELETE('/api/v1/pair/{pairId}')
+  @DELETE(ApiEndpoints.revokePair)
   Future<dynamic> revokePair(@Path('pairId') String pairId);
 
-  @POST('/api/v1/relay')
+  @PATCH(ApiEndpoints.togglePair)
+  Future<dynamic> togglePairActive(
+    @Path('pairId') String pairId,
+    @Body() Map<String, dynamic> body,
+  );
+
+  @GET(ApiEndpoints.pairedReceivers)
+  Future<dynamic> getPairedReceivers();
+
+  @GET(ApiEndpoints.pairedSenders)
+  Future<dynamic> getPairedSenders();
+
+  @POST(ApiEndpoints.relay)
   Future<dynamic> relayOtp(@Body() Map<String, dynamic> body);
 
-  @GET('/api/v1/relay/pending/{pairId}')
+  @GET(ApiEndpoints.pendingMessages)
   Future<dynamic> getPendingMessages(@Path('pairId') String pairId);
 
-  @GET('/api/v1/relay/history')
+  @GET(ApiEndpoints.relayHistory)
   Future<dynamic> getRelayHistory(
     @Query('date') String date,
     @Query('pair_id') String? pairId,
   );
 }
-

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/date_time_utils.dart';
+import '../../../../core/utils/ui_utils.dart';
 import '../../domain/models/decrypted_otp_item.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
@@ -49,21 +50,17 @@ class _OtpListViewState extends State<_OtpListView> {
   }
 
   void _copyToClipboard(String text, String label) {
-    Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Đã sao chép $label: $text'),
-        backgroundColor: AppColors.success,
-        duration: const Duration(seconds: 2),
-      ),
+    UiUtils.copyToClipboard(
+      context,
+      text,
+      successMessage: 'Đã sao chép $label: $text',
     );
   }
 
   void _showFullMessageDialog(DecryptedOtpItem item) {
     final colorScheme = Theme.of(context).colorScheme;
-    final timeStr = DateFormat('HH:mm:ss - dd/MM/yyyy').format(item.receivedAt);
+    final timeStr = DateTimeUtils.formatDateTime(item.receivedAt, includeSeconds: true);
 
     showModalBottomSheet(
       context: context,
@@ -234,7 +231,7 @@ class _OtpListViewState extends State<_OtpListView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dateDisplay = DateFormat('dd/MM/yyyy').format(_selectedDay);
+    final dateDisplay = DateTimeUtils.formatDate(_selectedDay);
 
     return Scaffold(
       appBar: AppBar(
@@ -519,7 +516,7 @@ class _OtpListViewState extends State<_OtpListView> {
 
   /// Card hiển thị chi tiết mã OTP / SMS.
   Widget _buildOtpCard(DecryptedOtpItem item, ColorScheme colorScheme) {
-    final timeStr = DateFormat('HH:mm:ss').format(item.receivedAt);
+    final timeStr = DateTimeUtils.formatTime(item.receivedAt, includeSeconds: true);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

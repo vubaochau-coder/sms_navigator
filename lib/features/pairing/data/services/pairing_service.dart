@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../device/data/services/device_api_service.dart';
@@ -54,7 +55,7 @@ class PairingServiceImpl implements PairingService {
       }
       if (apiClient != null) {
         await apiClient!.post(
-          '/api/v1/pair/init',
+          ApiEndpoints.initPair,
           body: {'pair_id': payload.pairId},
         );
       }
@@ -63,7 +64,7 @@ class PairingServiceImpl implements PairingService {
     // Cập nhật cấu hình relay (kèm relayUrl, deviceToken, deviceId) cho Android native.
     final serverUrl =
         await deviceStorageService?.getServerUrl() ?? ApiClient.defaultBaseUrl;
-    final relayUrl = '$serverUrl/api/v1/relay';
+    final relayUrl = '$serverUrl${ApiEndpoints.relay}';
     final deviceToken = await deviceStorageService?.getDeviceToken();
     final deviceId = await deviceStorageService?.getDeviceId();
 
@@ -112,7 +113,7 @@ class PairingServiceImpl implements PairingService {
         }
         if (apiClient != null) {
           await apiClient!.post(
-            '/api/v1/pair/confirm',
+            ApiEndpoints.confirmPair,
             body: {
               'pair_id': payload.pairId,
               'fcm_token': fcmToken,

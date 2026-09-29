@@ -14,6 +14,7 @@ import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/bloc/pairing_bloc.dart';
 import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
+import '../../../pairing/presentation/pages/paired_senders_page.dart';
 import '../../../pairing/presentation/pages/pairing_receiver_page.dart';
 import '../../data/models/received_otp_model.dart';
 import '../bloc/receiver_bloc.dart';
@@ -116,6 +117,16 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
       appBar: AppBar(
         title: const Text('Máy Nhận (Malaysia)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.cell_tower_rounded),
+            tooltip: 'Thiết bị gửi (Xem trạng thái)',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PairedSendersPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history_rounded),
             tooltip: 'Danh sách OTP theo ngày',
@@ -371,6 +382,22 @@ class _ConnectionStatusCard extends StatelessWidget {
               height: 1.4,
             ),
           ),
+          if (isPaired) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.cell_tower_rounded, size: 18),
+                label: const Text('Xem hiện trạng thiết bị gửi (Chỉ xem)'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PairedSendersPage()),
+                  );
+                },
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../features/sender/data/services/native_relay_service.dart';
+import '../constants/api_endpoints.dart';
 import '../services/device_storage_service.dart';
+import '../utils/ui_utils.dart';
 
 /// Dialog cài đặt Server URL dùng chung cho Sender & Receiver Dashboard.
 ///
@@ -91,18 +93,13 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
           isRelayEnabled: config['isRelayEnabled'] == true,
           pairId: pairId,
           sharedSecretBase64: config['sharedSecretBase64']?.toString(),
-          relayUrl: '$normalizedUrl/api/v1/relay',
+          relayUrl: '$normalizedUrl${ApiEndpoints.relay}',
         );
       }
 
       if (!mounted) return;
       Navigator.of(context).pop(normalizedUrl);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đã lưu cấu hình server: $normalizedUrl'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      UiUtils.showSuccessToast(context, 'Đã lưu cấu hình server: $normalizedUrl');
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSaving = false);

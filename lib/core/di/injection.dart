@@ -1,6 +1,7 @@
 import '../../features/device/data/services/device_api_service.dart';
 import '../../features/otp_list/data/repositories/otp_list_repository.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
+import '../../features/pairing/data/services/pair_management_service.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
 import '../../features/receiver/data/repositories/receiver_repository.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
@@ -22,6 +23,7 @@ class DependencyContainer {
 
   late final PairingService pairingService;
   late final PairingRepository pairingRepository;
+  late final PairManagementService pairManagementService;
 
   late final ReceiverStorageService receiverStorageService;
   late final ReceiverRepository receiverRepository;
@@ -57,6 +59,7 @@ class DependencyContainer {
       deviceStorageService: deviceStorageService,
     );
     pairingRepository = PairingRepositoryImpl(pairingService: pairingService);
+    pairManagementService = PairManagementServiceImpl(apiClient: apiClient);
 
     receiverStorageService = ReceiverStorageServiceImpl();
     receiverRepository = ReceiverRepositoryImpl(

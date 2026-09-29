@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
@@ -11,6 +12,7 @@ import '../../../../core/utils/crypto_helper.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
+import '../../../pairing/presentation/pages/paired_receivers_page.dart';
 import '../../../pairing/presentation/pages/pairing_sender_page.dart';
 import '../../data/models/relay_log_model.dart';
 import '../bloc/sender_bloc.dart';
@@ -131,7 +133,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                   final deviceId =
                       await di.deviceStorageService.getDeviceId() ?? 'dev_sender';
                   await di.apiClient.post(
-                    '/api/v1/relay',
+                    ApiEndpoints.relay,
                     body: {
                       'pair_id': pairId,
                       'device_id': deviceId,
@@ -176,6 +178,16 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       appBar: AppBar(
         title: const Text('Máy Gửi (Việt Nam)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.devices_rounded),
+            tooltip: 'Danh sách thiết bị nhận',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PairedReceiversPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history_rounded),
             tooltip: 'Danh sách OTP theo ngày',
@@ -478,6 +490,20 @@ class _PairingCard extends StatelessWidget {
               label: 'ID Thiết Bị:',
               value: state.deviceId.substring(0, 8),
               colorScheme: colorScheme,
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.devices_rounded, size: 18),
+                label: const Text('Quản lý thiết bị nhận (Bật/Tắt gửi)'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PairedReceiversPage()),
+                  );
+                },
+              ),
             ),
           ] else ...[
             Text(

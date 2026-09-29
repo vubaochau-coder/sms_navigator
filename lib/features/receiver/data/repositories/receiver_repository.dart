@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../device/data/services/device_api_service.dart';
@@ -50,7 +51,7 @@ class ReceiverRepositoryImpl implements ReceiverRepository {
 
     await deviceApiService.registerDevice();
 
-    final res = await apiClient.get('/api/v1/relay/pending/${pairing.pairId}');
+    final res = await apiClient.get(ApiEndpoints.pendingMessagesPath(pairing.pairId));
     final messages = _extractMessages(res);
     if (messages.isEmpty) return 0;
 
