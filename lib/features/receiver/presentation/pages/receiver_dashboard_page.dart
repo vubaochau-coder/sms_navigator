@@ -9,6 +9,7 @@ import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/fcm_notification_service.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
+import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../pairing/presentation/bloc/pairing_bloc.dart';
 import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
@@ -114,6 +115,16 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
       appBar: AppBar(
         title: const Text('Máy Nhận (Malaysia)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined),
+            tooltip: 'Thử nghiệm Thông Báo Push',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationTestPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.dns_rounded),
             tooltip: 'Cài đặt Server',

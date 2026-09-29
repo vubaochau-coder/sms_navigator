@@ -257,4 +257,89 @@ class FcmNotificationService {
       payload: otp.otp,
     );
   }
+
+  /// Bắn thông báo demo cho tình huống: Máy B nhận được OTP từ Máy A.
+  static Future<void> showDemoReceiverOtpNotification({
+    String sender = 'Vietcombank',
+    String otp = '849201',
+    String rawMessage =
+        'GD 849201 tai VCB DIGIBANK luc 22:30. Khong chia se ma OTP cho bat ky ai.',
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: channelDesc,
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'Mã OTP nhận được',
+      styleInformation: BigTextStyleInformation(''),
+      playSound: true,
+      enableVibration: true,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.message,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    final notificationId =
+        (DateTime.now().millisecondsSinceEpoch % 100000).toInt();
+
+    try {
+      await _localNotifications.show(
+        id: notificationId,
+        title: '🔐 Mã OTP từ $sender: $otp',
+        body: 'Nội dung: $rawMessage\nChạm để sao chép mã $otp',
+        notificationDetails: notificationDetails,
+        payload: otp,
+      );
+    } catch (e) {
+      debugPrint('Could not trigger native local notification: $e');
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _otpStreamController.add(
+      ReceivedOtpModel(
+        id: 'demo_$notificationId',
+        sender: sender,
+        otp: otp,
+        receivedAt: now,
+        expiresAt: now + (5 * 60 * 1000),
+        rawMessage: rawMessage,
+      ),
+    );
+  }
+
+  /// Bắn thông báo demo cho tình huống: Máy A gửi OTP tới Máy B thành công.
+  static Future<void> showDemoSenderSuccessNotification({
+    String sender = 'Vietcombank',
+    String otp = '849201',
+    String targetDevice = 'Máy Nhận (Malaysia)',
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'sms_navigator_sender_channel',
+      'Thông Báo Chuyển Tiếp',
+      channelDescription: 'Thông báo trạng thái chuyển tiếp OTP thành công',
+      importance: Importance.high,
+      priority: Priority.high,
+      ticker: 'Chuyển tiếp OTP thành công',
+      styleInformation: BigTextStyleInformation(''),
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    final notificationId =
+        (DateTime.now().millisecondsSinceEpoch % 100000).toInt();
+
+    try {
+      await _localNotifications.show(
+        id: notificationId,
+        title: '✅ Đã Chuyển Tiếp OTP Thành Công',
+        body: 'Đã gửi mã $otp (từ $sender) tới $targetDevice qua kênh E2EE',
+        notificationDetails: notificationDetails,
+        payload: otp,
+      );
+    } catch (e) {
+      debugPrint('Could not trigger native local notification: $e');
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../../../sender/presentation/pages/sender_dashboard_page.dart';
 
@@ -15,9 +16,19 @@ class RoleSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appTitle),
-        actions: const [
-          _ThemeToggleButton(),
-          SizedBox(width: 8),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active_outlined),
+            tooltip: 'Thử nghiệm Thông Báo Push',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationTestPage()),
+              );
+            },
+          ),
+          const _ThemeToggleButton(),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -75,6 +86,20 @@ class RoleSelectionPage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 32),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                icon: const Icon(Icons.science_outlined, size: 18),
+                label: const Text('Thử Nghiệm & Xem UI Push Notification'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationTestPage()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
