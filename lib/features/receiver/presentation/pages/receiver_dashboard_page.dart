@@ -10,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/services/fcm_notification_service.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
+import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/bloc/pairing_bloc.dart';
 import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
@@ -115,6 +116,16 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
       appBar: AppBar(
         title: const Text('Máy Nhận (Malaysia)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Danh sách OTP theo ngày',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OtpListPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_active_outlined),
             tooltip: 'Thử nghiệm Thông Báo Push',

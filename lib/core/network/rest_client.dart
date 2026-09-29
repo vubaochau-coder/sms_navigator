@@ -30,4 +30,11 @@ abstract class RestClient {
 
   @GET('/api/v1/relay/pending/{pairId}')
   Future<dynamic> getPendingMessages(@Path('pairId') String pairId);
+
+  @GET('/api/v1/relay/history')
+  Future<dynamic> getRelayHistory(
+    @Query('date') String date,
+    @Query('pair_id') String? pairId,
+  );
 }
+

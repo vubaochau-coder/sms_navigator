@@ -10,6 +10,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
+import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/pages/pairing_sender_page.dart';
 import '../../data/models/relay_log_model.dart';
 import '../bloc/sender_bloc.dart';
@@ -175,6 +176,16 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       appBar: AppBar(
         title: const Text('Máy Gửi (Việt Nam)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Danh sách OTP theo ngày',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OtpListPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_active_outlined),
             tooltip: 'Thử nghiệm Thông Báo Push',

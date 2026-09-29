@@ -1,4 +1,5 @@
 import '../../features/device/data/services/device_api_service.dart';
+import '../../features/otp_list/data/repositories/otp_list_repository.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
 import '../../features/receiver/data/repositories/receiver_repository.dart';
@@ -29,6 +30,7 @@ class DependencyContainer {
   late final ApiClient apiClient;
   late final DeviceApiService deviceApiService;
   late final FcmNotificationService fcmNotificationService;
+  late final OtpListRepository otpListRepository;
 
   void init() {
     if (_initialized) return;
@@ -68,6 +70,12 @@ class DependencyContainer {
       deviceStorageService: deviceStorageService,
       deviceApiService: deviceApiService,
       receiverStorageService: receiverStorageService,
+    );
+
+    otpListRepository = OtpListRepositoryImpl(
+      restClient: apiClient.rest,
+      storageService: deviceStorageService,
+      nativeRelayService: nativeRelayService,
     );
   }
 }

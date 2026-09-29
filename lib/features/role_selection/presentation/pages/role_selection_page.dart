@@ -4,6 +4,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
+import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../../../sender/presentation/pages/sender_dashboard_page.dart';
 
@@ -17,6 +18,16 @@ class RoleSelectionPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(AppStrings.appTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Danh sách OTP theo ngày',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OtpListPage()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_active_outlined),
             tooltip: 'Thử nghiệm Thông Báo Push',
