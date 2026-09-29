@@ -31,7 +31,8 @@ class MainActivity : FlutterActivity() {
                         "pairId" to prefs.pairId,
                         "sharedSecretBase64" to prefs.sharedSecretBase64,
                         "relayUrl" to prefs.relayUrl,
-                        "deviceId" to prefs.deviceId
+                        "deviceId" to prefs.deviceId,
+                        "deviceToken" to prefs.deviceToken
                     )
                     result.success(config)
                 }
@@ -41,11 +42,15 @@ class MainActivity : FlutterActivity() {
                     val pairId = call.argument<String>("pairId")
                     val sharedSecretBase64 = call.argument<String>("sharedSecretBase64")
                     val relayUrl = call.argument<String>("relayUrl")
+                    val deviceToken = call.argument<String>("deviceToken")
+                    val deviceId = call.argument<String>("deviceId")
 
                     if (isEnabled != null) prefs.isRelayEnabled = isEnabled
                     if (pairId != null) prefs.pairId = pairId
                     if (sharedSecretBase64 != null) prefs.sharedSecretBase64 = sharedSecretBase64
                     if (relayUrl != null) prefs.relayUrl = relayUrl
+                    if (deviceToken != null) prefs.deviceToken = deviceToken
+                    if (deviceId != null) prefs.deviceId = deviceId
 
                     result.success(true)
                 }

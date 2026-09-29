@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/fcm_notification_service.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../pairing/presentation/bloc/pairing_bloc.dart';
 import '../../../pairing/presentation/bloc/pairing_event.dart';
@@ -28,6 +29,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
   static const Duration _pollInterval = Duration(seconds: 3);
 
   Timer? _pollTimer;
+  StreamSubscription<ReceivedOtpModel>? _fcmSubscription;
   final Set<String> _knownOtpIds = <String>{};
   bool _hasSyncedOtpHistory = false;
 
@@ -36,6 +38,12 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
     super.initState();
     context.read<ReceiverBloc>().add(const ReceiverLoadOtpsEvent());
     context.read<PairingBloc>().add(const PairingCheckReceiverStatusEvent());
+
+    _fcmSubscription = FcmNotificationService.onOtpReceived.listen((otp) {
+      if (!mounted) return;
+      context.read<ReceiverBloc>().add(ReceiverNewOtpPushedEvent(otp));
+    });
+
     _pollTimer = Timer.periodic(_pollInterval, (_) {
       if (!mounted) return;
       context.read<ReceiverBloc>().add(const ReceiverPollPendingOtpsEvent());
@@ -44,6 +52,8 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
 
   @override
   void dispose() {
+    _fcmSubscription?.cancel();
+    _fcmSubscription = null;
     _pollTimer?.cancel();
     _pollTimer = null;
     super.dispose();

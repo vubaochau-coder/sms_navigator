@@ -8,6 +8,8 @@ abstract class NativeRelayService {
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
+    String? deviceToken,
+    String? deviceId,
   });
   Future<List<Map<String, dynamic>>> getRecentLogs();
   Future<bool> clearPairing();
@@ -56,6 +58,8 @@ class NativeRelayServiceImpl implements NativeRelayService {
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
+    String? deviceToken,
+    String? deviceId,
   }) async {
     try {
       final Map<String, dynamic> params = {};
@@ -63,6 +67,8 @@ class NativeRelayServiceImpl implements NativeRelayService {
       if (pairId != null) params['pairId'] = pairId;
       if (sharedSecretBase64 != null) params['sharedSecretBase64'] = sharedSecretBase64;
       if (relayUrl != null) params['relayUrl'] = relayUrl;
+      if (deviceToken != null) params['deviceToken'] = deviceToken;
+      if (deviceId != null) params['deviceId'] = deviceId;
 
       final success = await _channel.invokeMethod<bool>('setRelayConfig', params);
       return success ?? false;

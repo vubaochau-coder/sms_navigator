@@ -51,10 +51,16 @@ class OtpRelayWorker(
         }
 
         val body = requestJson.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-        val request = Request.Builder()
+        val requestBuilder = Request.Builder()
             .url(relayUrl)
             .post(body)
-            .build()
+
+        val token = prefs.deviceToken
+        if (!token.isNullOrBlank()) {
+            requestBuilder.addHeader("Authorization", "Bearer $token")
+        }
+
+        val request = requestBuilder.build()
 
         try {
             val response = httpClient.newCall(request).execute()

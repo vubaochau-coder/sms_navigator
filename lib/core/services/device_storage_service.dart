@@ -8,6 +8,8 @@ abstract class DeviceStorageService {
   Future<void> saveDeviceToken(String deviceToken);
   Future<String?> getServerUrl();
   Future<void> saveServerUrl(String serverUrl);
+  Future<String?> getFcmToken();
+  Future<void> saveFcmToken(String fcmToken);
   Future<void> clearAll();
 }
 
@@ -15,6 +17,7 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
   static const String _keyDeviceId = 'device_id';
   static const String _keyDeviceToken = 'device_token';
   static const String _keyServerUrl = 'server_url';
+  static const String _keyFcmToken = 'fcm_token';
 
   @override
   Future<String?> getDeviceId() async {
@@ -53,10 +56,23 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
   }
 
   @override
+  Future<String?> getFcmToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyFcmToken);
+  }
+
+  @override
+  Future<void> saveFcmToken(String fcmToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyFcmToken, fcmToken);
+  }
+
+  @override
   Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyDeviceId);
     await prefs.remove(_keyDeviceToken);
     await prefs.remove(_keyServerUrl);
+    await prefs.remove(_keyFcmToken);
   }
 }
