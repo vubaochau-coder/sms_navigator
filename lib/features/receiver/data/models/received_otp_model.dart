@@ -7,12 +7,16 @@ class ReceivedOtpModel extends Equatable {
   final int receivedAt;
   final int expiresAt;
 
+  /// Nội dung SMS gốc (full message) gửi kèm từ Máy Gửi (nếu có).
+  final String rawMessage;
+
   const ReceivedOtpModel({
     required this.id,
     required this.sender,
     required this.otp,
     required this.receivedAt,
     required this.expiresAt,
+    this.rawMessage = '',
   });
 
   bool get isExpired => DateTime.now().millisecondsSinceEpoch > expiresAt;
@@ -28,6 +32,7 @@ class ReceivedOtpModel extends Equatable {
     String? otp,
     int? receivedAt,
     int? expiresAt,
+    String? rawMessage,
   }) {
     return ReceivedOtpModel(
       id: id ?? this.id,
@@ -35,6 +40,7 @@ class ReceivedOtpModel extends Equatable {
       otp: otp ?? this.otp,
       receivedAt: receivedAt ?? this.receivedAt,
       expiresAt: expiresAt ?? this.expiresAt,
+      rawMessage: rawMessage ?? this.rawMessage,
     );
   }
 
@@ -45,6 +51,7 @@ class ReceivedOtpModel extends Equatable {
       'otp': otp,
       'receivedAt': receivedAt,
       'expiresAt': expiresAt,
+      'rawMessage': rawMessage,
     };
   }
 
@@ -55,9 +62,10 @@ class ReceivedOtpModel extends Equatable {
       otp: map['otp']?.toString() ?? '',
       receivedAt: (map['receivedAt'] is num) ? (map['receivedAt'] as num).toInt() : 0,
       expiresAt: (map['expiresAt'] is num) ? (map['expiresAt'] as num).toInt() : 0,
+      rawMessage: map['rawMessage']?.toString() ?? '',
     );
   }
 
   @override
-  List<Object?> get props => [id, sender, otp, receivedAt, expiresAt];
+  List<Object?> get props => [id, sender, otp, receivedAt, expiresAt, rawMessage];
 }

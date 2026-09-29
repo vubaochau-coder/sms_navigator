@@ -24,3 +24,7 @@ class ReceiverNewOtpPushedEvent extends ReceiverEvent {
 class ReceiverClearHistoryEvent extends ReceiverEvent {
   const ReceiverClearHistoryEvent();
 }
+
+class ReceiverPollPendingOtpsEvent extends ReceiverEvent {
+  const ReceiverPollPendingOtpsEvent();
+}

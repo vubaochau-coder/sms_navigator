@@ -10,6 +10,7 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
     on<ReceiverLoadOtpsEvent>(_onLoadOtps);
     on<ReceiverNewOtpPushedEvent>(_onNewOtpPushed);
     on<ReceiverClearHistoryEvent>(_onClearHistory);
+    on<ReceiverPollPendingOtpsEvent>(_onPollPendingOtps);
   }
 
   Future<void> _onLoadOtps(
@@ -46,6 +47,19 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
     try {
       await repository.clearHistory();
       emit(state.copyWith(otps: const []));
+    } catch (_) {}
+  }
+
+  Future<void> _onPollPendingOtps(
+    ReceiverPollPendingOtpsEvent event,
+    Emitter<ReceiverState> emit,
+  ) async {
+    try {
+      final newCount = await repository.pollPendingOtps();
+      if (newCount > 0) {
+        final otps = await repository.fetchReceivedOtps();
+        emit(state.copyWith(otps: otps));
+      }
     } catch (_) {}
   }
 }
