@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../pairing/presentation/bloc/pairing_bloc.dart';
@@ -135,7 +136,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
                     .add(const PairingCheckReceiverStatusEvent());
               },
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: Dimens.screenPadding,
                 children: [
                   _ConnectionStatusCard(
                     pairingState: pairingState,

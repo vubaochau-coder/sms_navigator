@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../pairing/presentation/pages/pairing_sender_page.dart';
@@ -83,7 +84,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
               context.read<SenderBloc>().add(const SenderLoadStatusEvent());
             },
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: Dimens.screenPadding,
               children: [
                 _StatusCard(state: state),
                 const SizedBox(height: 16),

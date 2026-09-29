@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/dimens.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../../../sender/presentation/pages/sender_dashboard_page.dart';
@@ -21,7 +22,7 @@ class RoleSelectionPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: Dimens.screenPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
