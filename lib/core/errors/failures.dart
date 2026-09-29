@@ -24,3 +24,11 @@ class PairingFailure extends Failure {
 class CryptoFailure extends Failure {
   const CryptoFailure(super.message);
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure(super.message);
+}
+
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure(super.message);
+}
