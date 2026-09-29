@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../../core/constants/dimens.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
@@ -45,7 +46,7 @@ class _PairingSenderPageState extends State<PairingSenderPage> {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: Dimens.screenPadding,
             child: Column(
               children: [
                 const SizedBox(height: 8),

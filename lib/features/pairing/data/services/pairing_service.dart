@@ -1,6 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/crypto_helper.dart';
+import '../../../device/data/services/device_api_service.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../models/pairing_payload_model.dart';
 
 abstract class PairingService {
@@ -14,8 +17,16 @@ abstract class PairingService {
 
 class PairingServiceImpl implements PairingService {
   final NativeRelayService nativeService;
+  final ApiClient? apiClient;
+  final DeviceApiService? deviceApiService;
+  final DeviceStorageService? deviceStorageService;
 
-  PairingServiceImpl({required this.nativeService});
+  PairingServiceImpl({
+    required this.nativeService,
+    this.apiClient,
+    this.deviceApiService,
+    this.deviceStorageService,
+  });
 
   static const String _keyReceiverPairId = 'receiver_pair_id';
   static const String _keyReceiverSharedSecret = 'receiver_shared_secret';
@@ -28,13 +39,39 @@ class PairingServiceImpl implements PairingService {
     final now = DateTime.now().millisecondsSinceEpoch;
     final expiresAt = now + (10 * 60 * 1000); // 10 minutes
 
-    return PairingPayloadModel(
+    final payload = PairingPayloadModel(
       pairId: pairId,
       sharedSecretBase64: sharedSecretBase64,
       createdAt: now,
       expiresAt: expiresAt,
       code: '',
     );
+
+    // Đăng ký thiết bị gửi với server trước khi mở phiên ghép đôi nếu có kết nối.
+    try {
+      if (deviceApiService != null) {
+        await deviceApiService!.registerDevice();
+      }
+      if (apiClient != null) {
+        await apiClient!.post(
+          '/api/v1/pair/init',
+          body: {'pair_id': payload.pairId},
+        );
+      }
+    } catch (_) {}
+
+    // Cập nhật cấu hình relay (kèm relayUrl) cho Android native.
+    final serverUrl =
+        await deviceStorageService?.getServerUrl() ?? ApiClient.defaultBaseUrl;
+    final relayUrl = '$serverUrl/api/v1/relay';
+    await nativeService.setRelayConfig(
+      isRelayEnabled: true,
+      pairId: payload.pairId,
+      sharedSecretBase64: payload.sharedSecretBase64,
+      relayUrl: relayUrl,
+    );
+
+    return payload;
   }
 
   @override
@@ -51,6 +88,19 @@ class PairingServiceImpl implements PairingService {
     try {
       final payload = PairingPayloadModel.fromQrData(qrData);
       if (payload.isExpired) return false;
+
+      // Đăng ký thiết bị nhận với server nếu có kết nối.
+      try {
+        if (deviceApiService != null) {
+          await deviceApiService!.registerDevice();
+        }
+        if (apiClient != null) {
+          await apiClient!.post(
+            '/api/v1/pair/confirm',
+            body: {'pair_id': payload.pairId},
+          );
+        }
+      } catch (_) {}
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyReceiverPairId, payload.pairId);

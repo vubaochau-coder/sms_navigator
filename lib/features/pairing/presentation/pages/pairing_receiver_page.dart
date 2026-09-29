@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../../../core/constants/dimens.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
@@ -172,7 +173,7 @@ class _ScannerTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: Dimens.screenPadding,
         child: Row(
           children: [
             IconButton(

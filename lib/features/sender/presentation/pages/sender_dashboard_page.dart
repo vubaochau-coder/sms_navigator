@@ -3,7 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/dimens.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../pairing/presentation/pages/pairing_sender_page.dart';
+import '../../data/models/relay_log_model.dart';
 import '../bloc/sender_bloc.dart';
 import '../bloc/sender_event.dart';
 import '../bloc/sender_state.dart';
@@ -30,12 +34,27 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
     }
   }
 
+  void _showServerSettingsDialog() {
+    final di = DependencyContainer.instance;
+    showDialog(
+      context: context,
+      builder: (_) => ServerSettingsDialog(
+        deviceStorageService: di.deviceStorageService,
+        nativeRelayService: di.nativeRelayService,
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) {    return Scaffold(
       appBar: AppBar(
         title: const Text('Máy Gửi (Việt Nam)'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.dns_rounded),
+            tooltip: 'Cài đặt Server',
+            onPressed: _showServerSettingsDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -50,7 +69,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),
-                backgroundColor: AppColors.error,
+                backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
           }
@@ -65,17 +84,23 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
               context.read<SenderBloc>().add(const SenderLoadStatusEvent());
             },
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: Dimens.screenPadding,
               children: [
-                _buildStatusCard(context, state),
+                _StatusCard(state: state),
                 const SizedBox(height: 16),
                 if (!state.isBatteryOptimizationIgnored) ...[
-                  _buildBatteryOptimizationBanner(context),
+                  _BatteryOptimizationBanner(
+                    onRequest: () {
+                      context
+                          .read<SenderBloc>()
+                          .add(const SenderRequestBatteryOptimizationEvent());
+                    },
+                  ),
                   const SizedBox(height: 16),
                 ],
-                _buildPairingCard(context, state),
+                _PairingCard(state: state),
                 const SizedBox(height: 16),
-                _buildRecentLogsSection(context, state),
+                _RecentLogsSection(logs: state.logs),
               ],
             ),
           );
@@ -83,17 +108,26 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       ),
     );
   }
+}
 
-  Widget _buildStatusCard(BuildContext context, SenderState state) {
+/// Thẻ trạng thái chuyển tiếp — Soft Modern.
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({required this.state});
+
+  final SenderState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isActive = state.isRelayEnabled && state.isPaired;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? AppColors.success : AppColors.border,
+          color: isActive ? AppColors.success : colorScheme.outline,
           width: isActive ? 2 : 1,
         ),
       ),
@@ -110,7 +144,9 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                     height: 12,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isActive ? AppColors.success : AppColors.textMuted,
+                      color: isActive
+                          ? AppColors.success
+                          : colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -119,7 +155,9 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: isActive ? AppColors.success : AppColors.textMuted,
+                      color: isActive
+                          ? AppColors.success
+                          : colorScheme.onSurfaceVariant,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -130,9 +168,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                 activeTrackColor: AppColors.success,
                 onChanged: state.isPaired
                     ? (val) {
-                        context
-                            .read<SenderBloc>()
-                            .add(SenderToggleRelayEvent(val));
+                        context.read<SenderBloc>().add(SenderToggleRelayEvent(val));
                       }
                     : null,
               ),
@@ -145,9 +181,9 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                 : (state.isPaired
                     ? 'Bật công tắc phía trên để bắt đầu chuyển tiếp OTP.'
                     : 'Thiết bị chưa được ghép đôi. Vui lòng ghép đôi với Máy Nhận để kích hoạt.'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: colorScheme.onSurfaceVariant,
               height: 1.4,
             ),
           ),
@@ -155,15 +191,15 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
             const Divider(height: 24),
             Row(
               children: [
-                const Icon(Icons.flash_on, color: AppColors.accent, size: 20),
+                Icon(Icons.flash_on, color: AppColors.accent, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Vừa bắt được OTP: ${state.lastDetectedOtp} (từ ${state.lastDetectedSender})',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
@@ -174,8 +210,18 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       ),
     );
   }
+}
 
-  Widget _buildBatteryOptimizationBanner(BuildContext context) {
+/// Banner cảnh báo tối ưu pin — Soft Modern.
+class _BatteryOptimizationBanner extends StatelessWidget {
+  const _BatteryOptimizationBanner({required this.onRequest});
+
+  final VoidCallback onRequest;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -186,51 +232,60 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.battery_alert, color: AppColors.warning, size: 22),
-              SizedBox(width: 8),
+              const Icon(Icons.battery_alert, color: AppColors.warning, size: 22),
+              const SizedBox(width: 8),
               Text(
                 'Cho phép chạy ngầm (Quan trọng)',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Hệ thống Android (đặc biệt là Xiaomi, Samsung, Oppo) có thể tắt app khi tắt màn hình. Cần tắt tối ưu pin để nhận SMS liên tục.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(
+              fontSize: 13,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.warning,
-              foregroundColor: Colors.white,
+              foregroundColor: colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            onPressed: () {
-              context
-                  .read<SenderBloc>()
-                  .add(const SenderRequestBatteryOptimizationEvent());
-            },
+            onPressed: onRequest,
             child: const Text('Bật Chạy Ngầm Ngay', style: TextStyle(fontSize: 13)),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPairingCard(BuildContext context, SenderState state) {
+/// Thẻ thông tin ghép đôi — Soft Modern.
+class _PairingCard extends StatelessWidget {
+  const _PairingCard({required this.state});
+
+  final SenderState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colorScheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,35 +293,46 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Thông Tin Ghép Đôi',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
-                  color: AppColors.textPrimary,
+                  color: colorScheme.onSurface,
                 ),
               ),
               if (state.isPaired)
                 TextButton(
                   onPressed: () {
-                    _showUnpairDialog(context);
+                    _UnpairDialog.show(context);
                   },
-                  child: const Text(
+                  child: Text(
                     'Hủy Ghép Đôi',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                    style: TextStyle(color: colorScheme.error, fontSize: 13),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 8),
           if (state.isPaired) ...[
-            _buildInfoRow('Mã Kênh (Pair ID):', state.pairId),
+            _InfoRow(
+              label: 'Mã Kênh (Pair ID):',
+              value: state.pairId,
+              colorScheme: colorScheme,
+            ),
             const SizedBox(height: 4),
-            _buildInfoRow('ID Thiết Bị:', state.deviceId.substring(0, 8)),
+            _InfoRow(
+              label: 'ID Thiết Bị:',
+              value: state.deviceId.substring(0, 8),
+              colorScheme: colorScheme,
+            ),
           ] else ...[
-            const Text(
+            Text(
               'Chưa có thiết bị Malaysia nào được kết nối với máy này.',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -291,134 +357,12 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'monospace',
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentLogsSection(BuildContext context, SenderState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Nhật Ký Chuyển Tiếp Gần Đây',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (state.logs.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Center(
-              child: Text(
-                'Chưa có hoạt động chuyển tiếp OTP nào.',
-                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
-              ),
-            ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: state.logs.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final log = state.logs[index];
-              final isSuccess = log.status == 'SUCCESS';
-              final timeStr = DateFormat('HH:mm:ss dd/MM').format(
-                DateTime.fromMillisecondsSinceEpoch(log.timestamp),
-              );
-
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isSuccess ? AppColors.successLight : AppColors.errorLight,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isSuccess ? Icons.check : Icons.warning_amber_rounded,
-                        color: isSuccess ? AppColors.success : AppColors.error,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                log.sender,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              Text(
-                                timeStr,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'OTP: ${log.otp.length > 2 ? "${log.otp.substring(0, 2)}****" : log.otp}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-      ],
-    );
-  }
-
-  void _showUnpairDialog(BuildContext context) {
+/// Dialog xác nhận hủy ghép đôi.
+class _UnpairDialog {
+  static void show(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -432,12 +376,190 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
             child: const Text('Giữ Lại'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
             onPressed: () {
               Navigator.pop(dialogCtx);
               context.read<SenderBloc>().add(const SenderUnpairEvent());
             },
             child: const Text('Hủy Ghép Đôi'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Một dòng thông tin label — value trong thẻ ghép đôi.
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    required this.colorScheme,
+  });
+
+  final String label;
+  final String value;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'monospace',
+            color: colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Danh sách nhật ký chuyển tiếp gần đây — Soft Modern.
+class _RecentLogsSection extends StatelessWidget {
+  const _RecentLogsSection({required this.logs});
+
+  final List<RelayLogModel> logs;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Nhật Ký Chuyển Tiếp Gần Đây',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (logs.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colorScheme.outline),
+            ),
+            child: Center(
+              child: Text(
+                'Chưa có hoạt động chuyển tiếp OTP nào.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: logs.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final log = logs[index];
+              final timeStr = DateFormat('HH:mm:ss dd/MM').format(
+                DateTime.fromMillisecondsSinceEpoch(log.timestamp),
+              );
+
+              return _RelayLogTile(log: log, timeStr: timeStr);
+            },
+          ),
+      ],
+    );
+  }
+}
+
+/// Một dòng nhật ký chuyển tiếp — Soft Modern.
+class _RelayLogTile extends StatelessWidget {
+  const _RelayLogTile({required this.log, required this.timeStr});
+
+  final RelayLogModel log;
+  final String timeStr;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSuccess = log.status == 'SUCCESS';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSuccess ? AppColors.successLight : AppColors.errorLight,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSuccess ? Icons.check : Icons.warning_amber_rounded,
+              color: isSuccess ? AppColors.success : AppColors.error,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      log.sender,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      timeStr,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'OTP: ${log.otp.length > 2 ? "${log.otp.substring(0, 2)}****" : log.otp}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -33,13 +33,6 @@ class DependencyContainer {
     _initialized = true;
 
     nativeRelayService = NativeRelayServiceImpl();
-    senderRepository = SenderRepositoryImpl(nativeService: nativeRelayService);
-
-    pairingService = PairingServiceImpl(nativeService: nativeRelayService);
-    pairingRepository = PairingRepositoryImpl(pairingService: pairingService);
-
-    receiverStorageService = ReceiverStorageServiceImpl();
-    receiverRepository = ReceiverRepositoryImpl(storageService: receiverStorageService);
 
     deviceStorageService = DeviceStorageServiceImpl();
     apiClient = ApiClient(
@@ -49,6 +42,24 @@ class DependencyContainer {
     deviceApiService = DeviceApiServiceImpl(
       apiClient: apiClient,
       storageService: deviceStorageService,
+    );
+
+    senderRepository = SenderRepositoryImpl(nativeService: nativeRelayService);
+
+    pairingService = PairingServiceImpl(
+      nativeService: nativeRelayService,
+      apiClient: apiClient,
+      deviceApiService: deviceApiService,
+      deviceStorageService: deviceStorageService,
+    );
+    pairingRepository = PairingRepositoryImpl(pairingService: pairingService);
+
+    receiverStorageService = ReceiverStorageServiceImpl();
+    receiverRepository = ReceiverRepositoryImpl(
+      storageService: receiverStorageService,
+      pairingService: pairingService,
+      apiClient: apiClient,
+      deviceApiService: deviceApiService,
     );
   }
 }
