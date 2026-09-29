@@ -1,14 +1,19 @@
+import '../../features/device/data/services/device_api_service.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
 import '../../features/receiver/data/repositories/receiver_repository.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
 import '../../features/sender/data/repositories/sender_repository.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
+import '../network/api_client.dart';
+import '../services/device_storage_service.dart';
 
 class DependencyContainer {
   DependencyContainer._();
 
   static final DependencyContainer instance = DependencyContainer._();
+
+  bool _initialized = false;
 
   late final NativeRelayService nativeRelayService;
   late final SenderRepository senderRepository;
@@ -19,7 +24,14 @@ class DependencyContainer {
   late final ReceiverStorageService receiverStorageService;
   late final ReceiverRepository receiverRepository;
 
+  late final DeviceStorageService deviceStorageService;
+  late final ApiClient apiClient;
+  late final DeviceApiService deviceApiService;
+
   void init() {
+    if (_initialized) return;
+    _initialized = true;
+
     nativeRelayService = NativeRelayServiceImpl();
     senderRepository = SenderRepositoryImpl(nativeService: nativeRelayService);
 
@@ -28,5 +40,15 @@ class DependencyContainer {
 
     receiverStorageService = ReceiverStorageServiceImpl();
     receiverRepository = ReceiverRepositoryImpl(storageService: receiverStorageService);
+
+    deviceStorageService = DeviceStorageServiceImpl();
+    apiClient = ApiClient(
+      serverUrlProvider: deviceStorageService.getServerUrl,
+      tokenProvider: deviceStorageService.getDeviceToken,
+    );
+    deviceApiService = DeviceApiServiceImpl(
+      apiClient: apiClient,
+      storageService: deviceStorageService,
+    );
   }
 }

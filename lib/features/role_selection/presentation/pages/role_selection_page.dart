@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../../../sender/presentation/pages/sender_dashboard_page.dart';
 
@@ -9,68 +10,44 @@ class RoleSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(AppStrings.appTitle),
+        actions: const [
+          _ThemeToggleButton(),
+          SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 30),
-              // App Logo / Icon Header
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.secondary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.sync_alt_rounded,
-                  color: Colors.white,
-                  size: 38,
-                ),
-              ),
+              const SizedBox(height: 18),
+              const _AppLogo(),
               const SizedBox(height: 24),
-              const Text(
-                AppStrings.appTitle,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
+              Text(
+                AppStrings.roleSelectionTitle,
+                style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 AppStrings.roleSelectionSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                   height: 1.4,
                 ),
               ),
               const SizedBox(height: 48),
-              // Card: Máy Gửi (Việt Nam)
-              _buildRoleCard(
-                context,
+              _RoleCard(
                 title: AppStrings.roleSenderTitle,
                 description: AppStrings.roleSenderDesc,
                 badge: 'Thiết Bị Gốc',
                 icon: Icons.sim_card_outlined,
-                color: AppColors.primary,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -81,14 +58,12 @@ class RoleSelectionPage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-              // Card: Máy Nhận (Malaysia)
-              _buildRoleCard(
-                context,
+              _RoleCard(
                 title: AppStrings.roleReceiverTitle,
                 description: AppStrings.roleReceiverDesc,
                 badge: 'Thiết Bị Đích',
                 icon: Icons.phonelink_ring_outlined,
-                color: AppColors.secondary,
+                color: theme.colorScheme.secondary,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -98,15 +73,19 @@ class RoleSelectionPage extends StatelessWidget {
                   );
                 },
               ),
-              const Spacer(),
-              const Row(
+              const SizedBox(height: 32),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shield_outlined, size: 16, color: AppColors.textMuted),
-                  SizedBox(width: 6),
+                  Icon(Icons.shield_outlined,
+                      size: 16, color: theme.colorScheme.outline),
+                  const SizedBox(width: 6),
                   Text(
                     'Bảo mật E2EE • Server không thể đọc OTP',
-                    style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.outline,
+                    ),
                   ),
                 ],
               ),
@@ -117,16 +96,94 @@ class RoleSelectionPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildRoleCard(
-    BuildContext context, {
-    required String title,
-    required String description,
-    required String badge,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+class _AppLogo extends StatelessWidget {
+  const _AppLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.sync_alt_rounded,
+        color: Colors.white,
+        size: 38,
+      ),
+    );
+  }
+}
+
+/// Nút chuyển đổi giao diện Light/Dark trên AppBar.
+class _ThemeToggleButton extends StatelessWidget {
+  const _ThemeToggleButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, mode) {
+        final isDark = mode == ThemeMode.dark ||
+            (mode == ThemeMode.system &&
+                WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                    Brightness.dark);
+        return IconButton(
+          tooltip: isDark ? 'Chế độ sáng' : 'Chế độ tối',
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: Icon(
+              isDark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              key: ValueKey<bool>(isDark),
+            ),
+          ),
+          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+        );
+      },
+    );
+  }
+}
+
+class _RoleCard extends StatelessWidget {
+  const _RoleCard({
+    required this.title,
+    required this.description,
+    required this.badge,
+    required this.icon,
+    required this.onTap,
+    this.color,
+  });
+
+  final String title;
+  final String description;
+  final String badge;
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = this.color ?? theme.colorScheme.primary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -134,12 +191,14 @@ class RoleSelectionPage extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border, width: 1.5),
+          border: Border.all(color: theme.colorScheme.outline, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: theme.brightness == Brightness.dark
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -164,16 +223,19 @@ class RoleSelectionPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
@@ -192,9 +254,9 @@ class RoleSelectionPage extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.35,
                     ),
                   ),
@@ -202,7 +264,11 @@ class RoleSelectionPage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMuted),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: theme.colorScheme.outline,
+            ),
           ],
         ),
       ),
