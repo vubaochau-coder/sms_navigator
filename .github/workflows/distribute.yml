@@ -1,0 +1,56 @@
+name: Distribute to Firebase App Tester
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release Notes cho bản build'
+        required: false
+        default: 'Manual release trigger via GitHub Actions'
+      tester_group:
+        description: 'Nhóm Tester (internal-dev / field-testers)'
+        required: false
+        default: 'internal-dev'
+
+jobs:
+  distribute:
+    name: Build & Distribute Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:510867121628:android:8e0205deb80aa79c565b19
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CREDENTIALS }}
+          groups: ${{ github.event.inputs.tester_group || 'internal-dev' }}
+          releaseNotes: ${{ github.event.inputs.release_notes || github.event.head_commit.message }}
+          file: build/app/outputs/flutter-apk/app-release.apk

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "510867121628",
+    "project_id": "sms-navigator-relay-81229",
+    "storage_bucket": "sms-navigator-relay-81229.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510867121628:android:8e0205deb80aa79c565b19",
+        "android_client_info": {
+          "package_name": "com.example.sms_navigator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrA7Jw6QE-oVpYcPXKDZ7yHnwE55Hpgtk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
