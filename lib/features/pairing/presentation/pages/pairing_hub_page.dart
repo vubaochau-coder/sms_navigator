@@ -61,6 +61,7 @@ class PairingHubPage extends StatelessWidget {
               ),
               Expanded(
                 child: TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
                     PairingListSection(
                       message: l10n.pairingHubReceiversDesc,
