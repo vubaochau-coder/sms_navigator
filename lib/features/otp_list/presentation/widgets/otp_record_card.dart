@@ -72,7 +72,6 @@ class OtpRecordCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: colorScheme.onSurfaceVariant,
-                      fontFamily: 'monospace',
                     ),
                   ),
                 ],
@@ -110,7 +109,6 @@ class OtpRecordCard extends StatelessWidget {
                       fontSize: item.otp == 'SMS' ? 14 : 20,
                       fontWeight: FontWeight.w900,
                       letterSpacing: item.otp == 'SMS' ? 0.5 : 2.0,
-                      fontFamily: item.otp == 'SMS' ? null : 'monospace',
                       color: item.otp == 'SMS'
                           ? colorScheme.secondary
                           : AppColors.success,

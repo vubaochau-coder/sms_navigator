@@ -136,7 +136,6 @@ class OtpDetailBottomSheet extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
                           color: AppColors.success,
-                          fontFamily: 'monospace',
                         ),
                       ),
                     ],

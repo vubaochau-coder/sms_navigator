@@ -17,13 +17,14 @@ class PlainInfoRow extends StatelessWidget {
     final mutedColor = isDark ? Colors.white60 : Colors.black54;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '$label: ',
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: mutedColor,
             ),
@@ -34,9 +35,8 @@ class PlainInfoRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'monospace',
               ),
             ),
           ),

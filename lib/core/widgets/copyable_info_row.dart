@@ -40,7 +40,6 @@ class CopyableInfoRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'monospace',
               ),
             ),
           ),

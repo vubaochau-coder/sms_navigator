@@ -101,51 +101,13 @@ class PairedSenderCard extends StatelessWidget {
             label: 'Sender ID',
             value: item.deviceId,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                Text(
-                  'Ghép đôi lúc: ',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                Text(
-                  item.formattedPairedAt,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+          PlainInfoRow(
+            label: 'Ghép đôi lúc',
+            value: item.formattedPairedAt,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                Text(
-                  'Lần nhận gần nhất: ',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                Text(
-                  item.formattedLastActiveAt,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+          PlainInfoRow(
+            label: 'Lần nhận gần nhất',
+            value: item.formattedLastActiveAt,
           ),
           const SizedBox(height: 12),
           Container(
