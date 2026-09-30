@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/dimens.dart';
-import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
@@ -39,7 +38,7 @@ class RoleSelectionPage extends StatelessWidget {
               );
             },
           ),
-          const _ThemeToggleButton(),
+          const ThemeToggleButton(),
           const SizedBox(width: 8),
         ],
       ),
@@ -173,32 +172,4 @@ class _AppLogo extends StatelessWidget {
   }
 }
 
-class _ThemeToggleButton extends StatelessWidget {
-  const _ThemeToggleButton();
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeMode>(
-      builder: (context, mode) {
-        final isDark =
-            mode == ThemeMode.dark ||
-            (mode == ThemeMode.system &&
-                WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-                    Brightness.dark);
-        return IconButton(
-          tooltip: isDark ? 'Chế độ sáng' : 'Chế độ tối',
-          icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            transitionBuilder: (child, animation) =>
-                ScaleTransition(scale: animation, child: child),
-            child: Icon(
-              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              key: ValueKey<bool>(isDark),
-            ),
-          ),
-          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-        );
-      },
-    );
-  }
-}

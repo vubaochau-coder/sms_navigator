@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
-import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
@@ -219,24 +219,7 @@ class _OtpCompactHeader extends StatelessWidget {
               ),
             ),
           ),
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, themeMode) {
-              final isDark = themeMode == ThemeMode.dark ||
-                  (themeMode == ThemeMode.system &&
-                      MediaQuery.of(context).platformBrightness ==
-                          Brightness.dark);
-              return IconButton(
-                icon: Icon(
-                  isDark
-                      ? Icons.light_mode_rounded
-                      : Icons.dark_mode_rounded,
-                ),
-                tooltip:
-                    isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
-                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-              );
-            },
-          ),
+          const ThemeToggleButton(),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n?.settingsAction ?? 'Cài đặt',
