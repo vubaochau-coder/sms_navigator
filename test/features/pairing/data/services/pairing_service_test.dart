@@ -200,7 +200,7 @@ void main() {
       expect(fakeApi.lastPostBody?['fcm_token'], 'real_fcm_token_123');
     });
 
-    test('returns false and does not store credentials when server confirm fails', () async {
+    test('throws ApiException and does not store credentials when server confirm fails', () async {
       final fakeApi = _FakeApiClient()..shouldThrow = true;
       final service = _buildService(apiClient: fakeApi);
 
@@ -211,12 +211,39 @@ void main() {
         expiresAt: DateTime.now().millisecondsSinceEpoch + 60000,
       );
 
-      final ok = await service.confirmReceiverPairingFromQr(payload.toQrData());
-
-      expect(ok, isFalse);
+      await expectLater(
+        service.confirmReceiverPairingFromQr(payload.toQrData()),
+        throwsA(isA<ApiException>()),
+      );
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('receiver_pair_id'), isNull);
       expect(prefs.getString('receiver_shared_secret'), isNull);
+    });
+
+    test('throws when server responds 200 with success: false', () async {
+      final fakeApi = _FakeApiClient()
+        ..postResponse = {'success': false, 'message': 'Pair already confirmed'};
+      final service = _buildService(apiClient: fakeApi);
+
+      final payload = PairingPayloadModel(
+        pairId: 'pair_success_false',
+        sharedSecretBase64: 'SECRET_SF',
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        expiresAt: DateTime.now().millisecondsSinceEpoch + 60000,
+      );
+
+      await expectLater(
+        service.confirmReceiverPairingFromQr(payload.toQrData()),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Pair already confirmed'),
+          ),
+        ),
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('receiver_pair_id'), isNull);
     });
     test('stores pairId and shared secret for a valid QR payload', () async {
       final service = _buildService();
@@ -235,7 +262,7 @@ void main() {
       expect(prefs.getString('receiver_shared_secret'), 'VALID_SECRET');
     });
 
-    test('rejects an expired QR payload', () async {
+    test('rejects an expired QR payload with a typed error', () async {
       final service = _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_expired',
@@ -244,32 +271,44 @@ void main() {
         expiresAt: DateTime.now().millisecondsSinceEpoch - 60000,
       );
 
-      final ok = await service.confirmReceiverPairingFromQr(payload.toQrData());
-
-      expect(ok, isFalse);
+      await expectLater(
+        service.confirmReceiverPairingFromQr(payload.toQrData()),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 410)
+              .having((e) => e.message, 'message', contains('hết hạn')),
+        ),
+      );
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('receiver_pair_id'), isNull);
       expect(prefs.getString('receiver_shared_secret'), isNull);
     });
 
-    test('rejects malformed QR data', () async {
+    test('rejects malformed QR data with a typed error', () async {
       final service = _buildService();
 
-      expect(await service.confirmReceiverPairingFromQr('garbage'), isFalse);
-      expect(
-        await service.confirmReceiverPairingFromQr('{"exp":123}'),
-        isFalse,
+      await expectLater(
+        service.confirmReceiverPairingFromQr('garbage'),
+        throwsA(isA<ApiException>()),
       );
+      await expectLater(
+        service.confirmReceiverPairingFromQr('{"exp":123}'),
+        throwsA(isA<ApiException>()),
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('receiver_pair_id'), isNull);
+      expect(prefs.getString('receiver_shared_secret'), isNull);
     });
   });
 
   group('confirmReceiverPairing (legacy alias)', () {
-    test('rejects the removed 6-digit OTP code mechanism', () async {
+    test('rejects the removed 6-digit OTP code mechanism with a typed error', () async {
       final service = _buildService();
 
-      final ok = await service.confirmReceiverPairing('123456');
-
-      expect(ok, isFalse);
+      await expectLater(
+        service.confirmReceiverPairing('123456'),
+        throwsA(isA<ApiException>()),
+      );
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('receiver_pair_id'), isNull);
     });

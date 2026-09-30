@@ -44,6 +44,13 @@ class OtpRelayWorker(
             return@withContext Result.failure()
         }
 
+        // Cap total retries so transient 5xx/network failures never retry forever.
+        if (runAttemptCount > MAX_RETRY_ATTEMPTS) {
+            Log.e(TAG, "Exceeded max retry attempts ($MAX_RETRY_ATTEMPTS) for messageId=$messageId. Dropping.")
+            prefs.addRelayLog(sender, otp, "FAILED", "Max retry attempts exceeded")
+            return@withContext Result.failure()
+        }
+
         val requestJson = JSONObject().apply {
             put("message_id", messageId)
             put("pair_id", pairId)
@@ -101,6 +108,8 @@ class OtpRelayWorker(
 
     companion object {
         private const val TAG = "OtpRelayWorker"
+
+        const val MAX_RETRY_ATTEMPTS = 5
 
         const val KEY_MESSAGE_ID = "message_id"
         const val KEY_PAIR_ID = "pair_id"

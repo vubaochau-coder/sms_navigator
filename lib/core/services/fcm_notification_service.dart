@@ -50,43 +50,55 @@ class FcmNotificationService {
   static const String channelDesc =
       'Nhận và hiển thị tức thì mã OTP xác thực được chuyển tiếp qua E2EE';
 
+  static bool _notificationsInitialized = false;
+
+  /// Khởi tạo plugin local notifications (idempotent).
+  /// Phải gọi trong cả main isolate lẫn background isolate (FCM handler)
+  /// vì static state không dùng chung giữa hai isolate.
+  static Future<void> _ensureLocalNotificationsInitialized() async {
+    if (_notificationsInitialized) return;
+
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidInit);
+
+    await _localNotifications.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (details) {
+        debugPrint('Notification tapped: ${details.payload}');
+      },
+    );
+
+    final androidChannel = AndroidNotificationChannel(
+      channelId,
+      channelName,
+      description: channelDesc,
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    await androidPlugin?.createNotificationChannel(androidChannel);
+
+    _notificationsInitialized = true;
+  }
+
   /// Khởi tạo Firebase Messaging, Local Notifications và đăng ký Token.
   Future<void> initialize() async {
     try {
-      // 1. Cấu hình FlutterLocalNotificationsPlugin cho Android
-      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const initSettings = InitializationSettings(android: androidInit);
+      // 1. Cấu hình plugin + Notification Channel (Heads-up notification)
+      await _ensureLocalNotificationsInitialized();
 
-      await _localNotifications.initialize(
-        settings: initSettings,
-        onDidReceiveNotificationResponse: (details) {
-          debugPrint('Notification tapped: ${details.payload}');
-        },
-      );
-
-      // 2. Tạo Notification Channel với mức ưu tiên cao nhất (Heads-up notification)
-      final androidChannel = AndroidNotificationChannel(
-        channelId,
-        channelName,
-        description: channelDesc,
-        importance: Importance.max,
-        playSound: true,
-        enableVibration: true,
-      );
-
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      await androidPlugin?.createNotificationChannel(androidChannel);
-
-      // 3. Yêu cầu quyền thông báo (Android 13+ POST_NOTIFICATIONS)
+      // 2. Yêu cầu quyền thông báo (Android 13+ POST_NOTIFICATIONS)
       await _requestPermissions();
 
-      // 4. Lấy và đồng bộ FCM token
+      // 3. Lấy và đồng bộ FCM token
       await _syncFcmToken();
 
-      // 5. Lắng nghe cập nhật token định kỳ
+      // 4. Lắng nghe cập nhật token định kỳ
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         await deviceStorageService.saveFcmToken(newToken);
         try {
@@ -96,7 +108,7 @@ class FcmNotificationService {
         }
       });
 
-      // 6. Lắng nghe tin nhắn khi App đang ở Foreground
+      // 5. Lắng nghe tin nhắn khi App đang ở Foreground
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         final otp = await processIncomingRemoteMessage(message);
         if (otp != null) {
@@ -104,7 +116,7 @@ class FcmNotificationService {
         }
       });
 
-      // 7. Lắng nghe người dùng bấm vào notification mở app
+      // 6. Lắng nghe người dùng bấm vào notification mở app
       FirebaseMessaging.onMessageOpenedApp.listen((
         RemoteMessage message,
       ) async {
@@ -242,6 +254,8 @@ class FcmNotificationService {
   }
 
   static Future<void> _showLocalOtpNotification(ReceivedOtpModel otp) async {
+    await _ensureLocalNotificationsInitialized();
+
     const androidDetails = AndroidNotificationDetails(
       channelId,
       channelName,

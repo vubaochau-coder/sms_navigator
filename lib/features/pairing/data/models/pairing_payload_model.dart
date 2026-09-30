@@ -75,7 +75,16 @@ class PairingPayloadModel extends Equatable {
 
   /// Parse dữ liệu JSON đọc được từ mã QR ghép đôi.
   factory PairingPayloadModel.fromQrData(String rawData) {
-    final map = jsonDecode(rawData) as Map<String, dynamic>;
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(rawData);
+    } on FormatException {
+      rethrow;
+    }
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
+    }
+    final map = decoded;
     final pairId = map['pairId']?.toString() ?? '';
     final secret = map['secret']?.toString() ?? '';
     final exp = (map['exp'] is num) ? (map['exp'] as num).toInt() : 0;

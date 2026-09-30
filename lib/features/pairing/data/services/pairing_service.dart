@@ -102,46 +102,55 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<bool> confirmReceiverPairingFromQr(String qrData) async {
+    final PairingPayloadModel payload;
     try {
-      final payload = PairingPayloadModel.fromQrData(qrData);
-      if (payload.isExpired) return false;
-
-      // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server.
-      // Nếu chưa có FCM token, tuyệt đối không bịa token giả mà để optional (không gửi field fcm_token).
-      final storedFcm = await deviceStorageService?.getFcmToken();
-      final fcmToken = (storedFcm != null && storedFcm.trim().isNotEmpty)
-          ? storedFcm.trim()
-          : null;
-
-      // Đăng ký thiết bị nhận với server nếu có kết nối.
-      if (deviceApiService != null) {
-        await deviceApiService!.registerDevice();
-      }
-      if (apiClient != null) {
-        final body = <String, dynamic>{'pair_id': payload.pairId};
-        if (fcmToken != null) {
-          body['fcm_token'] = fcmToken;
-        }
-        final response = await apiClient!.post(
-          ApiEndpoints.confirmPair,
-          body: body,
-        );
-        if (response is Map<String, dynamic> && response['success'] != true) {
-          return false;
-        }
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyReceiverPairId, payload.pairId);
-      await prefs.setString(
-        _keyReceiverSharedSecret,
-        payload.sharedSecretBase64,
-      );
-
-      return true;
-    } catch (_) {
-      return false;
+      payload = PairingPayloadModel.fromQrData(qrData);
+    } on FormatException {
+      throw const ApiException('Mã QR không đúng định dạng.');
     }
+
+    if (payload.isExpired) {
+      throw const ApiException(
+        'Phiên ghép đôi đã hết hạn (QR chỉ hiệu lực trong 10 phút). Vui lòng tạo mã mới trên Máy A.',
+        statusCode: 410,
+      );
+    }
+
+    // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server.
+    // Nếu chưa có FCM token, tuyệt đối không bịa token giả mà để optional (không gửi field fcm_token).
+    final storedFcm = await deviceStorageService?.getFcmToken();
+    final fcmToken = (storedFcm != null && storedFcm.trim().isNotEmpty)
+        ? storedFcm.trim()
+        : null;
+
+    // Đăng ký thiết bị nhận với server nếu có kết nối.
+    if (deviceApiService != null) {
+      await deviceApiService!.registerDevice();
+    }
+    if (apiClient != null) {
+      final body = <String, dynamic>{'pair_id': payload.pairId};
+      if (fcmToken != null) {
+        body['fcm_token'] = fcmToken;
+      }
+      final response = await apiClient!.post(
+        ApiEndpoints.confirmPair,
+        body: body,
+      );
+      if (response is Map<String, dynamic> && response['success'] != true) {
+        throw ApiException(
+          response['message']?.toString() ?? 'Server từ chối xác nhận ghép đôi',
+        );
+      }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyReceiverPairId, payload.pairId);
+    await prefs.setString(
+      _keyReceiverSharedSecret,
+      payload.sharedSecretBase64,
+    );
+
+    return true;
   }
 
   @override
