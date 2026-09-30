@@ -18,9 +18,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify AppBar
-    expect(find.text('Danh Sách OTP'), findsOneWidget);
-
     // Verify TableCalendar is rendered
     expect(find.byType(TableCalendar), findsOneWidget);
 

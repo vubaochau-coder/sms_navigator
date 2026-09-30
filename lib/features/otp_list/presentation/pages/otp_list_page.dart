@@ -17,9 +17,7 @@ import '../widgets/otp_content_view.dart';
 
 /// Màn hình xem danh sách OTP theo ngày — Thuần Stateless với BLoC.
 class OtpListPage extends StatelessWidget {
-  const OtpListPage({super.key, this.showAppBar = true});
-
-  final bool showAppBar;
+  const OtpListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,15 +25,13 @@ class OtpListPage extends StatelessWidget {
       create: (_) => OtpListBloc(
         repository: DependencyContainer.instance.otpListRepository,
       )..add(OtpListLoadEvent(date: DateTime.now())),
-      child: _OtpListView(showAppBar: showAppBar),
+      child: const _OtpListView(),
     );
   }
 }
 
 class _OtpListView extends StatelessWidget {
-  const _OtpListView({required this.showAppBar});
-
-  final bool showAppBar;
+  const _OtpListView();
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     HapticFeedback.lightImpact();
@@ -58,45 +54,6 @@ class _OtpListView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: showAppBar
-          ? AppBar(
-              title: const Text('Danh Sách OTP'),
-              actions: [
-                BlocBuilder<OtpListBloc, OtpListState>(
-                  builder: (context, state) {
-                    return IconButton(
-                      icon: Icon(
-                        state.isGroupingByDevice
-                            ? Icons.view_agenda_rounded
-                            : Icons.group_work_rounded,
-                      ),
-                      tooltip: state.isGroupingByDevice
-                          ? 'Xem dạng danh sách phẳng'
-                          : 'Gom nhóm theo thiết bị gửi',
-                      onPressed: () {
-                        context.read<OtpListBloc>().add(
-                          const OtpListToggleGroupEvent(),
-                        );
-                      },
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh_rounded),
-                  tooltip: 'Làm mới',
-                  onPressed: () {
-                    final selectedDate = context
-                        .read<OtpListBloc>()
-                        .state
-                        .selectedDate;
-                    context.read<OtpListBloc>().add(
-                      OtpListLoadEvent(date: selectedDate),
-                    );
-                  },
-                ),
-              ],
-            )
-          : null,
       body: BlocConsumer<OtpListBloc, OtpListState>(
         listener: (context, state) {
           if (state.errorMessage != null) {
@@ -125,7 +82,6 @@ class _OtpListView extends StatelessWidget {
             bottom: false,
             child: Column(
               children: [
-              if (!showAppBar)
                 _OtpCompactHeader(
                   dateText: headerDateText,
                   onOpenSettings: () => _openServerSettings(context),
@@ -267,7 +223,14 @@ class _OtpCompactHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    ThemeCubit? themeCubit;
+    try {
+      themeCubit = context.read<ThemeCubit>();
+    } catch (_) {
+      themeCubit = null;
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
       child: Row(
@@ -284,27 +247,29 @@ class _OtpCompactHeader extends StatelessWidget {
               ),
             ),
           ),
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, themeMode) {
-              final isDark = themeMode == ThemeMode.dark ||
-                  (themeMode == ThemeMode.system &&
-                      MediaQuery.of(context).platformBrightness ==
-                          Brightness.dark);
-              return IconButton(
-                icon: Icon(
-                  isDark
-                      ? Icons.light_mode_rounded
-                      : Icons.dark_mode_rounded,
-                ),
-                tooltip:
-                    isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
-                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-              );
-            },
-          ),
+          if (themeCubit != null)
+            BlocBuilder<ThemeCubit, ThemeMode>(
+              bloc: themeCubit,
+              builder: (context, themeMode) {
+                final isDark = themeMode == ThemeMode.dark ||
+                    (themeMode == ThemeMode.system &&
+                        MediaQuery.of(context).platformBrightness ==
+                            Brightness.dark);
+                return IconButton(
+                  icon: Icon(
+                    isDark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                  ),
+                  tooltip:
+                      isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
+                  onPressed: () => themeCubit?.toggleTheme(),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n.settingsAction,
+            tooltip: l10n?.settingsAction ?? 'Cài đặt',
             onPressed: onOpenSettings,
           ),
         ],

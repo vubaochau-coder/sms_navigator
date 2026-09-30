@@ -34,7 +34,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          const OtpListPage(showAppBar: false),
+          const OtpListPage(),
           const PairingHubPage(),
         ],
       ),
