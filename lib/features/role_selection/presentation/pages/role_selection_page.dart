@@ -7,6 +7,7 @@ import '../../../notification_test/presentation/pages/notification_test_page.dar
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../../../sender/presentation/pages/sender_dashboard_page.dart';
+import '../widgets/role_card.dart';
 
 class RoleSelectionPage extends StatelessWidget {
   const RoleSelectionPage({super.key});
@@ -66,7 +67,7 @@ class RoleSelectionPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              _RoleCard(
+              RoleCard(
                 title: AppStrings.roleSenderTitle,
                 description: AppStrings.roleSenderDesc,
                 badge: 'Thiết Bị Gốc',
@@ -81,7 +82,7 @@ class RoleSelectionPage extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-              _RoleCard(
+              RoleCard(
                 title: AppStrings.roleReceiverTitle,
                 description: AppStrings.roleReceiverDesc,
                 badge: 'Thiết Bị Đích',
@@ -99,14 +100,16 @@ class RoleSelectionPage extends StatelessWidget {
               const SizedBox(height: 32),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 icon: const Icon(Icons.science_outlined, size: 18),
                 label: const Text('Thử Nghiệm & Xem UI Push Notification'),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const NotificationTestPage()),
+                    MaterialPageRoute(
+                        builder: (_) => const NotificationTestPage()),
                   );
                 },
               ),
@@ -168,7 +171,6 @@ class _AppLogo extends StatelessWidget {
   }
 }
 
-/// Nút chuyển đổi giao diện Light/Dark trên AppBar.
 class _ThemeToggleButton extends StatelessWidget {
   const _ThemeToggleButton();
 
@@ -187,128 +189,13 @@ class _ThemeToggleButton extends StatelessWidget {
             transitionBuilder: (child, animation) =>
                 ScaleTransition(scale: animation, child: child),
             child: Icon(
-              isDark
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
               key: ValueKey<bool>(isDark),
             ),
           ),
           onPressed: () => context.read<ThemeCubit>().toggleTheme(),
         );
       },
-    );
-  }
-}
-
-class _RoleCard extends StatelessWidget {
-  const _RoleCard({
-    required this.title,
-    required this.description,
-    required this.badge,
-    required this.icon,
-    required this.onTap,
-    this.color,
-  });
-
-  final String title;
-  final String description;
-  final String badge;
-  final IconData icon;
-  final VoidCallback onTap;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = this.color ?? theme.colorScheme.primary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.colorScheme.outline, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: theme.brightness == Brightness.dark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          badge,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: theme.colorScheme.outline,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

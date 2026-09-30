@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/errors/app_exceptions.dart';
@@ -9,6 +8,7 @@ import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
 import '../../data/services/pair_management_service.dart';
+import '../widgets/paired_sender_card.dart';
 import 'pairing_receiver_page.dart';
 
 /// Màn hình xem danh sách thiết bị gửi dành cho Máy Nhận (Receiver).
@@ -175,173 +175,11 @@ class _PairedSendersPageState extends State<PairedSendersPage> {
         separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final item = _senders[index];
-          return _buildSenderCard(item);
+          return PairedSenderCard(
+            item: item,
+            onRevokePair: () => _confirmRevokePair(item),
+          );
         },
-      ),
-    );
-  }
-
-  Widget _buildSenderCard(PairedDeviceItem item) {
-    return InfoCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: (item.isActive ? AppColors.success : AppColors.warning)
-                      .withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  item.platform?.toLowerCase() == 'ios'
-                      ? Icons.phone_iphone_rounded
-                      : Icons.phone_android_rounded,
-                  size: 22,
-                  color: item.isActive ? AppColors.success : AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.displayName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Platform: ${item.platform ?? "Android"}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (item.isActive)
-                StatusBadge.active(label: 'Đang duy trì gửi')
-              else
-                StatusBadge.paused(label: 'Người gửi tạm dừng'),
-            ],
-          ),
-          const Divider(height: 20),
-          CopyableInfoRow(
-            label: 'Pair ID',
-            value: item.pairId,
-            copySuccessMessage: 'Đã sao chép Pair ID',
-          ),
-          CopyableInfoRow(
-            label: 'Sender ID',
-            value: item.deviceId,
-            copySuccessMessage: 'Đã sao chép Device ID người gửi',
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                Text(
-                  'Ghép đôi lúc: ',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-                ),
-                Text(
-                  item.formattedPairedAt,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                Text(
-                  'Lần nhận gần nhất: ',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-                ),
-                Text(
-                  item.formattedLastRelayedAt,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Chỉ xem trạng thái (Read-only banner giải thích rõ ràng)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  item.isActive
-                      ? Icons.lock_open_rounded
-                      : Icons.pause_circle_outline_rounded,
-                  size: 16,
-                  color: item.isActive ? AppColors.success : AppColors.warning,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    item.isActive
-                        ? 'Người gửi đang duy trì truyền tin. (Chỉ xem)'
-                        : 'Người gửi đang tạm dừng truyền tin. (Chỉ xem)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.75),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.link_off_rounded,
-                      size: 20, color: AppColors.error),
-                  tooltip: 'Hủy ghép đôi',
-                  onPressed: () => _confirmRevokePair(item),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
