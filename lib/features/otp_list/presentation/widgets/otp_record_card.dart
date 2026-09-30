@@ -19,8 +19,10 @@ class OtpRecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final timeStr =
-        DateTimeUtils.formatTime(item.receivedAt, includeSeconds: true);
+    final timeStr = DateTimeUtils.formatTime(
+      item.receivedAt,
+      includeSeconds: true,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -39,8 +41,10 @@ class OtpRecordCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(6),
@@ -67,13 +71,18 @@ class OtpRecordCard extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(Icons.phone_android_rounded,
-                      size: 12, color: colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.phone_android_rounded,
+                    size: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 3),
                   Text(
                     item.senderDeviceName,
                     style: TextStyle(
-                        fontSize: 11, color: colorScheme.onSurfaceVariant),
+                      fontSize: 11,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -105,12 +114,16 @@ class OtpRecordCard extends StatelessWidget {
                     FilledButton.tonalIcon(
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         visualDensity: VisualDensity.compact,
                       ),
                       icon: const Icon(Icons.copy_rounded, size: 14),
-                      label: const Text('Sao chép mã',
-                          style: TextStyle(fontSize: 11)),
+                      label: const Text(
+                        'Sao chép mã',
+                        style: TextStyle(fontSize: 11),
+                      ),
                       onPressed: onCopyOtp,
                     ),
                   const SizedBox(width: 6),

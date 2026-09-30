@@ -55,10 +55,12 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
       emit(state.copyWith(isLoading: false, devices: items));
     } catch (e) {
       if (token.isCancelled) return;
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Không thể tải danh sách thiết bị nhận: $e',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Không thể tải danh sách thiết bị nhận: $e',
+        ),
+      );
     }
   }
 
@@ -73,10 +75,12 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
       emit(state.copyWith(isLoading: false, devices: items));
     } catch (e) {
       if (token.isCancelled) return;
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Không thể tải danh sách thiết bị gửi: $e',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Không thể tải danh sách thiết bị gửi: $e',
+        ),
+      );
     }
   }
 
@@ -91,7 +95,8 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
       isActive: isActive,
     );
 
-    final updatedToggling = Set<String>.from(state.togglingPairIds)..remove(pairId);
+    final updatedToggling = Set<String>.from(state.togglingPairIds)
+      ..remove(pairId);
 
     if (success) {
       final updatedList = state.devices.map((e) {
@@ -100,10 +105,9 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
         }
         return e;
       }).toList();
-      emit(state.copyWith(
-        devices: updatedList,
-        togglingPairIds: updatedToggling,
-      ));
+      emit(
+        state.copyWith(devices: updatedList, togglingPairIds: updatedToggling),
+      );
       return true;
     } else {
       emit(state.copyWith(togglingPairIds: updatedToggling));
@@ -114,7 +118,9 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
   Future<bool> revokePair(String pairId) async {
     final success = await service.revokePair(pairId);
     if (success) {
-      final updatedList = state.devices.where((e) => e.pairId != pairId).toList();
+      final updatedList = state.devices
+          .where((e) => e.pairId != pairId)
+          .toList();
       emit(state.copyWith(devices: updatedList));
       return true;
     }

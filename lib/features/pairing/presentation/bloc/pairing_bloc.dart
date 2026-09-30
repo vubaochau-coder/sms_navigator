@@ -12,39 +12,45 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
   StreamSubscription<void>? _countdownSubscription;
 
   PairingBloc({required this.repository}) : super(const PairingState()) {
-    on<PairingGenerateSenderCodeEvent>(
-      (event, emit) async {
-        await _onGenerateSenderCode(event, emit);
-        if (state.pairingPayload != null && state.errorMessage == null) {
-          emit(state.copyWith(
+    on<PairingGenerateSenderCodeEvent>((event, emit) async {
+      await _onGenerateSenderCode(event, emit);
+      if (state.pairingPayload != null && state.errorMessage == null) {
+        emit(
+          state.copyWith(
             countdownSeconds: PairingState.defaultCountdownSeconds,
-          ));
-          _startCountdown();
-        }
-      },
+          ),
+        );
+        _startCountdown();
+      }
+    }, transformer: droppable());
+    on<PairingTimerTickedEvent>(_onTimerTicked, transformer: sequential());
+    on<PairingSubmitReceiverQrEvent>(
+      _onSubmitReceiverQr,
       transformer: droppable(),
     );
-    on<PairingTimerTickedEvent>(_onTimerTicked, transformer: sequential());
-    on<PairingSubmitReceiverQrEvent>(_onSubmitReceiverQr, transformer: droppable());
-    on<PairingCheckReceiverStatusEvent>(_onCheckReceiverStatus, transformer: restartable());
-    on<PairingDisconnectReceiverEvent>(_onDisconnectReceiver, transformer: droppable());
+    on<PairingCheckReceiverStatusEvent>(
+      _onCheckReceiverStatus,
+      transformer: restartable(),
+    );
+    on<PairingDisconnectReceiverEvent>(
+      _onDisconnectReceiver,
+      transformer: droppable(),
+    );
   }
 
   void _startCountdown() {
     _countdownSubscription?.cancel();
-    _countdownSubscription = Stream<void>.periodic(const Duration(seconds: 1))
-        .listen((_) => add(const PairingTimerTickedEvent()));
+    _countdownSubscription = Stream<void>.periodic(
+      const Duration(seconds: 1),
+    ).listen((_) => add(const PairingTimerTickedEvent()));
   }
 
-  void _onTimerTicked(
-    PairingTimerTickedEvent event,
-    Emitter<PairingState> emit,
-  ) {
+  void _onTimerTicked(PairingTimerTickedEvent event, Emitter emit) {
     final next = state.countdownSeconds - 1;
     if (next <= 0) {
-      emit(state.copyWith(
-        countdownSeconds: PairingState.defaultCountdownSeconds,
-      ));
+      emit(
+        state.copyWith(countdownSeconds: PairingState.defaultCountdownSeconds),
+      );
       add(const PairingGenerateSenderCodeEvent());
       return;
     }
@@ -60,63 +66,69 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
 
   Future<void> _onGenerateSenderCode(
     PairingGenerateSenderCodeEvent event,
-    Emitter<PairingState> emit,
+    Emitter emit,
   ) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       final payload = await repository.createSenderPairingSession();
-      emit(state.copyWith(
-        isLoading: false,
-        pairingPayload: payload,
-        isPaired: true,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          pairingPayload: payload,
+          isPaired: true,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Lỗi tạo phiên ghép đôi: ${e.toString()}',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Lỗi tạo phiên ghép đôi: ${e.toString()}',
+        ),
+      );
     }
   }
 
   Future<void> _onSubmitReceiverQr(
     PairingSubmitReceiverQrEvent event,
-    Emitter<PairingState> emit,
+    Emitter emit,
   ) async {
     emit(state.copyWith(isLoading: true, errorMessage: null, isSuccess: false));
     try {
       final success = await repository.submitReceiverPairingQr(event.qrData);
       if (success) {
-        emit(state.copyWith(
-          isLoading: false,
-          isSuccess: true,
-          isPaired: true,
-        ));
+        emit(state.copyWith(isLoading: false, isSuccess: true, isPaired: true));
       } else {
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: 'Mã QR không hợp lệ hoặc đã hết hạn.',
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: 'Mã QR không hợp lệ hoặc đã hết hạn.',
+          ),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Lỗi xác nhận ghép đôi: ${e.toString()}',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Lỗi xác nhận ghép đôi: ${e.toString()}',
+        ),
+      );
     }
   }
 
   Future<void> _onCheckReceiverStatus(
     PairingCheckReceiverStatusEvent event,
-    Emitter<PairingState> emit,
+    Emitter emit,
   ) async {
     emit(state.copyWith(isLoading: true));
     try {
       final payload = await repository.checkReceiverPairingStatus();
-      emit(state.copyWith(
-        isLoading: false,
-        isPaired: payload != null,
-        pairingPayload: payload,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isPaired: payload != null,
+          pairingPayload: payload,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(isLoading: false));
     }
@@ -124,7 +136,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
 
   Future<void> _onDisconnectReceiver(
     PairingDisconnectReceiverEvent event,
-    Emitter<PairingState> emit,
+    Emitter emit,
   ) async {
     try {
       await repository.disconnectReceiver();

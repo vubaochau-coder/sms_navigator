@@ -34,8 +34,10 @@ class OtpDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final timeStr =
-        DateTimeUtils.formatDateTime(item.receivedAt, includeSeconds: true);
+    final timeStr = DateTimeUtils.formatDateTime(
+      item.receivedAt,
+      includeSeconds: true,
+    );
 
     return Padding(
       padding: EdgeInsets.only(
@@ -85,22 +87,32 @@ class OtpDetailBottomSheet extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.phone_android_rounded,
-                  size: 14, color: colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.phone_android_rounded,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
               Text(
                 item.senderDeviceName,
                 style: TextStyle(
-                    fontSize: 12, color: colorScheme.onSurfaceVariant),
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.access_time_rounded,
-                  size: 14, color: colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.access_time_rounded,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
               Text(
                 timeStr,
                 style: TextStyle(
-                    fontSize: 12, color: colorScheme.onSurfaceVariant),
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

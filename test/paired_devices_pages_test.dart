@@ -14,10 +14,14 @@ class _MockPairManagementService implements PairManagementService {
   bool? toggledActiveState;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken}) async => receiversList;
+  Future<List<PairedDeviceItem>> getPairedReceivers({
+    CancelToken? cancelToken,
+  }) async => receiversList;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken}) async => sendersList;
+  Future<List<PairedDeviceItem>> getPairedSenders({
+    CancelToken? cancelToken,
+  }) async => sendersList;
 
   @override
   Future<bool> togglePairActive({
@@ -45,13 +49,13 @@ class _MockPairManagementService implements PairManagementService {
 
 void main() {
   group('PairedReceiversPage Widget Tests (Sender Side)', () {
-    testWidgets('shows empty state when no receivers are paired', (tester) async {
+    testWidgets('shows empty state when no receivers are paired', (
+      tester,
+    ) async {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: PairedReceiversPage(pairManagementService: mock),
-        ),
+        MaterialApp(home: PairedReceiversPage(pairManagementService: mock)),
       );
       await tester.pumpAndSettle();
 
@@ -60,42 +64,43 @@ void main() {
       expect(find.text('Tạo mã QR ghép đôi'), findsOneWidget);
     });
 
-    testWidgets('renders receiver items with toggle switch and handles toggle', (tester) async {
-      final mock = _MockPairManagementService();
-      mock.receiversList = [
-        const PairedDeviceItem(
-          pairId: 'pair_123',
-          deviceId: 'rec_device_abc',
-          deviceName: 'Máy Nhận Malaysia',
-          platform: 'android',
-          isActive: true,
-          pairedAt: 1727620000,
-        ),
-      ];
+    testWidgets(
+      'renders receiver items with toggle switch and handles toggle',
+      (tester) async {
+        final mock = _MockPairManagementService();
+        mock.receiversList = [
+          const PairedDeviceItem(
+            pairId: 'pair_123',
+            deviceId: 'rec_device_abc',
+            deviceName: 'Máy Nhận Malaysia',
+            platform: 'android',
+            isActive: true,
+            pairedAt: 1727620000,
+          ),
+        ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PairedReceiversPage(pairManagementService: mock),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: PairedReceiversPage(pairManagementService: mock)),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Máy Nhận Malaysia'), findsOneWidget);
-      expect(find.text('Đang gửi'), findsOneWidget);
-      expect(find.text('Cho phép gửi OTP'), findsOneWidget);
+        expect(find.text('Máy Nhận Malaysia'), findsOneWidget);
+        expect(find.text('Đang gửi'), findsOneWidget);
+        expect(find.text('Cho phép gửi OTP'), findsOneWidget);
 
-      final switchFinder = find.byType(Switch);
-      expect(switchFinder, findsOneWidget);
+        final switchFinder = find.byType(Switch);
+        expect(switchFinder, findsOneWidget);
 
-      // Tap the switch to pause forwarding
-      await tester.tap(switchFinder);
-      await tester.pumpAndSettle();
+        // Tap the switch to pause forwarding
+        await tester.tap(switchFinder);
+        await tester.pumpAndSettle();
 
-      expect(mock.toggleCalled, isTrue);
-      expect(mock.toggledPairId, 'pair_123');
-      expect(mock.toggledActiveState, isFalse);
-      expect(find.text('Đã tạm dừng'), findsOneWidget);
-    });
+        expect(mock.toggleCalled, isTrue);
+        expect(mock.toggledPairId, 'pair_123');
+        expect(mock.toggledActiveState, isFalse);
+        expect(find.text('Đã tạm dừng'), findsOneWidget);
+      },
+    );
   });
 
   group('PairedSendersPage Widget Tests (Receiver Side)', () {
@@ -103,9 +108,7 @@ void main() {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: PairedSendersPage(pairManagementService: mock),
-        ),
+        MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
       );
       await tester.pumpAndSettle();
 
@@ -114,59 +117,67 @@ void main() {
       expect(find.text('Quét mã QR ghép đôi'), findsOneWidget);
     });
 
-    testWidgets('renders sender items with read-only badge and no toggle switch', (tester) async {
-      final mock = _MockPairManagementService();
-      mock.sendersList = [
-        const PairedDeviceItem(
-          pairId: 'pair_456',
-          deviceId: 'send_device_xyz',
-          deviceName: 'Máy Gửi Việt Nam',
-          platform: 'android',
-          isActive: true,
-          pairedAt: 1727620000,
-          isSender: true,
-        ),
-      ];
+    testWidgets(
+      'renders sender items with read-only badge and no toggle switch',
+      (tester) async {
+        final mock = _MockPairManagementService();
+        mock.sendersList = [
+          const PairedDeviceItem(
+            pairId: 'pair_456',
+            deviceId: 'send_device_xyz',
+            deviceName: 'Máy Gửi Việt Nam',
+            platform: 'android',
+            isActive: true,
+            pairedAt: 1727620000,
+            isSender: true,
+          ),
+        ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PairedSendersPage(pairManagementService: mock),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Máy Gửi Việt Nam'), findsOneWidget);
-      expect(find.text('Đang duy trì gửi'), findsOneWidget);
-      expect(find.textContaining('Người gửi đang duy trì truyền tin. (Chỉ xem)'), findsOneWidget);
+        expect(find.text('Máy Gửi Việt Nam'), findsOneWidget);
+        expect(find.text('Đang duy trì gửi'), findsOneWidget);
+        expect(
+          find.textContaining('Người gửi đang duy trì truyền tin. (Chỉ xem)'),
+          findsOneWidget,
+        );
 
-      // On receiver side, there must NOT be any interactive toggle Switch
-      expect(find.byType(Switch), findsNothing);
-    });
+        // On receiver side, there must NOT be any interactive toggle Switch
+        expect(find.byType(Switch), findsNothing);
+      },
+    );
 
-    testWidgets('renders paused status clearly for receiver when sender paused relay', (tester) async {
-      final mock = _MockPairManagementService();
-      mock.sendersList = [
-        const PairedDeviceItem(
-          pairId: 'pair_789',
-          deviceId: 'send_device_paused',
-          deviceName: 'Máy Gửi Tạm Dừng',
-          platform: 'android',
-          isActive: false,
-          pairedAt: 1727620000,
-          isSender: true,
-        ),
-      ];
+    testWidgets(
+      'renders paused status clearly for receiver when sender paused relay',
+      (tester) async {
+        final mock = _MockPairManagementService();
+        mock.sendersList = [
+          const PairedDeviceItem(
+            pairId: 'pair_789',
+            deviceId: 'send_device_paused',
+            deviceName: 'Máy Gửi Tạm Dừng',
+            platform: 'android',
+            isActive: false,
+            pairedAt: 1727620000,
+            isSender: true,
+          ),
+        ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PairedSendersPage(pairManagementService: mock),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Máy Gửi Tạm Dừng'), findsOneWidget);
-      expect(find.text('Người gửi tạm dừng'), findsOneWidget);
-      expect(find.textContaining('Người gửi đang tạm dừng truyền tin. (Chỉ xem)'), findsOneWidget);
-    });
+        expect(find.text('Máy Gửi Tạm Dừng'), findsOneWidget);
+        expect(find.text('Người gửi tạm dừng'), findsOneWidget);
+        expect(
+          find.textContaining('Người gửi đang tạm dừng truyền tin. (Chỉ xem)'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

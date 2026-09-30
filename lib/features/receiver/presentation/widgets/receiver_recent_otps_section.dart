@@ -8,10 +8,7 @@ import '../../data/models/received_otp_model.dart';
 
 /// Section danh sách OTP gần đây cho máy nhận.
 class ReceiverRecentOtpsSection extends StatelessWidget {
-  const ReceiverRecentOtpsSection({
-    super.key,
-    required this.onCopyOtp,
-  });
+  const ReceiverRecentOtpsSection({super.key, required this.onCopyOtp});
 
   final void Function(BuildContext context, String otp) onCopyOtp;
 
@@ -36,9 +33,9 @@ class ReceiverRecentOtpsSection extends StatelessWidget {
                 if (state.otps.isNotEmpty)
                   TextButton(
                     onPressed: () {
-                      context
-                          .read<ReceiverBloc>()
-                          .add(const ReceiverClearHistoryEvent());
+                      context.read<ReceiverBloc>().add(
+                        const ReceiverClearHistoryEvent(),
+                      );
                     },
                     child: Text(
                       'Xóa Lịch Sử',
@@ -111,10 +108,7 @@ class _EmptyOtpCard extends StatelessWidget {
           Text(
             'Khi hệ thống bên ngoài gửi SMS đến SIM Viettel, mã OTP sẽ tự động xuất hiện tại đây.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -167,8 +161,10 @@ class _ReceivedOtpCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
@@ -218,8 +214,10 @@ class _ReceivedOtpCard extends StatelessWidget {
                       ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
                       : colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
                 onPressed: onCopy,
               ),

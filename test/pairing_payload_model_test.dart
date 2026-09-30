@@ -58,14 +58,8 @@ void main() {
     test('isExpired reflects current time vs expiresAt', () {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      expect(
-        _samplePayload(expiresAt: now + 60000).isExpired,
-        isFalse,
-      );
-      expect(
-        _samplePayload(expiresAt: now - 1000).isExpired,
-        isTrue,
-      );
+      expect(_samplePayload(expiresAt: now + 60000).isExpired, isFalse);
+      expect(_samplePayload(expiresAt: now - 1000).isExpired, isTrue);
     });
   });
 

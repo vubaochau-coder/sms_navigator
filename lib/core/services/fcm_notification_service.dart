@@ -54,8 +54,7 @@ class FcmNotificationService {
   Future<void> initialize() async {
     try {
       // 1. Cấu hình FlutterLocalNotificationsPlugin cho Android
-      const androidInit =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
       const initSettings = InitializationSettings(android: androidInit);
 
       await _localNotifications.initialize(
@@ -75,8 +74,10 @@ class FcmNotificationService {
         enableVibration: true,
       );
 
-      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.createNotificationChannel(androidChannel);
 
       // 3. Yêu cầu quyền thông báo (Android 13+ POST_NOTIFICATIONS)
@@ -104,7 +105,9 @@ class FcmNotificationService {
       });
 
       // 7. Lắng nghe người dùng bấm vào notification mở app
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      FirebaseMessaging.onMessageOpenedApp.listen((
+        RemoteMessage message,
+      ) async {
         final otp = await processIncomingRemoteMessage(message);
         if (otp != null) {
           _otpStreamController.add(otp);
@@ -125,8 +128,10 @@ class FcmNotificationService {
         provisional: false,
       );
 
-      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.requestNotificationsPermission();
     } catch (e) {
       debugPrint('Error requesting notification permissions: $e');
@@ -140,7 +145,9 @@ class FcmNotificationService {
         await deviceStorageService.saveFcmToken(token);
         try {
           await deviceApiService.updateFcmToken(token);
-          debugPrint('FCM Token synced successfully: ${token.substring(0, 15)}...');
+          debugPrint(
+            'FCM Token synced successfully: ${token.substring(0, 15)}...',
+          );
         } catch (e) {
           debugPrint('Failed to update FCM token with server: $e');
         }
@@ -173,12 +180,16 @@ class FcmNotificationService {
       final sharedSecret = prefs.getString('receiver_shared_secret');
 
       if (sharedSecret == null || sharedSecret.isEmpty) {
-        debugPrint('Cannot decrypt OTP relay: No shared secret found on receiver');
+        debugPrint(
+          'Cannot decrypt OTP relay: No shared secret found on receiver',
+        );
         return null;
       }
 
       // Xác minh pairId nếu có
-      if (storedPairId != null && storedPairId.isNotEmpty && pairId.isNotEmpty) {
+      if (storedPairId != null &&
+          storedPairId.isNotEmpty &&
+          pairId.isNotEmpty) {
         if (storedPairId != pairId) {
           debugPrint('Pair ID mismatch ($storedPairId vs $pairId), skipping');
           return null;
@@ -195,7 +206,8 @@ class FcmNotificationService {
       final Map<String, dynamic> payload = jsonDecode(decryptedJson);
       final sender = payload['sender']?.toString() ?? 'OTP Service';
       final otp = payload['otp']?.toString() ?? '';
-      final rawMessage = payload['message']?.toString() ??
+      final rawMessage =
+          payload['message']?.toString() ??
           payload['rawMessage']?.toString() ??
           '';
 
@@ -246,8 +258,8 @@ class FcmNotificationService {
 
     const notificationDetails = NotificationDetails(android: androidDetails);
 
-    final notificationId =
-        (DateTime.now().millisecondsSinceEpoch % 100000).toInt();
+    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
+        .toInt();
 
     await _localNotifications.show(
       id: notificationId,
@@ -280,8 +292,8 @@ class FcmNotificationService {
     );
 
     const notificationDetails = NotificationDetails(android: androidDetails);
-    final notificationId =
-        (DateTime.now().millisecondsSinceEpoch % 100000).toInt();
+    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
+        .toInt();
 
     try {
       await _localNotifications.show(
@@ -327,8 +339,8 @@ class FcmNotificationService {
     );
 
     const notificationDetails = NotificationDetails(android: androidDetails);
-    final notificationId =
-        (DateTime.now().millisecondsSinceEpoch % 100000).toInt();
+    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
+        .toInt();
 
     try {
       await _localNotifications.show(

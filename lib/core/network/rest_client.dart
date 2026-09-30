@@ -58,9 +58,7 @@ abstract class RestClient {
   });
 
   @GET(ApiEndpoints.pairedSenders)
-  Future<dynamic> getPairedSenders({
-    @CancelRequest() CancelToken? cancelToken,
-  });
+  Future<dynamic> getPairedSenders({@CancelRequest() CancelToken? cancelToken});
 
   @POST(ApiEndpoints.relay)
   Future<dynamic> relayOtp(

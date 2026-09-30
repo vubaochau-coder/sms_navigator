@@ -40,11 +40,11 @@ class PairingState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isLoading,
-        isSuccess,
-        errorMessage,
-        pairingPayload,
-        isPaired,
-        countdownSeconds,
-      ];
+    isLoading,
+    isSuccess,
+    errorMessage,
+    pairingPayload,
+    isPaired,
+    countdownSeconds,
+  ];
 }

@@ -25,22 +25,37 @@ void main() {
     test('formatDateTime formats date and time with or without seconds', () {
       final dt = DateTime(2026, 9, 29, 15, 20, 30);
       expect(DateTimeUtils.formatDateTime(dt), '29/09/2026 15:20');
-      expect(DateTimeUtils.formatDateTime(dt, includeSeconds: true), '29/09/2026 15:20:30');
+      expect(
+        DateTimeUtils.formatDateTime(dt, includeSeconds: true),
+        '29/09/2026 15:20:30',
+      );
       expect(DateTimeUtils.formatDateTime(null), '--');
     });
 
-    test('formatEpochSeconds converts epoch seconds to formatted date time', () {
-      expect(DateTimeUtils.formatEpochSeconds(null), '--');
-      expect(DateTimeUtils.formatEpochSeconds(0), '--');
-      final formatted = DateTimeUtils.formatEpochSeconds(1727620000);
-      expect(formatted.contains('2024'), isTrue);
-    });
+    test(
+      'formatEpochSeconds converts epoch seconds to formatted date time',
+      () {
+        expect(DateTimeUtils.formatEpochSeconds(null), '--');
+        expect(DateTimeUtils.formatEpochSeconds(0), '--');
+        final formatted = DateTimeUtils.formatEpochSeconds(1727620000);
+        expect(formatted.contains('2024'), isTrue);
+      },
+    );
 
     test('timeAgo calculates relative description correctly', () {
       final now = DateTime.now();
-      expect(DateTimeUtils.timeAgo(now.subtract(const Duration(seconds: 10))), 'Vừa xong');
-      expect(DateTimeUtils.timeAgo(now.subtract(const Duration(minutes: 5))), '5 phút trước');
-      expect(DateTimeUtils.timeAgo(now.subtract(const Duration(hours: 3))), '3 giờ trước');
+      expect(
+        DateTimeUtils.timeAgo(now.subtract(const Duration(seconds: 10))),
+        'Vừa xong',
+      );
+      expect(
+        DateTimeUtils.timeAgo(now.subtract(const Duration(minutes: 5))),
+        '5 phút trước',
+      );
+      expect(
+        DateTimeUtils.timeAgo(now.subtract(const Duration(hours: 3))),
+        '3 giờ trước',
+      );
       expect(DateTimeUtils.timeAgo(null), '--');
     });
 

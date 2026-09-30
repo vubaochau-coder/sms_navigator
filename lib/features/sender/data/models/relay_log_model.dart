@@ -53,7 +53,9 @@ class RelayLogModel extends Equatable {
       otp: map['otp']?.toString() ?? '',
       status: map['status']?.toString() ?? 'PENDING',
       error: map['error']?.toString() ?? '',
-      timestamp: (map['timestamp'] is num) ? (map['timestamp'] as num).toInt() : 0,
+      timestamp: (map['timestamp'] is num)
+          ? (map['timestamp'] as num).toInt()
+          : 0,
     );
   }
 

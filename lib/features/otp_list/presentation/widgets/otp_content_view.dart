@@ -74,8 +74,11 @@ class OtpContentView extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.phone_android_rounded,
-                          size: 16, color: colorScheme.primary),
+                      Icon(
+                        Icons.phone_android_rounded,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         deviceName,
@@ -88,8 +91,10 @@ class OtpContentView extends StatelessWidget {
                     ],
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),

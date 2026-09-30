@@ -52,14 +52,14 @@ class NotificationTestState extends Equatable {
 
   @override
   List<Object?> get props => [
-        sender,
-        otp,
-        rawMessage,
-        targetDevice,
-        fcmToken,
-        hasNotificationPermission,
-        isLoading,
-        toastMessage,
-        isErrorToast,
-      ];
+    sender,
+    otp,
+    rawMessage,
+    targetDevice,
+    fcmToken,
+    hasNotificationPermission,
+    isLoading,
+    toastMessage,
+    isErrorToast,
+  ];
 }

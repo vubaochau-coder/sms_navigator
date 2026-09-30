@@ -28,7 +28,8 @@ class _FakePairingRepository implements PairingRepository {
   Future<bool> applySenderPairing(PairingPayloadModel payload) async => true;
 
   @override
-  Future<bool> submitReceiverPairingQr(String qrData) async => onSubmitQr(qrData);
+  Future<bool> submitReceiverPairingQr(String qrData) async =>
+      onSubmitQr(qrData);
 
   @override
   Future<bool> submitReceiverPairingCode(String code) async =>
@@ -65,8 +66,10 @@ void main() {
       repository: _FakePairingRepository(onSubmitQr: (_) => true),
     );
 
-    final statesFuture =
-        _collectUntil(bloc, (state) => state.isSuccess && state.isPaired);
+    final statesFuture = _collectUntil(
+      bloc,
+      (state) => state.isSuccess && state.isPaired,
+    );
     bloc.add(const PairingSubmitReceiverQrEvent('{"v":1,"pairId":"p"}'));
 
     final states = await statesFuture;
@@ -83,8 +86,10 @@ void main() {
       repository: _FakePairingRepository(onSubmitQr: (_) => false),
     );
 
-    final statesFuture =
-        _collectUntil(bloc, (state) => state.errorMessage != null);
+    final statesFuture = _collectUntil(
+      bloc,
+      (state) => state.errorMessage != null,
+    );
     bloc.add(const PairingSubmitReceiverQrEvent('bad-qr-data'));
 
     final states = await statesFuture;
@@ -92,10 +97,7 @@ void main() {
 
     expect(states.last.isSuccess, isFalse);
     expect(states.last.isPaired, isFalse);
-    expect(
-      states.last.errorMessage,
-      'Mã QR không hợp lệ hoặc đã hết hạn.',
-    );
+    expect(states.last.errorMessage, 'Mã QR không hợp lệ hoặc đã hết hạn.');
   });
 
   test('legacy code event routes to the same QR handler', () async {
@@ -109,8 +111,10 @@ void main() {
       ),
     );
 
-    final statesFuture =
-        _collectUntil(bloc, (state) => state.errorMessage != null);
+    final statesFuture = _collectUntil(
+      bloc,
+      (state) => state.errorMessage != null,
+    );
     bloc.add(const PairingSubmitReceiverCodeEvent('123456'));
 
     final states = await statesFuture;
@@ -120,15 +124,17 @@ void main() {
     expect(states.last.errorMessage, isNotNull);
   });
 
-  test('repository submitReceiverPairingCode forwards to QR submission',
-      () async {
-    final probe = _ForwardingServiceProbe();
-    final repo = PairingRepositoryImpl(pairingService: probe);
+  test(
+    'repository submitReceiverPairingCode forwards to QR submission',
+    () async {
+      final probe = _ForwardingServiceProbe();
+      final repo = PairingRepositoryImpl(pairingService: probe);
 
-    await repo.submitReceiverPairingCode('123456');
+      await repo.submitReceiverPairingCode('123456');
 
-    expect(probe.received, ['123456']);
-  });
+      expect(probe.received, ['123456']);
+    },
+  );
 }
 
 class _ForwardingServiceProbe implements PairingService {

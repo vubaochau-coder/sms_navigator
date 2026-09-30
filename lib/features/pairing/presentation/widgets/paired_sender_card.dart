@@ -57,10 +57,9 @@ class PairedSenderCard extends StatelessWidget {
                       'Platform: ${item.platform ?? "Android"}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -91,10 +90,9 @@ class PairedSenderCard extends StatelessWidget {
                   'Ghép đôi lúc: ',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 Text(
@@ -115,10 +113,9 @@ class PairedSenderCard extends StatelessWidget {
                   'Lần nhận gần nhất: ',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 Text(
@@ -158,16 +155,18 @@ class PairedSenderCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.75),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.75),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.link_off_rounded,
-                      size: 20, color: AppColors.error),
+                  icon: const Icon(
+                    Icons.link_off_rounded,
+                    size: 20,
+                    color: AppColors.error,
+                  ),
                   tooltip: 'Hủy ghép đôi',
                   onPressed: onRevokePair,
                 ),

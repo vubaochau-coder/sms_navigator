@@ -14,9 +14,7 @@ class PairingSenderPage extends StatelessWidget {
     context.read<PairingBloc>().add(const PairingGenerateSenderCodeEvent());
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ghép Đôi Thiết Bị'),
-      ),
+      appBar: AppBar(title: const Text('Ghép Đôi Thiết Bị')),
       body: BlocBuilder<PairingBloc, PairingState>(
         builder: (context, state) {
           if (state.isLoading) {
@@ -28,9 +26,9 @@ class PairingSenderPage extends StatelessWidget {
             return _ErrorView(
               message: state.errorMessage ?? 'Không thể tạo mã ghép đôi.',
               onRetry: () {
-                context
-                    .read<PairingBloc>()
-                    .add(const PairingGenerateSenderCodeEvent());
+                context.read<PairingBloc>().add(
+                  const PairingGenerateSenderCodeEvent(),
+                );
               },
             );
           }
@@ -65,9 +63,9 @@ class PairingSenderPage extends StatelessWidget {
                 const SizedBox(height: 32),
                 _ActionButtons(
                   onRegenerate: () {
-                    context
-                        .read<PairingBloc>()
-                        .add(const PairingGenerateSenderCodeEvent());
+                    context.read<PairingBloc>().add(
+                      const PairingGenerateSenderCodeEvent(),
+                    );
                   },
                 ),
                 const SizedBox(height: 12),
@@ -104,11 +102,7 @@ class _HeaderIcon extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
-        Icons.qr_code_2_rounded,
-        color: Colors.white,
-        size: 38,
-      ),
+      child: const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 38),
     );
   }
 }
@@ -160,8 +154,9 @@ class _CountdownChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isUrgent = seconds <= 60;
-    final foreground =
-        isUrgent ? colorScheme.onError : colorScheme.onPrimaryContainer;
+    final foreground = isUrgent
+        ? colorScheme.onError
+        : colorScheme.onPrimaryContainer;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
@@ -251,7 +246,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline_rounded, size: 48, color: colorScheme.error),
+            Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(
               message,
@@ -263,10 +262,7 @@ class _ErrorView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: onRetry,
-              child: const Text('Thử Lại'),
-            ),
+            FilledButton(onPressed: onRetry, child: const Text('Thử Lại')),
           ],
         ),
       ),

@@ -114,17 +114,17 @@ class PairingServiceImpl implements PairingService {
         if (apiClient != null) {
           await apiClient!.post(
             ApiEndpoints.confirmPair,
-            body: {
-              'pair_id': payload.pairId,
-              'fcm_token': fcmToken,
-            },
+            body: {'pair_id': payload.pairId, 'fcm_token': fcmToken},
           );
         }
       } catch (_) {}
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyReceiverPairId, payload.pairId);
-      await prefs.setString(_keyReceiverSharedSecret, payload.sharedSecretBase64);
+      await prefs.setString(
+        _keyReceiverSharedSecret,
+        payload.sharedSecretBase64,
+      );
 
       return true;
     } catch (_) {

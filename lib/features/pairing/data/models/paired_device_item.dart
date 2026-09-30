@@ -36,13 +36,16 @@ class PairedDeviceItem extends Equatable {
     if (deviceName != null && deviceName!.trim().isNotEmpty) {
       return deviceName!.trim();
     }
-    return deviceId.isNotEmpty ? deviceId : (isSender ? 'Thiết bị gửi' : 'Thiết bị nhận');
+    return deviceId.isNotEmpty
+        ? deviceId
+        : (isSender ? 'Thiết bị gửi' : 'Thiết bị nhận');
   }
 
   String get formattedPairedAt => DateTimeUtils.formatEpochSeconds(pairedAt);
 
-  String get formattedLastRelayedAt =>
-      lastRelayedAt != null ? DateTimeUtils.formatEpochSeconds(lastRelayedAt) : 'Chưa có lượt gửi';
+  String get formattedLastRelayedAt => lastRelayedAt != null
+      ? DateTimeUtils.formatEpochSeconds(lastRelayedAt)
+      : 'Chưa có lượt gửi';
 
   PairedDeviceItem copyWith({
     String? pairId,
@@ -73,9 +76,12 @@ class PairedDeviceItem extends Equatable {
       isActive: json['is_active'] != false,
       deviceName: json['device_name']?.toString(),
       platform: json['platform']?.toString(),
-      pairedAt: (json['paired_at'] is num) ? (json['paired_at'] as num).toInt() : null,
-      lastRelayedAt:
-          (json['last_relayed_at'] is num) ? (json['last_relayed_at'] as num).toInt() : null,
+      pairedAt: (json['paired_at'] is num)
+          ? (json['paired_at'] as num).toInt()
+          : null,
+      lastRelayedAt: (json['last_relayed_at'] is num)
+          ? (json['last_relayed_at'] as num).toInt()
+          : null,
       isSender: false,
     );
   }
@@ -87,22 +93,25 @@ class PairedDeviceItem extends Equatable {
       isActive: json['is_active'] != false,
       deviceName: json['device_name']?.toString(),
       platform: json['platform']?.toString(),
-      pairedAt: (json['paired_at'] is num) ? (json['paired_at'] as num).toInt() : null,
-      lastRelayedAt:
-          (json['last_relayed_at'] is num) ? (json['last_relayed_at'] as num).toInt() : null,
+      pairedAt: (json['paired_at'] is num)
+          ? (json['paired_at'] as num).toInt()
+          : null,
+      lastRelayedAt: (json['last_relayed_at'] is num)
+          ? (json['last_relayed_at'] as num).toInt()
+          : null,
       isSender: true,
     );
   }
 
   @override
   List<Object?> get props => [
-        pairId,
-        deviceId,
-        isActive,
-        deviceName,
-        platform,
-        pairedAt,
-        lastRelayedAt,
-        isSender,
-      ];
+    pairId,
+    deviceId,
+    isActive,
+    deviceName,
+    platform,
+    pairedAt,
+    lastRelayedAt,
+    isSender,
+  ];
 }

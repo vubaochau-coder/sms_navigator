@@ -31,8 +31,9 @@ class CryptoHelper {
     required String secretKeyBase64,
   }) async {
     final algorithm = AesGcm.with256bits();
-    final secretKey =
-        await algorithm.newSecretKeyFromBytes(base64Decode(secretKeyBase64));
+    final secretKey = await algorithm.newSecretKeyFromBytes(
+      base64Decode(secretKeyBase64),
+    );
     final secretBox = await algorithm.encrypt(
       utf8.encode(plaintext),
       secretKey: secretKey,
@@ -73,11 +74,7 @@ class CryptoHelper {
 
     final algorithm = AesGcm.with256bits();
     final secretKey = await algorithm.newSecretKeyFromBytes(secretKeyBytes);
-    final secretBox = SecretBox(
-      cipherTextBytes,
-      nonce: iv,
-      mac: Mac(macBytes),
-    );
+    final secretBox = SecretBox(cipherTextBytes, nonce: iv, mac: Mac(macBytes));
 
     final clearTextBytes = await algorithm.decrypt(
       secretBox,

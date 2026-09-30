@@ -28,7 +28,9 @@ class PairManagementServiceImpl implements PairManagementService {
   PairManagementServiceImpl({required this.apiClient});
 
   @override
-  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken}) async {
+  Future<List<PairedDeviceItem>> getPairedReceivers({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await apiClient.get(
         ApiEndpoints.pairedReceivers,
@@ -48,7 +50,9 @@ class PairManagementServiceImpl implements PairManagementService {
   }
 
   @override
-  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken}) async {
+  Future<List<PairedDeviceItem>> getPairedSenders({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await apiClient.get(
         ApiEndpoints.pairedSenders,

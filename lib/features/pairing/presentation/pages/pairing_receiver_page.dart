@@ -43,9 +43,9 @@ class _PairingReceiverPageState extends State<PairingReceiverPage> {
 
   void _onPairingStateChanged(BuildContext context, PairingState state) {
     if (state.isSuccess && _isProcessing) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ghép đôi thành công!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Ghép đôi thành công!')));
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const ReceiverDashboardPage()),
@@ -56,9 +56,9 @@ class _PairingReceiverPageState extends State<PairingReceiverPage> {
     final error = state.errorMessage;
     if (error != null && _shownError != error) {
       _shownError = error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) setState(() => _isProcessing = false);
       });
@@ -86,9 +86,7 @@ class _PairingReceiverPageState extends State<PairingReceiverPage> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _ScannerTopBar(
-                    onBack: () => Navigator.pop(context),
-                  ),
+                  _ScannerTopBar(onBack: () => Navigator.pop(context)),
                   _ScannerControls(controller: _controller),
                 ],
               ),
@@ -159,8 +157,7 @@ class _ViewfinderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ViewfinderPainter oldDelegate) {
-    return oldDelegate.rrect != rrect ||
-        oldDelegate.borderColor != borderColor;
+    return oldDelegate.rrect != rrect || oldDelegate.borderColor != borderColor;
   }
 }
 
@@ -178,10 +175,7 @@ class _ScannerTopBar extends StatelessWidget {
           children: [
             IconButton(
               onPressed: onBack,
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-              ),
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
             ),
             const SizedBox(width: 4),
             const Expanded(

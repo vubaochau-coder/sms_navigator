@@ -19,8 +19,8 @@ class OtpListState extends Equatable {
     this.isGroupingByDevice = false,
     this.items = const [],
     this.errorMessage,
-  })  : selectedDate = selectedDate ?? DateTime.now(),
-        focusedDate = focusedDate ?? (selectedDate ?? DateTime.now());
+  }) : selectedDate = selectedDate ?? DateTime.now(),
+       focusedDate = focusedDate ?? (selectedDate ?? DateTime.now());
 
   Map<String, List<DecryptedOtpItem>> get groupedByDevice {
     final Map<String, List<DecryptedOtpItem>> map = {};
@@ -28,8 +28,8 @@ class OtpListState extends Equatable {
       final key = item.senderDeviceName.isNotEmpty
           ? item.senderDeviceName
           : (item.senderDeviceId.isNotEmpty
-              ? item.senderDeviceId
-              : 'Thiết bị gửi');
+                ? item.senderDeviceId
+                : 'Thiết bị gửi');
       map.putIfAbsent(key, () => []).add(item);
     }
     return map;
@@ -57,12 +57,12 @@ class OtpListState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isLoading,
-        selectedDate,
-        focusedDate,
-        calendarFormat,
-        isGroupingByDevice,
-        items,
-        errorMessage,
-      ];
+    isLoading,
+    selectedDate,
+    focusedDate,
+    calendarFormat,
+    isGroupingByDevice,
+    items,
+    errorMessage,
+  ];
 }

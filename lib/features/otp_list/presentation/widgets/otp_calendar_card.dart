@@ -60,10 +60,14 @@ class OtpCalendarCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
           ),
-          leftChevronIcon:
-              Icon(Icons.chevron_left_rounded, color: colorScheme.primary),
-          rightChevronIcon:
-              Icon(Icons.chevron_right_rounded, color: colorScheme.primary),
+          leftChevronIcon: Icon(
+            Icons.chevron_left_rounded,
+            color: colorScheme.primary,
+          ),
+          rightChevronIcon: Icon(
+            Icons.chevron_right_rounded,
+            color: colorScheme.primary,
+          ),
         ),
         calendarStyle: CalendarStyle(
           outsideDaysVisible: false,

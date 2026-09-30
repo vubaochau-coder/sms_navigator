@@ -58,9 +58,9 @@ class _OtpListView extends StatelessWidget {
                     ? 'Xem dạng danh sách phẳng'
                     : 'Gom nhóm theo thiết bị gửi',
                 onPressed: () {
-                  context
-                      .read<OtpListBloc>()
-                      .add(const OtpListToggleGroupEvent());
+                  context.read<OtpListBloc>().add(
+                    const OtpListToggleGroupEvent(),
+                  );
                 },
               );
             },
@@ -69,11 +69,13 @@ class _OtpListView extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Làm mới',
             onPressed: () {
-              final selectedDate =
-                  context.read<OtpListBloc>().state.selectedDate;
-              context
+              final selectedDate = context
                   .read<OtpListBloc>()
-                  .add(OtpListLoadEvent(date: selectedDate));
+                  .state
+                  .selectedDate;
+              context.read<OtpListBloc>().add(
+                OtpListLoadEvent(date: selectedDate),
+              );
             },
           ),
         ],
@@ -99,32 +101,39 @@ class _OtpListView extends StatelessWidget {
                 selectedDay: state.selectedDate,
                 calendarFormat: state.calendarFormat,
                 onDaySelected: (selectedDay, focusedDay) {
-                  context.read<OtpListBloc>().add(OtpListSelectDateEvent(
-                        selectedDay: selectedDay,
-                        focusedDay: focusedDay,
-                      ));
+                  context.read<OtpListBloc>().add(
+                    OtpListSelectDateEvent(
+                      selectedDay: selectedDay,
+                      focusedDay: focusedDay,
+                    ),
+                  );
                 },
                 onFormatChanged: (format) {
-                  context
-                      .read<OtpListBloc>()
-                      .add(OtpListChangeFormatEvent(format));
+                  context.read<OtpListBloc>().add(
+                    OtpListChangeFormatEvent(format),
+                  );
                 },
                 onPageChanged: (focusedDay) {
-                  context
-                      .read<OtpListBloc>()
-                      .add(OtpListChangeFocusedDayEvent(focusedDay));
+                  context.read<OtpListBloc>().add(
+                    OtpListChangeFocusedDayEvent(focusedDay),
+                  );
                 },
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.calendar_today_rounded,
-                            size: 14, color: colorScheme.primary),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Ngày: $dateDisplay (${state.items.length} tin)',
@@ -138,14 +147,16 @@ class _OtpListView extends StatelessWidget {
                     ),
                     InkWell(
                       onTap: () {
-                        context
-                            .read<OtpListBloc>()
-                            .add(const OtpListToggleGroupEvent());
+                        context.read<OtpListBloc>().add(
+                          const OtpListToggleGroupEvent(),
+                        );
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: state.isGroupingByDevice
                               ? colorScheme.primaryContainer
@@ -185,9 +196,9 @@ class _OtpListView extends StatelessWidget {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    context
-                        .read<OtpListBloc>()
-                        .add(OtpListLoadEvent(date: state.selectedDate));
+                    context.read<OtpListBloc>().add(
+                      OtpListLoadEvent(date: state.selectedDate),
+                    );
                   },
                   child: state.isLoading
                       ? const Center(child: CircularProgressIndicator())

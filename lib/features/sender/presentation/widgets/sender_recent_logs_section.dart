@@ -52,9 +52,9 @@ class SenderRecentLogsSection extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final log = logs[index];
-              final timeStr = DateFormat('HH:mm:ss dd/MM').format(
-                DateTime.fromMillisecondsSinceEpoch(log.timestamp),
-              );
+              final timeStr = DateFormat(
+                'HH:mm:ss dd/MM',
+              ).format(DateTime.fromMillisecondsSinceEpoch(log.timestamp));
 
               return _RelayLogTile(log: log, timeStr: timeStr);
             },

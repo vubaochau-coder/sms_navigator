@@ -18,9 +18,7 @@ class OtpRelayApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ThemeCubit>(
-          create: (_) => ThemeCubit(),
-        ),
+        BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
         BlocProvider<SenderBloc>(
           create: (_) => SenderBloc(repository: di.senderRepository),
         ),

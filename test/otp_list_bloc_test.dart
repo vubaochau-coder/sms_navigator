@@ -66,35 +66,40 @@ void main() {
       bloc.stream,
       emitsInOrder([
         predicate<dynamic>((s) => s.isLoading == true),
-        predicate<dynamic>((s) =>
-            s.isLoading == false &&
-            s.items.length == 2 &&
-            s.selectedDate == sampleDate),
+        predicate<dynamic>(
+          (s) =>
+              s.isLoading == false &&
+              s.items.length == 2 &&
+              s.selectedDate == sampleDate,
+        ),
       ]),
     );
   });
 
-  test('OtpListToggleGroupEvent toggles grouping and groupedByDevice separates by device', () async {
-    fakeRepository.stubItems = [item1, item2];
-    bloc.add(OtpListLoadEvent(date: sampleDate));
-    await bloc.stream.firstWhere((s) => !s.isLoading);
+  test(
+    'OtpListToggleGroupEvent toggles grouping and groupedByDevice separates by device',
+    () async {
+      fakeRepository.stubItems = [item1, item2];
+      bloc.add(OtpListLoadEvent(date: sampleDate));
+      await bloc.stream.firstWhere((s) => !s.isLoading);
 
-    expect(bloc.state.isGroupingByDevice, false);
+      expect(bloc.state.isGroupingByDevice, false);
 
-    bloc.add(const OtpListToggleGroupEvent());
+      bloc.add(const OtpListToggleGroupEvent());
 
-    await expectLater(
-      bloc.stream,
-      emits(predicate<dynamic>((s) => s.isGroupingByDevice == true)),
-    );
+      await expectLater(
+        bloc.stream,
+        emits(predicate<dynamic>((s) => s.isGroupingByDevice == true)),
+      );
 
-    final grouped = bloc.state.groupedByDevice;
-    expect(grouped.keys.length, 2);
-    expect(grouped.containsKey('Samsung S24 (Hà Nội)'), true);
-    expect(grouped.containsKey('Xiaomi 13 (Việt Nam)'), true);
-    expect(grouped['Samsung S24 (Hà Nội)']!.first.otp, '849201');
-    expect(grouped['Xiaomi 13 (Việt Nam)']!.first.otp, '192837');
-  });
+      final grouped = bloc.state.groupedByDevice;
+      expect(grouped.keys.length, 2);
+      expect(grouped.containsKey('Samsung S24 (Hà Nội)'), true);
+      expect(grouped.containsKey('Xiaomi 13 (Việt Nam)'), true);
+      expect(grouped['Samsung S24 (Hà Nội)']!.first.otp, '849201');
+      expect(grouped['Xiaomi 13 (Việt Nam)']!.first.otp, '192837');
+    },
+  );
 
   test('OtpListLoadEvent creates and passes non-null CancelToken', () async {
     fakeRepository.stubItems = [item1];

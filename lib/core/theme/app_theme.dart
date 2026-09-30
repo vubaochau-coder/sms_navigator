@@ -52,23 +52,24 @@ class AppTheme {
   static ThemeData get darkTheme => _buildTheme(_dark);
 
   static ThemeData _buildTheme(_SoftPalette c) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: c.primary,
-      brightness: c.brightness,
-    ).copyWith(
-      primary: c.primary,
-      secondary: c.secondary,
-      surface: c.surface,
-      surfaceContainerLowest: c.surface,
-      surfaceContainerLow: c.surface,
-      surfaceContainer: c.surfaceVariant,
-      error: c.error,
-      outline: c.border,
-      outlineVariant: c.divider,
-      onPrimary: Colors.white,
-      onSurface: c.textPrimary,
-      onSurfaceVariant: c.textSecondary,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: c.primary,
+          brightness: c.brightness,
+        ).copyWith(
+          primary: c.primary,
+          secondary: c.secondary,
+          surface: c.surface,
+          surfaceContainerLowest: c.surface,
+          surfaceContainerLow: c.surface,
+          surfaceContainer: c.surfaceVariant,
+          error: c.error,
+          outline: c.border,
+          outlineVariant: c.divider,
+          onPrimary: Colors.white,
+          onSurface: c.textPrimary,
+          onSurfaceVariant: c.textSecondary,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -136,10 +137,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusM),
           ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -151,10 +149,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -163,8 +158,10 @@ class AppTheme {
         filled: true,
         fillColor: c.surface,
         hintStyle: TextStyle(color: c.textMuted, fontSize: 14),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusM),
           borderSide: BorderSide(color: c.border),
@@ -212,9 +209,7 @@ class AppTheme {
         backgroundColor: c.textPrimary,
         contentTextStyle: TextStyle(color: c.background, fontSize: 14),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
 
       // FloatingActionButton
@@ -231,19 +226,13 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: c.primarySoft,
         side: BorderSide.none,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         labelStyle: TextStyle(color: c.primary, fontSize: 12),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       ),
 
       // Divider
-      dividerTheme: DividerThemeData(
-        color: c.divider,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: DividerThemeData(color: c.divider, thickness: 1, space: 1),
 
       // ListTile
       listTileTheme: ListTileThemeData(
@@ -253,10 +242,7 @@ class AppTheme {
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
-        subtitleTextStyle: TextStyle(
-          color: c.textSecondary,
-          fontSize: 13,
-        ),
+        subtitleTextStyle: TextStyle(color: c.textSecondary, fontSize: 13),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusM),
         ),

@@ -51,7 +51,8 @@ class SenderDashboardPage extends StatelessWidget {
 
     final senderController = TextEditingController(text: 'Vietcombank');
     final otpController = TextEditingController(
-      text: (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString(),
+      text: (100000 + (DateTime.now().millisecondsSinceEpoch % 900000))
+          .toString(),
     );
 
     if (!context.mounted) return;
@@ -112,7 +113,8 @@ class SenderDashboardPage extends StatelessWidget {
                   );
 
                   final deviceId =
-                      await di.deviceStorageService.getDeviceId() ?? 'dev_sender';
+                      await di.deviceStorageService.getDeviceId() ??
+                      'dev_sender';
                   await di.apiClient.post(
                     ApiEndpoints.relay,
                     body: {
@@ -128,12 +130,14 @@ class SenderDashboardPage extends StatelessWidget {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Đã gửi mã OTP $otpVal thành công sang máy nhận!'),
+                        content: Text(
+                          'Đã gửi mã OTP $otpVal thành công sang máy nhận!',
+                        ),
                       ),
                     );
-                    context
-                        .read<SenderBloc>()
-                        .add(const SenderLoadStatusEvent());
+                    context.read<SenderBloc>().add(
+                      const SenderLoadStatusEvent(),
+                    );
                   }
                 } catch (e) {
                   if (context.mounted) {
@@ -238,9 +242,9 @@ class SenderDashboardPage extends StatelessWidget {
                 if (!state.isBatteryOptimizationIgnored) ...[
                   SenderBatteryOptimizationBanner(
                     onRequest: () {
-                      context
-                          .read<SenderBloc>()
-                          .add(const SenderRequestBatteryOptimizationEvent());
+                      context.read<SenderBloc>().add(
+                        const SenderRequestBatteryOptimizationEvent(),
+                      );
                     },
                   ),
                   const SizedBox(height: 16),

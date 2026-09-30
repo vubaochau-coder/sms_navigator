@@ -19,7 +19,9 @@ class ReceiverStorageServiceImpl implements ReceiverStorageService {
 
     try {
       final List<dynamic> list = jsonDecode(raw);
-      return list.map((e) => ReceivedOtpModel.fromMap(Map<String, dynamic>.from(e))).toList();
+      return list
+          .map((e) => ReceivedOtpModel.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -31,7 +33,10 @@ class ReceiverStorageServiceImpl implements ReceiverStorageService {
     // Prepend new OTP, limit to 50 entries
     final updatedList = [otp, ...currentList.take(49)];
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyOtps, jsonEncode(updatedList.map((e) => e.toMap()).toList()));
+    await prefs.setString(
+      _keyOtps,
+      jsonEncode(updatedList.map((e) => e.toMap()).toList()),
+    );
   }
 
   @override

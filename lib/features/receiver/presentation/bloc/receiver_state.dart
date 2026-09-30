@@ -29,16 +29,18 @@ class ReceiverState extends Equatable {
       otps: otps ?? this.otps,
       errorMessage: errorMessage,
       recentlyCopiedOtp: recentlyCopiedOtp ?? this.recentlyCopiedOtp,
-      latestPushedOtp: clearLatestOtp ? null : (latestPushedOtp ?? this.latestPushedOtp),
+      latestPushedOtp: clearLatestOtp
+          ? null
+          : (latestPushedOtp ?? this.latestPushedOtp),
     );
   }
 
   @override
   List<Object?> get props => [
-        isLoading,
-        otps,
-        errorMessage,
-        recentlyCopiedOtp,
-        latestPushedOtp,
-      ];
+    isLoading,
+    otps,
+    errorMessage,
+    recentlyCopiedOtp,
+    latestPushedOtp,
+  ];
 }

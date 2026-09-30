@@ -54,8 +54,12 @@ class PairingPayloadModel extends Equatable {
       code: map['code']?.toString() ?? '',
       sharedSecretBase64:
           (map['sharedSecretBase64'] ?? map['secret'])?.toString() ?? '',
-      createdAt: (map['createdAt'] is num) ? (map['createdAt'] as num).toInt() : 0,
-      expiresAt: (map['expiresAt'] is num) ? (map['expiresAt'] as num).toInt() : 0,
+      createdAt: (map['createdAt'] is num)
+          ? (map['createdAt'] as num).toInt()
+          : 0,
+      expiresAt: (map['expiresAt'] is num)
+          ? (map['expiresAt'] as num).toInt()
+          : 0,
     );
   }
 
@@ -87,6 +91,11 @@ class PairingPayloadModel extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [pairId, sharedSecretBase64, createdAt, expiresAt, code];
+  List<Object?> get props => [
+    pairId,
+    sharedSecretBase64,
+    createdAt,
+    expiresAt,
+    code,
+  ];
 }

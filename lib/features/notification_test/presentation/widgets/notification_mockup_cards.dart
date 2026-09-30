@@ -154,8 +154,10 @@ class ReceiverNotificationMockup extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                 ),
                 icon: const Icon(Icons.copy_rounded, size: 14),
-                label:
-                    const Text('Sao chép mã', style: TextStyle(fontSize: 12)),
+                label: const Text(
+                  'Sao chép mã',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: otp));
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -169,8 +171,10 @@ class ReceiverNotificationMockup extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                 ),
-                child:
-                    const Text('Mở chi tiết', style: TextStyle(fontSize: 12)),
+                child: const Text(
+                  'Mở chi tiết',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onPressed: () {},
               ),
             ],

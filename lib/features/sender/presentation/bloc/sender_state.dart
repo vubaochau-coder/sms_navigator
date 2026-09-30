@@ -63,17 +63,17 @@ class SenderState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isLoading,
-        isRelayEnabled,
-        relayMode,
-        senderWhitelist,
-        isPaired,
-        pairId,
-        deviceId,
-        isBatteryOptimizationIgnored,
-        logs,
-        errorMessage,
-        lastDetectedOtp,
-        lastDetectedSender,
-      ];
+    isLoading,
+    isRelayEnabled,
+    relayMode,
+    senderWhitelist,
+    isPaired,
+    pairId,
+    deviceId,
+    isBatteryOptimizationIgnored,
+    logs,
+    errorMessage,
+    lastDetectedOtp,
+    lastDetectedSender,
+  ];
 }

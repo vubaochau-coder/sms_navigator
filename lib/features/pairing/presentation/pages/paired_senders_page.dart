@@ -13,16 +13,14 @@ import 'pairing_receiver_page.dart';
 
 /// Màn hình xem danh sách thiết bị gửi dành cho Máy Nhận (Receiver) — Thuần Stateless với BLoC.
 class PairedSendersPage extends StatelessWidget {
-  const PairedSendersPage({
-    super.key,
-    this.pairManagementService,
-  });
+  const PairedSendersPage({super.key, this.pairManagementService});
 
   final PairManagementService? pairManagementService;
 
   @override
   Widget build(BuildContext context) {
-    final service = pairManagementService ??
+    final service =
+        pairManagementService ??
         DependencyContainer.instance.pairManagementService;
 
     return BlocProvider(
@@ -58,7 +56,10 @@ class _PairedSendersBody extends StatelessWidget {
     if (success) {
       UiUtils.showSuccessToast(context, 'Đã hủy kết nối thành công');
     } else {
-      UiUtils.showErrorToast(context, 'Không thể hủy kết nối. Vui lòng thử lại!');
+      UiUtils.showErrorToast(
+        context,
+        'Không thể hủy kết nối. Vui lòng thử lại!',
+      );
     }
   }
 
@@ -119,7 +120,8 @@ class _PairedSendersBody extends StatelessWidget {
                   onAction: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const PairingReceiverPage()),
+                        builder: (_) => const PairingReceiverPage(),
+                      ),
                     );
                     if (context.mounted) {
                       context.read<PairedDevicesCubit>().loadSenders();

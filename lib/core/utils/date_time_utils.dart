@@ -9,7 +9,9 @@ class DateTimeUtils {
   static final DateFormat _timeFormat = DateFormat('HH:mm');
   static final DateFormat _timeWithSecondsFormat = DateFormat('HH:mm:ss');
   static final DateFormat _dateTimeFormat = DateFormat('dd/MM/yyyy HH:mm');
-  static final DateFormat _dateTimeWithSecondsFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+  static final DateFormat _dateTimeWithSecondsFormat = DateFormat(
+    'dd/MM/yyyy HH:mm:ss',
+  );
 
   /// Định dạng ngày (mặc định: `dd/MM/yyyy`)
   static String formatDate(DateTime? dateTime, {String? pattern}) {
@@ -35,7 +37,10 @@ class DateTimeUtils {
   }
 
   /// Định dạng ngày và giờ (mặc định: `dd/MM/yyyy HH:mm`)
-  static String formatDateTime(DateTime? dateTime, {bool includeSeconds = false}) {
+  static String formatDateTime(
+    DateTime? dateTime, {
+    bool includeSeconds = false,
+  }) {
     if (dateTime == null) return '--';
     return includeSeconds
         ? _dateTimeWithSecondsFormat.format(dateTime)
@@ -43,7 +48,10 @@ class DateTimeUtils {
   }
 
   /// Định dạng từ timestamp epoch giây (thường trả về từ server backend)
-  static String formatEpochSeconds(int? epochSeconds, {bool includeSeconds = true}) {
+  static String formatEpochSeconds(
+    int? epochSeconds, {
+    bool includeSeconds = true,
+  }) {
     if (epochSeconds == null || epochSeconds <= 0) return '--';
     final dt = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
     return formatDateTime(dt, includeSeconds: includeSeconds);

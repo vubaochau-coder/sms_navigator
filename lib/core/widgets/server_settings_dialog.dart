@@ -69,9 +69,7 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
   Future<void> _save() async {
     final normalizedUrl = _normalizeUrl(_urlController.text);
     final parsedUri = Uri.tryParse(normalizedUrl);
-    if (normalizedUrl.isEmpty ||
-        parsedUri == null ||
-        !parsedUri.hasScheme) {
+    if (normalizedUrl.isEmpty || parsedUri == null || !parsedUri.hasScheme) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('URL không hợp lệ. Ví dụ: http://192.168.1.10:3000'),
@@ -99,7 +97,10 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
 
       if (!mounted) return;
       Navigator.of(context).pop(normalizedUrl);
-      UiUtils.showSuccessToast(context, 'Đã lưu cấu hình server: $normalizedUrl');
+      UiUtils.showSuccessToast(
+        context,
+        'Đã lưu cấu hình server: $normalizedUrl',
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSaving = false);

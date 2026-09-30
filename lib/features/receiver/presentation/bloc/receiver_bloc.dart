@@ -16,15 +16,15 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
     on<ReceiverLoadOtpsEvent>(_onLoadOtps, transformer: restartable());
     on<ReceiverNewOtpPushedEvent>(_onNewOtpPushed, transformer: sequential());
     on<ReceiverClearHistoryEvent>(_onClearHistory, transformer: droppable());
-    on<ReceiverPollPendingOtpsEvent>(_onPollPendingOtps, transformer: droppable());
+    on<ReceiverPollPendingOtpsEvent>(
+      _onPollPendingOtps,
+      transformer: droppable(),
+    );
     on<ReceiverStartSyncEvent>(_onStartSync, transformer: droppable());
     on<ReceiverStopSyncEvent>(_onStopSync, transformer: droppable());
   }
 
-  Future<void> _onStartSync(
-    ReceiverStartSyncEvent event,
-    Emitter<ReceiverState> emit,
-  ) async {
+  Future<void> _onStartSync(ReceiverStartSyncEvent event, Emitter emit) async {
     _stopSyncInternal();
 
     _fcmSubscription = FcmNotificationService.onOtpReceived.listen((otp) {
@@ -38,10 +38,7 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
     add(const ReceiverLoadOtpsEvent());
   }
 
-  void _onStopSync(
-    ReceiverStopSyncEvent event,
-    Emitter<ReceiverState> emit,
-  ) {
+  void _onStopSync(ReceiverStopSyncEvent event, Emitter emit) {
     _stopSyncInternal();
   }
 
@@ -52,39 +49,35 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
     _pollTimer = null;
   }
 
-  Future<void> _onLoadOtps(
-    ReceiverLoadOtpsEvent event,
-    Emitter<ReceiverState> emit,
-  ) async {
+  Future<void> _onLoadOtps(ReceiverLoadOtpsEvent event, Emitter emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       final otps = await repository.fetchReceivedOtps();
       emit(state.copyWith(isLoading: false, otps: otps));
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Lỗi tải danh sách OTP: ${e.toString()}',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Lỗi tải danh sách OTP: ${e.toString()}',
+        ),
+      );
     }
   }
 
   Future<void> _onNewOtpPushed(
     ReceiverNewOtpPushedEvent event,
-    Emitter<ReceiverState> emit,
+    Emitter emit,
   ) async {
     try {
       await repository.addNewOtp(event.otp);
       final otps = await repository.fetchReceivedOtps();
-      emit(state.copyWith(
-        otps: otps,
-        latestPushedOtp: event.otp,
-      ));
+      emit(state.copyWith(otps: otps, latestPushedOtp: event.otp));
     } catch (_) {}
   }
 
   Future<void> _onClearHistory(
     ReceiverClearHistoryEvent event,
-    Emitter<ReceiverState> emit,
+    Emitter emit,
   ) async {
     try {
       await repository.clearHistory();
@@ -94,7 +87,7 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
 
   Future<void> _onPollPendingOtps(
     ReceiverPollPendingOtpsEvent event,
-    Emitter<ReceiverState> emit,
+    Emitter emit,
   ) async {
     try {
       final newCount = await repository.pollPendingOtps();

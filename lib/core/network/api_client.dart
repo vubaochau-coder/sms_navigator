@@ -26,10 +26,11 @@ class ApiClient {
     ServerUrlProvider? serverUrlProvider,
     DeviceTokenProvider? tokenProvider,
     this.requestTimeout = const Duration(seconds: 10),
-  })  : _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
-        _serverUrlProvider = serverUrlProvider,
-        _tokenProvider = tokenProvider {
-    _dio = dio ??
+  }) : _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
+       _serverUrlProvider = serverUrlProvider,
+       _tokenProvider = tokenProvider {
+    _dio =
+        dio ??
         Dio(
           BaseOptions(
             baseUrl: _fallbackBaseUrl,
@@ -157,10 +158,7 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> delete(
-    String path, {
-    CancelToken? cancelToken,
-  }) async {
+  Future<dynamic> delete(String path, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.delete<dynamic>(
         path,
@@ -174,7 +172,9 @@ class ApiClient {
 
   AppException _handleDioError(DioException e) {
     if (e.type == DioExceptionType.cancel) {
-      return RequestCancelledException(e.message ?? 'Yêu cầu mạng đã bị hủy bỏ.');
+      return RequestCancelledException(
+        e.message ?? 'Yêu cầu mạng đã bị hủy bỏ.',
+      );
     }
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||

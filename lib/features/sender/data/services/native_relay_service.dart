@@ -21,7 +21,9 @@ abstract class NativeRelayService {
 }
 
 class NativeRelayServiceImpl implements NativeRelayService {
-  static const MethodChannel _channel = MethodChannel('com.example.sms_navigator/relay');
+  static const MethodChannel _channel = MethodChannel(
+    'com.example.sms_navigator/relay',
+  );
 
   Function(String sender, String otp)? _otpListener;
 
@@ -46,7 +48,9 @@ class NativeRelayServiceImpl implements NativeRelayService {
   @override
   Future<Map<String, dynamic>> getRelayConfig() async {
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('getRelayConfig');
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getRelayConfig',
+      );
       if (result == null) return {};
       final map = Map<String, dynamic>.from(result);
       if (map['senderWhitelist'] is List) {
@@ -77,12 +81,17 @@ class NativeRelayServiceImpl implements NativeRelayService {
       if (relayMode != null) params['relayMode'] = relayMode;
       if (senderWhitelist != null) params['senderWhitelist'] = senderWhitelist;
       if (pairId != null) params['pairId'] = pairId;
-      if (sharedSecretBase64 != null) params['sharedSecretBase64'] = sharedSecretBase64;
+      if (sharedSecretBase64 != null) {
+        params['sharedSecretBase64'] = sharedSecretBase64;
+      }
       if (relayUrl != null) params['relayUrl'] = relayUrl;
       if (deviceToken != null) params['deviceToken'] = deviceToken;
       if (deviceId != null) params['deviceId'] = deviceId;
 
-      final success = await _channel.invokeMethod<bool>('setRelayConfig', params);
+      final success = await _channel.invokeMethod<bool>(
+        'setRelayConfig',
+        params,
+      );
       return success ?? false;
     } catch (_) {
       return false;
@@ -114,7 +123,9 @@ class NativeRelayServiceImpl implements NativeRelayService {
   @override
   Future<bool> isBatteryOptimizationIgnored() async {
     try {
-      final result = await _channel.invokeMethod<bool>('isBatteryOptimizationIgnored');
+      final result = await _channel.invokeMethod<bool>(
+        'isBatteryOptimizationIgnored',
+      );
       return result ?? false;
     } catch (_) {
       return false;
@@ -124,7 +135,9 @@ class NativeRelayServiceImpl implements NativeRelayService {
   @override
   Future<bool> requestIgnoreBatteryOptimization() async {
     try {
-      final result = await _channel.invokeMethod<bool>('requestIgnoreBatteryOptimization');
+      final result = await _channel.invokeMethod<bool>(
+        'requestIgnoreBatteryOptimization',
+      );
       return result ?? false;
     } catch (_) {
       return false;

@@ -14,10 +14,14 @@ class _FakePairManagementService implements PairManagementService {
   String? lastRevokedPairId;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken}) async => receivers;
+  Future<List<PairedDeviceItem>> getPairedReceivers({
+    CancelToken? cancelToken,
+  }) async => receivers;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken}) async => senders;
+  Future<List<PairedDeviceItem>> getPairedSenders({
+    CancelToken? cancelToken,
+  }) async => senders;
 
   @override
   Future<bool> togglePairActive({
@@ -113,7 +117,7 @@ void main() {
           deviceId: 'rec_01',
           isActive: true,
           deviceName: 'Phone 1',
-        )
+        ),
       ];
 
       final success = await service.togglePairActive(
@@ -134,7 +138,7 @@ void main() {
           pairId: 'pair_revoke_test',
           deviceId: 'rec_02',
           isActive: true,
-        )
+        ),
       ];
 
       final success = await service.revokePair('pair_revoke_test');

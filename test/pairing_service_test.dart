@@ -72,10 +72,7 @@ void main() {
 
       expect(payload.code, '');
       expect(payload.pairId, startsWith('pair_'));
-      expect(
-        payload.expiresAt - payload.createdAt,
-        10 * 60 * 1000,
-      );
+      expect(payload.expiresAt - payload.createdAt, 10 * 60 * 1000);
       final secretBytes = base64Decode(payload.sharedSecretBase64);
       expect(secretBytes.length, 32);
     });
@@ -91,8 +88,7 @@ void main() {
   });
 
   group('confirmReceiverPairingFromQr', () {
-    test('stores pairId and shared secret for a valid QR payload',
-        () async {
+    test('stores pairId and shared secret for a valid QR payload', () async {
       final service = _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_valid_1234',

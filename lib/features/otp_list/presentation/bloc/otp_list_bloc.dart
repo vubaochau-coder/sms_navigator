@@ -12,29 +12,31 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
   CancelToken? _cancelToken;
 
   OtpListBloc({required this.repository})
-      : super(OtpListState(selectedDate: DateTime.now())) {
+    : super(OtpListState(selectedDate: DateTime.now())) {
     on<OtpListLoadEvent>(_onLoadOtpList, transformer: restartable());
     on<OtpListChangeDateEvent>(_onChangeDate, transformer: restartable());
     on<OtpListToggleGroupEvent>(_onToggleGroup, transformer: droppable());
     on<OtpListSelectDateEvent>(_onSelectDate, transformer: restartable());
     on<OtpListChangeFormatEvent>(_onChangeFormat, transformer: droppable());
-    on<OtpListChangeFocusedDayEvent>(_onChangeFocusedDay, transformer: droppable());
+    on<OtpListChangeFocusedDayEvent>(
+      _onChangeFocusedDay,
+      transformer: droppable(),
+    );
   }
 
-  Future<void> _onLoadOtpList(
-    OtpListLoadEvent event,
-    Emitter<OtpListState> emit,
-  ) async {
+  Future<void> _onLoadOtpList(OtpListLoadEvent event, Emitter emit) async {
     _cancelToken?.cancel('Đã chuyển sang ngày khác.');
     final currentCancelToken = CancelToken();
     _cancelToken = currentCancelToken;
 
-    emit(state.copyWith(
-      isLoading: true,
-      selectedDate: event.date,
-      focusedDate: event.date,
-      errorMessage: null,
-    ));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        selectedDate: event.date,
+        focusedDate: event.date,
+        errorMessage: null,
+      ),
+    );
     try {
       final items = await repository.getOtpListForDate(
         event.date,
@@ -42,59 +44,50 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
         cancelToken: currentCancelToken,
       );
       if (emit.isDone) return;
-      emit(state.copyWith(
-        isLoading: false,
-        items: items,
-        selectedDate: event.date,
-        focusedDate: event.date,
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          items: items,
+          selectedDate: event.date,
+          focusedDate: event.date,
+        ),
+      );
     } on RequestCancelledException {
       // Yêu cầu bị hủy có chủ đích khi chuyển ngày nhanh -> bỏ qua, không báo lỗi
     } catch (e) {
       if (emit.isDone) return;
-      emit(state.copyWith(
-        isLoading: false,
-        errorMessage: 'Lỗi tải danh sách OTP: ${e.toString()}',
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: 'Lỗi tải danh sách OTP: ${e.toString()}',
+        ),
+      );
     }
   }
 
-  Future<void> _onChangeDate(
-    OtpListChangeDateEvent event,
-    Emitter<OtpListState> emit,
-  ) async {
+  Future<void> _onChangeDate(OtpListChangeDateEvent event, Emitter emit) async {
     add(OtpListLoadEvent(date: event.selectedDate));
   }
 
-  void _onToggleGroup(
-    OtpListToggleGroupEvent event,
-    Emitter<OtpListState> emit,
-  ) {
+  void _onToggleGroup(OtpListToggleGroupEvent event, Emitter emit) {
     emit(state.copyWith(isGroupingByDevice: !state.isGroupingByDevice));
   }
 
-  Future<void> _onSelectDate(
-    OtpListSelectDateEvent event,
-    Emitter<OtpListState> emit,
-  ) async {
-    emit(state.copyWith(
-      selectedDate: event.selectedDay,
-      focusedDate: event.focusedDay,
-    ));
+  Future<void> _onSelectDate(OtpListSelectDateEvent event, Emitter emit) async {
+    emit(
+      state.copyWith(
+        selectedDate: event.selectedDay,
+        focusedDate: event.focusedDay,
+      ),
+    );
     add(OtpListLoadEvent(date: event.selectedDay));
   }
 
-  void _onChangeFormat(
-    OtpListChangeFormatEvent event,
-    Emitter<OtpListState> emit,
-  ) {
+  void _onChangeFormat(OtpListChangeFormatEvent event, Emitter emit) {
     emit(state.copyWith(calendarFormat: event.format));
   }
 
-  void _onChangeFocusedDay(
-    OtpListChangeFocusedDayEvent event,
-    Emitter<OtpListState> emit,
-  ) {
+  void _onChangeFocusedDay(OtpListChangeFocusedDayEvent event, Emitter emit) {
     emit(state.copyWith(focusedDate: event.focusedDay));
   }
 

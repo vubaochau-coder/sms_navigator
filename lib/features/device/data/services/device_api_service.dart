@@ -18,10 +18,7 @@ abstract class DeviceApiService {
 }
 
 class DeviceApiServiceImpl implements DeviceApiService {
-  DeviceApiServiceImpl({
-    required this.apiClient,
-    required this.storageService,
-  });
+  DeviceApiServiceImpl({required this.apiClient, required this.storageService});
 
   final ApiClient apiClient;
   final DeviceStorageService storageService;
@@ -49,8 +46,8 @@ class DeviceApiServiceImpl implements DeviceApiService {
     final serverDeviceId = payload['device_id']?.toString() ?? deviceId;
     await storageService.saveDeviceId(serverDeviceId);
 
-    final deviceToken =
-        (payload['device_token'] ?? payload['token'])?.toString();
+    final deviceToken = (payload['device_token'] ?? payload['token'])
+        ?.toString();
     if (deviceToken != null && deviceToken.isNotEmpty) {
       await storageService.saveDeviceToken(deviceToken);
     }
@@ -63,9 +60,10 @@ class DeviceApiServiceImpl implements DeviceApiService {
     if (fcmToken.trim().isEmpty) {
       throw ArgumentError.value(fcmToken, 'fcmToken', 'FCM token rỗng.');
     }
-    await apiClient.put(_fcmTokenPath, body: <String, dynamic>{
-      'fcm_token': fcmToken.trim(),
-    });
+    await apiClient.put(
+      _fcmTokenPath,
+      body: <String, dynamic>{'fcm_token': fcmToken.trim()},
+    );
   }
 
   Map<String, dynamic> _asMap(dynamic data) {

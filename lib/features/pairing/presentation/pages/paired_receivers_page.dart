@@ -13,16 +13,14 @@ import 'pairing_sender_page.dart';
 
 /// Màn hình quản lý danh sách thiết bị nhận dành cho Máy Gửi (Sender) — Thuần Stateless với BLoC.
 class PairedReceiversPage extends StatelessWidget {
-  const PairedReceiversPage({
-    super.key,
-    this.pairManagementService,
-  });
+  const PairedReceiversPage({super.key, this.pairManagementService});
 
   final PairManagementService? pairManagementService;
 
   @override
   Widget build(BuildContext context) {
-    final service = pairManagementService ??
+    final service =
+        pairManagementService ??
         DependencyContainer.instance.pairManagementService;
 
     return BlocProvider(
@@ -82,7 +80,10 @@ class _PairedReceiversBody extends StatelessWidget {
     if (success) {
       UiUtils.showSuccessToast(context, 'Đã hủy kết nối thành công');
     } else {
-      UiUtils.showErrorToast(context, 'Không thể hủy kết nối. Vui lòng thử lại!');
+      UiUtils.showErrorToast(
+        context,
+        'Không thể hủy kết nối. Vui lòng thử lại!',
+      );
     }
   }
 
@@ -143,7 +144,8 @@ class _PairedReceiversBody extends StatelessWidget {
                   onAction: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const PairingSenderPage()),
+                        builder: (_) => const PairingSenderPage(),
+                      ),
                     );
                     if (context.mounted) {
                       context.read<PairedDevicesCubit>().loadReceivers();
@@ -164,7 +166,8 @@ class _PairedReceiversBody extends StatelessWidget {
                     return PairedReceiverCard(
                       item: item,
                       isToggling: state.togglingPairIds.contains(item.pairId),
-                      onToggleActive: (val) => _toggleActive(context, item, val),
+                      onToggleActive: (val) =>
+                          _toggleActive(context, item, val),
                       onRevokePair: () => _confirmRevokePair(context, item),
                     );
                   },

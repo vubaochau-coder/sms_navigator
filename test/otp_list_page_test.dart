@@ -11,13 +11,10 @@ void main() {
     DependencyContainer.instance.init();
   });
 
-  testWidgets('OtpListPage renders TableCalendar and initial empty state',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: OtpListPage(),
-      ),
-    );
+  testWidgets('OtpListPage renders TableCalendar and initial empty state', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: OtpListPage()));
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
 

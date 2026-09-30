@@ -88,16 +88,18 @@ void main() {
         'FE+FNouEtHLqIOPkw9NCIteGqgDISWZNC13f3XQHINFp0w6TL9G66fo/UWt1Ggp4eOQjnQ==';
     const katPlaintext = 'SMS-Navigator::OTP-482913::Xin chào';
 
-    test('decrypts a fixed AES-256-GCM vector (Android native compatible)',
-        () async {
-      final decrypted = await CryptoHelper.decryptAesGcm256(
-        ciphertextWithTagBase64: katCiphertextBase64,
-        ivBase64: katIvBase64,
-        secretKeyBase64: katKeyBase64,
-      );
+    test(
+      'decrypts a fixed AES-256-GCM vector (Android native compatible)',
+      () async {
+        final decrypted = await CryptoHelper.decryptAesGcm256(
+          ciphertextWithTagBase64: katCiphertextBase64,
+          ivBase64: katIvBase64,
+          secretKeyBase64: katKeyBase64,
+        );
 
-      expect(decrypted, katPlaintext);
-    });
+        expect(decrypted, katPlaintext);
+      },
+    );
 
     test('re-encrypting the KAT plaintext decrypts back identically', () async {
       final encrypted = await CryptoHelper.encryptAesGcm256(
@@ -116,20 +118,22 @@ void main() {
   });
 
   group('decryptAesGcm256 error handling', () {
-    test('throws FormatException when ciphertext is shorter than the GCM tag',
-        () async {
-      final secretKeyBase64 = CryptoHelper.generateSecretKeyBase64();
-      final shortCiphertext = base64Encode([1, 2, 3]);
+    test(
+      'throws FormatException when ciphertext is shorter than the GCM tag',
+      () async {
+        final secretKeyBase64 = CryptoHelper.generateSecretKeyBase64();
+        final shortCiphertext = base64Encode([1, 2, 3]);
 
-      expect(
-        () => CryptoHelper.decryptAesGcm256(
-          ciphertextWithTagBase64: shortCiphertext,
-          ivBase64: base64Encode(List<int>.filled(12, 0)),
-          secretKeyBase64: secretKeyBase64,
-        ),
-        throwsFormatException,
-      );
-    });
+        expect(
+          () => CryptoHelper.decryptAesGcm256(
+            ciphertextWithTagBase64: shortCiphertext,
+            ivBase64: base64Encode(List<int>.filled(12, 0)),
+            secretKeyBase64: secretKeyBase64,
+          ),
+          throwsFormatException,
+        );
+      },
+    );
 
     test('fails authentication when ciphertext is tampered', () async {
       final secretKeyBase64 = CryptoHelper.generateSecretKeyBase64();

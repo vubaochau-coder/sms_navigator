@@ -60,10 +60,7 @@ class ReceiverConnectionStatusCard extends StatelessWidget {
                   onPressed: onDisconnect,
                   child: Text(
                     'Hủy Kết Nối',
-                    style: TextStyle(
-                      color: colorScheme.error,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: colorScheme.error, fontSize: 13),
                   ),
                 ),
             ],
@@ -90,7 +87,8 @@ class ReceiverConnectionStatusCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const PairedSendersPage()),
+                      builder: (_) => const PairedSendersPage(),
+                    ),
                   );
                 },
               ),
@@ -136,10 +134,7 @@ class ReceiverNotPairedCard extends StatelessWidget {
           Text(
             'Nhấn nút dưới đây để quét mã QR hiển thị trên Máy Gửi (Việt Nam).',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           SizedBox(

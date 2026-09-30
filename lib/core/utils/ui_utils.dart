@@ -68,9 +68,7 @@ class UiUtils {
         ),
         backgroundColor: bgColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         duration: duration,
         action: action,
@@ -160,16 +158,22 @@ class UiUtils {
             child: Text(
               cancelText,
               style: TextStyle(
-                color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: Theme.of(
+                  ctx,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDestructive ? AppColors.error : AppColors.primary,
+              backgroundColor: isDestructive
+                  ? AppColors.error
+                  : AppColors.primary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               elevation: 0,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -199,9 +203,7 @@ class UiUtils {
       enableDrag: enableDrag,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         decoration: BoxDecoration(
           color: Theme.of(ctx).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

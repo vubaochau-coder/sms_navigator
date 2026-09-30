@@ -99,9 +99,7 @@ class NotificationPermissionWarningCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            style: FilledButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-            ),
+            style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
             onPressed: onRequestPermission,
             child: const Text('Cấp Quyền'),
           ),
@@ -184,8 +182,11 @@ class FcmStatusCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline_rounded,
-                  size: 16, color: colorScheme.primary),
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: colorScheme.primary,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Thông Tin FCM Device Token',
@@ -217,13 +218,16 @@ class FcmStatusCard extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 ),
                 icon: const Icon(Icons.copy, size: 12),
-                label: const Text('Sao chép toàn bộ Token',
-                    style: TextStyle(fontSize: 11)),
+                label: const Text(
+                  'Sao chép toàn bộ Token',
+                  style: TextStyle(fontSize: 11),
+                ),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: fcmToken!));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Đã sao chép FCM Token vào bộ nhớ tạm!')),
+                      content: Text('Đã sao chép FCM Token vào bộ nhớ tạm!'),
+                    ),
                   );
                 },
               ),

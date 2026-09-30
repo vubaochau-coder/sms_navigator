@@ -27,15 +27,15 @@ class DecryptedOtpItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        pairId,
-        senderDeviceId,
-        senderDeviceName,
-        sender,
-        otp,
-        fullMessage,
-        receivedAt,
-        sentAtSeconds,
-        status,
-      ];
+    id,
+    pairId,
+    senderDeviceId,
+    senderDeviceName,
+    sender,
+    otp,
+    fullMessage,
+    receivedAt,
+    sentAtSeconds,
+    status,
+  ];
 }

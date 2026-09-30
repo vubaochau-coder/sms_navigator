@@ -67,9 +67,9 @@ class ReceiverDashboardPage extends StatelessWidget {
             ),
             onPressed: () {
               Navigator.pop(dialogCtx);
-              context
-                  .read<PairingBloc>()
-                  .add(const PairingDisconnectReceiverEvent());
+              context.read<PairingBloc>().add(
+                const PairingDisconnectReceiverEvent(),
+              );
             },
             child: const Text('Hủy Kết Nối'),
           ),
@@ -127,9 +127,9 @@ class ReceiverDashboardPage extends StatelessWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<ReceiverBloc>().add(const ReceiverLoadOtpsEvent());
-              context
-                  .read<PairingBloc>()
-                  .add(const PairingCheckReceiverStatusEvent());
+              context.read<PairingBloc>().add(
+                const PairingCheckReceiverStatusEvent(),
+              );
             },
           ),
         ],
@@ -154,12 +154,10 @@ class ReceiverDashboardPage extends StatelessWidget {
 
             return RefreshIndicator(
               onRefresh: () async {
-                context
-                    .read<ReceiverBloc>()
-                    .add(const ReceiverLoadOtpsEvent());
-                context
-                    .read<PairingBloc>()
-                    .add(const PairingCheckReceiverStatusEvent());
+                context.read<ReceiverBloc>().add(const ReceiverLoadOtpsEvent());
+                context.read<PairingBloc>().add(
+                  const PairingCheckReceiverStatusEvent(),
+                );
               },
               child: ListView(
                 padding: Dimens.screenPadding,
@@ -175,20 +173,19 @@ class ReceiverDashboardPage extends StatelessWidget {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const PairingReceiverPage()),
+                            builder: (_) => const PairingReceiverPage(),
+                          ),
                         );
                         if (context.mounted) {
-                          context
-                              .read<PairingBloc>()
-                              .add(const PairingCheckReceiverStatusEvent());
+                          context.read<PairingBloc>().add(
+                            const PairingCheckReceiverStatusEvent(),
+                          );
                         }
                       },
                     ),
                     const SizedBox(height: 16),
                   ],
-                  ReceiverRecentOtpsSection(
-                    onCopyOtp: _copyToClipboard,
-                  ),
+                  ReceiverRecentOtpsSection(onCopyOtp: _copyToClipboard),
                 ],
               ),
             );

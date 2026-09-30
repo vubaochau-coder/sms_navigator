@@ -116,7 +116,9 @@ class EmptyStateView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.03),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -129,21 +131,14 @@ class EmptyStateView extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             if (message != null) ...[
               const SizedBox(height: 6),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: mutedColor,
-                  height: 1.4,
-                ),
+                style: TextStyle(fontSize: 13, color: mutedColor, height: 1.4),
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
@@ -153,7 +148,9 @@ class EmptyStateView extends StatelessWidget {
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: Text(actionLabel!),
                 style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ],

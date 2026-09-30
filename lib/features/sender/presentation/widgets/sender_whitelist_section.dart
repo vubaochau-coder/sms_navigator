@@ -68,7 +68,10 @@ class _SenderWhitelistSectionState extends State<SenderWhitelistSection> {
                 size: 16,
                 color: isAdded ? AppColors.success : colorScheme.primary,
               ),
-              label: Text(preset['label']!, style: const TextStyle(fontSize: 12)),
+              label: Text(
+                preset['label']!,
+                style: const TextStyle(fontSize: 12),
+              ),
               onPressed: isAdded ? null : () => _addPrefix(preset['value']!),
             );
           }).toList(),
@@ -81,11 +84,15 @@ class _SenderWhitelistSectionState extends State<SenderWhitelistSection> {
                 controller: _prefixController,
                 decoration: InputDecoration(
                   hintText: 'Nhập số, đầu số (VD: +86, 1069...)',
-                  hintStyle:
-                      TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                  hintStyle: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -97,10 +104,13 @@ class _SenderWhitelistSectionState extends State<SenderWhitelistSection> {
             FilledButton.tonal(
               onPressed: () => _addPrefix(_prefixController.text),
               style: FilledButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('Thêm'),
             ),
@@ -117,14 +127,19 @@ class _SenderWhitelistSectionState extends State<SenderWhitelistSection> {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline,
-                    size: 16, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Chưa có đầu số nào. Hãy bấm các nút gợi ý nhanh ở trên hoặc nhập đầu số cụ thể.',
                     style: TextStyle(
-                        fontSize: 12, color: colorScheme.onSurfaceVariant),
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -139,13 +154,15 @@ class _SenderWhitelistSectionState extends State<SenderWhitelistSection> {
                 label: Text(
                   item,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 13),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
                 deleteIcon: const Icon(Icons.close, size: 16),
                 onDeleted: () {
-                  context
-                      .read<SenderBloc>()
-                      .add(SenderRemoveWhitelistPrefixEvent(item));
+                  context.read<SenderBloc>().add(
+                    SenderRemoveWhitelistPrefixEvent(item),
+                  );
                 },
                 backgroundColor: colorScheme.surfaceContainerHigh,
                 side: BorderSide(color: colorScheme.outlineVariant),

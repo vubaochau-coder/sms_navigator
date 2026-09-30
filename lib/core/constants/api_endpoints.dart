@@ -28,5 +28,6 @@ class ApiEndpoints {
   static String pairStatusPath(String pairId) => '/api/v1/pair/status/$pairId';
   static String revokePairPath(String pairId) => '/api/v1/pair/$pairId';
   static String togglePairPath(String pairId) => '/api/v1/pair/$pairId/toggle';
-  static String pendingMessagesPath(String pairId) => '/api/v1/relay/pending/$pairId';
+  static String pendingMessagesPath(String pairId) =>
+      '/api/v1/relay/pending/$pairId';
 }

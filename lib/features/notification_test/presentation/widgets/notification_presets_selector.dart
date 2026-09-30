@@ -53,8 +53,7 @@ class NotificationPresetsData {
       label: '建行 SMS Biến động (Toàn bộ)',
       sender: '95533',
       otp: '8888',
-      message:
-          '【中国建设银行】您尾号8888账户09月29日22:45支出人民币1,500.00元，活期余额12,890.50元。',
+      message: '【中国建设银行】您尾号8888账户09月29日22:45支出人民币1,500.00元，活期余额12,890.50元。',
     ),
   ];
 }
@@ -115,10 +114,7 @@ class ChinesePresetsSelector extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 6),
             child: FilterChip(
-              label: Text(
-                item.label,
-                style: const TextStyle(fontSize: 12),
-              ),
+              label: Text(item.label, style: const TextStyle(fontSize: 12)),
               selected: isSelected,
               onSelected: (_) => onSelected(item),
             ),

@@ -63,7 +63,9 @@ class SenderStatusCard extends StatelessWidget {
                 activeTrackColor: AppColors.success,
                 onChanged: state.isPaired
                     ? (val) {
-                        context.read<SenderBloc>().add(SenderToggleRelayEvent(val));
+                        context.read<SenderBloc>().add(
+                          SenderToggleRelayEvent(val),
+                        );
                       }
                     : null,
               ),
@@ -74,8 +76,8 @@ class SenderStatusCard extends StatelessWidget {
             isActive
                 ? 'App đang tự động bắt SMS OTP và chuyển tiếp sang Máy Nhận qua kết nối mã hóa E2EE.'
                 : (state.isPaired
-                    ? 'Bật công tắc phía trên để bắt đầu chuyển tiếp OTP.'
-                    : 'Thiết bị chưa được ghép đôi. Vui lòng ghép đôi với Máy Nhận để kích hoạt.'),
+                      ? 'Bật công tắc phía trên để bắt đầu chuyển tiếp OTP.'
+                      : 'Thiết bị chưa được ghép đôi. Vui lòng ghép đôi với Máy Nhận để kích hoạt.'),
             style: TextStyle(
               fontSize: 14,
               color: colorScheme.onSurfaceVariant,
@@ -129,7 +131,11 @@ class SenderBatteryOptimizationBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.battery_alert, color: AppColors.warning, size: 22),
+              const Icon(
+                Icons.battery_alert,
+                color: AppColors.warning,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Cho phép chạy ngầm (Quan trọng)',
@@ -144,10 +150,7 @@ class SenderBatteryOptimizationBanner extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Hệ thống Android (đặc biệt là Xiaomi, Samsung, Oppo) có thể tắt app khi tắt màn hình. Cần tắt tối ưu pin để nhận SMS liên tục.',
-            style: TextStyle(
-              fontSize: 13,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
@@ -157,7 +160,10 @@ class SenderBatteryOptimizationBanner extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             onPressed: onRequest,
-            child: const Text('Bật Chạy Ngầm Ngay', style: TextStyle(fontSize: 13)),
+            child: const Text(
+              'Bật Chạy Ngầm Ngay',
+              style: TextStyle(fontSize: 13),
+            ),
           ),
         ],
       ),

@@ -70,7 +70,9 @@ class OtpListRepositoryImpl implements OtpListRepository {
       );
 
       // Attempt decryption if shared secret is available
-      if (sharedSecret != null && sharedSecret.isNotEmpty && model.encryptedPayload.isNotEmpty) {
+      if (sharedSecret != null &&
+          sharedSecret.isNotEmpty &&
+          model.encryptedPayload.isNotEmpty) {
         try {
           final decryptedJson = await CryptoHelper.decryptAesGcm256(
             ciphertextWithTagBase64: model.encryptedPayload,
@@ -80,11 +82,16 @@ class OtpListRepositoryImpl implements OtpListRepository {
           final Map<String, dynamic> data = jsonDecode(decryptedJson);
           sender = data['sender']?.toString() ?? sender;
           otp = data['otp']?.toString() ?? otp;
-          fullMessage = data['fullMessage']?.toString() ?? data['full_message']?.toString() ?? '';
+          fullMessage =
+              data['fullMessage']?.toString() ??
+              data['full_message']?.toString() ??
+              '';
           if (data['timestamp'] != null) {
             final ts = data['timestamp'];
             if (ts is int) {
-              receivedAt = DateTime.fromMillisecondsSinceEpoch(ts > 10000000000 ? ts : ts * 1000);
+              receivedAt = DateTime.fromMillisecondsSinceEpoch(
+                ts > 10000000000 ? ts : ts * 1000,
+              );
             }
           }
         } catch (_) {
@@ -95,18 +102,20 @@ class OtpListRepositoryImpl implements OtpListRepository {
         }
       }
 
-      items.add(DecryptedOtpItem(
-        id: model.id,
-        pairId: model.pairId,
-        senderDeviceId: model.senderDeviceId,
-        senderDeviceName: model.senderDeviceName ?? 'Máy Gửi (Sender)',
-        sender: sender,
-        otp: otp,
-        fullMessage: fullMessage,
-        receivedAt: receivedAt,
-        sentAtSeconds: model.sentAt,
-        status: model.status,
-      ));
+      items.add(
+        DecryptedOtpItem(
+          id: model.id,
+          pairId: model.pairId,
+          senderDeviceId: model.senderDeviceId,
+          senderDeviceName: model.senderDeviceName ?? 'Máy Gửi (Sender)',
+          sender: sender,
+          otp: otp,
+          fullMessage: fullMessage,
+          receivedAt: receivedAt,
+          sentAtSeconds: model.sentAt,
+          status: model.status,
+        ),
+      );
     }
 
     // Sort newest first

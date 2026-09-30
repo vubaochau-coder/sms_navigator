@@ -60,12 +60,23 @@ class ReceivedOtpModel extends Equatable {
       id: map['id']?.toString() ?? '',
       sender: map['sender']?.toString() ?? 'Unknown',
       otp: map['otp']?.toString() ?? '',
-      receivedAt: (map['receivedAt'] is num) ? (map['receivedAt'] as num).toInt() : 0,
-      expiresAt: (map['expiresAt'] is num) ? (map['expiresAt'] as num).toInt() : 0,
+      receivedAt: (map['receivedAt'] is num)
+          ? (map['receivedAt'] as num).toInt()
+          : 0,
+      expiresAt: (map['expiresAt'] is num)
+          ? (map['expiresAt'] as num).toInt()
+          : 0,
       rawMessage: map['rawMessage']?.toString() ?? '',
     );
   }
 
   @override
-  List<Object?> get props => [id, sender, otp, receivedAt, expiresAt, rawMessage];
+  List<Object?> get props => [
+    id,
+    sender,
+    otp,
+    receivedAt,
+    expiresAt,
+    rawMessage,
+  ];
 }

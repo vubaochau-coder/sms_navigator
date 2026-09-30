@@ -68,24 +68,29 @@ void main() {
     bloc.close();
   });
 
-  test('SenderLoadStatusEvent loads relayMode and senderWhitelist correctly', () async {
-    fakeRepository.currentMode = 'WHITELIST_ALL';
-    fakeRepository.whitelist = ['+86', '1069'];
+  test(
+    'SenderLoadStatusEvent loads relayMode and senderWhitelist correctly',
+    () async {
+      fakeRepository.currentMode = 'WHITELIST_ALL';
+      fakeRepository.whitelist = ['+86', '1069'];
 
-    bloc.add(const SenderLoadStatusEvent());
+      bloc.add(const SenderLoadStatusEvent());
 
-    await expectLater(
-      bloc.stream,
-      emitsInOrder([
-        predicate<dynamic>((s) => s.isLoading == true),
-        predicate<dynamic>((s) =>
-            s.isLoading == false &&
-            s.relayMode == 'WHITELIST_ALL' &&
-            s.senderWhitelist.length == 2 &&
-            s.senderWhitelist.contains('+86')),
-      ]),
-    );
-  });
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<dynamic>((s) => s.isLoading == true),
+          predicate<dynamic>(
+            (s) =>
+                s.isLoading == false &&
+                s.relayMode == 'WHITELIST_ALL' &&
+                s.senderWhitelist.length == 2 &&
+                s.senderWhitelist.contains('+86'),
+          ),
+        ]),
+      );
+    },
+  );
 
   test('SenderUpdateRelayModeEvent updates relayMode', () async {
     bloc.add(const SenderUpdateRelayModeEvent('ALL_SMS'));
@@ -102,8 +107,13 @@ void main() {
 
     await expectLater(
       bloc.stream,
-      emits(predicate<dynamic>(
-          (s) => s.senderWhitelist.contains('+86') && s.senderWhitelist.length == 1)),
+      emits(
+        predicate<dynamic>(
+          (s) =>
+              s.senderWhitelist.contains('+86') &&
+              s.senderWhitelist.length == 1,
+        ),
+      ),
     );
 
     // Duplicate prefix should not be added again
@@ -120,8 +130,13 @@ void main() {
 
     await expectLater(
       bloc.stream,
-      emits(predicate<dynamic>(
-          (s) => !s.senderWhitelist.contains('+86') && s.senderWhitelist.contains('1069'))),
+      emits(
+        predicate<dynamic>(
+          (s) =>
+              !s.senderWhitelist.contains('+86') &&
+              s.senderWhitelist.contains('1069'),
+        ),
+      ),
     );
     expect(fakeRepository.whitelist, ['1069']);
   });

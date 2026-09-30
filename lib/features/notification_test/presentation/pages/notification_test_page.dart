@@ -66,9 +66,7 @@ class _NotificationTestView extends StatelessWidget {
               if (!state.hasNotificationPermission) ...[
                 NotificationPermissionWarningCard(
                   onRequestPermission: () {
-                    context
-                        .read<NotificationTestCubit>()
-                        .requestPermission();
+                    context.read<NotificationTestCubit>().requestPermission();
                   },
                   colorScheme: colorScheme,
                 ),
@@ -102,9 +100,7 @@ class _NotificationTestView extends StatelessWidget {
                 presets: NotificationPresetsData.bankPresets,
                 selected: state.sender,
                 onSelected: (val) {
-                  context
-                      .read<NotificationTestCubit>()
-                      .selectBankPreset(val);
+                  context.read<NotificationTestCubit>().selectBankPreset(val);
                 },
               ),
               const SizedBox(height: 8),
@@ -121,9 +117,9 @@ class _NotificationTestView extends StatelessWidget {
                 currentSender: state.sender,
                 currentOtp: state.otp,
                 onSelected: (item) {
-                  context
-                      .read<NotificationTestCubit>()
-                      .selectChinesePreset(item);
+                  context.read<NotificationTestCubit>().selectChinesePreset(
+                    item,
+                  );
                 },
               ),
               const SizedBox(height: 12),

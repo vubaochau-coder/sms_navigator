@@ -137,8 +137,9 @@ class SenderFilterConfigCard extends StatelessWidget {
               : colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outlineVariant,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -183,8 +184,7 @@ class SenderFilterConfigCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color:
-                      isSelected ? colorScheme.primary : colorScheme.outline,
+                  color: isSelected ? colorScheme.primary : colorScheme.outline,
                   width: 2,
                 ),
               ),

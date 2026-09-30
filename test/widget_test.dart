@@ -11,8 +11,9 @@ void main() {
     DependencyContainer.instance.init();
   });
 
-  testWidgets('App displays Role Selection with Sender and Receiver options',
-      (WidgetTester tester) async {
+  testWidgets('App displays Role Selection with Sender and Receiver options', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const OtpRelayApp());
     await tester.pumpAndSettle();
 
@@ -25,8 +26,9 @@ void main() {
     expect(find.text(AppStrings.roleReceiverTitle), findsOneWidget);
   });
 
-  testWidgets('Theme toggle switches app between light and dark mode',
-      (WidgetTester tester) async {
+  testWidgets('Theme toggle switches app between light and dark mode', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const OtpRelayApp());
     await tester.pumpAndSettle();
 

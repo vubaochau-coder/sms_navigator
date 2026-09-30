@@ -100,8 +100,10 @@ class RoleSelectionPage extends StatelessWidget {
               const SizedBox(height: 32),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 icon: const Icon(Icons.science_outlined, size: 18),
                 label: const Text('Thử Nghiệm & Xem UI Push Notification'),
@@ -109,7 +111,8 @@ class RoleSelectionPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const NotificationTestPage()),
+                      builder: (_) => const NotificationTestPage(),
+                    ),
                   );
                 },
               ),
@@ -117,8 +120,11 @@ class RoleSelectionPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shield_outlined,
-                      size: 16, color: theme.colorScheme.outline),
+                  Icon(
+                    Icons.shield_outlined,
+                    size: 16,
+                    color: theme.colorScheme.outline,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'Bảo mật E2EE • Server không thể đọc OTP',
@@ -162,11 +168,7 @@ class _AppLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
-        Icons.sync_alt_rounded,
-        color: Colors.white,
-        size: 38,
-      ),
+      child: const Icon(Icons.sync_alt_rounded, color: Colors.white, size: 38),
     );
   }
 }
@@ -178,7 +180,8 @@ class _ThemeToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, mode) {
-        final isDark = mode == ThemeMode.dark ||
+        final isDark =
+            mode == ThemeMode.dark ||
             (mode == ThemeMode.system &&
                 WidgetsBinding.instance.platformDispatcher.platformBrightness ==
                     Brightness.dark);

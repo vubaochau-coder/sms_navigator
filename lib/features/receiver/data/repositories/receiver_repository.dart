@@ -46,12 +46,15 @@ class ReceiverRepositoryImpl implements ReceiverRepository {
 
   @override
   Future<int> pollPendingOtps() async {
-    final PairingPayloadModel? pairing = await pairingService.getReceiverPairing();
+    final PairingPayloadModel? pairing = await pairingService
+        .getReceiverPairing();
     if (pairing == null) return 0;
 
     await deviceApiService.registerDevice();
 
-    final res = await apiClient.get(ApiEndpoints.pendingMessagesPath(pairing.pairId));
+    final res = await apiClient.get(
+      ApiEndpoints.pendingMessagesPath(pairing.pairId),
+    );
     final messages = _extractMessages(res);
     if (messages.isEmpty) return 0;
 
@@ -120,10 +123,9 @@ class ReceiverRepositoryImpl implements ReceiverRepository {
     final timestamp = (payload['timestamp'] is num)
         ? (payload['timestamp'] as num).toInt()
         : DateTime.now().millisecondsSinceEpoch;
-    final messageIdOrDefault =
-        (messageId == null || messageId.isEmpty)
-            ? 'srv_${DateTime.now().microsecondsSinceEpoch}_$fallbackIndex'
-            : messageId;
+    final messageIdOrDefault = (messageId == null || messageId.isEmpty)
+        ? 'srv_${DateTime.now().microsecondsSinceEpoch}_$fallbackIndex'
+        : messageId;
 
     return ReceivedOtpModel(
       id: messageIdOrDefault,

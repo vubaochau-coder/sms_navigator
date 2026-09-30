@@ -36,7 +36,7 @@ class ThemeCubit extends Cubit<ThemeMode> {
       case ThemeMode.system:
         final isDarkNow =
             WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-                Brightness.dark;
+            Brightness.dark;
         return isDarkNow ? ThemeMode.light : ThemeMode.dark;
     }
   }
