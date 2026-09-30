@@ -86,29 +86,7 @@ class _OtpListView extends StatelessWidget {
                   dateText: headerDateText,
                   onOpenSettings: () => _openServerSettings(context),
                 ),
-              OtpCalendarCard(
-                focusedDay: state.focusedDate,
-                selectedDay: state.selectedDate,
-                calendarFormat: state.calendarFormat,
-                onDaySelected: (selectedDay, focusedDay) {
-                  context.read<OtpListBloc>().add(
-                    OtpListSelectDateEvent(
-                      selectedDay: selectedDay,
-                      focusedDay: focusedDay,
-                    ),
-                  );
-                },
-                onFormatChanged: (format) {
-                  context.read<OtpListBloc>().add(
-                    OtpListChangeFormatEvent(format),
-                  );
-                },
-                onPageChanged: (focusedDay) {
-                  context.read<OtpListBloc>().add(
-                    OtpListChangeFocusedDayEvent(focusedDay),
-                  );
-                },
-              ),
+                const OtpCalendarCard(),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -224,12 +202,6 @@ class _OtpCompactHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
-    ThemeCubit? themeCubit;
-    try {
-      themeCubit = context.read<ThemeCubit>();
-    } catch (_) {
-      themeCubit = null;
-    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
@@ -247,26 +219,24 @@ class _OtpCompactHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (themeCubit != null)
-            BlocBuilder<ThemeCubit, ThemeMode>(
-              bloc: themeCubit,
-              builder: (context, themeMode) {
-                final isDark = themeMode == ThemeMode.dark ||
-                    (themeMode == ThemeMode.system &&
-                        MediaQuery.of(context).platformBrightness ==
-                            Brightness.dark);
-                return IconButton(
-                  icon: Icon(
-                    isDark
-                        ? Icons.light_mode_rounded
-                        : Icons.dark_mode_rounded,
-                  ),
-                  tooltip:
-                      isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
-                  onPressed: () => themeCubit?.toggleTheme(),
-                );
-              },
-            ),
+          BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              final isDark = themeMode == ThemeMode.dark ||
+                  (themeMode == ThemeMode.system &&
+                      MediaQuery.of(context).platformBrightness ==
+                          Brightness.dark);
+              return IconButton(
+                icon: Icon(
+                  isDark
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                ),
+                tooltip:
+                    isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
+                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n?.settingsAction ?? 'Cài đặt',
