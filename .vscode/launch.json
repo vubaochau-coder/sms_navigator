@@ -8,7 +8,8 @@
         {
             "name": "sms_navigator",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "lib/main.dart"
         },
         {
             "name": "sms_navigator (profile mode)",
