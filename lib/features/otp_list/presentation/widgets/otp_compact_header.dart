@@ -3,18 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
-import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../../core/widgets/theme_toggle_button.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_state.dart';
 
-/// Header rút gọn cho trang danh sách OTP, hiển thị ngày hiện tại, nút đổi theme và cấu hình server.
+/// Header rút gọn cho trang danh sách OTP, hiển thị ngày hiện tại và nút đổi theme.
 class OtpCompactHeader extends StatelessWidget {
   const OtpCompactHeader({super.key});
-
-  void _openServerSettings(BuildContext context) {
-    ServerSettingsDialog.show(context);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +51,6 @@ class OtpCompactHeader extends StatelessWidget {
                 ),
               ),
               const ThemeToggleButton(),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: l10n.settingsAction,
-                onPressed: () => _openServerSettings(context),
-              ),
             ],
           ),
         );

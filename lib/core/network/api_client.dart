@@ -58,8 +58,8 @@ class ApiClient {
     );
   }
 
-  /// Base URL mặc định cho Android emulator (10.0.2.2 trỏ về 127.0.0.1 máy chủ).
-  static const String defaultBaseUrl = 'http://10.0.2.2:3000';
+  /// Base URL mặc định trỏ tới Production server trên Render.
+  static const String defaultBaseUrl = 'https://sms-navigator-server.onrender.com';
 
   /// Base URL dùng khi chạy test/debug trực tiếp trên máy.
   static const String localBaseUrl = 'http://127.0.0.1:3000';
