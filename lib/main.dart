@@ -20,6 +20,10 @@ Future<void> main() async {
   final di = DependencyContainer.instance;
   di.init();
 
+  // Khởi tạo Firebase Crashlytics & Analytics
+  await di.crashlyticsService.initialize();
+  di.analyticsService.initialize();
+
   // Khởi tạo FCM notification service (kênh thông báo, đăng ký token, lắng nghe tin nhắn)
   await di.fcmNotificationService.initialize();
 

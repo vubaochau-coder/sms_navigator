@@ -39,6 +39,10 @@ class OtpRelayApp extends StatelessWidget {
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
+              navigatorObservers: [
+                if (di.analyticsService.observer != null)
+                  di.analyticsService.observer!,
+              ],
               home: const RoleSelectionPage(),
             );
           },

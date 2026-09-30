@@ -8,6 +8,8 @@ import '../../features/receiver/data/services/receiver_storage_service.dart';
 import '../../features/sender/data/repositories/sender_repository.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
 import '../network/api_client.dart';
+import '../services/analytics_service.dart';
+import '../services/crashlytics_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
 
@@ -17,6 +19,9 @@ class DependencyContainer {
   static final DependencyContainer instance = DependencyContainer._();
 
   bool _initialized = false;
+
+  late final CrashlyticsService crashlyticsService;
+  late final AnalyticsService analyticsService;
 
   late final NativeRelayService nativeRelayService;
   late final SenderRepository senderRepository;
@@ -37,6 +42,9 @@ class DependencyContainer {
   void init() {
     if (_initialized) return;
     _initialized = true;
+
+    crashlyticsService = CrashlyticsService.instance;
+    analyticsService = AnalyticsService.instance;
 
     nativeRelayService = NativeRelayServiceImpl();
 
