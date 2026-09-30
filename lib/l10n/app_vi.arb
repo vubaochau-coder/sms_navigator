@@ -94,5 +94,21 @@
       "url": { "type": "String" }
     }
   },
-  "serverSettingsFailed": "Không thể lưu cấu hình. Thử lại sau."
+  "serverSettingsFailed": "Không thể lưu cấu hình. Thử lại sau.",
+  "navTabSms": "SMS",
+  "navTabPairing": "Ghép nối",
+  "pairingHubTitle": "Ghép Nối Thiết Bị",
+  "pairingHubTabReceivers": "Máy nhận",
+  "pairingHubTabSenders": "Máy gửi",
+  "pairingHubReceiversDesc": "Danh sách các máy đang nhận SMS của bạn",
+  "pairingHubSendersDesc": "Danh sách các máy gửi SMS cho bạn",
+  "pairingHubCreateQr": "Tạo mã QR",
+  "pairingHubScanQr": "Quét mã",
+  "settingsAction": "Cài đặt",
+  "otpTodayWithDate": "Hôm nay, {date}",
+  "@otpTodayWithDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  }
 }

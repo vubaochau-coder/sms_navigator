@@ -447,6 +447,72 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không thể lưu cấu hình. Thử lại sau.'**
   String get serverSettingsFailed;
+
+  /// No description provided for @navTabSms.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS'**
+  String get navTabSms;
+
+  /// No description provided for @navTabPairing.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép nối'**
+  String get navTabPairing;
+
+  /// No description provided for @pairingHubTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép Nối Thiết Bị'**
+  String get pairingHubTitle;
+
+  /// No description provided for @pairingHubTabReceivers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy nhận'**
+  String get pairingHubTabReceivers;
+
+  /// No description provided for @pairingHubTabSenders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy gửi'**
+  String get pairingHubTabSenders;
+
+  /// No description provided for @pairingHubReceiversDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Danh sách các máy đang nhận SMS của bạn'**
+  String get pairingHubReceiversDesc;
+
+  /// No description provided for @pairingHubSendersDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Danh sách các máy gửi SMS cho bạn'**
+  String get pairingHubSendersDesc;
+
+  /// No description provided for @pairingHubCreateQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo mã QR'**
+  String get pairingHubCreateQr;
+
+  /// No description provided for @pairingHubScanQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét mã'**
+  String get pairingHubScanQr;
+
+  /// No description provided for @settingsAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cài đặt'**
+  String get settingsAction;
+
+  /// No description provided for @otpTodayWithDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm nay, {date}'**
+  String otpTodayWithDate(String date);
 }
 
 class _AppLocalizationsDelegate

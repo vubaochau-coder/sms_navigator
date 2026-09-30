@@ -6,9 +6,9 @@ import 'core/di/injection.dart';
 import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
+import 'features/home/presentation/pages/main_navigation_page.dart';
 import 'features/pairing/presentation/bloc/pairing_bloc.dart';
 import 'features/receiver/presentation/bloc/receiver_bloc.dart';
-import 'features/role_selection/presentation/pages/role_selection_page.dart';
 import 'features/sender/presentation/bloc/sender_bloc.dart';
 
 class OtpRelayApp extends StatelessWidget {
@@ -47,7 +47,7 @@ class OtpRelayApp extends StatelessWidget {
                 if (di.analyticsService.observer != null)
                   di.analyticsService.observer!,
               ],
-              home: const RoleSelectionPage(),
+              home: const MainNavigationPage(),
             );
           },
         ),

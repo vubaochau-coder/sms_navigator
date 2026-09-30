@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
+import '../../../../core/widgets/server_settings_dialog.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
 import '../bloc/otp_list_state.dart';
@@ -13,7 +15,9 @@ import '../widgets/otp_content_view.dart';
 
 /// Màn hình xem danh sách OTP theo ngày — Thuần Stateless với BLoC.
 class OtpListPage extends StatelessWidget {
-  const OtpListPage({super.key});
+  const OtpListPage({super.key, this.showAppBar = true});
+
+  final bool showAppBar;
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +25,30 @@ class OtpListPage extends StatelessWidget {
       create: (_) => OtpListBloc(
         repository: DependencyContainer.instance.otpListRepository,
       )..add(OtpListLoadEvent(date: DateTime.now())),
-      child: const _OtpListView(),
+      child: _OtpListView(showAppBar: showAppBar),
     );
   }
 }
 
 class _OtpListView extends StatelessWidget {
-  const _OtpListView();
+  const _OtpListView({required this.showAppBar});
+
+  final bool showAppBar;
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     HapticFeedback.lightImpact();
     UiUtils.copyToClipboard(text, successMessage: 'Đã sao chép $label: $text');
+  }
+
+  void _openServerSettings(BuildContext context) {
+    final di = DependencyContainer.instance;
+    showDialog(
+      context: context,
+      builder: (_) => ServerSettingsDialog(
+        deviceStorageService: di.deviceStorageService,
+        nativeRelayService: di.nativeRelayService,
+      ),
+    );
   }
 
   @override
@@ -39,43 +56,45 @@ class _OtpListView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Danh Sách OTP'),
-        actions: [
-          BlocBuilder<OtpListBloc, OtpListState>(
-            builder: (context, state) {
-              return IconButton(
-                icon: Icon(
-                  state.isGroupingByDevice
-                      ? Icons.view_agenda_rounded
-                      : Icons.group_work_rounded,
+      appBar: showAppBar
+          ? AppBar(
+              title: const Text('Danh Sách OTP'),
+              actions: [
+                BlocBuilder<OtpListBloc, OtpListState>(
+                  builder: (context, state) {
+                    return IconButton(
+                      icon: Icon(
+                        state.isGroupingByDevice
+                            ? Icons.view_agenda_rounded
+                            : Icons.group_work_rounded,
+                      ),
+                      tooltip: state.isGroupingByDevice
+                          ? 'Xem dạng danh sách phẳng'
+                          : 'Gom nhóm theo thiết bị gửi',
+                      onPressed: () {
+                        context.read<OtpListBloc>().add(
+                          const OtpListToggleGroupEvent(),
+                        );
+                      },
+                    );
+                  },
                 ),
-                tooltip: state.isGroupingByDevice
-                    ? 'Xem dạng danh sách phẳng'
-                    : 'Gom nhóm theo thiết bị gửi',
-                onPressed: () {
-                  context.read<OtpListBloc>().add(
-                    const OtpListToggleGroupEvent(),
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Làm mới',
-            onPressed: () {
-              final selectedDate = context
-                  .read<OtpListBloc>()
-                  .state
-                  .selectedDate;
-              context.read<OtpListBloc>().add(
-                OtpListLoadEvent(date: selectedDate),
-              );
-            },
-          ),
-        ],
-      ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  tooltip: 'Làm mới',
+                  onPressed: () {
+                    final selectedDate = context
+                        .read<OtpListBloc>()
+                        .state
+                        .selectedDate;
+                    context.read<OtpListBloc>().add(
+                      OtpListLoadEvent(date: selectedDate),
+                    );
+                  },
+                ),
+              ],
+            )
+          : null,
       body: BlocConsumer<OtpListBloc, OtpListState>(
         listener: (context, state) {
           if (state.errorMessage != null) {
@@ -89,9 +108,29 @@ class _OtpListView extends StatelessWidget {
         },
         builder: (context, state) {
           final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
+          final isToday = DateTimeUtils.isSameDay(
+            state.selectedDate,
+            DateTime.now(),
+          );
+          final l10n = AppLocalizations.of(context);
+          final dateDayMonth = DateTimeUtils.formatDate(state.selectedDate, pattern: 'dd/MM');
+          final headerDateText = isToday
+              ? (l10n != null ? l10n.otpTodayWithDate(dateDayMonth) : 'Hôm nay, $dateDayMonth')
+              : dateDisplay;
 
           return Column(
             children: [
+              if (!showAppBar)
+                _OtpCompactHeader(
+                  dateText: headerDateText,
+                  isGroupingByDevice: state.isGroupingByDevice,
+                  onToggleGroup: () {
+                    context.read<OtpListBloc>().add(
+                      const OtpListToggleGroupEvent(),
+                    );
+                  },
+                  onOpenSettings: () => _openServerSettings(context),
+                ),
               OtpCalendarCard(
                 focusedDay: state.focusedDate,
                 selectedDay: state.selectedDate,
@@ -211,6 +250,61 @@ class _OtpListView extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _OtpCompactHeader extends StatelessWidget {
+  const _OtpCompactHeader({
+    required this.dateText,
+    required this.isGroupingByDevice,
+    required this.onToggleGroup,
+    required this.onOpenSettings,
+  });
+
+  final String dateText;
+  final bool isGroupingByDevice;
+  final VoidCallback onToggleGroup;
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
+      child: Row(
+        children: [
+          Icon(Icons.sms_rounded, size: 18, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              dateText,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              isGroupingByDevice
+                  ? Icons.view_agenda_rounded
+                  : Icons.group_work_rounded,
+            ),
+            tooltip: isGroupingByDevice
+                ? 'Xem dạng danh sách phẳng'
+                : 'Gom nhóm theo thiết bị gửi',
+            onPressed: onToggleGroup,
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settingsAction,
+            onPressed: onOpenSettings,
+          ),
+        ],
       ),
     );
   }

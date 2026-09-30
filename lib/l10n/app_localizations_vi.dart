@@ -205,4 +205,40 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get serverSettingsFailed => 'Không thể lưu cấu hình. Thử lại sau.';
+
+  @override
+  String get navTabSms => 'SMS';
+
+  @override
+  String get navTabPairing => 'Ghép nối';
+
+  @override
+  String get pairingHubTitle => 'Ghép Nối Thiết Bị';
+
+  @override
+  String get pairingHubTabReceivers => 'Máy nhận';
+
+  @override
+  String get pairingHubTabSenders => 'Máy gửi';
+
+  @override
+  String get pairingHubReceiversDesc =>
+      'Danh sách các máy đang nhận SMS của bạn';
+
+  @override
+  String get pairingHubSendersDesc => 'Danh sách các máy gửi SMS cho bạn';
+
+  @override
+  String get pairingHubCreateQr => 'Tạo mã QR';
+
+  @override
+  String get pairingHubScanQr => 'Quét mã';
+
+  @override
+  String get settingsAction => 'Cài đặt';
+
+  @override
+  String otpTodayWithDate(String date) {
+    return 'Hôm nay, $date';
+  }
 }

@@ -7,14 +7,14 @@ import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
 
-class PairingReceiverPage extends StatefulWidget {
-  const PairingReceiverPage({super.key});
+class QrScanPage extends StatefulWidget {
+  const QrScanPage({super.key});
 
   @override
-  State<PairingReceiverPage> createState() => _PairingReceiverPageState();
+  State<QrScanPage> createState() => _QrScanPageState();
 }
 
-class _PairingReceiverPageState extends State<PairingReceiverPage> {
+class _QrScanPageState extends State<QrScanPage> {
   final MobileScannerController _controller = MobileScannerController(
     facing: CameraFacing.back,
     detectionSpeed: DetectionSpeed.normal,

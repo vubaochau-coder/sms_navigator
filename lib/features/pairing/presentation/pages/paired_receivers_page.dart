@@ -13,9 +13,14 @@ import 'pairing_sender_page.dart';
 
 /// Màn hình quản lý danh sách thiết bị nhận dành cho Máy Gửi (Sender) — Thuần Stateless với BLoC.
 class PairedReceiversPage extends StatelessWidget {
-  const PairedReceiversPage({super.key, this.pairManagementService});
+  const PairedReceiversPage({
+    super.key,
+    this.pairManagementService,
+    this.showAppBar = true,
+  });
 
   final PairManagementService? pairManagementService;
+  final bool showAppBar;
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +30,15 @@ class PairedReceiversPage extends StatelessWidget {
 
     return BlocProvider(
       create: (_) => PairedDevicesCubit(service)..loadReceivers(),
-      child: const _PairedReceiversBody(),
+      child: _PairedReceiversBody(showAppBar: showAppBar),
     );
   }
 }
 
 class _PairedReceiversBody extends StatelessWidget {
-  const _PairedReceiversBody();
+  const _PairedReceiversBody({required this.showAppBar});
+
+  final bool showAppBar;
 
   void _toggleActive(
     BuildContext context,
@@ -66,6 +73,74 @@ class _PairedReceiversBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final body = SafeArea(
+      child: Padding(
+        padding: Dimens.screenPadding,
+        child: BlocBuilder<PairedDevicesCubit, PairedDevicesState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.errorMessage != null) {
+              return EmptyStateView(
+                icon: Icons.cloud_off_rounded,
+                title: 'Có lỗi xảy ra',
+                message: state.errorMessage,
+                actionLabel: 'Thử lại',
+                onAction: () =>
+                    context.read<PairedDevicesCubit>().loadReceivers(),
+              );
+            }
+
+            if (state.devices.isEmpty) {
+              return EmptyStateView(
+                icon: Icons.phonelink_erase_rounded,
+                title: 'Chưa có thiết bị nhận nào',
+                message:
+                    'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
+                actionLabel: 'Tạo mã QR ghép đôi',
+                onAction: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PairingSenderPage(),
+                    ),
+                  );
+                  if (context.mounted) {
+                    context.read<PairedDevicesCubit>().loadReceivers();
+                  }
+                },
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () =>
+                  context.read<PairedDevicesCubit>().loadReceivers(),
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: state.devices.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (ctx, index) {
+                  final item = state.devices[index];
+                  return PairedReceiverCard(
+                    item: item,
+                    isToggling: state.togglingPairIds.contains(item.pairId),
+                    onToggleActive: (val) =>
+                        _toggleActive(context, item, val),
+                    onRevokePair: () => _confirmRevokePair(context, item),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    if (!showAppBar) {
+      return body;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thiết bị nhận OTP'),
@@ -91,69 +166,7 @@ class _PairedReceiversBody extends StatelessWidget {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: Dimens.screenPadding,
-          child: BlocBuilder<PairedDevicesCubit, PairedDevicesState>(
-            builder: (context, state) {
-              if (state.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (state.errorMessage != null) {
-                return EmptyStateView(
-                  icon: Icons.cloud_off_rounded,
-                  title: 'Có lỗi xảy ra',
-                  message: state.errorMessage,
-                  actionLabel: 'Thử lại',
-                  onAction: () =>
-                      context.read<PairedDevicesCubit>().loadReceivers(),
-                );
-              }
-
-              if (state.devices.isEmpty) {
-                return EmptyStateView(
-                  icon: Icons.phonelink_erase_rounded,
-                  title: 'Chưa có thiết bị nhận nào',
-                  message:
-                      'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
-                  actionLabel: 'Tạo mã QR ghép đôi',
-                  onAction: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PairingSenderPage(),
-                      ),
-                    );
-                    if (context.mounted) {
-                      context.read<PairedDevicesCubit>().loadReceivers();
-                    }
-                  },
-                );
-              }
-
-              return RefreshIndicator(
-                onRefresh: () =>
-                    context.read<PairedDevicesCubit>().loadReceivers(),
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: state.devices.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
-                  itemBuilder: (ctx, index) {
-                    final item = state.devices[index];
-                    return PairedReceiverCard(
-                      item: item,
-                      isToggling: state.togglingPairIds.contains(item.pairId),
-                      onToggleActive: (val) =>
-                          _toggleActive(context, item, val),
-                      onRevokePair: () => _confirmRevokePair(context, item),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-      ),
+      body: body,
     );
   }
 }

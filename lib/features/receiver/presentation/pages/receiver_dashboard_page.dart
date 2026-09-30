@@ -12,7 +12,7 @@ import '../../../pairing/presentation/bloc/pairing_bloc.dart';
 import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
 import '../../../pairing/presentation/pages/paired_senders_page.dart';
-import '../../../pairing/presentation/pages/pairing_receiver_page.dart';
+import '../../../pairing/presentation/pages/qr_scan_page.dart';
 import '../bloc/receiver_bloc.dart';
 import '../bloc/receiver_event.dart';
 import '../bloc/receiver_state.dart';
@@ -170,12 +170,12 @@ class ReceiverDashboardPage extends StatelessWidget {
                   if (!isPaired) ...[
                     ReceiverNotPairedCard(
                       onScanQr: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PairingReceiverPage(),
-                          ),
-                        );
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const QrScanPage(),
+                            ),
+                          );
                         if (context.mounted) {
                           context.read<PairingBloc>().add(
                             const PairingCheckReceiverStatusEvent(),
