@@ -531,6 +531,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Hôm nay, {date}'**
   String otpTodayWithDate(String date);
+
+  /// No description provided for @themeSwitchToLight.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuyển sang nền sáng'**
+  String get themeSwitchToLight;
+
+  /// No description provided for @themeSwitchToDark.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuyển sang nền tối'**
+  String get themeSwitchToDark;
 }
 
 class _AppLocalizationsDelegate

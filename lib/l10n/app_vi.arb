@@ -113,5 +113,7 @@
     "placeholders": {
       "date": { "type": "String" }
     }
-  }
+  },
+  "themeSwitchToLight": "Chuyển sang nền sáng",
+  "themeSwitchToDark": "Chuyển sang nền tối"
 }

@@ -250,4 +250,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String otpTodayWithDate(String date) {
     return 'Hôm nay, $date';
   }
+
+  @override
+  String get themeSwitchToLight => 'Chuyển sang nền sáng';
+
+  @override
+  String get themeSwitchToDark => 'Chuyển sang nền tối';
 }

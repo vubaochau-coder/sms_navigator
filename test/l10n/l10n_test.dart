@@ -40,5 +40,13 @@ void main() {
       localizations.addWhitelistSuccess('1555'),
       equals('Đã thêm đầu số 1555 vào bộ lọc'),
     );
+    expect(
+      localizations.themeSwitchToLight,
+      equals('Chuyển sang nền sáng'),
+    );
+    expect(
+      localizations.themeSwitchToDark,
+      equals('Chuyển sang nền tối'),
+    );
   });
 }
