@@ -48,5 +48,33 @@ void main() {
       localizations.themeSwitchToDark,
       equals('Chuyển sang nền tối'),
     );
+    expect(
+      localizations.otpCopiedMessage('123456'),
+      equals('Đã sao chép mã OTP: 123456'),
+    );
+    expect(
+      localizations.otpSmsNotification,
+      equals('THÔNG BÁO SMS'),
+    );
+    expect(
+      localizations.otpCopyAction,
+      equals('Sao chép mã'),
+    );
+    expect(
+      localizations.otpViewFullMessage,
+      equals('Xem toàn bộ tin nhắn'),
+    );
+    expect(
+      localizations.otpEmptyInDate('30/09/2026'),
+      equals('Không có mã OTP nào trong ngày 30/09/2026'),
+    );
+    expect(
+      localizations.otpFilterDateWithCount('30/09/2026', 5),
+      equals('Ngày: 30/09/2026 (5 tin)'),
+    );
+    expect(
+      localizations.otpGroupByDevice,
+      equals('Nhóm theo máy'),
+    );
   });
 }

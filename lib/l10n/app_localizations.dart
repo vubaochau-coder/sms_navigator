@@ -543,6 +543,54 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chuyển sang nền tối'**
   String get themeSwitchToDark;
+
+  /// No description provided for @otpCopiedMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép mã OTP: {otp}'**
+  String otpCopiedMessage(String otp);
+
+  /// No description provided for @otpSmsNotification.
+  ///
+  /// In vi, this message translates to:
+  /// **'THÔNG BÁO SMS'**
+  String get otpSmsNotification;
+
+  /// No description provided for @otpCopyAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép mã'**
+  String get otpCopyAction;
+
+  /// No description provided for @otpViewFullMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem toàn bộ tin nhắn'**
+  String get otpViewFullMessage;
+
+  /// No description provided for @otpEmptyInDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có mã OTP nào trong ngày {date}'**
+  String otpEmptyInDate(String date);
+
+  /// No description provided for @otpEmptyGuide.
+  ///
+  /// In vi, this message translates to:
+  /// **'Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.'**
+  String get otpEmptyGuide;
+
+  /// No description provided for @otpFilterDateWithCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngày: {date} ({count} tin)'**
+  String otpFilterDateWithCount(String date, int count);
+
+  /// No description provided for @otpGroupByDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhóm theo máy'**
+  String get otpGroupByDevice;
 }
 
 class _AppLocalizationsDelegate

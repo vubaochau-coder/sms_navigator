@@ -1,24 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/date_time_utils.dart';
+import '../../../../core/utils/ui_utils.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/decrypted_otp_item.dart';
+import 'otp_detail_bottom_sheet.dart';
 
 /// Card hiển thị chi tiết mã OTP / SMS trong danh sách.
 class OtpRecordCard extends StatelessWidget {
   const OtpRecordCard({
     super.key,
     required this.item,
-    required this.onCopyOtp,
-    required this.onViewDetail,
   });
 
   final DecryptedOtpItem item;
-  final VoidCallback onCopyOtp;
-  final VoidCallback onViewDetail;
+
+  void _copyToClipboard(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final l10n = AppLocalizations.of(context);
+    final message = l10n != null
+        ? l10n.otpCopiedMessage(item.otp)
+        : 'Đã sao chép mã OTP: ${item.otp}';
+    UiUtils.copyToClipboard(item.otp, successMessage: message);
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final timeStr = DateTimeUtils.formatTime(
       item.receivedAt,
       includeSeconds: true,
@@ -95,7 +105,9 @@ class OtpRecordCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    item.otp == 'SMS' ? 'THÔNG BÁO SMS' : item.otp,
+                    item.otp == 'SMS'
+                        ? (l10n?.otpSmsNotification ?? 'THÔNG BÁO SMS')
+                        : item.otp,
                     style: TextStyle(
                       fontSize: item.otp == 'SMS' ? 14 : 20,
                       fontWeight: FontWeight.w900,
@@ -120,21 +132,21 @@ class OtpRecordCard extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                       ),
                       icon: const Icon(Icons.copy_rounded, size: 14),
-                      label: const Text(
-                        'Sao chép mã',
-                        style: TextStyle(fontSize: 11),
+                      label: Text(
+                        l10n?.otpCopyAction ?? 'Sao chép mã',
+                        style: const TextStyle(fontSize: 11),
                       ),
-                      onPressed: onCopyOtp,
+                      onPressed: () => _copyToClipboard(context),
                     ),
                   const SizedBox(width: 6),
                   IconButton.outlined(
                     icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                    tooltip: 'Xem toàn bộ tin nhắn',
+                    tooltip: l10n?.otpViewFullMessage ?? 'Xem toàn bộ tin nhắn',
                     style: IconButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.all(6),
                     ),
-                    onPressed: onViewDetail,
+                    onPressed: () => OtpDetailBottomSheet.show(context, item),
                   ),
                 ],
               ),

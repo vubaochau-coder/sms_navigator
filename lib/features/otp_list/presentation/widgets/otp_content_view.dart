@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/dimens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/decrypted_otp_item.dart';
-import 'otp_detail_bottom_sheet.dart';
 import 'otp_record_card.dart';
 
 /// View hiển thị nội dung danh sách OTP (dạng phẳng hoặc gom nhóm theo thiết bị).
@@ -12,21 +12,19 @@ class OtpContentView extends StatelessWidget {
     required this.groupedByDevice,
     required this.isGroupingByDevice,
     required this.dateDisplay,
-    required this.onCopyOtp,
   });
 
   final List<DecryptedOtpItem> items;
   final Map<String, List<DecryptedOtpItem>> groupedByDevice;
   final bool isGroupingByDevice;
   final String dateDisplay;
-  final void Function(String text, String label) onCopyOtp;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (items.isEmpty) {
-      return _buildEmptyState(colorScheme);
+      return _buildEmptyState(context, colorScheme);
     }
 
     if (isGroupingByDevice) {
@@ -42,11 +40,7 @@ class OtpContentView extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return OtpRecordCard(
-          item: item,
-          onCopyOtp: () => onCopyOtp(item.otp, 'mã OTP'),
-          onViewDetail: () => OtpDetailBottomSheet.show(context, item),
-        );
+        return OtpRecordCard(item: item);
       },
     );
   }
@@ -112,11 +106,7 @@ class OtpContentView extends StatelessWidget {
               ),
             ),
             ...list.map(
-              (item) => OtpRecordCard(
-                item: item,
-                onCopyOtp: () => onCopyOtp(item.otp, 'mã OTP'),
-                onViewDetail: () => OtpDetailBottomSheet.show(context, item),
-              ),
+              (item) => OtpRecordCard(item: item),
             ),
           ],
         );
@@ -124,7 +114,14 @@ class OtpContentView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(ColorScheme colorScheme) {
+  Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme) {
+    final l10n = AppLocalizations.of(context);
+    final emptyTitle = l10n != null
+        ? l10n.otpEmptyInDate(dateDisplay)
+        : 'Không có mã OTP nào trong ngày $dateDisplay';
+    final emptyGuide = l10n?.otpEmptyGuide ??
+        'Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.';
+
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -146,7 +143,7 @@ class OtpContentView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Không có mã OTP nào trong ngày $dateDisplay',
+              emptyTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -156,7 +153,7 @@ class OtpContentView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.',
+              emptyGuide,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,

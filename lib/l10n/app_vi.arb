@@ -115,5 +115,29 @@
     }
   },
   "themeSwitchToLight": "Chuyển sang nền sáng",
-  "themeSwitchToDark": "Chuyển sang nền tối"
+  "themeSwitchToDark": "Chuyển sang nền tối",
+  "otpCopiedMessage": "Đã sao chép mã OTP: {otp}",
+  "@otpCopiedMessage": {
+    "placeholders": {
+      "otp": { "type": "String" }
+    }
+  },
+  "otpSmsNotification": "THÔNG BÁO SMS",
+  "otpCopyAction": "Sao chép mã",
+  "otpViewFullMessage": "Xem toàn bộ tin nhắn",
+  "otpEmptyInDate": "Không có mã OTP nào trong ngày {date}",
+  "@otpEmptyInDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "otpEmptyGuide": "Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.",
+  "otpFilterDateWithCount": "Ngày: {date} ({count} tin)",
+  "@otpFilterDateWithCount": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "otpGroupByDevice": "Nhóm theo máy"
 }

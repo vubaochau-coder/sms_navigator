@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
-import '../../../../core/widgets/theme_toggle_button.dart';
-import '../../../../core/utils/date_time_utils.dart';
-import '../../../../core/utils/ui_utils.dart';
-import '../../../../core/widgets/server_settings_dialog.dart';
-import '../../../../core/widgets/shimmer_loading.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
-import '../bloc/otp_list_state.dart';
 import '../widgets/otp_calendar_card.dart';
-import '../widgets/otp_content_view.dart';
+import '../widgets/otp_compact_header.dart';
+import '../widgets/otp_content_section.dart';
+import '../widgets/otp_filter_bar.dart';
 
 /// Màn hình xem danh sách OTP theo ngày — Thuần Stateless với BLoC.
 class OtpListPage extends StatelessWidget {
@@ -33,199 +27,23 @@ class OtpListPage extends StatelessWidget {
 class _OtpListView extends StatelessWidget {
   const _OtpListView();
 
-  void _copyToClipboard(BuildContext context, String text, String label) {
-    HapticFeedback.lightImpact();
-    UiUtils.copyToClipboard(text, successMessage: 'Đã sao chép $label: $text');
-  }
-
-  void _openServerSettings(BuildContext context) {
-    final di = DependencyContainer.instance;
-    showDialog(
-      context: context,
-      builder: (_) => ServerSettingsDialog(
-        deviceStorageService: di.deviceStorageService,
-        nativeRelayService: di.nativeRelayService,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      body: BlocConsumer<OtpListBloc, OtpListState>(
-        listener: (context, state) {
-          if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
-          final isToday = DateTimeUtils.isSameDay(
-            state.selectedDate,
-            DateTime.now(),
-          );
-          final l10n = AppLocalizations.of(context);
-          final dateDayMonth = DateTimeUtils.formatDate(state.selectedDate, pattern: 'dd/MM');
-          final headerDateText = isToday
-              ? (l10n != null ? l10n.otpTodayWithDate(dateDayMonth) : 'Hôm nay, $dateDayMonth')
-              : dateDisplay;
-
-          return SafeArea(
-            top: true,
-            bottom: false,
-            child: Column(
-              children: [
-                _OtpCompactHeader(
-                  dateText: headerDateText,
-                  onOpenSettings: () => _openServerSettings(context),
-                ),
-                const OtpCalendarCard(),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_rounded,
-                          size: 14,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Ngày: $dateDisplay (${state.items.length} tin)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () {
-                        context.read<OtpListBloc>().add(
-                          const OtpListToggleGroupEvent(),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: state.isGroupingByDevice
-                              ? colorScheme.primaryContainer
-                              : colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              state.isGroupingByDevice
-                                  ? Icons.check_circle_rounded
-                                  : Icons.radio_button_unchecked_rounded,
-                              size: 14,
-                              color: state.isGroupingByDevice
-                                  ? colorScheme.primary
-                                  : colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Nhóm theo máy',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: state.isGroupingByDevice
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<OtpListBloc>().add(
-                      OtpListLoadEvent(date: state.selectedDate),
-                    );
-                  },
-                  child: state.isLoading
-                      ? const ShimmerLoadingList()
-                      : OtpContentView(
-                          items: state.items,
-                          groupedByDevice: state.groupedByDevice,
-                          isGroupingByDevice: state.isGroupingByDevice,
-                          dateDisplay: dateDisplay,
-                          onCopyOtp: (text, label) =>
-                              _copyToClipboard(context, text, label),
-                        ),
-                ),
-              ),
-            ],
+    return const Scaffold(
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          children: [
+            OtpCompactHeader(),
+            OtpCalendarCard(),
+            OtpFilterBar(),
+            Divider(height: 1),
+            Expanded(
+              child: OtpContentSection(),
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _OtpCompactHeader extends StatelessWidget {
-  const _OtpCompactHeader({
-    required this.dateText,
-    required this.onOpenSettings,
-  });
-
-  final String dateText;
-  final VoidCallback onOpenSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
-      child: Row(
-        children: [
-          Icon(Icons.sms_rounded, size: 18, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              dateText,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ),
-          const ThemeToggleButton(),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n?.settingsAction ?? 'Cài đặt',
-            onPressed: onOpenSettings,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

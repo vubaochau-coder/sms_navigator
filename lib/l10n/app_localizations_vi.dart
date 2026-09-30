@@ -256,4 +256,35 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get themeSwitchToDark => 'Chuyển sang nền tối';
+
+  @override
+  String otpCopiedMessage(String otp) {
+    return 'Đã sao chép mã OTP: $otp';
+  }
+
+  @override
+  String get otpSmsNotification => 'THÔNG BÁO SMS';
+
+  @override
+  String get otpCopyAction => 'Sao chép mã';
+
+  @override
+  String get otpViewFullMessage => 'Xem toàn bộ tin nhắn';
+
+  @override
+  String otpEmptyInDate(String date) {
+    return 'Không có mã OTP nào trong ngày $date';
+  }
+
+  @override
+  String get otpEmptyGuide =>
+      'Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.';
+
+  @override
+  String otpFilterDateWithCount(String date, int count) {
+    return 'Ngày: $date ($count tin)';
+  }
+
+  @override
+  String get otpGroupByDevice => 'Nhóm theo máy';
 }
