@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/pairing_repository.dart';
 import 'pairing_event.dart';
@@ -21,11 +22,12 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
           _startCountdown();
         }
       },
+      transformer: droppable(),
     );
-    on<PairingTimerTickedEvent>(_onTimerTicked);
-    on<PairingSubmitReceiverQrEvent>(_onSubmitReceiverQr);
-    on<PairingCheckReceiverStatusEvent>(_onCheckReceiverStatus);
-    on<PairingDisconnectReceiverEvent>(_onDisconnectReceiver);
+    on<PairingTimerTickedEvent>(_onTimerTicked, transformer: sequential());
+    on<PairingSubmitReceiverQrEvent>(_onSubmitReceiverQr, transformer: droppable());
+    on<PairingCheckReceiverStatusEvent>(_onCheckReceiverStatus, transformer: restartable());
+    on<PairingDisconnectReceiverEvent>(_onDisconnectReceiver, transformer: droppable());
   }
 
   void _startCountdown() {

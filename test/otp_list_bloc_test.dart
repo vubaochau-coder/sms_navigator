@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/otp_list/data/repositories/otp_list_repository.dart';
 import 'package:sms_navigator/features/otp_list/domain/models/decrypted_otp_item.dart';
@@ -6,9 +7,15 @@ import 'package:sms_navigator/features/otp_list/presentation/bloc/otp_list_event
 
 class _FakeOtpListRepository implements OtpListRepository {
   List<DecryptedOtpItem> stubItems = [];
+  CancelToken? lastCancelToken;
 
   @override
-  Future<List<DecryptedOtpItem>> getOtpListForDate(DateTime date, {String? pairId}) async {
+  Future<List<DecryptedOtpItem>> getOtpListForDate(
+    DateTime date, {
+    String? pairId,
+    CancelToken? cancelToken,
+  }) async {
+    lastCancelToken = cancelToken;
     return stubItems;
   }
 }
@@ -87,5 +94,14 @@ void main() {
     expect(grouped.containsKey('Xiaomi 13 (Việt Nam)'), true);
     expect(grouped['Samsung S24 (Hà Nội)']!.first.otp, '849201');
     expect(grouped['Xiaomi 13 (Việt Nam)']!.first.otp, '192837');
+  });
+
+  test('OtpListLoadEvent creates and passes non-null CancelToken', () async {
+    fakeRepository.stubItems = [item1];
+    bloc.add(OtpListLoadEvent(date: sampleDate));
+    await bloc.stream.firstWhere((s) => !s.isLoading);
+
+    expect(fakeRepository.lastCancelToken, isNotNull);
+    expect(fakeRepository.lastCancelToken!.isCancelled, isFalse);
   });
 }

@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
@@ -30,6 +32,7 @@ class PairedReceiversPage extends StatefulWidget {
 
 class _PairedReceiversPageState extends State<PairedReceiversPage> {
   late final PairManagementService _service;
+  CancelToken? _cancelToken;
   bool _isLoading = true;
   String? _errorMessage;
   List<PairedDeviceItem> _receivers = [];
@@ -43,19 +46,31 @@ class _PairedReceiversPageState extends State<PairedReceiversPage> {
     _fetchReceivers();
   }
 
+  @override
+  void dispose() {
+    _cancelToken?.cancel('PairedReceiversPage disposed');
+    super.dispose();
+  }
+
   Future<void> _fetchReceivers() async {
+    _cancelToken?.cancel('Refresh receivers');
+    final token = CancelToken();
+    _cancelToken = token;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final items = await _service.getPairedReceivers();
+      final items = await _service.getPairedReceivers(cancelToken: token);
       if (!mounted) return;
       setState(() {
         _receivers = items;
         _isLoading = false;
       });
+    } on RequestCancelledException {
+      // Bỏ qua nếu người dùng rời màn hình hoặc refresh
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -24,3 +24,8 @@ class ApiException extends AppException {
 class UnauthorizedException extends AppException {
   const UnauthorizedException(super.message);
 }
+
+/// Ngoại lệ khi yêu cầu mạng bị hủy bỏ có chủ đích (qua CancelToken).
+class RequestCancelledException extends AppException {
+  const RequestCancelledException([super.message = 'Yêu cầu mạng đã bị hủy bỏ.']);
+}

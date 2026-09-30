@@ -21,9 +21,13 @@ class _RestClient implements RestClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<dynamic> registerDevice(Map<String, dynamic> body) async {
+  Future<dynamic> registerDevice(
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -34,6 +38,7 @@ class _RestClient implements RestClient {
             '/api/v1/devices/register',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -43,9 +48,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> updateFcmToken(Map<String, dynamic> body) async {
+  Future<dynamic> updateFcmToken(
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -56,6 +65,7 @@ class _RestClient implements RestClient {
             '/api/v1/devices/fcm-token',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -65,9 +75,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> initPair(Map<String, dynamic> body) async {
+  Future<dynamic> initPair(
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -78,6 +92,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/init',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -87,9 +102,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> confirmPair(Map<String, dynamic> body) async {
+  Future<dynamic> confirmPair(
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -100,6 +119,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/confirm',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -109,9 +129,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> getPairStatus(String pairId) async {
+  Future<dynamic> getPairStatus(
+    String pairId, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<dynamic>(
@@ -121,6 +145,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/status/${pairId}',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -130,9 +155,10 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> revokePair(String pairId) async {
+  Future<dynamic> revokePair(String pairId, {CancelToken? cancelToken}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<dynamic>(
@@ -142,6 +168,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/${pairId}',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -153,10 +180,12 @@ class _RestClient implements RestClient {
   @override
   Future<dynamic> togglePairActive(
     String pairId,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -167,6 +196,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/${pairId}/toggle',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -176,9 +206,10 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> getPairedReceivers() async {
+  Future<dynamic> getPairedReceivers({CancelToken? cancelToken}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<dynamic>(
@@ -188,6 +219,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/receivers',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -197,9 +229,10 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> getPairedSenders() async {
+  Future<dynamic> getPairedSenders({CancelToken? cancelToken}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<dynamic>(
@@ -209,6 +242,7 @@ class _RestClient implements RestClient {
             '/api/v1/pair/senders',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -218,9 +252,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> relayOtp(Map<String, dynamic> body) async {
+  Future<dynamic> relayOtp(
+    Map<String, dynamic> body, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
@@ -231,6 +269,7 @@ class _RestClient implements RestClient {
             '/api/v1/relay',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -240,9 +279,13 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> getPendingMessages(String pairId) async {
+  Future<dynamic> getPendingMessages(
+    String pairId, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<dynamic>(
@@ -252,6 +295,7 @@ class _RestClient implements RestClient {
             '/api/v1/relay/pending/${pairId}',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
@@ -261,7 +305,11 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<dynamic> getRelayHistory(String date, String? pairId) async {
+  Future<dynamic> getRelayHistory(
+    String date,
+    String? pairId, {
+    CancelToken? cancelToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'date': date,
@@ -277,6 +325,7 @@ class _RestClient implements RestClient {
             '/api/v1/relay/history',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );

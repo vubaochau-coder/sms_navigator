@@ -1,3 +1,4 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/receiver_repository.dart';
 import 'receiver_event.dart';
@@ -7,10 +8,10 @@ class ReceiverBloc extends Bloc<ReceiverEvent, ReceiverState> {
   final ReceiverRepository repository;
 
   ReceiverBloc({required this.repository}) : super(const ReceiverState()) {
-    on<ReceiverLoadOtpsEvent>(_onLoadOtps);
-    on<ReceiverNewOtpPushedEvent>(_onNewOtpPushed);
-    on<ReceiverClearHistoryEvent>(_onClearHistory);
-    on<ReceiverPollPendingOtpsEvent>(_onPollPendingOtps);
+    on<ReceiverLoadOtpsEvent>(_onLoadOtps, transformer: restartable());
+    on<ReceiverNewOtpPushedEvent>(_onNewOtpPushed, transformer: sequential());
+    on<ReceiverClearHistoryEvent>(_onClearHistory, transformer: droppable());
+    on<ReceiverPollPendingOtpsEvent>(_onPollPendingOtps, transformer: droppable());
   }
 
   Future<void> _onLoadOtps(

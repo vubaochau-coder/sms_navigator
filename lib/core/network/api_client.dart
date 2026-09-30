@@ -92,11 +92,13 @@ class ApiClient {
   Future<dynamic> get(
     String path, {
     Map<String, String>? queryParameters,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get<dynamic>(
         path,
         queryParameters: queryParameters,
+        cancelToken: cancelToken,
       );
       return response.data;
     } on DioException catch (e) {
@@ -104,27 +106,66 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> post(String path, {Object? body}) async {
+  Future<dynamic> post(
+    String path, {
+    Object? body,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await _dio.post<dynamic>(path, data: body);
+      final response = await _dio.post<dynamic>(
+        path,
+        data: body,
+        cancelToken: cancelToken,
+      );
       return response.data;
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
   }
 
-  Future<dynamic> put(String path, {Object? body}) async {
+  Future<dynamic> put(
+    String path, {
+    Object? body,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await _dio.put<dynamic>(path, data: body);
+      final response = await _dio.put<dynamic>(
+        path,
+        data: body,
+        cancelToken: cancelToken,
+      );
       return response.data;
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
   }
 
-  Future<dynamic> delete(String path) async {
+  Future<dynamic> patch(
+    String path, {
+    Object? body,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await _dio.delete<dynamic>(path);
+      final response = await _dio.patch<dynamic>(
+        path,
+        data: body,
+        cancelToken: cancelToken,
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<dynamic> delete(
+    String path, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.delete<dynamic>(
+        path,
+        cancelToken: cancelToken,
+      );
       return response.data;
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -132,6 +173,9 @@ class ApiClient {
   }
 
   AppException _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.cancel) {
+      return RequestCancelledException(e.message ?? 'Yêu cầu mạng đã bị hủy bỏ.');
+    }
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {

@@ -1,22 +1,25 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/paired_device_item.dart';
 
 abstract class PairManagementService {
   /// Lấy danh sách các máy nhận đã kết nối với máy gửi hiện tại
-  Future<List<PairedDeviceItem>> getPairedReceivers();
+  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken});
 
   /// Lấy danh sách các máy gửi đã kết nối tới máy nhận hiện tại (Read-only)
-  Future<List<PairedDeviceItem>> getPairedSenders();
+  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken});
 
   /// Phía máy gửi bật/tắt quyền chuyển tiếp OTP tới máy nhận
   Future<bool> togglePairActive({
     required String pairId,
     required bool isActive,
+    CancelToken? cancelToken,
   });
 
   /// Hủy ghép đôi một cặp
-  Future<bool> revokePair(String pairId);
+  Future<bool> revokePair(String pairId, {CancelToken? cancelToken});
 }
 
 class PairManagementServiceImpl implements PairManagementService {
@@ -25,9 +28,12 @@ class PairManagementServiceImpl implements PairManagementService {
   PairManagementServiceImpl({required this.apiClient});
 
   @override
-  Future<List<PairedDeviceItem>> getPairedReceivers() async {
+  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken}) async {
     try {
-      final response = await apiClient.get(ApiEndpoints.pairedReceivers);
+      final response = await apiClient.get(
+        ApiEndpoints.pairedReceivers,
+        cancelToken: cancelToken,
+      );
       if (response is Map<String, dynamic> && response['receivers'] is List) {
         final list = response['receivers'] as List<dynamic>;
         return list
@@ -42,9 +48,12 @@ class PairManagementServiceImpl implements PairManagementService {
   }
 
   @override
-  Future<List<PairedDeviceItem>> getPairedSenders() async {
+  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken}) async {
     try {
-      final response = await apiClient.get(ApiEndpoints.pairedSenders);
+      final response = await apiClient.get(
+        ApiEndpoints.pairedSenders,
+        cancelToken: cancelToken,
+      );
       if (response is Map<String, dynamic> && response['senders'] is List) {
         final list = response['senders'] as List<dynamic>;
         return list
@@ -62,16 +71,17 @@ class PairManagementServiceImpl implements PairManagementService {
   Future<bool> togglePairActive({
     required String pairId,
     required bool isActive,
+    CancelToken? cancelToken,
   }) async {
     try {
       final path = ApiEndpoints.togglePairPath(pairId);
-      final response = await apiClient.dio.patch<dynamic>(
+      final response = await apiClient.patch(
         path,
-        data: {'is_active': isActive},
+        body: {'is_active': isActive},
+        cancelToken: cancelToken,
       );
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data as Map<String, dynamic>;
-        return data['success'] == true;
+      if (response is Map<String, dynamic>) {
+        return response['success'] == true;
       }
       return false;
     } catch (_) {
@@ -80,10 +90,10 @@ class PairManagementServiceImpl implements PairManagementService {
   }
 
   @override
-  Future<bool> revokePair(String pairId) async {
+  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async {
     try {
       final path = ApiEndpoints.revokePairPath(pairId);
-      final response = await apiClient.delete(path);
+      final response = await apiClient.delete(path, cancelToken: cancelToken);
       if (response is Map<String, dynamic>) {
         return response['success'] == true;
       }

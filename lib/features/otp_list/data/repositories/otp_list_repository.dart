@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/rest_client.dart';
@@ -9,7 +10,11 @@ import '../../domain/models/decrypted_otp_item.dart';
 import '../models/relay_history_item_model.dart';
 
 abstract class OtpListRepository {
-  Future<List<DecryptedOtpItem>> getOtpListForDate(DateTime date, {String? pairId});
+  Future<List<DecryptedOtpItem>> getOtpListForDate(
+    DateTime date, {
+    String? pairId,
+    CancelToken? cancelToken,
+  });
 }
 
 class OtpListRepositoryImpl implements OtpListRepository {
@@ -24,7 +29,11 @@ class OtpListRepositoryImpl implements OtpListRepository {
   });
 
   @override
-  Future<List<DecryptedOtpItem>> getOtpListForDate(DateTime date, {String? pairId}) async {
+  Future<List<DecryptedOtpItem>> getOtpListForDate(
+    DateTime date, {
+    String? pairId,
+    CancelToken? cancelToken,
+  }) async {
     final dateStr = DateFormat('yyyy-MM-dd').format(date);
 
     // Retrieve shared secret and pairId (support both receiver and sender modes)
@@ -38,7 +47,11 @@ class OtpListRepositoryImpl implements OtpListRepository {
       targetPairId ??= senderConfig['pairId']?.toString();
     }
 
-    final response = await restClient.getRelayHistory(dateStr, targetPairId);
+    final response = await restClient.getRelayHistory(
+      dateStr,
+      targetPairId,
+      cancelToken: cancelToken,
+    );
     final List<dynamic> rawRecords = (response is Map)
         ? (response['records'] as List<dynamic>? ?? [])
         : [];

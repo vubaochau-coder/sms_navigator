@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/paired_device_item.dart';
@@ -13,15 +14,16 @@ class _MockPairManagementService implements PairManagementService {
   bool? toggledActiveState;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedReceivers() async => receiversList;
+  Future<List<PairedDeviceItem>> getPairedReceivers({CancelToken? cancelToken}) async => receiversList;
 
   @override
-  Future<List<PairedDeviceItem>> getPairedSenders() async => sendersList;
+  Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken}) async => sendersList;
 
   @override
   Future<bool> togglePairActive({
     required String pairId,
     required bool isActive,
+    CancelToken? cancelToken,
   }) async {
     toggleCalled = true;
     toggledPairId = pairId;
@@ -34,7 +36,7 @@ class _MockPairManagementService implements PairManagementService {
   }
 
   @override
-  Future<bool> revokePair(String pairId) async {
+  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async {
     receiversList.removeWhere((e) => e.pairId == pairId);
     sendersList.removeWhere((e) => e.pairId == pairId);
     return true;

@@ -1,3 +1,4 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/sender_repository.dart';
 import 'sender_event.dart';
@@ -7,14 +8,14 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
   final SenderRepository repository;
 
   SenderBloc({required this.repository}) : super(const SenderState()) {
-    on<SenderLoadStatusEvent>(_onLoadStatus);
-    on<SenderToggleRelayEvent>(_onToggleRelay);
-    on<SenderUpdateRelayModeEvent>(_onUpdateRelayMode);
-    on<SenderAddWhitelistPrefixEvent>(_onAddWhitelistPrefix);
-    on<SenderRemoveWhitelistPrefixEvent>(_onRemoveWhitelistPrefix);
-    on<SenderRequestBatteryOptimizationEvent>(_onRequestBatteryOptimization);
-    on<SenderUnpairEvent>(_onUnpair);
-    on<SenderOtpDetectedEvent>(_onOtpDetected);
+    on<SenderLoadStatusEvent>(_onLoadStatus, transformer: restartable());
+    on<SenderToggleRelayEvent>(_onToggleRelay, transformer: droppable());
+    on<SenderUpdateRelayModeEvent>(_onUpdateRelayMode, transformer: droppable());
+    on<SenderAddWhitelistPrefixEvent>(_onAddWhitelistPrefix, transformer: droppable());
+    on<SenderRemoveWhitelistPrefixEvent>(_onRemoveWhitelistPrefix, transformer: droppable());
+    on<SenderRequestBatteryOptimizationEvent>(_onRequestBatteryOptimization, transformer: droppable());
+    on<SenderUnpairEvent>(_onUnpair, transformer: droppable());
+    on<SenderOtpDetectedEvent>(_onOtpDetected, transformer: sequential());
 
     repository.registerOtpListener((sender, otp) {
       add(SenderOtpDetectedEvent(sender, otp));
