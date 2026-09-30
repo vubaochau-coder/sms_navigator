@@ -6,9 +6,7 @@ import '../../features/otp_list/data/repositories/otp_list_repository.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
 import '../../features/pairing/data/services/pair_management_service.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
-import '../../features/receiver/data/repositories/receiver_repository.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
-import '../../features/sender/data/repositories/sender_repository.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
 import '../network/api_client.dart';
 import '../services/analytics_service.dart';
@@ -74,11 +72,6 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // 4. Tầng Services & Repositories nghiệp vụ
-        RepositoryProvider<SenderRepository>(
-          create: (context) => SenderRepositoryImpl(
-            nativeService: context.read<NativeRelayService>(),
-          ),
-        ),
         RepositoryProvider<PairingService>(
           create: (context) => PairingServiceImpl(
             nativeService: context.read<NativeRelayService>(),
@@ -95,14 +88,6 @@ class AppBootstrap extends StatelessWidget {
         RepositoryProvider<PairManagementService>(
           create: (context) => PairManagementServiceImpl(
             apiClient: context.read<ApiClient>(),
-          ),
-        ),
-        RepositoryProvider<ReceiverRepository>(
-          create: (context) => ReceiverRepositoryImpl(
-            storageService: context.read<ReceiverStorageService>(),
-            pairingService: context.read<PairingService>(),
-            apiClient: context.read<ApiClient>(),
-            deviceApiService: context.read<DeviceApiService>(),
           ),
         ),
         RepositoryProvider<FcmNotificationService>(

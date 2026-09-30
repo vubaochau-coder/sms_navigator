@@ -14,16 +14,11 @@ import 'paired_receiver_card.dart';
 
 /// Widget thân danh sách thiết bị nhận OTP (Dành cho máy gửi).
 class PairedReceiversBody extends StatelessWidget {
-  const PairedReceiversBody({
-    super.key,
-    required this.showAppBar,
-  });
-
-  final bool showAppBar;
+  const PairedReceiversBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final body = SafeArea(
+    return SafeArea(
       child: Padding(
         padding: Dimens.screenPadding,
         child: BlocBuilder<PairedReceiversBloc, PairedReceiversState>(
@@ -86,42 +81,6 @@ class PairedReceiversBody extends StatelessWidget {
           },
         ),
       ),
-    );
-
-    if (!showAppBar) {
-      return body;
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thiết bị nhận OTP'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_rounded),
-            tooltip: 'Ghép nối thêm thiết bị',
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PairingSenderPage()),
-              );
-              if (context.mounted) {
-                BlocProvider.of<PairedReceiversBloc>(context).add(
-                  const PairedReceiversLoadEvent(),
-                );
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Làm mới',
-            onPressed: () {
-              BlocProvider.of<PairedReceiversBloc>(context).add(
-                const PairedReceiversLoadEvent(),
-              );
-            },
-          ),
-        ],
-      ),
-      body: body,
     );
   }
 }

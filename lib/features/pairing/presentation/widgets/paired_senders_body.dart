@@ -14,16 +14,11 @@ import 'paired_sender_card.dart';
 
 /// Widget thân danh sách thiết bị gửi OTP (Dành cho máy nhận).
 class PairedSendersBody extends StatelessWidget {
-  const PairedSendersBody({
-    super.key,
-    required this.showAppBar,
-  });
-
-  final bool showAppBar;
+  const PairedSendersBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final body = SafeArea(
+    return SafeArea(
       child: Padding(
         padding: Dimens.screenPadding,
         child: BlocBuilder<PairedSendersBloc, PairedSendersState>(
@@ -84,42 +79,6 @@ class PairedSendersBody extends StatelessWidget {
           },
         ),
       ),
-    );
-
-    if (!showAppBar) {
-      return body;
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thiết bị gửi OTP'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner_rounded),
-            tooltip: 'Quét QR ghép đôi mới',
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const QrScanPage()),
-              );
-              if (context.mounted) {
-                BlocProvider.of<PairedSendersBloc>(context).add(
-                  const PairedSendersLoadEvent(),
-                );
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Làm mới',
-            onPressed: () {
-              BlocProvider.of<PairedSendersBloc>(context).add(
-                const PairedSendersLoadEvent(),
-              );
-            },
-          ),
-        ],
-      ),
-      body: body,
     );
   }
 }

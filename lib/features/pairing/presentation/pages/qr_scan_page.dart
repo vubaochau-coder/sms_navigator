@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/dimens.dart';
-import '../../../receiver/presentation/pages/receiver_dashboard_page.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
@@ -46,10 +45,7 @@ class _QrScanPageState extends State<QrScanPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Ghép đôi thành công!')));
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const ReceiverDashboardPage()),
-      );
+      Navigator.of(context).pop(true);
       return;
     }
 

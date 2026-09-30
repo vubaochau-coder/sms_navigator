@@ -4,8 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/paired_device_item.dart';
 import 'package:sms_navigator/features/pairing/data/services/pair_management_service.dart';
-import 'package:sms_navigator/features/pairing/presentation/pages/paired_receivers_page.dart';
-import 'package:sms_navigator/features/pairing/presentation/pages/paired_senders_page.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/paired_receivers_bloc.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/paired_receivers_event.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_bloc.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_event.dart';
+import 'package:sms_navigator/features/pairing/presentation/widgets/paired_receivers_body.dart';
+import 'package:sms_navigator/features/pairing/presentation/widgets/paired_senders_body.dart';
 
 class _MockPairManagementService implements PairManagementService {
   List<PairedDeviceItem> receiversList = [];
@@ -49,21 +53,21 @@ class _MockPairManagementService implements PairManagementService {
 }
 
 void main() {
-  group('PairedReceiversPage Widget Tests (Sender Side)', () {
+  group('PairedReceiversBody Widget Tests (Sender Side)', () {
     testWidgets('shows empty state when no receivers are paired', (
       tester,
     ) async {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        RepositoryProvider<PairManagementService>.value(
-          value: mock,
-          child: const MaterialApp(home: PairedReceiversPage()),
+        BlocProvider(
+          create: (_) => PairedReceiversBloc(mock)
+            ..add(const PairedReceiversLoadEvent()),
+          child: const MaterialApp(home: Scaffold(body: PairedReceiversBody())),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Thiết bị nhận OTP'), findsOneWidget);
       expect(find.text('Chưa có thiết bị nhận nào'), findsOneWidget);
       expect(find.text('Tạo mã QR ghép đôi'), findsOneWidget);
     });
@@ -84,9 +88,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          RepositoryProvider<PairManagementService>.value(
-            value: mock,
-            child: const MaterialApp(home: PairedReceiversPage()),
+          BlocProvider(
+            create: (_) => PairedReceiversBloc(mock)
+              ..add(const PairedReceiversLoadEvent()),
+            child: const MaterialApp(home: Scaffold(body: PairedReceiversBody())),
           ),
         );
         await tester.pumpAndSettle();
@@ -110,19 +115,19 @@ void main() {
     );
   });
 
-  group('PairedSendersPage Widget Tests (Receiver Side)', () {
+  group('PairedSendersBody Widget Tests (Receiver Side)', () {
     testWidgets('shows empty state when no senders are paired', (tester) async {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        RepositoryProvider<PairManagementService>.value(
-          value: mock,
-          child: const MaterialApp(home: PairedSendersPage()),
+        BlocProvider(
+          create: (_) => PairedSendersBloc(mock)
+            ..add(const PairedSendersLoadEvent()),
+          child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Thiết bị gửi OTP'), findsOneWidget);
       expect(find.text('Chưa kết nối máy gửi nào'), findsOneWidget);
       expect(find.text('Quét mã QR ghép đôi'), findsOneWidget);
     });
@@ -144,9 +149,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          RepositoryProvider<PairManagementService>.value(
-            value: mock,
-            child: const MaterialApp(home: PairedSendersPage()),
+          BlocProvider(
+            create: (_) => PairedSendersBloc(mock)
+              ..add(const PairedSendersLoadEvent()),
+            child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
           ),
         );
         await tester.pumpAndSettle();
@@ -180,9 +186,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          RepositoryProvider<PairManagementService>.value(
-            value: mock,
-            child: const MaterialApp(home: PairedSendersPage()),
+          BlocProvider(
+            create: (_) => PairedSendersBloc(mock)
+              ..add(const PairedSendersLoadEvent()),
+            child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
           ),
         );
         await tester.pumpAndSettle();

@@ -9,10 +9,6 @@ import 'core/theme/theme_cubit.dart';
 import 'features/home/presentation/pages/main_navigation_page.dart';
 import 'features/pairing/data/repositories/pairing_repository.dart';
 import 'features/pairing/presentation/bloc/pairing_bloc.dart';
-import 'features/receiver/data/repositories/receiver_repository.dart';
-import 'features/receiver/presentation/bloc/receiver_bloc.dart';
-import 'features/sender/data/repositories/sender_repository.dart';
-import 'features/sender/presentation/bloc/sender_bloc.dart';
 import 'l10n/app_localizations.dart';
 
 class OtpRelayApp extends StatelessWidget {
@@ -26,19 +22,9 @@ class OtpRelayApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
-          BlocProvider<SenderBloc>(
-            create: (ctx) => SenderBloc(
-              repository: ctx.read<SenderRepository>(),
-            ),
-          ),
           BlocProvider<PairingBloc>(
             create: (ctx) => PairingBloc(
               repository: ctx.read<PairingRepository>(),
-            ),
-          ),
-          BlocProvider<ReceiverBloc>(
-            create: (ctx) => ReceiverBloc(
-              repository: ctx.read<ReceiverRepository>(),
             ),
           ),
         ],
