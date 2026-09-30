@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
-import '../../../../core/di/injection.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
@@ -13,6 +13,7 @@ import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
 import '../../../pairing/presentation/pages/paired_senders_page.dart';
 import '../../../pairing/presentation/pages/qr_scan_page.dart';
+import '../../../sender/data/services/native_relay_service.dart';
 import '../bloc/receiver_bloc.dart';
 import '../bloc/receiver_event.dart';
 import '../bloc/receiver_state.dart';
@@ -24,12 +25,11 @@ class ReceiverDashboardPage extends StatelessWidget {
   const ReceiverDashboardPage({super.key});
 
   void _showServerSettingsDialog(BuildContext context) {
-    final di = DependencyContainer.instance;
     showDialog(
       context: context,
       builder: (_) => ServerSettingsDialog(
-        deviceStorageService: di.deviceStorageService,
-        nativeRelayService: di.nativeRelayService,
+        deviceStorageService: context.read<DeviceStorageService>(),
+        nativeRelayService: context.read<NativeRelayService>(),
       ),
     );
   }

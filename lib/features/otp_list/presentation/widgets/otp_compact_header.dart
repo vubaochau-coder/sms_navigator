@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/di/injection.dart';
+import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../../core/widgets/theme_toggle_button.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../sender/data/services/native_relay_service.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_state.dart';
 
@@ -14,24 +15,22 @@ class OtpCompactHeader extends StatelessWidget {
   const OtpCompactHeader({super.key});
 
   void _openServerSettings(BuildContext context) {
-    final di = DependencyContainer.instance;
     showDialog(
       context: context,
       builder: (_) => ServerSettingsDialog(
-        deviceStorageService: di.deviceStorageService,
-        nativeRelayService: di.nativeRelayService,
+        deviceStorageService: context.read<DeviceStorageService>(),
+        nativeRelayService: context.read<NativeRelayService>(),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
+    final colorScheme = context.colorScheme;
+    final l10n = context.l10n;
 
     return BlocBuilder<OtpListBloc, OtpListState>(
-      buildWhen: (previous, current) =>
-          previous.selectedDate != current.selectedDate,
+      buildWhen: (p, c) => p.selectedDate != c.selectedDate,
       builder: (context, state) {
         final isToday = DateTimeUtils.isSameDay(
           state.selectedDate,
@@ -43,9 +42,7 @@ class OtpCompactHeader extends StatelessWidget {
             state.selectedDate,
             pattern: 'dd/MM',
           );
-          dateText = l10n != null
-              ? l10n.otpTodayWithDate(dateDayMonth)
-              : 'Hôm nay, $dateDayMonth';
+          dateText = l10n.otpTodayWithDate(dateDayMonth);
         } else {
           dateText = DateTimeUtils.formatDate(state.selectedDate);
         }
@@ -69,7 +66,7 @@ class OtpCompactHeader extends StatelessWidget {
               const ThemeToggleButton(),
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                tooltip: l10n?.settingsAction ?? 'Cài đặt',
+                tooltip: l10n.settingsAction,
                 onPressed: () => _openServerSettings(context),
               ),
             ],

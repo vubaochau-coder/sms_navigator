@@ -34,22 +34,24 @@ class OtpCalendarCard extends StatelessWidget {
             calendarFormat: state.calendarFormat,
             selectedDayPredicate: (day) => isSameDay(state.selectedDate, day),
             onDaySelected: (selectedDay, focusedDay) {
-              context.read<OtpListBloc>().add(
-                    OtpListSelectDateEvent(
-                      selectedDay: selectedDay,
-                      focusedDay: focusedDay,
-                    ),
-                  );
+              BlocProvider.of<OtpListBloc>(context).add(
+                OtpListChangeDateEvent(
+                  selectedDate: selectedDay,
+                  focusedDate: focusedDay,
+                ),
+              );
             },
             onFormatChanged: (format) {
-              context.read<OtpListBloc>().add(
-                    OtpListChangeFormatEvent(format),
-                  );
+              BlocProvider.of<OtpListBloc>(context).add(
+                OtpListChangeFormatEvent(format),
+              );
             },
             onPageChanged: (focusedDay) {
-              context.read<OtpListBloc>().add(
-                    OtpListChangeFocusedDayEvent(focusedDay),
-                  );
+              BlocProvider.of<OtpListBloc>(context).add(
+                OtpListChangeDateEvent(
+                  focusedDate: focusedDay,
+                ),
+              );
             },
             startingDayOfWeek: StartingDayOfWeek.monday,
             headerStyle: HeaderStyle(

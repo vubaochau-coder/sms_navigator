@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/decrypted_otp_item.dart';
 import 'otp_detail_bottom_sheet.dart';
 
@@ -18,17 +18,15 @@ class OtpRecordCard extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context) {
     HapticFeedback.lightImpact();
-    final l10n = AppLocalizations.of(context);
-    final message = l10n != null
-        ? l10n.otpCopiedMessage(item.otp)
-        : 'Đã sao chép mã OTP: ${item.otp}';
+    final l10n = context.l10n;
+    final message = l10n.otpCopiedMessage(item.otp);
     UiUtils.copyToClipboard(item.otp, successMessage: message);
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
     final timeStr = DateTimeUtils.formatTime(
       item.receivedAt,
       includeSeconds: true,
@@ -106,7 +104,7 @@ class OtpRecordCard extends StatelessWidget {
                 children: [
                   Text(
                     item.otp == 'SMS'
-                        ? (l10n?.otpSmsNotification ?? 'THÔNG BÁO SMS')
+                        ? l10n.otpSmsNotification
                         : item.otp,
                     style: TextStyle(
                       fontSize: item.otp == 'SMS' ? 14 : 20,
@@ -133,7 +131,7 @@ class OtpRecordCard extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.copy_rounded, size: 14),
                       label: Text(
-                        l10n?.otpCopyAction ?? 'Sao chép mã',
+                        l10n.otpCopyAction,
                         style: const TextStyle(fontSize: 11),
                       ),
                       onPressed: () => _copyToClipboard(context),
@@ -141,7 +139,7 @@ class OtpRecordCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   IconButton.outlined(
                     icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                    tooltip: l10n?.otpViewFullMessage ?? 'Xem toàn bộ tin nhắn',
+                    tooltip: l10n.otpViewFullMessage,
                     style: IconButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.all(6),

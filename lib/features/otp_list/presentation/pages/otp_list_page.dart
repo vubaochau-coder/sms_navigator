@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/di/injection.dart';
+import '../../data/repositories/otp_list_repository.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
 import '../widgets/otp_calendar_card.dart';
@@ -16,8 +16,8 @@ class OtpListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => OtpListBloc(
-        repository: DependencyContainer.instance.otpListRepository,
+      create: (ctx) => OtpListBloc(
+        repository: ctx.read<OtpListRepository>(),
       )..add(const OtpListLoadEvent()),
       child: const _OtpListView(),
     );

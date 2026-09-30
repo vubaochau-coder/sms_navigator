@@ -13,18 +13,12 @@ class OtpListToggleGroupEvent extends OtpListEvent {
 }
 
 class OtpListChangeDateEvent extends OtpListEvent {
-  final DateTime selectedDate;
+  final DateTime? selectedDate;
+  final DateTime? focusedDate;
 
-  const OtpListChangeDateEvent(this.selectedDate);
-}
-
-class OtpListSelectDateEvent extends OtpListEvent {
-  final DateTime selectedDay;
-  final DateTime focusedDay;
-
-  const OtpListSelectDateEvent({
-    required this.selectedDay,
-    required this.focusedDay,
+  const OtpListChangeDateEvent({
+    this.selectedDate,
+    this.focusedDate,
   });
 }
 
@@ -32,10 +26,4 @@ class OtpListChangeFormatEvent extends OtpListEvent {
   final CalendarFormat format;
 
   const OtpListChangeFormatEvent(this.format);
-}
-
-class OtpListChangeFocusedDayEvent extends OtpListEvent {
-  final DateTime focusedDay;
-
-  const OtpListChangeFocusedDayEvent(this.focusedDay);
 }

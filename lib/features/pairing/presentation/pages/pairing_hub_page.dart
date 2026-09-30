@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../l10n/app_localizations.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../data/services/pair_management_service.dart';
 import 'paired_receivers_page.dart';
 import 'paired_senders_page.dart';
@@ -49,7 +49,7 @@ class _PairingHubPageState extends State<PairingHubPage>
   }
 
   Future<void> _showAddDeviceDialog() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -110,7 +110,7 @@ class _PairingHubPageState extends State<PairingHubPage>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.pairingHubTitle),

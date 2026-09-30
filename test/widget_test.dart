@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/app.dart';
-import 'package:sms_navigator/core/di/injection.dart';
+import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
-    DependencyContainer.instance.init();
   });
 
   Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(const OtpRelayApp());
+    await tester.pumpWidget(
+      const AppBootstrap(
+        initializeAsyncServices: false,
+        child: OtpRelayApp(),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
   }

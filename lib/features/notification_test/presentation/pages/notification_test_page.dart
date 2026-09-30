@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../cubit/notification_test_cubit.dart';
 import '../cubit/notification_test_state.dart';
 import '../widgets/notification_info_cards.dart';
@@ -16,7 +17,9 @@ class NotificationTestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => NotificationTestCubit()..loadStatus(),
+      create: (ctx) => NotificationTestCubit(
+        deviceStorageService: ctx.read<DeviceStorageService>(),
+      )..loadStatus(),
       child: const _NotificationTestView(),
     );
   }

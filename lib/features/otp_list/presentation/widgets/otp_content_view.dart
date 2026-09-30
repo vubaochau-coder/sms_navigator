@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/dimens.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../domain/models/decrypted_otp_item.dart';
 import 'otp_record_card.dart';
 
@@ -115,12 +115,9 @@ class OtpContentView extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme) {
-    final l10n = AppLocalizations.of(context);
-    final emptyTitle = l10n != null
-        ? l10n.otpEmptyInDate(dateDisplay)
-        : 'Không có mã OTP nào trong ngày $dateDisplay';
-    final emptyGuide = l10n?.otpEmptyGuide ??
-        'Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.';
+    final l10n = context.l10n;
+    final emptyTitle = l10n.otpEmptyInDate(dateDisplay);
+    final emptyGuide = l10n.otpEmptyGuide;
 
     return Center(
       child: SingleChildScrollView(

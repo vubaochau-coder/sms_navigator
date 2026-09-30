@@ -2,18 +2,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/di/injection.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/services/fcm_notification_service.dart';
 import '../widgets/notification_presets_selector.dart';
 import 'notification_test_state.dart';
 
 class NotificationTestCubit extends Cubit<NotificationTestState> {
-  NotificationTestCubit() : super(const NotificationTestState());
+  final DeviceStorageService deviceStorageService;
+
+  NotificationTestCubit({required this.deviceStorageService})
+      : super(const NotificationTestState());
 
   Future<void> loadStatus() async {
     final status = await Permission.notification.status;
-    final token = await DependencyContainer.instance.deviceStorageService
-        .getFcmToken();
+    final token = await deviceStorageService.getFcmToken();
     emit(
       state.copyWith(
         hasNotificationPermission: status.isGranted,

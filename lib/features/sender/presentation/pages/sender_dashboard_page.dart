@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/dimens.dart';
-import '../../../../core/di/injection.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/pages/paired_receivers_page.dart';
+import '../../data/services/native_relay_service.dart';
 import '../bloc/sender_bloc.dart';
 import '../bloc/sender_event.dart';
 import '../bloc/sender_state.dart';
@@ -23,19 +25,20 @@ class SenderDashboardPage extends StatelessWidget {
   const SenderDashboardPage({super.key});
 
   void _showServerSettingsDialog(BuildContext context) {
-    final di = DependencyContainer.instance;
     showDialog(
       context: context,
       builder: (_) => ServerSettingsDialog(
-        deviceStorageService: di.deviceStorageService,
-        nativeRelayService: di.nativeRelayService,
+        deviceStorageService: context.read<DeviceStorageService>(),
+        nativeRelayService: context.read<NativeRelayService>(),
       ),
     );
   }
 
   Future<void> _showSimulateOtpDialog(BuildContext context) async {
-    final di = DependencyContainer.instance;
-    final config = await di.nativeRelayService.getRelayConfig();
+    final nativeRelayService = context.read<NativeRelayService>();
+    final deviceStorageService = context.read<DeviceStorageService>();
+    final apiClient = context.read<ApiClient>();
+    final config = await nativeRelayService.getRelayConfig();
     final pairId = config['pairId']?.toString();
     final secret = config['sharedSecretBase64']?.toString();
 
@@ -113,9 +116,9 @@ class SenderDashboardPage extends StatelessWidget {
                   );
 
                   final deviceId =
-                      await di.deviceStorageService.getDeviceId() ??
+                      await deviceStorageService.getDeviceId() ??
                       'dev_sender';
-                  await di.apiClient.post(
+                  await apiClient.post(
                     ApiEndpoints.relay,
                     body: {
                       'pair_id': pairId,

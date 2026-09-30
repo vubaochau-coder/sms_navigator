@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
 import '../bloc/otp_list_state.dart';
@@ -14,7 +14,7 @@ class OtpFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -31,9 +31,10 @@ class OtpFilterBar extends StatelessWidget {
             },
             builder: (context, state) {
               final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
-              final dateLabel = l10n != null
-                  ? l10n.otpFilterDateWithCount(dateDisplay, state.items.length)
-                  : 'Ngày: $dateDisplay (${state.items.length} tin)';
+              final dateLabel = l10n.otpFilterDateWithCount(
+                dateDisplay,
+                state.items.length,
+              );
 
               return Row(
                 children: [
@@ -58,14 +59,14 @@ class OtpFilterBar extends StatelessWidget {
           BlocBuilder<OtpListBloc, OtpListState>(
             buildWhen: (p, c) => p.isGroupingByDevice != c.isGroupingByDevice,
             builder: (context, state) {
-              final groupLabel = l10n?.otpGroupByDevice ?? 'Nhóm theo máy';
+              final groupLabel = l10n.otpGroupByDevice;
               final isGrouping = state.isGroupingByDevice;
 
               return InkWell(
                 onTap: () {
-                  context.read<OtpListBloc>().add(
-                        const OtpListToggleGroupEvent(),
-                      );
+                  BlocProvider.of<OtpListBloc>(context).add(
+                    const OtpListToggleGroupEvent(),
+                  );
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(

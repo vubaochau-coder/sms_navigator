@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/dimens.dart';
-import '../../../../core/di/injection.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -26,8 +25,7 @@ class PairedSendersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service =
-        pairManagementService ??
-        DependencyContainer.instance.pairManagementService;
+        pairManagementService ?? context.read<PairManagementService>();
 
     return BlocProvider(
       create: (_) => PairedDevicesCubit(service)..loadSenders(),

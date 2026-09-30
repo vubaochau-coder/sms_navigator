@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../l10n/app_localizations.dart';
+import '../extensions/context_extensions.dart';
 import '../theme/theme_cubit.dart';
 
 /// Nút chuyển đổi nhanh chế độ sáng/tối dùng chung toàn ứng dụng.
@@ -9,7 +9,7 @@ class ThemeToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = context.l10n;
 
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
@@ -19,8 +19,8 @@ class ThemeToggleButton extends StatelessWidget {
 
         return IconButton(
           tooltip: isDark
-              ? (l10n?.themeSwitchToLight ?? 'Chuyển sang nền sáng')
-              : (l10n?.themeSwitchToDark ?? 'Chuyển sang nền tối'),
+              ? l10n.themeSwitchToLight
+              : l10n.themeSwitchToDark,
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
             transitionBuilder: (child, animation) =>

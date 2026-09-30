@@ -60,7 +60,7 @@ void main() {
   test('OtpListChangeDateEvent updates selectedDate and loads items', () async {
     fakeRepository.stubItems = [item2, item1];
 
-    bloc.add(OtpListChangeDateEvent(sampleDate));
+    bloc.add(OtpListChangeDateEvent(selectedDate: sampleDate));
 
     await expectLater(
       bloc.stream,
@@ -75,6 +75,35 @@ void main() {
         ),
       ]),
     );
+  });
+
+  test('OtpListChangeDateEvent ignores same day and does not emit or reload',
+      () async {
+    // Current state has DateTime.now()
+    final today = DateTime.now();
+    fakeRepository.stubItems = [item1];
+
+    // Gửi cùng ngày hiện tại
+    bloc.add(OtpListChangeDateEvent(selectedDate: today));
+
+    // Đợi 50ms để đảm bảo không có emit nào xảy ra
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(fakeRepository.lastCancelToken, isNull);
+  });
+
+  test(
+      'OtpListChangeDateEvent only updates focusedDate without loading when only focusedDate changes',
+      () async {
+    final nextMonth = DateTime(2026, 10, 1);
+    bloc.add(OtpListChangeDateEvent(focusedDate: nextMonth));
+
+    await expectLater(
+      bloc.stream,
+      emits(predicate<dynamic>(
+        (s) => s.focusedDate == nextMonth && s.isLoading == false,
+      )),
+    );
+    expect(fakeRepository.lastCancelToken, isNull);
   });
 
   test(

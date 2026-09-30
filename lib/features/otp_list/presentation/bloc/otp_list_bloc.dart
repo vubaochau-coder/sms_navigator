@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_exceptions.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../data/repositories/otp_list_repository.dart';
 import 'otp_list_event.dart';
 import 'otp_list_state.dart';
@@ -16,12 +17,7 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     on<OtpListLoadEvent>(_onLoadOtpList, transformer: restartable());
     on<OtpListChangeDateEvent>(_onChangeDate, transformer: restartable());
     on<OtpListToggleGroupEvent>(_onToggleGroup, transformer: droppable());
-    on<OtpListSelectDateEvent>(_onSelectDate, transformer: restartable());
     on<OtpListChangeFormatEvent>(_onChangeFormat, transformer: droppable());
-    on<OtpListChangeFocusedDayEvent>(
-      _onChangeFocusedDay,
-      transformer: droppable(),
-    );
   }
 
   Future<void> _onLoadOtpList(OtpListLoadEvent event, Emitter emit) async {
@@ -61,35 +57,39 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
   }
 
   Future<void> _onChangeDate(OtpListChangeDateEvent event, Emitter emit) async {
+    final targetSelectedDate = event.selectedDate;
+    final targetFocusedDate = event.focusedDate ?? event.selectedDate;
+
+    final isSelectedChanged = targetSelectedDate != null &&
+        !DateTimeUtils.isSameDay(state.selectedDate, targetSelectedDate);
+
+    final isFocusedChanged = targetFocusedDate != null &&
+        !DateTimeUtils.isSameDay(state.focusedDate, targetFocusedDate);
+
+    if (!isSelectedChanged && !isFocusedChanged) {
+      return;
+    }
+
     emit(
       state.copyWith(
-        selectedDate: event.selectedDate,
-        focusedDate: event.selectedDate,
+        selectedDate:
+            isSelectedChanged ? targetSelectedDate : state.selectedDate,
+        focusedDate:
+            isFocusedChanged ? targetFocusedDate : state.focusedDate,
       ),
     );
-    add(const OtpListLoadEvent());
+
+    if (isSelectedChanged) {
+      add(const OtpListLoadEvent());
+    }
   }
 
   void _onToggleGroup(OtpListToggleGroupEvent event, Emitter emit) {
     emit(state.copyWith(isGroupingByDevice: !state.isGroupingByDevice));
   }
 
-  Future<void> _onSelectDate(OtpListSelectDateEvent event, Emitter emit) async {
-    emit(
-      state.copyWith(
-        selectedDate: event.selectedDay,
-        focusedDate: event.focusedDay,
-      ),
-    );
-    add(const OtpListLoadEvent());
-  }
-
   void _onChangeFormat(OtpListChangeFormatEvent event, Emitter emit) {
     emit(state.copyWith(calendarFormat: event.format));
-  }
-
-  void _onChangeFocusedDay(OtpListChangeFocusedDayEvent event, Emitter emit) {
-    emit(state.copyWith(focusedDate: event.focusedDay));
   }
 
   @override

@@ -26,9 +26,9 @@ class OtpContentSection extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: () async {
-            context.read<OtpListBloc>().add(
-                  const OtpListLoadEvent(),
-                );
+            BlocProvider.of<OtpListBloc>(context).add(
+              const OtpListLoadEvent(),
+            );
           },
           child: state.isLoading
               ? const ShimmerLoadingList()

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../l10n/app_localizations.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/pages/pairing_hub_page.dart';
 import '../../../pairing/presentation/pages/qr_scan_page.dart';
@@ -28,7 +28,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: IndexedStack(

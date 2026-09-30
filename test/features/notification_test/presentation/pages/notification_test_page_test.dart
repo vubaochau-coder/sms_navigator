@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_navigator/core/di/injection.dart';
+import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
 import 'package:sms_navigator/features/notification_test/presentation/pages/notification_test_page.dart';
 
 void main() {
@@ -9,7 +9,6 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
-    DependencyContainer.instance.init();
   });
 
   testWidgets(
@@ -19,7 +18,12 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(const MaterialApp(home: NotificationTestPage()));
+      await tester.pumpWidget(
+        const AppBootstrap(
+          initializeAsyncServices: false,
+          child: MaterialApp(home: NotificationTestPage()),
+        ),
+      );
 
       expect(find.text('Thử Nghiệm Push Notification'), findsOneWidget);
       expect(
