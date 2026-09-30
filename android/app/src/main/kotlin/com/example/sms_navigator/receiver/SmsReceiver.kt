@@ -105,7 +105,9 @@ class SmsReceiver : BroadcastReceiver() {
             val encrypted = OtpCrypto.encrypt(otpEvent.toJson(), secretKeyBytes)
 
             // 5. Enqueue reliable delivery via WorkManager (FR-015, NFR-003)
+            val messageId = java.util.UUID.randomUUID().toString()
             val inputData = Data.Builder()
+                .putString(OtpRelayWorker.KEY_MESSAGE_ID, messageId)
                 .putString(OtpRelayWorker.KEY_PAIR_ID, pairId)
                 .putString(OtpRelayWorker.KEY_ENCRYPTED_PAYLOAD, encrypted.ciphertextBase64)
                 .putString(OtpRelayWorker.KEY_IV, encrypted.ivBase64)
@@ -124,7 +126,7 @@ class SmsReceiver : BroadcastReceiver() {
                 .build()
 
             WorkManager.getInstance(context).enqueue(workRequest)
-            Log.i(TAG, "Enqueued OtpRelayWorker with WorkManager")
+            Log.i(TAG, "Enqueued OtpRelayWorker with WorkManager (messageId: $messageId)")
 
             // Notify UI if app is currently in foreground
             onOtpProcessedListener?.invoke(otpEvent.sender, otpEvent.otp)

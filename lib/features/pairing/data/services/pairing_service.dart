@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../device/data/services/device_api_service.dart';
@@ -49,17 +50,22 @@ class PairingServiceImpl implements PairingService {
     );
 
     // Đăng ký thiết bị gửi với server trước khi mở phiên ghép đôi nếu có kết nối.
-    try {
-      if (deviceApiService != null) {
-        await deviceApiService!.registerDevice();
+    if (deviceApiService != null) {
+      await deviceApiService!.registerDevice();
+    }
+    if (apiClient != null) {
+      final response = await apiClient!.post(
+        ApiEndpoints.initPair,
+        body: {'pair_id': payload.pairId},
+      );
+      if (response is Map<String, dynamic>) {
+        if (response['success'] != true || response['pair_id'] == null) {
+          throw ApiException(
+            response['message']?.toString() ?? 'Khởi tạo ghép đôi thất bại',
+          );
+        }
       }
-      if (apiClient != null) {
-        await apiClient!.post(
-          ApiEndpoints.initPair,
-          body: {'pair_id': payload.pairId},
-        );
-      }
-    } catch (_) {}
+    }
 
     // Cập nhật cấu hình relay (kèm relayUrl, deviceToken, deviceId) cho Android native.
     final serverUrl =
@@ -100,24 +106,30 @@ class PairingServiceImpl implements PairingService {
       final payload = PairingPayloadModel.fromQrData(qrData);
       if (payload.isExpired) return false;
 
-      // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server
+      // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server.
+      // Nếu chưa có FCM token, tuyệt đối không bịa token giả mà để optional (không gửi field fcm_token).
       final storedFcm = await deviceStorageService?.getFcmToken();
-      final fcmToken = (storedFcm != null && storedFcm.isNotEmpty)
-          ? storedFcm
-          : 'fcm_token_${payload.pairId}_${DateTime.now().millisecondsSinceEpoch}';
+      final fcmToken = (storedFcm != null && storedFcm.trim().isNotEmpty)
+          ? storedFcm.trim()
+          : null;
 
       // Đăng ký thiết bị nhận với server nếu có kết nối.
-      try {
-        if (deviceApiService != null) {
-          await deviceApiService!.registerDevice();
+      if (deviceApiService != null) {
+        await deviceApiService!.registerDevice();
+      }
+      if (apiClient != null) {
+        final body = <String, dynamic>{'pair_id': payload.pairId};
+        if (fcmToken != null) {
+          body['fcm_token'] = fcmToken;
         }
-        if (apiClient != null) {
-          await apiClient!.post(
-            ApiEndpoints.confirmPair,
-            body: {'pair_id': payload.pairId, 'fcm_token': fcmToken},
-          );
+        final response = await apiClient!.post(
+          ApiEndpoints.confirmPair,
+          body: body,
+        );
+        if (response is Map<String, dynamic> && response['success'] != true) {
+          return false;
         }
-      } catch (_) {}
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyReceiverPairId, payload.pairId);
