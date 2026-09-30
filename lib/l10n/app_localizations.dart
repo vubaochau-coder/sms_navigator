@@ -502,6 +502,24 @@ abstract class AppLocalizations {
   /// **'Quét mã'**
   String get pairingHubScanQr;
 
+  /// No description provided for @pairingHubAddNew.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm thiết bị ghép nối'**
+  String get pairingHubAddNew;
+
+  /// No description provided for @pairingHubAddReceiver.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm máy nhận (Tạo mã QR)'**
+  String get pairingHubAddReceiver;
+
+  /// No description provided for @pairingHubAddSender.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm máy gửi (Quét mã QR)'**
+  String get pairingHubAddSender;
+
   /// No description provided for @settingsAction.
   ///
   /// In vi, this message translates to:

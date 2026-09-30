@@ -5,6 +5,7 @@ import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
+import '../../../../core/widgets/shimmer_loading.dart';
 import '../../data/models/paired_device_item.dart';
 import '../../data/services/pair_management_service.dart';
 import '../bloc/paired_devices_cubit.dart';
@@ -67,7 +68,7 @@ class _PairedSendersBody extends StatelessWidget {
         child: BlocBuilder<PairedDevicesCubit, PairedDevicesState>(
           builder: (context, state) {
             if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const ShimmerLoadingList();
             }
 
             if (state.errorMessage != null) {

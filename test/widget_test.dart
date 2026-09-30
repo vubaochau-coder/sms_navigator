@@ -42,6 +42,6 @@ void main() {
     expect(find.text('Ghép Nối Thiết Bị'), findsOneWidget);
     expect(find.text('Máy nhận'), findsOneWidget);
     expect(find.text('Máy gửi'), findsOneWidget);
-    expect(find.text('Tạo mã QR'), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsOneWidget);
   });
 }

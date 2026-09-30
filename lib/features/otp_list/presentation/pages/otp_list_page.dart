@@ -6,6 +6,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
+import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
@@ -118,8 +119,11 @@ class _OtpListView extends StatelessWidget {
               ? (l10n != null ? l10n.otpTodayWithDate(dateDayMonth) : 'Hôm nay, $dateDayMonth')
               : dateDisplay;
 
-          return Column(
-            children: [
+          return SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
+              children: [
               if (!showAppBar)
                 _OtpCompactHeader(
                   dateText: headerDateText,
@@ -236,7 +240,7 @@ class _OtpListView extends StatelessWidget {
                     );
                   },
                   child: state.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const ShimmerLoadingList()
                       : OtpContentView(
                           items: state.items,
                           groupedByDevice: state.groupedByDevice,
@@ -248,6 +252,7 @@ class _OtpListView extends StatelessWidget {
                 ),
               ),
             ],
+            ),
           );
         },
       ),

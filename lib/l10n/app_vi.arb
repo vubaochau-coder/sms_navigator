@@ -104,6 +104,9 @@
   "pairingHubSendersDesc": "Danh sách các máy gửi SMS cho bạn",
   "pairingHubCreateQr": "Tạo mã QR",
   "pairingHubScanQr": "Quét mã",
+  "pairingHubAddNew": "Thêm thiết bị ghép nối",
+  "pairingHubAddReceiver": "Thêm máy nhận (Tạo mã QR)",
+  "pairingHubAddSender": "Thêm máy gửi (Quét mã QR)",
   "settingsAction": "Cài đặt",
   "otpTodayWithDate": "Hôm nay, {date}",
   "@otpTodayWithDate": {

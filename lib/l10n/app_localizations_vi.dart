@@ -235,6 +235,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get pairingHubScanQr => 'Quét mã';
 
   @override
+  String get pairingHubAddNew => 'Thêm thiết bị ghép nối';
+
+  @override
+  String get pairingHubAddReceiver => 'Thêm máy nhận (Tạo mã QR)';
+
+  @override
+  String get pairingHubAddSender => 'Thêm máy gửi (Quét mã QR)';
+
+  @override
   String get settingsAction => 'Cài đặt';
 
   @override

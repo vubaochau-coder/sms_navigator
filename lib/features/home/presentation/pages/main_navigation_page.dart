@@ -29,6 +29,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
@@ -40,6 +41,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _openQrScanner,
         tooltip: l10n.pairingHubScanQr,
+        shape: const CircleBorder(),
+        elevation: 8,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
         child: const Icon(Icons.qr_code_scanner_rounded),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -48,6 +53,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         notchMargin: 8.0,
         height: 64,
         padding: const EdgeInsets.symmetric(horizontal: 8),
+        elevation: 12,
+        shadowColor: Colors.black.withValues(alpha: 0.18),
         child: Row(
           children: [
             Expanded(

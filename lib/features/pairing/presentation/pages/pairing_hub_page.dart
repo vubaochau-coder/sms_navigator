@@ -48,6 +48,66 @@ class _PairingHubPageState extends State<PairingHubPage>
     if (mounted) setState(() => _sendersReloadStamp++);
   }
 
+  Future<void> _showAddDeviceDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 360),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.pairingHubAddNew,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.pairingHubTitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _AddDeviceOption(
+                    icon: Icons.qr_code_rounded,
+                    label: l10n.pairingHubAddReceiver,
+                    onTap: () {
+                      Navigator.of(dialogContext).pop();
+                      _openCreateQr();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _AddDeviceOption(
+                    icon: Icons.qr_code_scanner_rounded,
+                    label: l10n.pairingHubAddSender,
+                    onTap: () {
+                      Navigator.of(dialogContext).pop();
+                      _openScanQr();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -55,24 +115,10 @@ class _PairingHubPageState extends State<PairingHubPage>
       appBar: AppBar(
         title: Text(l10n.pairingHubTitle),
         actions: [
-          AnimatedBuilder(
-            animation: _tabController,
-            builder: (context, _) {
-              final isReceiversTab = _tabController.index == 0;
-              return TextButton.icon(
-                onPressed: isReceiversTab ? _openCreateQr : _openScanQr,
-                icon: Icon(
-                  isReceiversTab
-                      ? Icons.qr_code_rounded
-                      : Icons.qr_code_scanner_rounded,
-                ),
-                label: Text(
-                  isReceiversTab
-                      ? l10n.pairingHubCreateQr
-                      : l10n.pairingHubScanQr,
-                ),
-              );
-            },
+          IconButton(
+            onPressed: _showAddDeviceDialog,
+            icon: const Icon(Icons.add_rounded),
+            tooltip: l10n.pairingHubAddNew,
           ),
           const SizedBox(width: 4),
         ],
@@ -91,7 +137,6 @@ class _PairingHubPageState extends State<PairingHubPage>
               controller: _tabController,
               children: [
                 _PairingListSection(
-                  icon: Icons.arrow_upward_rounded,
                   message: l10n.pairingHubReceiversDesc,
                   child: PairedReceiversPage(
                     key: ValueKey<int>(_receiversReloadStamp),
@@ -100,7 +145,6 @@ class _PairingHubPageState extends State<PairingHubPage>
                   ),
                 ),
                 _PairingListSection(
-                  icon: Icons.arrow_downward_rounded,
                   message: l10n.pairingHubSendersDesc,
                   child: PairedSendersPage(
                     key: ValueKey<int>(_sendersReloadStamp),
@@ -118,13 +162,8 @@ class _PairingHubPageState extends State<PairingHubPage>
 }
 
 class _PairingListSection extends StatelessWidget {
-  const _PairingListSection({
-    required this.icon,
-    required this.message,
-    required this.child,
-  });
+  const _PairingListSection({required this.message, required this.child});
 
-  final IconData icon;
   final String message;
   final Widget child;
 
@@ -133,32 +172,84 @@ class _PairingListSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Card(
-          margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-          elevation: 0,
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    message,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.35,
-                    ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.priority_high_rounded,
+                size: 16,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.35,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         Expanded(child: child),
       ],
+    );
+  }
+}
+
+class _AddDeviceOption extends StatelessWidget {
+  const _AddDeviceOption({required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 22, color: colorScheme.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
