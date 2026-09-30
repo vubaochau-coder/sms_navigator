@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
@@ -127,12 +128,6 @@ class _OtpListView extends StatelessWidget {
               if (!showAppBar)
                 _OtpCompactHeader(
                   dateText: headerDateText,
-                  isGroupingByDevice: state.isGroupingByDevice,
-                  onToggleGroup: () {
-                    context.read<OtpListBloc>().add(
-                      const OtpListToggleGroupEvent(),
-                    );
-                  },
                   onOpenSettings: () => _openServerSettings(context),
                 ),
               OtpCalendarCard(
@@ -263,14 +258,10 @@ class _OtpListView extends StatelessWidget {
 class _OtpCompactHeader extends StatelessWidget {
   const _OtpCompactHeader({
     required this.dateText,
-    required this.isGroupingByDevice,
-    required this.onToggleGroup,
     required this.onOpenSettings,
   });
 
   final String dateText;
-  final bool isGroupingByDevice;
-  final VoidCallback onToggleGroup;
   final VoidCallback onOpenSettings;
 
   @override
@@ -293,16 +284,23 @@ class _OtpCompactHeader extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            icon: Icon(
-              isGroupingByDevice
-                  ? Icons.view_agenda_rounded
-                  : Icons.group_work_rounded,
-            ),
-            tooltip: isGroupingByDevice
-                ? 'Xem dạng danh sách phẳng'
-                : 'Gom nhóm theo thiết bị gửi',
-            onPressed: onToggleGroup,
+          BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              final isDark = themeMode == ThemeMode.dark ||
+                  (themeMode == ThemeMode.system &&
+                      MediaQuery.of(context).platformBrightness ==
+                          Brightness.dark);
+              return IconButton(
+                icon: Icon(
+                  isDark
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                ),
+                tooltip:
+                    isDark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối',
+                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),

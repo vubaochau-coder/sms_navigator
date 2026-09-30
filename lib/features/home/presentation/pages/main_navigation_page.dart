@@ -56,8 +56,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                       ? Colors.black
                       : Colors.black)
                   .withValues(alpha: 0.10),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              blurRadius: 8,
+              offset: const Offset(0, 0),
             ),
           ],
         ),
