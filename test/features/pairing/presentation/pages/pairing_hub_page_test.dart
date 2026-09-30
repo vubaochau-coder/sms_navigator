@@ -12,24 +12,24 @@ class _TrackingPairManagementService implements PairManagementService {
   int getSendersCallCount = 0;
 
   List<PairedDeviceItem> receivers = [
-    const PairedDeviceItem(
+    PairedDeviceItem(
       pairId: 'rec_1',
       deviceId: 'dev_rec_1',
       deviceName: 'Receiver A',
       platform: 'android',
       isActive: true,
-      pairedAt: 1727620000,
+      pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
     ),
   ];
 
   List<PairedDeviceItem> senders = [
-    const PairedDeviceItem(
+    PairedDeviceItem(
       pairId: 'send_1',
       deviceId: 'dev_send_1',
       deviceName: 'Sender B',
       platform: 'android',
       isActive: true,
-      pairedAt: 1727620000,
+      pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
       isSender: true,
     ),
   ];

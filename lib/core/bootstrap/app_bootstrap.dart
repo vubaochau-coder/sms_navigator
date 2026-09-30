@@ -99,7 +99,7 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<OtpListRepository>(
           create: (context) => OtpListRepositoryImpl(
-            restClient: context.read<ApiClient>().rest,
+            apiClient: context.read<ApiClient>(),
             storageService: context.read<DeviceStorageService>(),
             nativeRelayService: context.read<NativeRelayService>(),
           ),

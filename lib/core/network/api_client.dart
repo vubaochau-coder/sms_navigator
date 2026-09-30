@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../errors/app_exceptions.dart';
-import 'rest_client.dart';
 
 /// Cung cấp device token để đính kèm vào header Authorization.
 typedef DeviceTokenProvider = Future<String?> Function();
@@ -11,12 +10,12 @@ typedef DeviceTokenProvider = Future<String?> Function();
 /// Cung cấp server URL động (đọc từ DeviceStorageService).
 typedef ServerUrlProvider = Future<String?> Function();
 
-/// HTTP client đa năng sử dụng Dio + Retrofit (RestClient) cho toàn bộ API.
+/// HTTP client đa năng sử dụng Dio cho toàn bộ API.
 ///
 /// - Quản lý baseUrl động qua [ServerUrlProvider] (mặc định trỏ tới
 ///   `http://10.0.2.2:3000` của Android emulator hoặc `http://127.0.0.1:3000`).
 /// - Tự động đính kèm header `Authorization: Bearer <device_token>`.
-/// - Hỗ trợ cả Retrofit typed client ([rest]) và các phương thức get/post/put/delete.
+/// - Cung cấp các phương thức get/post/put/patch/delete động.
 /// - Timeout 10 giây cho mọi request.
 /// - Chuẩn hóa lỗi: [NetworkException], [UnauthorizedException], [ApiException].
 class ApiClient {
@@ -57,8 +56,6 @@ class ApiClient {
         },
       ),
     );
-
-    rest = RestClient(_dio);
   }
 
   /// Base URL mặc định cho Android emulator (10.0.2.2 trỏ về 127.0.0.1 máy chủ).
@@ -68,9 +65,6 @@ class ApiClient {
   static const String localBaseUrl = 'http://127.0.0.1:3000';
 
   late final Dio _dio;
-
-  /// Retrofit typed client cho các API của hệ thống.
-  late final RestClient rest;
 
   final String _fallbackBaseUrl;
   final ServerUrlProvider? _serverUrlProvider;

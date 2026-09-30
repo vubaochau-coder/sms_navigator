@@ -140,7 +140,7 @@ class PairedSenderCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  item.formattedLastRelayedAt,
+                  item.formattedLastActiveAt,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

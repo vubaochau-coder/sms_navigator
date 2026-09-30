@@ -12,7 +12,7 @@ class PairedDeviceItem extends Equatable {
     this.deviceName,
     this.platform,
     this.pairedAt,
-    this.lastRelayedAt,
+    this.lastActiveAt,
     this.isSender = false,
   });
 
@@ -27,8 +27,12 @@ class PairedDeviceItem extends Equatable {
 
   final String? deviceName;
   final String? platform;
-  final int? pairedAt;
-  final int? lastRelayedAt;
+
+  /// Thời điểm ghép đôi (ISO 8601 từ server).
+  final DateTime? pairedAt;
+
+  /// Thời điểm hoạt động gần nhất trên server (ISO 8601 từ server).
+  final DateTime? lastActiveAt;
 
   /// true nếu đây là bản ghi máy gửi (khi Receiver xem)
   final bool isSender;
@@ -42,11 +46,11 @@ class PairedDeviceItem extends Equatable {
         : (isSender ? 'Thiết bị gửi' : 'Thiết bị nhận');
   }
 
-  String get formattedPairedAt => DateTimeUtils.formatEpochSeconds(pairedAt);
+  String get formattedPairedAt => DateTimeUtils.formatDateTime(pairedAt);
 
-  String get formattedLastRelayedAt => lastRelayedAt != null
-      ? DateTimeUtils.formatEpochSeconds(lastRelayedAt)
-      : 'Chưa có lượt gửi';
+  String get formattedLastActiveAt => lastActiveAt != null
+      ? DateTimeUtils.formatDateTime(lastActiveAt)
+      : 'Chưa có hoạt động';
 
   PairedDeviceItem copyWith({
     String? pairId,
@@ -54,8 +58,8 @@ class PairedDeviceItem extends Equatable {
     bool? isActive,
     String? deviceName,
     String? platform,
-    int? pairedAt,
-    int? lastRelayedAt,
+    DateTime? pairedAt,
+    DateTime? lastActiveAt,
     bool? isSender,
   }) {
     return PairedDeviceItem(
@@ -65,7 +69,7 @@ class PairedDeviceItem extends Equatable {
       deviceName: deviceName ?? this.deviceName,
       platform: platform ?? this.platform,
       pairedAt: pairedAt ?? this.pairedAt,
-      lastRelayedAt: lastRelayedAt ?? this.lastRelayedAt,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       isSender: isSender ?? this.isSender,
     );
   }
@@ -77,8 +81,8 @@ class PairedDeviceItem extends Equatable {
       isActive: DataConverter.cvToBool(json['is_active'], true)!,
       deviceName: DataConverter.cvToString(json['device_name']),
       platform: DataConverter.cvToString(json['platform']),
-      pairedAt: DataConverter.cvToInt(json['paired_at']),
-      lastRelayedAt: DataConverter.cvToInt(json['last_relayed_at']),
+      pairedAt: DataConverter.cvToDateTime(json['paired_at']),
+      lastActiveAt: DataConverter.cvToDateTime(json['last_active_at']),
       isSender: false,
     );
   }
@@ -90,8 +94,8 @@ class PairedDeviceItem extends Equatable {
       isActive: DataConverter.cvToBool(json['is_active'], true)!,
       deviceName: DataConverter.cvToString(json['device_name']),
       platform: DataConverter.cvToString(json['platform']),
-      pairedAt: DataConverter.cvToInt(json['paired_at']),
-      lastRelayedAt: DataConverter.cvToInt(json['last_relayed_at']),
+      pairedAt: DataConverter.cvToDateTime(json['paired_at']),
+      lastActiveAt: DataConverter.cvToDateTime(json['last_active_at']),
       isSender: true,
     );
   }
@@ -104,7 +108,7 @@ class PairedDeviceItem extends Equatable {
     deviceName,
     platform,
     pairedAt,
-    lastRelayedAt,
+    lastActiveAt,
     isSender,
   ];
 }

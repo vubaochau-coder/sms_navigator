@@ -60,8 +60,8 @@ void main() {
         'device_name': 'Pixel 8 Malaysia',
         'platform': 'android',
         'is_active': true,
-        'paired_at': 1727620000,
-        'last_relayed_at': 1727620500,
+        'paired_at': '2026-09-30T10:00:00.000Z',
+        'last_active_at': '2026-09-30T10:05:00.000Z',
       };
 
       final item = PairedDeviceItem.fromReceiverJson(json);
@@ -71,7 +71,7 @@ void main() {
       expect(item.isActive, isTrue);
       expect(item.isSender, isFalse);
       expect(item.formattedPairedAt, isNot('--'));
-      expect(item.formattedLastRelayedAt, isNot('Chưa có lượt gửi'));
+      expect(item.formattedLastActiveAt, isNot('Chưa có hoạt động'));
     });
 
     test('fromSenderJson correctly parses sender item', () {
@@ -81,7 +81,7 @@ void main() {
         'device_name': 'Galaxy S24 Vietnam',
         'platform': 'android',
         'is_active': false,
-        'paired_at': 1727620000,
+        'paired_at': '2026-09-30T10:00:00.000Z',
       };
 
       final item = PairedDeviceItem.fromSenderJson(json);
@@ -90,7 +90,7 @@ void main() {
       expect(item.displayName, 'Galaxy S24 Vietnam');
       expect(item.isActive, isFalse);
       expect(item.isSender, isTrue);
-      expect(item.formattedLastRelayedAt, 'Chưa có lượt gửi');
+      expect(item.formattedLastActiveAt, 'Chưa có hoạt động');
     });
 
     test('copyWith preserves properties and updates isActive', () {

@@ -145,7 +145,7 @@ class PairedReceiverCard extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Lần gửi gần nhất: ',
+                  'Hoạt động gần nhất: ',
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(
@@ -154,7 +154,7 @@ class PairedReceiverCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  item.formattedLastRelayedAt,
+                  item.formattedLastActiveAt,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

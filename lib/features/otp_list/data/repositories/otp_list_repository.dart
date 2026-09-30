@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/network/rest_client.dart';
+import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/utils/crypto_helper.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../../sender/data/services/native_relay_service.dart';
 import '../../domain/models/decrypted_otp_item.dart';
 import '../models/relay_history_item_model.dart';
@@ -18,12 +19,12 @@ abstract class OtpListRepository {
 }
 
 class OtpListRepositoryImpl implements OtpListRepository {
-  final RestClient restClient;
+  final ApiClient apiClient;
   final DeviceStorageService storageService;
   final NativeRelayService nativeRelayService;
 
   OtpListRepositoryImpl({
-    required this.restClient,
+    required this.apiClient,
     required this.storageService,
     required this.nativeRelayService,
   });
@@ -34,7 +35,10 @@ class OtpListRepositoryImpl implements OtpListRepository {
     String? pairId,
     CancelToken? cancelToken,
   }) async {
-    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    // Truy vấn theo dải [from, to] ISO 8601 kèm offset múi giờ thiết bị
+    // (toIso8601String tự nhúng +07:00 trên máy VN) để không bị lệch ngày.
+    final from = DateTimeUtils.startOfDay(date).toIso8601String();
+    final to = DateTimeUtils.endOfDay(date).toIso8601String();
 
     // Retrieve shared secret and pairId (support both receiver and sender modes)
     final prefs = await SharedPreferences.getInstance();
@@ -47,9 +51,13 @@ class OtpListRepositoryImpl implements OtpListRepository {
       targetPairId ??= senderConfig['pairId']?.toString();
     }
 
-    final response = await restClient.getRelayHistory(
-      dateStr,
-      targetPairId,
+    final response = await apiClient.get(
+      ApiEndpoints.relayHistory,
+      queryParameters: {
+        'from': from,
+        'to': to,
+        'pair_id': ?targetPairId,
+      },
       cancelToken: cancelToken,
     );
     final List<dynamic> rawRecords = (response is Map)
@@ -65,9 +73,8 @@ class OtpListRepositoryImpl implements OtpListRepository {
       String sender = 'Unknown';
       String otp = 'SMS';
       String fullMessage = '';
-      DateTime receivedAt = DateTime.fromMillisecondsSinceEpoch(
-        model.relayedAt > 0 ? model.relayedAt * 1000 : model.sentAt * 1000,
-      );
+      DateTime receivedAt =
+          model.relayedAt ?? model.sentAt ?? DateTime.now();
 
       // Attempt decryption if shared secret is available
       if (sharedSecret != null &&
@@ -112,7 +119,7 @@ class OtpListRepositoryImpl implements OtpListRepository {
           otp: otp,
           fullMessage: fullMessage,
           receivedAt: receivedAt,
-          sentAtSeconds: model.sentAt,
+          sentAt: model.sentAt,
           status: model.status,
         ),
       );

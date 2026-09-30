@@ -77,13 +77,13 @@ void main() {
       (tester) async {
         final mock = _MockPairManagementService();
         mock.receiversList = [
-          const PairedDeviceItem(
+          PairedDeviceItem(
             pairId: 'pair_123',
             deviceId: 'rec_device_abc',
             deviceName: 'Máy Nhận Malaysia',
             platform: 'android',
             isActive: true,
-            pairedAt: 1727620000,
+            pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
           ),
         ];
 
@@ -137,13 +137,13 @@ void main() {
       (tester) async {
         final mock = _MockPairManagementService();
         mock.sendersList = [
-          const PairedDeviceItem(
+          PairedDeviceItem(
             pairId: 'pair_456',
             deviceId: 'send_device_xyz',
             deviceName: 'Máy Gửi Việt Nam',
             platform: 'android',
             isActive: true,
-            pairedAt: 1727620000,
+            pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
             isSender: true,
           ),
         ];
@@ -174,13 +174,13 @@ void main() {
       (tester) async {
         final mock = _MockPairManagementService();
         mock.sendersList = [
-          const PairedDeviceItem(
+          PairedDeviceItem(
             pairId: 'pair_789',
             deviceId: 'send_device_paused',
             deviceName: 'Máy Gửi Tạm Dừng',
             platform: 'android',
             isActive: false,
-            pairedAt: 1727620000,
+            pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
             isSender: true,
           ),
         ];

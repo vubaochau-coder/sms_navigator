@@ -9,7 +9,7 @@ class DecryptedOtpItem extends Equatable {
   final String otp;
   final String fullMessage;
   final DateTime receivedAt;
-  final int sentAtSeconds;
+  final DateTime? sentAt;
   final String status;
 
   const DecryptedOtpItem({
@@ -21,7 +21,7 @@ class DecryptedOtpItem extends Equatable {
     required this.otp,
     required this.fullMessage,
     required this.receivedAt,
-    required this.sentAtSeconds,
+    this.sentAt,
     this.status = 'SUCCESS',
   });
 
@@ -35,7 +35,7 @@ class DecryptedOtpItem extends Equatable {
     otp,
     fullMessage,
     receivedAt,
-    sentAtSeconds,
+    sentAt,
     status,
   ];
 }

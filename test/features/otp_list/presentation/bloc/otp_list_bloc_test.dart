@@ -34,7 +34,7 @@ void main() {
     otp: '849201',
     fullMessage: 'GD 849201 tai VCB DIGIBANK',
     receivedAt: DateTime(2026, 9, 29, 10, 30),
-    sentAtSeconds: 1759134000,
+    sentAt: DateTime.fromMillisecondsSinceEpoch(1759134000 * 1000),
   );
   final item2 = DecryptedOtpItem(
     id: 'item_2',
@@ -45,7 +45,7 @@ void main() {
     otp: '192837',
     fullMessage: '【招商银行】您的验证码是 192837',
     receivedAt: DateTime(2026, 9, 29, 11, 0),
-    sentAtSeconds: 1759135000,
+    sentAt: DateTime.fromMillisecondsSinceEpoch(1759135000 * 1000),
   );
 
   setUp(() {

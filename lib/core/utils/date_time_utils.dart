@@ -47,16 +47,6 @@ class DateTimeUtils {
         : _dateTimeFormat.format(dateTime);
   }
 
-  /// Định dạng từ timestamp epoch giây (thường trả về từ server backend)
-  static String formatEpochSeconds(
-    int? epochSeconds, {
-    bool includeSeconds = true,
-  }) {
-    if (epochSeconds == null || epochSeconds <= 0) return '--';
-    final dt = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
-    return formatDateTime(dt, includeSeconds: includeSeconds);
-  }
-
   /// Định dạng thời gian tương đối thân thiện (VD: "Vừa xong", "5 phút trước", "Hôm qua")
   static String timeAgo(DateTime? dateTime) {
     if (dateTime == null) return '--';

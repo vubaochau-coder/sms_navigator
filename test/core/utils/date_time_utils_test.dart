@@ -32,16 +32,6 @@ void main() {
       expect(DateTimeUtils.formatDateTime(null), '--');
     });
 
-    test(
-      'formatEpochSeconds converts epoch seconds to formatted date time',
-      () {
-        expect(DateTimeUtils.formatEpochSeconds(null), '--');
-        expect(DateTimeUtils.formatEpochSeconds(0), '--');
-        final formatted = DateTimeUtils.formatEpochSeconds(1727620000);
-        expect(formatted.contains('2024'), isTrue);
-      },
-    );
-
     test('timeAgo calculates relative description correctly', () {
       final now = DateTime.now();
       expect(

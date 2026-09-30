@@ -1,3 +1,5 @@
+import '../../../../core/utils/data_converter.dart';
+
 class RelayHistoryItemModel {
   final String id;
   final String pairId;
@@ -5,8 +7,8 @@ class RelayHistoryItemModel {
   final String? senderDeviceName;
   final String encryptedPayload;
   final String iv;
-  final int sentAt;
-  final int relayedAt;
+  final DateTime? sentAt;
+  final DateTime? relayedAt;
   final String status;
   final String? messageId;
 
@@ -17,8 +19,8 @@ class RelayHistoryItemModel {
     this.senderDeviceName,
     required this.encryptedPayload,
     required this.iv,
-    required this.sentAt,
-    required this.relayedAt,
+    this.sentAt,
+    this.relayedAt,
     this.status = 'SUCCESS',
     this.messageId,
   });
@@ -31,8 +33,8 @@ class RelayHistoryItemModel {
       senderDeviceName: map['sender_device_name']?.toString(),
       encryptedPayload: map['encrypted_payload']?.toString() ?? '',
       iv: map['iv']?.toString() ?? '',
-      sentAt: (map['sent_at'] as num?)?.toInt() ?? 0,
-      relayedAt: (map['relayed_at'] as num?)?.toInt() ?? 0,
+      sentAt: DataConverter.cvToDateTime(map['sent_at']),
+      relayedAt: DataConverter.cvToDateTime(map['relayed_at']),
       status: map['status']?.toString() ?? 'SUCCESS',
       messageId: map['message_id']?.toString(),
     );
