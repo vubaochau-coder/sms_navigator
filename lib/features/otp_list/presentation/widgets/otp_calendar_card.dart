@@ -21,6 +21,7 @@ class OtpCalendarCard extends StatelessWidget {
       builder: (context, state) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
@@ -52,6 +53,7 @@ class OtpCalendarCard extends StatelessWidget {
             },
             startingDayOfWeek: StartingDayOfWeek.monday,
             headerStyle: HeaderStyle(
+              headerPadding: const EdgeInsets.only(top: 4, bottom: 4),
               formatButtonVisible: true,
               titleCentered: true,
               formatButtonShowsNext: false,
