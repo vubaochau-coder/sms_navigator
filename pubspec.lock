@@ -221,10 +221,10 @@ packages:
     dependency: "direct main"
     description:
       name: equatable
-      sha256: ea36e500cbf0ec18361deabca755434f73e42fe53c5130021c7e2d6b5ebe1702
+      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "2.0.7"
   fake_async:
     dependency: transitive
     description:
@@ -576,6 +576,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pausable_timer:
+    dependency: transitive
+    description:
+      name: pausable_timer
+      sha256: "6ef1a95441ec3439de6fb63f39a011b67e693198e7dae14e20675c3c00e86074"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0+3"
   permission_handler:
     dependency: "direct main"
     description:
@@ -893,6 +901,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  toastification:
+    dependency: "direct main"
+    description:
+      name: toastification
+      sha256: "66c96678e3dece8ba24de3ea31634bd65a80aaecb8105f9bafe946e5f0d7590a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.0"
   typed_data:
     dependency: transitive
     description:
@@ -901,6 +917,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: "9b129329f58692f6e6578329498a8fe9fbe98f090beb764ffbb8ee2eadd01dcd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.6.0"
   vector_math:
     dependency: transitive
     description:

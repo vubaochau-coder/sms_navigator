@@ -33,28 +33,16 @@ class PairedReceiversPage extends StatelessWidget {
 class _PairedReceiversBody extends StatelessWidget {
   const _PairedReceiversBody();
 
-  Future<void> _toggleActive(
+  void _toggleActive(
     BuildContext context,
     PairedDeviceItem item,
     bool newValue,
-  ) async {
-    final cubit = context.read<PairedDevicesCubit>();
-    final success = await cubit.toggleActive(item.pairId, newValue);
-    if (!context.mounted) return;
-
-    if (success) {
-      UiUtils.showSuccessToast(
-        context,
-        newValue
-            ? 'Đã bật chuyển tiếp tới ${item.displayName}'
-            : 'Đã tạm dừng chuyển tiếp tới ${item.displayName}',
-      );
-    } else {
-      UiUtils.showErrorToast(
-        context,
-        'Không thể cập nhật trạng thái. Vui lòng thử lại!',
-      );
-    }
+  ) {
+    context.read<PairedDevicesCubit>().toggleActive(
+      item.pairId,
+      newValue,
+      displayName: item.displayName,
+    );
   }
 
   Future<void> _confirmRevokePair(
@@ -71,19 +59,8 @@ class _PairedReceiversBody extends StatelessWidget {
       icon: Icons.link_off_rounded,
     );
 
-    if (!confirmed || !context.mounted) return;
-
-    final cubit = context.read<PairedDevicesCubit>();
-    final success = await cubit.revokePair(item.pairId);
-    if (!context.mounted) return;
-
-    if (success) {
-      UiUtils.showSuccessToast(context, 'Đã hủy kết nối thành công');
-    } else {
-      UiUtils.showErrorToast(
-        context,
-        'Không thể hủy kết nối. Vui lòng thử lại!',
-      );
+    if (confirmed && context.mounted) {
+      context.read<PairedDevicesCubit>().revokePair(item.pairId);
     }
   }
 

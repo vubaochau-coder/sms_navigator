@@ -31,11 +31,7 @@ class _OtpListView extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     HapticFeedback.lightImpact();
-    UiUtils.copyToClipboard(
-      context,
-      text,
-      successMessage: 'Đã sao chép $label: $text',
-    );
+    UiUtils.copyToClipboard(text, successMessage: 'Đã sao chép $label: $text');
   }
 
   @override

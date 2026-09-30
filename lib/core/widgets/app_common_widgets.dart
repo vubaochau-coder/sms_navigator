@@ -299,7 +299,6 @@ class CopyableInfoRow extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             tooltip: 'Sao chép',
             onPressed: () => UiUtils.copyToClipboard(
-              context,
               value,
               successMessage: copySuccessMessage ?? 'Đã sao chép $label',
             ),

@@ -47,19 +47,8 @@ class _PairedSendersBody extends StatelessWidget {
       icon: Icons.link_off_rounded,
     );
 
-    if (!confirmed || !context.mounted) return;
-
-    final cubit = context.read<PairedDevicesCubit>();
-    final success = await cubit.revokePair(item.pairId);
-    if (!context.mounted) return;
-
-    if (success) {
-      UiUtils.showSuccessToast(context, 'Đã hủy kết nối thành công');
-    } else {
-      UiUtils.showErrorToast(
-        context,
-        'Không thể hủy kết nối. Vui lòng thử lại!',
-      );
+    if (confirmed && context.mounted) {
+      context.read<PairedDevicesCubit>().revokePair(item.pairId);
     }
   }
 

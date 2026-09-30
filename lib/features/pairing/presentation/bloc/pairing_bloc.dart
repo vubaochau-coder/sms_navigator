@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/toast_utils.dart';
 import '../../data/repositories/pairing_repository.dart';
 import 'pairing_event.dart';
 import 'pairing_state.dart';
@@ -97,6 +98,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       final success = await repository.submitReceiverPairingQr(event.qrData);
       if (success) {
         emit(state.copyWith(isLoading: false, isSuccess: true, isPaired: true));
+        ToastUtils.showSuccess('Ghép đôi thiết bị thành công!');
       } else {
         emit(
           state.copyWith(
@@ -104,6 +106,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
             errorMessage: 'Mã QR không hợp lệ hoặc đã hết hạn.',
           ),
         );
+        ToastUtils.showError('Mã QR không hợp lệ hoặc đã hết hạn.');
       }
     } catch (e) {
       emit(
@@ -112,6 +115,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
           errorMessage: 'Lỗi xác nhận ghép đôi: ${e.toString()}',
         ),
       );
+      ToastUtils.showError('Lỗi xác nhận ghép đôi: ${e.toString()}');
     }
   }
 
@@ -141,6 +145,9 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
     try {
       await repository.disconnectReceiver();
       emit(const PairingState(isPaired: false));
-    } catch (_) {}
+      ToastUtils.showSuccess('Đã hủy kết nối thiết bị');
+    } catch (_) {
+      ToastUtils.showError('Không thể hủy kết nối thiết bị');
+    }
   }
 }

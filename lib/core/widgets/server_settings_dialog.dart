@@ -97,16 +97,11 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
 
       if (!mounted) return;
       Navigator.of(context).pop(normalizedUrl);
-      UiUtils.showSuccessToast(
-        context,
-        'Đã lưu cấu hình server: $normalizedUrl',
-      );
+      UiUtils.showSuccessToast('Đã lưu cấu hình server: $normalizedUrl');
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể lưu cấu hình. Thử lại sau.')),
-      );
+      UiUtils.showErrorToast('Không thể lưu cấu hình. Thử lại sau.');
     }
   }
 

@@ -24,11 +24,7 @@ class OtpDetailBottomSheet extends StatelessWidget {
   }
 
   void _copy(BuildContext context, String text, String label) {
-    UiUtils.copyToClipboard(
-      context,
-      text,
-      successMessage: 'Đã sao chép $label: $text',
-    );
+    UiUtils.copyToClipboard(text, successMessage: 'Đã sao chép $label: $text');
   }
 
   @override

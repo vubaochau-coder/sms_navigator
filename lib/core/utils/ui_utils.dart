@@ -12,39 +12,54 @@ export 'toast_utils.dart';
 class UiUtils {
   UiUtils._();
 
-  /// Toast / SnackBar
+  /// Toast / SnackBar (không bắt buộc context)
   static void showToast(
-    BuildContext context,
     String message, {
+    BuildContext? context,
     ToastType type = ToastType.info,
     Duration duration = const Duration(seconds: 3),
-    SnackBarAction? action,
+    String? title,
   }) => ToastUtils.showToast(
-    context,
     message,
+    context: context,
     type: type,
     duration: duration,
-    action: action,
+    title: title,
   );
 
-  static void showSuccessToast(BuildContext context, String message) =>
-      ToastUtils.showSuccess(context, message);
+  static void showSuccessToast(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) => ToastUtils.showSuccess(message, context: context, title: title);
 
-  static void showErrorToast(BuildContext context, String message) =>
-      ToastUtils.showError(context, message);
+  static void showErrorToast(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) => ToastUtils.showError(message, context: context, title: title);
 
-  static void showWarningToast(BuildContext context, String message) =>
-      ToastUtils.showWarning(context, message);
+  static void showWarningToast(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) => ToastUtils.showWarning(message, context: context, title: title);
 
-  static void showInfoToast(BuildContext context, String message) =>
-      ToastUtils.showInfo(context, message);
+  static void showInfoToast(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) => ToastUtils.showInfo(message, context: context, title: title);
 
   static Future<void> copyToClipboard(
-    BuildContext context,
     String text, {
+    BuildContext? context,
     String successMessage = 'Đã sao chép vào bộ nhớ tạm',
-  }) =>
-      ToastUtils.copyToClipboard(context, text, successMessage: successMessage);
+  }) => ToastUtils.copyToClipboard(
+    text,
+    context: context,
+    successMessage: successMessage,
+  );
 
   /// Dialog
   static Future<bool> showConfirmDialog(

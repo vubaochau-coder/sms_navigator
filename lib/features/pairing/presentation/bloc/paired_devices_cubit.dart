@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sms_navigator/core/utils/toast_utils.dart';
 import '../../data/models/paired_device_item.dart';
 import '../../data/services/pair_management_service.dart';
 
@@ -84,8 +85,12 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
     }
   }
 
-  Future<bool> toggleActive(String pairId, bool isActive) async {
-    if (state.togglingPairIds.contains(pairId)) return false;
+  Future<void> toggleActive(
+    String pairId,
+    bool isActive, {
+    String? displayName,
+  }) async {
+    if (state.togglingPairIds.contains(pairId)) return;
 
     final nextToggling = Set<String>.from(state.togglingPairIds)..add(pairId);
     emit(state.copyWith(togglingPairIds: nextToggling));
@@ -108,22 +113,27 @@ class PairedDevicesCubit extends Cubit<PairedDevicesState> {
       emit(
         state.copyWith(devices: updatedList, togglingPairIds: updatedToggling),
       );
-      return true;
+      ToastUtils.showSuccess(
+        isActive
+            ? 'Đã bật chuyển tiếp tới ${displayName ?? 'thiết bị'}'
+            : 'Đã tạm dừng chuyển tiếp tới ${displayName ?? 'thiết bị'}',
+      );
     } else {
       emit(state.copyWith(togglingPairIds: updatedToggling));
-      return false;
+      ToastUtils.showError('Không thể cập nhật trạng thái. Vui lòng thử lại!');
     }
   }
 
-  Future<bool> revokePair(String pairId) async {
+  Future<void> revokePair(String pairId) async {
     final success = await service.revokePair(pairId);
     if (success) {
       final updatedList = state.devices
           .where((e) => e.pairId != pairId)
           .toList();
       emit(state.copyWith(devices: updatedList));
-      return true;
+      ToastUtils.showSuccess('Đã hủy kết nối thành công');
+    } else {
+      ToastUtils.showError('Không thể hủy kết nối. Vui lòng thử lại!');
     }
-    return false;
   }
 }

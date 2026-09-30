@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/utils/toast_utils.dart';
 import '../../data/repositories/sender_repository.dart';
 import 'sender_event.dart';
 import 'sender_state.dart';
@@ -99,6 +100,11 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       final success = await repository.setRelayEnabled(event.isEnabled);
       if (success) {
         emit(state.copyWith(isRelayEnabled: event.isEnabled));
+        ToastUtils.showSuccess(
+          event.isEnabled
+              ? 'Đã kích hoạt dịch vụ chuyển tiếp'
+              : 'Đã tạm dừng dịch vụ chuyển tiếp',
+        );
       }
     } catch (e) {
       emit(
@@ -106,6 +112,7 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
           errorMessage: 'Không thể thay đổi trạng thái: ${e.toString()}',
         ),
       );
+      ToastUtils.showError('Không thể thay đổi trạng thái chuyển tiếp');
     }
   }
 
@@ -117,6 +124,7 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       final success = await repository.setRelayMode(event.relayMode);
       if (success) {
         emit(state.copyWith(relayMode: event.relayMode));
+        ToastUtils.showInfo('Đã chuyển sang chế độ: ${event.relayMode}');
       }
     } catch (e) {
       emit(
@@ -125,6 +133,7 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
               'Không thể cập nhật chế độ chuyển tiếp: ${e.toString()}',
         ),
       );
+      ToastUtils.showError('Không thể cập nhật chế độ chuyển tiếp');
     }
   }
 
@@ -140,11 +149,13 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       final success = await repository.setSenderWhitelist(updated);
       if (success) {
         emit(state.copyWith(senderWhitelist: updated));
+        ToastUtils.showSuccess('Đã thêm đầu số $clean vào bộ lọc');
       }
     } catch (e) {
       emit(
         state.copyWith(errorMessage: 'Không thể thêm đầu số: ${e.toString()}'),
       );
+      ToastUtils.showError('Không thể thêm đầu số');
     }
   }
 
@@ -158,11 +169,13 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       final success = await repository.setSenderWhitelist(updated);
       if (success) {
         emit(state.copyWith(senderWhitelist: updated));
+        ToastUtils.showInfo('Đã xóa đầu số ${event.prefix}');
       }
     } catch (e) {
       emit(
         state.copyWith(errorMessage: 'Không thể xóa đầu số: ${e.toString()}'),
       );
+      ToastUtils.showError('Không thể xóa đầu số');
     }
   }
 

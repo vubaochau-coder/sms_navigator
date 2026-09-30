@@ -1,54 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/core/utils/bottom_sheet_utils.dart';
-import 'package:sms_navigator/core/utils/dialog_utils.dart';
-import 'package:sms_navigator/core/utils/toast_utils.dart';
 import 'package:sms_navigator/core/utils/ui_utils.dart';
+import 'package:toastification/toastification.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('ToastUtils Tests', () {
-    testWidgets('ToastUtils shows toast with message', (tester) async {
+  tearDown(() async {
+    toastification.dismissAll();
+  });
+
+  group('ToastUtils with Toastification Tests', () {
+    testWidgets('ToastUtils shows toast without context parameter', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
+        ToastificationWrapper(
+          child: MaterialApp(
+            home: Scaffold(
+              body: ElevatedButton(
                 onPressed: () {
-                  ToastUtils.showSuccess(context, 'Thành công!');
+                  ToastUtils.showSuccess('Thao tác thành công!');
                 },
-                child: const Text('Show Success'),
+                child: const Text('Show Success Without Context'),
               ),
             ),
           ),
         ),
       );
 
-      await tester.tap(find.text('Show Success'));
+      await tester.tap(find.text('Show Success Without Context'));
       await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.text('Thành công!'), findsOneWidget);
+      expect(find.text('Thao tác thành công!'), findsOneWidget);
+
+      toastification.dismissAll();
+      await tester.pumpAndSettle();
     });
 
-    testWidgets('ToastUtils shows error, warning, info', (tester) async {
+    testWidgets('ToastUtils shows error, warning, info without context', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => Column(
+        ToastificationWrapper(
+          child: MaterialApp(
+            home: Scaffold(
+              body: Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () => ToastUtils.showError(context, 'Lỗi!'),
+                    onPressed: () => ToastUtils.showError('Có lỗi xảy ra!'),
                     child: const Text('Error'),
                   ),
                   ElevatedButton(
-                    onPressed: () =>
-                        ToastUtils.showWarning(context, 'Cảnh báo!'),
+                    onPressed: () => ToastUtils.showWarning('Lưu ý cảnh báo!'),
                     child: const Text('Warning'),
                   ),
                   ElevatedButton(
-                    onPressed: () => ToastUtils.showInfo(context, 'Thông tin!'),
+                    onPressed: () => ToastUtils.showInfo('Thông báo tin nhắn'),
                     child: const Text('Info'),
                   ),
                 ],
@@ -58,17 +68,29 @@ void main() {
         ),
       );
 
+      // Error
       await tester.tap(find.text('Error'));
       await tester.pump();
-      expect(find.text('Lỗi!'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Có lỗi xảy ra!'), findsOneWidget);
 
+      // Warning
       await tester.tap(find.text('Warning'));
       await tester.pump();
-      expect(find.text('Cảnh báo!'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Lưu ý cảnh báo!'), findsOneWidget);
 
+      // Info
       await tester.tap(find.text('Info'));
       await tester.pump();
-      expect(find.text('Thông tin!'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Thông báo tin nhắn'), findsOneWidget);
+
+      toastification.dismissAll();
+      await tester.pumpAndSettle();
     });
   });
 
@@ -155,29 +177,33 @@ void main() {
   });
 
   group('UiUtils Facade backward compatibility', () {
-    testWidgets(
-      'UiUtils delegates to ToastUtils, DialogUtils, BottomSheetUtils',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
+    testWidgets('UiUtils delegates to ToastUtils without context', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ToastificationWrapper(
+          child: MaterialApp(
             home: Scaffold(
-              body: Builder(
-                builder: (context) => ElevatedButton(
-                  onPressed: () {
-                    UiUtils.showSuccessToast(context, 'Facade Toast');
-                  },
-                  child: const Text('Show Facade Toast'),
-                ),
+              body: ElevatedButton(
+                onPressed: () {
+                  UiUtils.showSuccessToast('Facade Toast Message');
+                },
+                child: const Text('Show Facade Toast'),
               ),
             ),
           ),
-        );
+        ),
+      );
 
-        await tester.tap(find.text('Show Facade Toast'));
-        await tester.pump();
+      await tester.tap(find.text('Show Facade Toast'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-        expect(find.text('Facade Toast'), findsOneWidget);
-      },
-    );
+      expect(find.text('Facade Toast Message'), findsOneWidget);
+
+      toastification.dismissAll();
+      await tester.pumpAndSettle();
+    });
   });
 }

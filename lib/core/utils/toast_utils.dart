@@ -1,111 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:toastification/toastification.dart';
 
 import '../constants/app_colors.dart';
 
-/// Kiểu thông báo Toast/SnackBar
+/// Kiểu thông báo Toast
 enum ToastType { success, error, warning, info }
 
-/// Tiện ích hiển thị thông báo Toast / SnackBar và Clipboard.
+/// Tiện ích hiển thị thông báo Toast sử dụng package toastification.
+/// Cho phép gọi trực tiếp từ BLoC hoặc bất cứ đâu mà không cần BuildContext.
 class ToastUtils {
   ToastUtils._();
 
-  /// Hiển thị thông báo Toast / SnackBar nổi dạng Soft Modern
+  /// Hiển thị Toast thông báo (không bắt buộc context)
   static void showToast(
-    BuildContext context,
     String message, {
+    BuildContext? context,
     ToastType type = ToastType.info,
     Duration duration = const Duration(seconds: 3),
-    SnackBarAction? action,
+    String? title,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
+    try {
+      ToastificationType toastType;
+      Color primaryColor;
+      IconData iconData;
 
-    Color bgColor;
-    Color fgColor;
-    IconData iconData;
+      switch (type) {
+        case ToastType.success:
+          toastType = ToastificationType.success;
+          primaryColor = AppColors.success;
+          iconData = Icons.check_circle_rounded;
+          break;
+        case ToastType.error:
+          toastType = ToastificationType.error;
+          primaryColor = AppColors.error;
+          iconData = Icons.error_rounded;
+          break;
+        case ToastType.warning:
+          toastType = ToastificationType.warning;
+          primaryColor = AppColors.warning;
+          iconData = Icons.warning_amber_rounded;
+          break;
+        case ToastType.info:
+          toastType = ToastificationType.info;
+          primaryColor = AppColors.primary;
+          iconData = Icons.info_outline_rounded;
+          break;
+      }
 
-    switch (type) {
-      case ToastType.success:
-        bgColor = AppColors.success;
-        fgColor = Colors.white;
-        iconData = Icons.check_circle_rounded;
-        break;
-      case ToastType.error:
-        bgColor = AppColors.error;
-        fgColor = Colors.white;
-        iconData = Icons.error_rounded;
-        break;
-      case ToastType.warning:
-        bgColor = AppColors.warning;
-        fgColor = Colors.black87;
-        iconData = Icons.warning_amber_rounded;
-        break;
-      case ToastType.info:
-        bgColor = AppColors.primary;
-        fgColor = Colors.white;
-        iconData = Icons.info_outline_rounded;
-        break;
-    }
-
-    messenger.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(iconData, color: fgColor, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: fgColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13.5,
+      toastification.show(
+        context: context,
+        type: toastType,
+        style: ToastificationStyle.flatColored,
+        autoCloseDuration: duration,
+        title: title != null
+            ? Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
-              ),
-            ),
-          ],
+              )
+            : null,
+        description: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
         ),
-        backgroundColor: bgColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        duration: duration,
-        action: action,
-        elevation: 4,
-      ),
-    );
+        alignment: Alignment.bottomCenter,
+        direction: TextDirection.ltr,
+        animationDuration: const Duration(milliseconds: 300),
+        icon: Icon(iconData, color: primaryColor, size: 20),
+        primaryColor: primaryColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+        showProgressBar: false,
+        closeButton: const ToastCloseButton(showType: CloseButtonShowType.none),
+        dragToClose: true,
+      );
+    } catch (e) {
+      debugPrint(
+        'ToastUtils: Toastification is not available or UI not mounted: $e',
+      );
+    }
   }
 
   /// Toast thành công
-  static void showSuccess(BuildContext context, String message) {
-    showToast(context, message, type: ToastType.success);
+  static void showSuccess(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) {
+    showToast(message, context: context, type: ToastType.success, title: title);
   }
 
   /// Toast thất bại / lỗi
-  static void showError(BuildContext context, String message) {
-    showToast(context, message, type: ToastType.error);
+  static void showError(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) {
+    showToast(message, context: context, type: ToastType.error, title: title);
   }
 
   /// Toast cảnh báo
-  static void showWarning(BuildContext context, String message) {
-    showToast(context, message, type: ToastType.warning);
+  static void showWarning(
+    String message, {
+    BuildContext? context,
+    String? title,
+  }) {
+    showToast(message, context: context, type: ToastType.warning, title: title);
   }
 
   /// Toast thông tin
-  static void showInfo(BuildContext context, String message) {
-    showToast(context, message, type: ToastType.info);
+  static void showInfo(String message, {BuildContext? context, String? title}) {
+    showToast(message, context: context, type: ToastType.info, title: title);
   }
 
-  /// Sao chép vào clipboard và hiện Toast báo thành công
+  /// Sao chép vào clipboard và hiện Toast báo thành công (không bắt buộc context)
   static Future<void> copyToClipboard(
-    BuildContext context,
     String text, {
+    BuildContext? context,
     String successMessage = 'Đã sao chép vào bộ nhớ tạm',
   }) async {
     await Clipboard.setData(ClipboardData(text: text));
-    if (context.mounted) {
-      showSuccess(context, successMessage);
-    }
+    showSuccess(successMessage);
   }
 }
