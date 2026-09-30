@@ -46,12 +46,12 @@ class PairedReceiversBody extends StatelessWidget {
                     'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
                 actionLabel: 'Tạo mã QR ghép đôi',
                 onAction: () async {
-                  await Navigator.of(context).push(
+                  final changed = await Navigator.of(context).push<bool>(
                     MaterialPageRoute(
                       builder: (_) => const PairingSenderPage(),
                     ),
                   );
-                  if (context.mounted) {
+                  if (changed == true && context.mounted) {
                     BlocProvider.of<PairedReceiversBloc>(context).add(
                       const PairedReceiversLoadEvent(),
                     );

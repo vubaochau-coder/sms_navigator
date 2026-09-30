@@ -93,15 +93,13 @@ class PairedSenderCard extends StatelessWidget {
             ],
           ),
           const Divider(height: 20),
-          CopyableInfoRow(
+          PlainInfoRow(
             label: 'Pair ID',
             value: item.pairId,
-            copySuccessMessage: 'Đã sao chép Pair ID',
           ),
-          CopyableInfoRow(
+          PlainInfoRow(
             label: 'Sender ID',
             value: item.deviceId,
-            copySuccessMessage: 'Đã sao chép Device ID người gửi',
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),

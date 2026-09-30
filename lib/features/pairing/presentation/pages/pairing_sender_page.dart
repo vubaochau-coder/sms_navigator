@@ -210,19 +210,26 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(12);
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onRegenerate,
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+            ),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Làm Mới Mã QR'),
+            label: const Text('Làm Mới'),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: FilledButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+            ),
             child: const Text('Hoàn Tất'),
           ),
         ),

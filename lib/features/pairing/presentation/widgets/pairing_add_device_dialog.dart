@@ -29,10 +29,10 @@ class PairingAddDeviceDialog extends StatelessWidget {
 
   Future<void> _openCreateQr(BuildContext context) async {
     Navigator.of(context).pop();
-    await Navigator.of(context).push(
+    final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const PairingSenderPage()),
     );
-    if (context.mounted) {
+    if (changed == true && context.mounted) {
       BlocProvider.of<PairedReceiversBloc>(context).add(
         const PairedReceiversLoadEvent(),
       );

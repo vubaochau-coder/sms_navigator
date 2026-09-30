@@ -37,6 +37,7 @@ class OtpContentView extends StatelessWidget {
   Widget _buildFlatList(BuildContext context) {
     return ListView.builder(
       padding: Dimens.screenPadding,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
@@ -48,6 +49,7 @@ class OtpContentView extends StatelessWidget {
   Widget _buildGroupedList(BuildContext context, ColorScheme colorScheme) {
     return ListView(
       padding: Dimens.screenPadding,
+      physics: const AlwaysScrollableScrollPhysics(),
       children: groupedByDevice.entries.map((entry) {
         final deviceName = entry.key;
         final list = entry.value;
