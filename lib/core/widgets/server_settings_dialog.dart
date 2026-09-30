@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/sender/data/services/native_relay_service.dart';
 import '../constants/api_endpoints.dart';
@@ -7,20 +8,20 @@ import '../utils/ui_utils.dart';
 
 /// Dialog cài đặt Server URL dùng chung cho Sender & Receiver Dashboard.
 ///
-/// - Đọc URL hiện tại từ [DeviceStorageService].
+/// - Đọc URL hiện tại từ [DeviceStorageService] lấy qua context.
 /// - Lưu URL mới vào storage; `ApiClient` sẽ tự dùng URL mới ở request kế
 ///   tiếp (đọc động qua serverUrlProvider).
 /// - Nếu thiết bị đã ghép đôi (Sender), cập nhật lại `relayUrl` cho Android
 ///   native để worker vẫn gửi tới đúng server.
 class ServerSettingsDialog extends StatefulWidget {
-  const ServerSettingsDialog({
-    super.key,
-    required this.deviceStorageService,
-    required this.nativeRelayService,
-  });
+  const ServerSettingsDialog({super.key});
 
-  final DeviceStorageService deviceStorageService;
-  final NativeRelayService nativeRelayService;
+  static Future<String?> show(BuildContext context) {
+    return showDialog<String>(
+      context: context,
+      builder: (_) => const ServerSettingsDialog(),
+    );
+  }
 
   @override
   State<ServerSettingsDialog> createState() => _ServerSettingsDialogState();
@@ -50,7 +51,8 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
   }
 
   Future<void> _loadCurrentUrl() async {
-    final currentUrl = await widget.deviceStorageService.getServerUrl();
+    final storageService = context.read<DeviceStorageService>();
+    final currentUrl = await storageService.getServerUrl();
     if (!mounted) return;
     setState(() {
       _urlController.text = currentUrl ?? '';
@@ -81,13 +83,16 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
     setState(() => _isSaving = true);
 
     try {
-      await widget.deviceStorageService.saveServerUrl(normalizedUrl);
+      final storageService = context.read<DeviceStorageService>();
+      final nativeRelayService = context.read<NativeRelayService>();
+
+      await storageService.saveServerUrl(normalizedUrl);
 
       // Cập nhật relayUrl cho Android native nếu thiết bị đang ghép đôi.
-      final config = await widget.nativeRelayService.getRelayConfig();
+      final config = await nativeRelayService.getRelayConfig();
       final pairId = config['pairId']?.toString() ?? '';
       if (pairId.isNotEmpty) {
-        await widget.nativeRelayService.setRelayConfig(
+        await nativeRelayService.setRelayConfig(
           isRelayEnabled: config['isRelayEnabled'] == true,
           pairId: pairId,
           sharedSecretBase64: config['sharedSecretBase64']?.toString(),
@@ -98,85 +103,103 @@ class _ServerSettingsDialogState extends State<ServerSettingsDialog> {
       if (!mounted) return;
       Navigator.of(context).pop(normalizedUrl);
       UiUtils.showSuccessToast('Đã lưu cấu hình server: $normalizedUrl');
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      setState(() => _isSaving = false);
-      UiUtils.showErrorToast('Không thể lưu cấu hình. Thử lại sau.');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi lưu cấu hình: $e')));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return AlertDialog(
       title: const Row(
         children: [
-          Icon(Icons.dns_rounded, size: 22),
+          Icon(Icons.dns_rounded),
           SizedBox(width: 8),
-          Text('Cài Đặt Server'),
+          Text('Cấu hình Server URL'),
         ],
       ),
-      content: _isLoading
-          ? const SizedBox(
-              width: 280,
-              height: 80,
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Địa chỉ máy chủ chuyển tiếp OTP. Dùng IP LAN hoặc domain để test trên máy thật.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: _urlController,
-                  keyboardType: TextInputType.url,
-                  enabled: !_isSaving,
-                  autocorrect: false,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colorScheme.onSurface,
-                    fontFamily: 'monospace',
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Server URL',
-                    hintText: 'http://192.168.1.10:3000',
-                    prefixIcon: const Icon(Icons.link_rounded, size: 20),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    for (final url in _suggestedUrls)
-                      ActionChip(
-                        label: Text(url),
-                        onPressed: _isSaving
-                            ? null
-                            : () => _urlController.text = url,
-                      ),
-                  ],
-                ),
-              ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Địa chỉ máy chủ nhận và chuyển tiếp OTP. Cả Sender và Receiver '
+              'cần kết nối tới cùng máy chủ.',
+              style: TextStyle(fontSize: 13),
             ),
+            const SizedBox(height: 16),
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else ...[
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                autocorrect: false,
+                decoration: InputDecoration(
+                  labelText: 'Server URL',
+                  hintText: 'http://192.168.1.x:3000',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.link_rounded),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear_rounded),
+                    onPressed: () => _urlController.clear(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Gợi ý nhanh:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: _suggestedUrls.map((url) {
+                  return ActionChip(
+                    label: Text(url, style: const TextStyle(fontSize: 11)),
+                    onPressed: () {
+                      _urlController.text = url;
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Lưu ý: Nếu dùng thiết bị thật, hãy dùng địa chỉ IP LAN của máy tính '
+                '(ví dụ: http://192.168.1.15:3000).',
+                style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ],
+        ),
+      ),
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Đóng'),
+          child: const Text('Hủy'),
         ),
         FilledButton.icon(
           onPressed: (_isSaving || _isLoading) ? null : _save,
-          icon: const Icon(Icons.save_rounded, size: 18),
-          label: const Text('Lưu Cấu Hình'),
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_rounded),
+          label: const Text('Lưu'),
         ),
       ],
     );

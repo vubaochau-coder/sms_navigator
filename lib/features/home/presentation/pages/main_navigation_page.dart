@@ -52,10 +52,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: (Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black
-                      : Colors.black)
-                  .withValues(alpha: 0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               blurRadius: 8,
               offset: const Offset(0, 0),
             ),

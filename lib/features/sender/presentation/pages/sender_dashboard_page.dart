@@ -25,13 +25,7 @@ class SenderDashboardPage extends StatelessWidget {
   const SenderDashboardPage({super.key});
 
   void _showServerSettingsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => ServerSettingsDialog(
-        deviceStorageService: context.read<DeviceStorageService>(),
-        nativeRelayService: context.read<NativeRelayService>(),
-      ),
-    );
+    ServerSettingsDialog.show(context);
   }
 
   Future<void> _showSimulateOtpDialog(BuildContext context) async {

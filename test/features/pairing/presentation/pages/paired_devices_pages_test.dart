@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/paired_device_item.dart';
 import 'package:sms_navigator/features/pairing/data/services/pair_management_service.dart';
@@ -55,7 +56,10 @@ void main() {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        MaterialApp(home: PairedReceiversPage(pairManagementService: mock)),
+        RepositoryProvider<PairManagementService>.value(
+          value: mock,
+          child: const MaterialApp(home: PairedReceiversPage()),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -80,7 +84,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          MaterialApp(home: PairedReceiversPage(pairManagementService: mock)),
+          RepositoryProvider<PairManagementService>.value(
+            value: mock,
+            child: const MaterialApp(home: PairedReceiversPage()),
+          ),
         );
         await tester.pumpAndSettle();
 
@@ -108,7 +115,10 @@ void main() {
       final mock = _MockPairManagementService();
 
       await tester.pumpWidget(
-        MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
+        RepositoryProvider<PairManagementService>.value(
+          value: mock,
+          child: const MaterialApp(home: PairedSendersPage()),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -134,7 +144,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
+          RepositoryProvider<PairManagementService>.value(
+            value: mock,
+            child: const MaterialApp(home: PairedSendersPage()),
+          ),
         );
         await tester.pumpAndSettle();
 
@@ -167,7 +180,10 @@ void main() {
         ];
 
         await tester.pumpWidget(
-          MaterialApp(home: PairedSendersPage(pairManagementService: mock)),
+          RepositoryProvider<PairManagementService>.value(
+            value: mock,
+            child: const MaterialApp(home: PairedSendersPage()),
+          ),
         );
         await tester.pumpAndSettle();
 

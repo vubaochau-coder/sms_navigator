@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../../core/widgets/theme_toggle_button.dart';
-import '../../../sender/data/services/native_relay_service.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_state.dart';
 
@@ -15,13 +13,7 @@ class OtpCompactHeader extends StatelessWidget {
   const OtpCompactHeader({super.key});
 
   void _openServerSettings(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => ServerSettingsDialog(
-        deviceStorageService: context.read<DeviceStorageService>(),
-        nativeRelayService: context.read<NativeRelayService>(),
-      ),
-    );
+    ServerSettingsDialog.show(context);
   }
 
   @override

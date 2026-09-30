@@ -1,25 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
+import '../bloc/paired_receivers_bloc.dart';
+import '../bloc/paired_receivers_event.dart';
 
-/// Thẻ hiển thị thiết bị nhận đã ghép đôi kèm công tắc bật/tắt gửi.
+/// Thẻ hiển thị thiết bị nhận đã ghép đôi kèm công tắc bật/tắt gửi (Tự quản lý tương tác với BLoC).
 class PairedReceiverCard extends StatelessWidget {
   const PairedReceiverCard({
     super.key,
     required this.item,
-    required this.isToggling,
-    required this.onToggleActive,
-    required this.onRevokePair,
   });
 
   final PairedDeviceItem item;
-  final bool isToggling;
-  final ValueChanged<bool> onToggleActive;
-  final VoidCallback onRevokePair;
+
+  void _onToggleActive(BuildContext context, bool newValue) {
+    BlocProvider.of<PairedReceiversBloc>(context).add(
+      PairedReceiversToggleActiveEvent(
+        pairId: item.pairId,
+        isActive: newValue,
+        displayName: item.displayName,
+      ),
+    );
+  }
+
+  Future<void> _confirmRevokePair(BuildContext context) async {
+    final confirmed = await UiUtils.showConfirmDialog(
+      context,
+      title: 'Hủy kết nối thiết bị?',
+      message:
+          'Bạn có chắc chắn muốn ngắt kết nối với "${item.displayName}"? Thiết bị này sẽ không thể nhận OTP từ bạn nữa.',
+      confirmText: 'Ngắt kết nối',
+      isDestructive: true,
+      icon: Icons.link_off_rounded,
+    );
+
+    if (confirmed && context.mounted) {
+      BlocProvider.of<PairedReceiversBloc>(context).add(
+        PairedReceiversRevokeEvent(pairId: item.pairId),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isToggling = context.select<PairedReceiversBloc, bool>(
+      (b) => b.state.togglingPairIds.contains(item.pairId),
+    );
+
     return InfoCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
@@ -148,7 +179,7 @@ class PairedReceiverCard extends StatelessWidget {
                     Switch(
                       value: item.isActive,
                       activeTrackColor: AppColors.success,
-                      onChanged: onToggleActive,
+                      onChanged: (val) => _onToggleActive(context, val),
                     ),
                   const SizedBox(width: 8),
                   Text(
@@ -171,7 +202,7 @@ class PairedReceiverCard extends StatelessWidget {
                   color: AppColors.error,
                 ),
                 tooltip: 'Hủy ghép đôi',
-                onPressed: onRevokePair,
+                onPressed: () => _confirmRevokePair(context),
               ),
             ],
           ),

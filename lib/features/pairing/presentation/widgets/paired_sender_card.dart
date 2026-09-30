@@ -1,18 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
+import '../bloc/paired_senders_bloc.dart';
+import '../bloc/paired_senders_event.dart';
 
-/// Thẻ hiển thị thiết bị gửi đã ghép đôi (chỉ xem trạng thái người gửi).
+/// Thẻ hiển thị thiết bị gửi đã ghép đôi (Tự quản lý tương tác với BLoC, không truyền callback).
 class PairedSenderCard extends StatelessWidget {
   const PairedSenderCard({
     super.key,
     required this.item,
-    required this.onRevokePair,
   });
 
   final PairedDeviceItem item;
-  final VoidCallback onRevokePair;
+
+  Future<void> _confirmRevokePair(BuildContext context) async {
+    final confirmed = await UiUtils.showConfirmDialog(
+      context,
+      title: 'Hủy kết nối máy gửi?',
+      message:
+          'Bạn có chắc chắn muốn ngắt kết nối với "${item.displayName}"? Bạn sẽ không nhận được OTP từ thiết bị này nữa.',
+      confirmText: 'Ngắt kết nối',
+      isDestructive: true,
+      icon: Icons.link_off_rounded,
+    );
+
+    if (confirmed && context.mounted) {
+      BlocProvider.of<PairedSendersBloc>(context).add(
+        PairedSendersRevokeEvent(pairId: item.pairId),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +189,7 @@ class PairedSenderCard extends StatelessWidget {
                     color: AppColors.error,
                   ),
                   tooltip: 'Hủy ghép đôi',
-                  onPressed: onRevokePair,
+                  onPressed: () => _confirmRevokePair(context),
                 ),
               ],
             ),
