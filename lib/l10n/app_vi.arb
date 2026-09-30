@@ -1,0 +1,98 @@
+{
+  "@@locale": "vi",
+  "appTitle": "OTP Relay",
+  "roleSelectionTitle": "Chọn Chế Độ Hoạt Động",
+  "roleSelectionSubtitle": "Ghép đôi và tự động chuyển tiếp OTP giữa Việt Nam và Malaysia",
+  "roleSenderTitle": "Máy Gửi (Việt Nam)",
+  "roleSenderDesc": "Điện thoại cắm SIM Viettel nhận SMS OTP và tự động chuyển tiếp ngầm.",
+  "roleReceiverTitle": "Máy Nhận (Malaysia)",
+  "roleReceiverDesc": "Nhận mã OTP qua Internet và hiển thị thông báo tức thì kèm nút sao chép.",
+  "pairingTitle": "Ghép Đôi Thiết Bị",
+  "pairingSenderGuide": "Hiển thị mã QR để thiết bị Máy Nhận quét và thiết lập kênh E2EE.",
+  "pairingReceiverGuide": "Quét mã QR trên Máy Gửi để thiết lập kênh mã hóa E2EE.",
+  "senderDashboardTitle": "Bảng Điều Khiển Máy Gửi",
+  "receiverDashboardTitle": "Danh Sách OTP Nhận Được",
+  "statusOnline": "Đang hoạt động",
+  "statusOffline": "Đang tạm dừng",
+  "statusWaitingPair": "Chưa ghép đôi",
+  "batteryOptimizationTitle": "Tối ưu hóa Pin",
+  "batteryOptimizationDesc": "Cho phép app chạy ngầm không bị hệ điều hành tắt để nhận SMS.",
+  "confirm": "Xác nhận",
+  "cancel": "Hủy bỏ",
+  "close": "Đóng",
+  "copy": "Sao chép",
+  "copiedToClipboard": "Đã sao chép vào bộ nhớ tạm",
+  "copiedWithLabel": "Đã sao chép {label}: {value}",
+  "@copiedWithLabel": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "success": "Thành công",
+  "error": "Lỗi",
+  "warning": "Cảnh báo",
+  "info": "Thông tin",
+  "pairingGenerateQr": "Tạo mã QR ghép đôi",
+  "pairingScanQr": "Quét mã QR",
+  "pairingSuccess": "Ghép đôi thiết bị thành công!",
+  "pairingFailed": "Ghép đôi thất bại. Vui lòng thử lại!",
+  "pairingQrExpired": "Mã QR không hợp lệ hoặc đã hết hạn.",
+  "disconnect": "Ngắt kết nối",
+  "disconnectSuccess": "Đã hủy kết nối thành công",
+  "disconnectFailed": "Không thể hủy kết nối",
+  "confirmRevokeSenderTitle": "Hủy kết nối máy gửi?",
+  "confirmRevokeSenderMessage": "Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Bạn sẽ không nhận được OTP từ thiết bị này nữa.",
+  "@confirmRevokeSenderMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "confirmRevokeReceiverTitle": "Hủy kết nối thiết bị?",
+  "confirmRevokeReceiverMessage": "Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Thiết bị này sẽ không thể nhận OTP từ bạn nữa.",
+  "@confirmRevokeReceiverMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "relayEnabled": "Đã kích hoạt dịch vụ chuyển tiếp",
+  "relayDisabled": "Đã tạm dừng dịch vụ chuyển tiếp",
+  "relayModeOtpOnly": "Chỉ chuyển tiếp mã OTP",
+  "relayModeAllSms": "Chuyển tiếp tất cả SMS",
+  "relayModeChanged": "Đã chuyển sang chế độ: {mode}",
+  "@relayModeChanged": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "addWhitelistSuccess": "Đã thêm đầu số {prefix} vào bộ lọc",
+  "@addWhitelistSuccess": {
+    "placeholders": {
+      "prefix": { "type": "String" }
+    }
+  },
+  "removeWhitelistSuccess": "Đã xóa đầu số {prefix}",
+  "@removeWhitelistSuccess": {
+    "placeholders": {
+      "prefix": { "type": "String" }
+    }
+  },
+  "addWhitelistHint": "Nhập đầu số hoặc tên đơn vị gửi (VD: VCB, BIDV, 1555)",
+  "otpListTitle": "Lịch sử nhận OTP",
+  "otpListEmpty": "Chưa có mã OTP nào được ghi nhận",
+  "otpDetailTitle": "Chi tiết tin nhắn OTP",
+  "otpCopied": "Đã sao chép mã OTP",
+  "filterByDate": "Lọc theo ngày",
+  "groupByDevice": "Gom nhóm theo thiết bị",
+  "senderDevice": "Thiết bị gửi",
+  "receivedAt": "Thời gian nhận",
+  "content": "Nội dung",
+  "serverSettingsTitle": "Cấu hình Server Backend",
+  "serverSettingsSaved": "Đã lưu cấu hình server: {url}",
+  "@serverSettingsSaved": {
+    "placeholders": {
+      "url": { "type": "String" }
+    }
+  },
+  "serverSettingsFailed": "Không thể lưu cấu hình. Thử lại sau."
+}

@@ -4,6 +4,31 @@ import 'package:flutter/material.dart';
 class BottomSheetUtils {
   BottomSheetUtils._();
 
+  // ==========================================
+  // HẰNG SỐ GIAO DIỆN CHUẨN (UI TOKENS)
+  // Các màn hình hoặc component custom có thể dùng làm chuẩn
+  // ==========================================
+  static const double topRadius = 20.0;
+  static const BorderRadius borderRadius = BorderRadius.vertical(
+    top: Radius.circular(topRadius),
+  );
+
+  static const double dragHandleWidth = 36.0;
+  static const double dragHandleHeight = 4.0;
+  static const double dragHandleRadius = 2.0;
+  static const EdgeInsets dragHandleMargin = EdgeInsets.only(
+    top: 10,
+    bottom: 4,
+  );
+
+  static const EdgeInsets headerPadding = EdgeInsets.fromLTRB(16, 12, 16, 8);
+  static const double titleFontSize = 16.0;
+  static const double closeIconSize = 20.0;
+
+  static const List<BoxShadow> defaultBoxShadow = [
+    BoxShadow(color: Color(0x26000000), blurRadius: 16, offset: Offset(0, -4)),
+  ];
+
   /// Modal Bottom Sheet chuẩn hóa dạng Soft Modern
   static Future<T?> showAppBottomSheet<T>(
     BuildContext context, {
@@ -22,48 +47,45 @@ class BottomSheetUtils {
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         decoration: BoxDecoration(
           color: Theme.of(ctx).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
+          borderRadius: borderRadius,
+          boxShadow: defaultBoxShadow,
         ),
         child: SafeArea(
           top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 10),
               // Drag handle
               Center(
                 child: Container(
-                  width: 36,
-                  height: 4,
+                  margin: dragHandleMargin,
+                  width: dragHandleWidth,
+                  height: dragHandleHeight,
                   decoration: BoxDecoration(
                     color: Colors.grey.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(dragHandleRadius),
                   ),
                 ),
               ),
               if (title != null) ...[
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  padding: headerPadding,
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           title,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: titleFontSize,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 20),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: closeIconSize,
+                        ),
                         onPressed: () => Navigator.of(ctx).pop(),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

@@ -12,12 +12,30 @@ enum ToastType { success, error, warning, info }
 class ToastUtils {
   ToastUtils._();
 
+  // ==========================================
+  // HẰNG SỐ GIAO DIỆN CHUẨN (UI TOKENS)
+  // Các màn hình hoặc component custom có thể dùng làm chuẩn
+  // ==========================================
+  static const double borderRadiusValue = 12.0;
+  static const BorderRadius borderRadius = BorderRadius.all(
+    Radius.circular(borderRadiusValue),
+  );
+  static const double iconSize = 20.0;
+  static const double titleFontSize = 14.0;
+  static const double messageFontSize = 13.0;
+  static const Duration defaultDuration = Duration(seconds: 3);
+  static const Duration animationDuration = Duration(milliseconds: 300);
+  static const Alignment defaultAlignment = Alignment.bottomCenter;
+  static const List<BoxShadow> defaultBoxShadow = [
+    BoxShadow(color: Color(0x1F000000), blurRadius: 12, offset: Offset(0, 4)),
+  ];
+
   /// Hiển thị Toast thông báo (không bắt buộc context)
   static void showToast(
     String message, {
     BuildContext? context,
     ToastType type = ToastType.info,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = defaultDuration,
     String? title,
   }) {
     try {
@@ -58,27 +76,24 @@ class ToastUtils {
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 14,
+                  fontSize: titleFontSize,
                 ),
               )
             : null,
         description: Text(
           message,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-        ),
-        alignment: Alignment.bottomCenter,
-        direction: TextDirection.ltr,
-        animationDuration: const Duration(milliseconds: 300),
-        icon: Icon(iconData, color: primaryColor, size: 20),
-        primaryColor: primaryColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: messageFontSize,
           ),
-        ],
+        ),
+        alignment: defaultAlignment,
+        direction: TextDirection.ltr,
+        animationDuration: animationDuration,
+        icon: Icon(iconData, color: primaryColor, size: iconSize),
+        primaryColor: primaryColor,
+        borderRadius: borderRadius,
+        boxShadow: defaultBoxShadow,
         showProgressBar: false,
         closeButton: const ToastCloseButton(showType: CloseButtonShowType.none),
         dragToClose: true,

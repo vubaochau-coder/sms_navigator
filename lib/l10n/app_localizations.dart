@@ -1,0 +1,482 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_vi.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[Locale('vi')];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'OTP Relay'**
+  String get appTitle;
+
+  /// No description provided for @roleSelectionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn Chế Độ Hoạt Động'**
+  String get roleSelectionTitle;
+
+  /// No description provided for @roleSelectionSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi và tự động chuyển tiếp OTP giữa Việt Nam và Malaysia'**
+  String get roleSelectionSubtitle;
+
+  /// No description provided for @roleSenderTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy Gửi (Việt Nam)'**
+  String get roleSenderTitle;
+
+  /// No description provided for @roleSenderDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Điện thoại cắm SIM Viettel nhận SMS OTP và tự động chuyển tiếp ngầm.'**
+  String get roleSenderDesc;
+
+  /// No description provided for @roleReceiverTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy Nhận (Malaysia)'**
+  String get roleReceiverTitle;
+
+  /// No description provided for @roleReceiverDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận mã OTP qua Internet và hiển thị thông báo tức thì kèm nút sao chép.'**
+  String get roleReceiverDesc;
+
+  /// No description provided for @pairingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép Đôi Thiết Bị'**
+  String get pairingTitle;
+
+  /// No description provided for @pairingSenderGuide.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hiển thị mã QR để thiết bị Máy Nhận quét và thiết lập kênh E2EE.'**
+  String get pairingSenderGuide;
+
+  /// No description provided for @pairingReceiverGuide.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét mã QR trên Máy Gửi để thiết lập kênh mã hóa E2EE.'**
+  String get pairingReceiverGuide;
+
+  /// No description provided for @senderDashboardTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bảng Điều Khiển Máy Gửi'**
+  String get senderDashboardTitle;
+
+  /// No description provided for @receiverDashboardTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Danh Sách OTP Nhận Được'**
+  String get receiverDashboardTitle;
+
+  /// No description provided for @statusOnline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang hoạt động'**
+  String get statusOnline;
+
+  /// No description provided for @statusOffline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tạm dừng'**
+  String get statusOffline;
+
+  /// No description provided for @statusWaitingPair.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa ghép đôi'**
+  String get statusWaitingPair;
+
+  /// No description provided for @batteryOptimizationTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối ưu hóa Pin'**
+  String get batteryOptimizationTitle;
+
+  /// No description provided for @batteryOptimizationDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cho phép app chạy ngầm không bị hệ điều hành tắt để nhận SMS.'**
+  String get batteryOptimizationDesc;
+
+  /// No description provided for @confirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận'**
+  String get confirm;
+
+  /// No description provided for @cancel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy bỏ'**
+  String get cancel;
+
+  /// No description provided for @close.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng'**
+  String get close;
+
+  /// No description provided for @copy.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép'**
+  String get copy;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép vào bộ nhớ tạm'**
+  String get copiedToClipboard;
+
+  /// No description provided for @copiedWithLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép {label}: {value}'**
+  String copiedWithLabel(String label, String value);
+
+  /// No description provided for @success.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thành công'**
+  String get success;
+
+  /// No description provided for @error.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi'**
+  String get error;
+
+  /// No description provided for @warning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cảnh báo'**
+  String get warning;
+
+  /// No description provided for @info.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin'**
+  String get info;
+
+  /// No description provided for @pairingGenerateQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo mã QR ghép đôi'**
+  String get pairingGenerateQr;
+
+  /// No description provided for @pairingScanQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét mã QR'**
+  String get pairingScanQr;
+
+  /// No description provided for @pairingSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi thiết bị thành công!'**
+  String get pairingSuccess;
+
+  /// No description provided for @pairingFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi thất bại. Vui lòng thử lại!'**
+  String get pairingFailed;
+
+  /// No description provided for @pairingQrExpired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR không hợp lệ hoặc đã hết hạn.'**
+  String get pairingQrExpired;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngắt kết nối'**
+  String get disconnect;
+
+  /// No description provided for @disconnectSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hủy kết nối thành công'**
+  String get disconnectSuccess;
+
+  /// No description provided for @disconnectFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể hủy kết nối'**
+  String get disconnectFailed;
+
+  /// No description provided for @confirmRevokeSenderTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy kết nối máy gửi?'**
+  String get confirmRevokeSenderTitle;
+
+  /// No description provided for @confirmRevokeSenderMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Bạn sẽ không nhận được OTP từ thiết bị này nữa.'**
+  String confirmRevokeSenderMessage(String name);
+
+  /// No description provided for @confirmRevokeReceiverTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy kết nối thiết bị?'**
+  String get confirmRevokeReceiverTitle;
+
+  /// No description provided for @confirmRevokeReceiverMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Thiết bị này sẽ không thể nhận OTP từ bạn nữa.'**
+  String confirmRevokeReceiverMessage(String name);
+
+  /// No description provided for @relayEnabled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã kích hoạt dịch vụ chuyển tiếp'**
+  String get relayEnabled;
+
+  /// No description provided for @relayDisabled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã tạm dừng dịch vụ chuyển tiếp'**
+  String get relayDisabled;
+
+  /// No description provided for @relayModeOtpOnly.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ chuyển tiếp mã OTP'**
+  String get relayModeOtpOnly;
+
+  /// No description provided for @relayModeAllSms.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuyển tiếp tất cả SMS'**
+  String get relayModeAllSms;
+
+  /// No description provided for @relayModeChanged.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chuyển sang chế độ: {mode}'**
+  String relayModeChanged(String mode);
+
+  /// No description provided for @addWhitelistSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thêm đầu số {prefix} vào bộ lọc'**
+  String addWhitelistSuccess(String prefix);
+
+  /// No description provided for @removeWhitelistSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xóa đầu số {prefix}'**
+  String removeWhitelistSuccess(String prefix);
+
+  /// No description provided for @addWhitelistHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập đầu số hoặc tên đơn vị gửi (VD: VCB, BIDV, 1555)'**
+  String get addWhitelistHint;
+
+  /// No description provided for @otpListTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử nhận OTP'**
+  String get otpListTitle;
+
+  /// No description provided for @otpListEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có mã OTP nào được ghi nhận'**
+  String get otpListEmpty;
+
+  /// No description provided for @otpDetailTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết tin nhắn OTP'**
+  String get otpDetailTitle;
+
+  /// No description provided for @otpCopied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép mã OTP'**
+  String get otpCopied;
+
+  /// No description provided for @filterByDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lọc theo ngày'**
+  String get filterByDate;
+
+  /// No description provided for @groupByDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gom nhóm theo thiết bị'**
+  String get groupByDevice;
+
+  /// No description provided for @senderDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị gửi'**
+  String get senderDevice;
+
+  /// No description provided for @receivedAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thời gian nhận'**
+  String get receivedAt;
+
+  /// No description provided for @content.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nội dung'**
+  String get content;
+
+  /// No description provided for @serverSettingsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấu hình Server Backend'**
+  String get serverSettingsTitle;
+
+  /// No description provided for @serverSettingsSaved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã lưu cấu hình server: {url}'**
+  String serverSettingsSaved(String url);
+
+  /// No description provided for @serverSettingsFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lưu cấu hình. Thử lại sau.'**
+  String get serverSettingsFailed;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['vi'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'vi':
+      return AppLocalizationsVi();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

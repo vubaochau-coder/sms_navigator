@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toastification/toastification.dart';
 import 'core/constants/app_strings.dart';
 import 'core/di/injection.dart';
+import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/pairing/presentation/bloc/pairing_bloc.dart';
@@ -39,6 +40,9 @@ class OtpRelayApp extends StatelessWidget {
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('vi'),
               navigatorObservers: [
                 if (di.analyticsService.observer != null)
                   di.analyticsService.observer!,

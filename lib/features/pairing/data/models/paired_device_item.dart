@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/data_converter.dart';
 import '../../../../core/utils/date_time_utils.dart';
 
 /// Đại diện cho thiết bị đã ghép nối (dành cho cả danh sách Receiver của Sender và Sender của Receiver)
@@ -71,34 +72,26 @@ class PairedDeviceItem extends Equatable {
 
   factory PairedDeviceItem.fromReceiverJson(Map<String, dynamic> json) {
     return PairedDeviceItem(
-      pairId: json['pair_id']?.toString() ?? '',
-      deviceId: json['receiver_device_id']?.toString() ?? '',
-      isActive: json['is_active'] != false,
-      deviceName: json['device_name']?.toString(),
-      platform: json['platform']?.toString(),
-      pairedAt: (json['paired_at'] is num)
-          ? (json['paired_at'] as num).toInt()
-          : null,
-      lastRelayedAt: (json['last_relayed_at'] is num)
-          ? (json['last_relayed_at'] as num).toInt()
-          : null,
+      pairId: DataConverter.cvToString(json['pair_id'], '')!,
+      deviceId: DataConverter.cvToString(json['receiver_device_id'], '')!,
+      isActive: DataConverter.cvToBool(json['is_active'], true)!,
+      deviceName: DataConverter.cvToString(json['device_name']),
+      platform: DataConverter.cvToString(json['platform']),
+      pairedAt: DataConverter.cvToInt(json['paired_at']),
+      lastRelayedAt: DataConverter.cvToInt(json['last_relayed_at']),
       isSender: false,
     );
   }
 
   factory PairedDeviceItem.fromSenderJson(Map<String, dynamic> json) {
     return PairedDeviceItem(
-      pairId: json['pair_id']?.toString() ?? '',
-      deviceId: json['sender_device_id']?.toString() ?? '',
-      isActive: json['is_active'] != false,
-      deviceName: json['device_name']?.toString(),
-      platform: json['platform']?.toString(),
-      pairedAt: (json['paired_at'] is num)
-          ? (json['paired_at'] as num).toInt()
-          : null,
-      lastRelayedAt: (json['last_relayed_at'] is num)
-          ? (json['last_relayed_at'] as num).toInt()
-          : null,
+      pairId: DataConverter.cvToString(json['pair_id'], '')!,
+      deviceId: DataConverter.cvToString(json['sender_device_id'], '')!,
+      isActive: DataConverter.cvToBool(json['is_active'], true)!,
+      deviceName: DataConverter.cvToString(json['device_name']),
+      platform: DataConverter.cvToString(json['platform']),
+      pairedAt: DataConverter.cvToInt(json['paired_at']),
+      lastRelayedAt: DataConverter.cvToInt(json['last_relayed_at']),
       isSender: true,
     );
   }
