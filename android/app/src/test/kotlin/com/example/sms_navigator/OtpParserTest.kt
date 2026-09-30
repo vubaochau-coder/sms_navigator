@@ -235,7 +235,38 @@ class OtpParserTest {
     }
 
     // ==========================================
-    // 5. CÁC TRƯỜNG HỢP TIÊU CỰC VÀ BIÊN (NEGATIVE & EDGE CASES)
+    // 5. TIN NHẮN THẬT TỪ THIẾT BỊ (REAL-WORLD SMS SAMPLES)
+    // ==========================================
+
+    @Test
+    fun testRealWorldQsmsEnglish() {
+        val message = "[Qsms] Your verification code is 941749. For account safety, don't forward the code to others."
+        val result = OtpParser.extractOtp("Qsms", message)
+
+        assertNotNull(result)
+        assertEquals("941749", result?.otp)
+    }
+
+    @Test
+    fun testRealWorldChineseKingfa() {
+        val message = "[金发科技]验证码为：856530，您正在登录，若非本人操作，请勿泄露。"
+        val result = OtpParser.extractOtp("金发科技", message)
+
+        assertNotNull(result)
+        assertEquals("856530", result?.otp)
+    }
+
+    @Test
+    fun testRealWorldSsoPrefixFormat() {
+        val message = "490625 is your SSO's OTP"
+        val result = OtpParser.extractOtp("SSO", message)
+
+        assertNotNull(result)
+        assertEquals("490625", result?.otp)
+    }
+
+    // ==========================================
+    // 6. CÁC TRƯỜNG HỢP TIÊU CỰC VÀ BIÊN (NEGATIVE & EDGE CASES)
     // ==========================================
 
     @Test
@@ -310,5 +341,26 @@ class OtpParserTest {
 
         val decrypted = OtpCrypto.decrypt(encrypted.ciphertextBase64, encrypted.ivBase64, dummyKey)
         assertEquals(originalText, decrypted)
+    }
+
+    @Test
+    fun testUserThreeOtpMessages() {
+        // Message 1
+        val msg1 = "[Qsms] Your verification code is 941749. For account safety, don't forward the code to others."
+        val res1 = OtpParser.extractOtp("Qsms", msg1)
+        assertNotNull("Message 1 must be detected", res1)
+        assertEquals("941749", res1?.otp)
+
+        // Message 2
+        val msg2 = "[金发科技]验证码为：856530，您正在登录，若非本人操作，请勿泄露。"
+        val res2 = OtpParser.extractOtp("金发科技", msg2)
+        assertNotNull("Message 2 must be detected", res2)
+        assertEquals("856530", res2?.otp)
+
+        // Message 3
+        val msg3 = "490625 is your SSO's OTP"
+        val res3 = OtpParser.extractOtp("SSO", msg3)
+        assertNotNull("Message 3 must be detected", res3)
+        assertEquals("490625", res3?.otp)
     }
 }

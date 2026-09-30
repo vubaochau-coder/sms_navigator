@@ -185,6 +185,6 @@ class OtpPreferences(context: Context) {
         const val MODE_WHITELIST_ALL = "WHITELIST_ALL"
         const val MODE_ALL_SMS = "ALL_SMS"
 
-        const val DEFAULT_RELAY_URL = "https://relay-otp.example.com/api/v1/relay"
+        const val DEFAULT_RELAY_URL = "https://sms-navigator-server.onrender.com/api/v1/relay"
     }
 }
