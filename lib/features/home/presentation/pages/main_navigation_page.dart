@@ -48,33 +48,46 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         child: const Icon(Icons.qr_code_scanner_rounded),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        elevation: 12,
-        shadowColor: Colors.black.withValues(alpha: 0.18),
-        child: Row(
-          children: [
-            Expanded(
-              child: _MainNavTab(
-                icon: Icons.sms_rounded,
-                label: l10n.navTabSms,
-                selected: _selectedIndex == 0,
-                onTap: () => _selectTab(0),
-              ),
-            ),
-            const SizedBox(width: 56),
-            Expanded(
-              child: _MainNavTab(
-                icon: Icons.phonelink_setup_rounded,
-                label: l10n.navTabPairing,
-                selected: _selectedIndex == 1,
-                onTap: () => _selectTab(1),
-              ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black
+                      : Colors.black)
+                  .withValues(alpha: 0.10),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
           ],
+        ),
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8.0,
+          height: 64,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          elevation: 0,
+          child: Row(
+            children: [
+              Expanded(
+                child: _MainNavTab(
+                  icon: Icons.sms_rounded,
+                  label: l10n.navTabSms,
+                  selected: _selectedIndex == 0,
+                  onTap: () => _selectTab(0),
+                ),
+              ),
+              const SizedBox(width: 56),
+              Expanded(
+                child: _MainNavTab(
+                  icon: Icons.phonelink_setup_rounded,
+                  label: l10n.navTabPairing,
+                  selected: _selectedIndex == 1,
+                  onTap: () => _selectTab(1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
