@@ -5,10 +5,7 @@ abstract class OtpListEvent {
 }
 
 class OtpListLoadEvent extends OtpListEvent {
-  final DateTime date;
-  final String? pairId;
-
-  const OtpListLoadEvent({required this.date, this.pairId});
+  const OtpListLoadEvent();
 }
 
 class OtpListToggleGroupEvent extends OtpListEvent {

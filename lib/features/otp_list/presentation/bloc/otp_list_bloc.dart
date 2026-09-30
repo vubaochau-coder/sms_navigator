@@ -32,15 +32,12 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     emit(
       state.copyWith(
         isLoading: true,
-        selectedDate: event.date,
-        focusedDate: event.date,
         errorMessage: null,
       ),
     );
     try {
       final items = await repository.getOtpListForDate(
-        event.date,
-        pairId: event.pairId,
+        state.selectedDate,
         cancelToken: currentCancelToken,
       );
       if (emit.isDone) return;
@@ -48,8 +45,6 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
         state.copyWith(
           isLoading: false,
           items: items,
-          selectedDate: event.date,
-          focusedDate: event.date,
         ),
       );
     } on RequestCancelledException {
@@ -66,7 +61,13 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
   }
 
   Future<void> _onChangeDate(OtpListChangeDateEvent event, Emitter emit) async {
-    add(OtpListLoadEvent(date: event.selectedDate));
+    emit(
+      state.copyWith(
+        selectedDate: event.selectedDate,
+        focusedDate: event.selectedDate,
+      ),
+    );
+    add(const OtpListLoadEvent());
   }
 
   void _onToggleGroup(OtpListToggleGroupEvent event, Emitter emit) {
@@ -80,7 +81,7 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
         focusedDate: event.focusedDay,
       ),
     );
-    add(OtpListLoadEvent(date: event.selectedDay));
+    add(const OtpListLoadEvent());
   }
 
   void _onChangeFormat(OtpListChangeFormatEvent event, Emitter emit) {

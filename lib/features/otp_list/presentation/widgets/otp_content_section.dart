@@ -27,7 +27,7 @@ class OtpContentSection extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: () async {
             context.read<OtpListBloc>().add(
-                  OtpListLoadEvent(date: state.selectedDate),
+                  const OtpListLoadEvent(),
                 );
           },
           child: state.isLoading

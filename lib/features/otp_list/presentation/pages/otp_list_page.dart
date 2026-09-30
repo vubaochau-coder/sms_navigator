@@ -18,7 +18,7 @@ class OtpListPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => OtpListBloc(
         repository: DependencyContainer.instance.otpListRepository,
-      )..add(OtpListLoadEvent(date: DateTime.now())),
+      )..add(const OtpListLoadEvent()),
       child: const _OtpListView(),
     );
   }
@@ -38,7 +38,6 @@ class _OtpListView extends StatelessWidget {
             OtpCompactHeader(),
             OtpCalendarCard(),
             OtpFilterBar(),
-            Divider(height: 1),
             Expanded(
               child: OtpContentSection(),
             ),

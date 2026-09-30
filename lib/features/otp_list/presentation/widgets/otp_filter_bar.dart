@@ -16,27 +16,26 @@ class OtpFilterBar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    return BlocBuilder<OtpListBloc, OtpListState>(
-      buildWhen: (previous, current) =>
-          previous.selectedDate != current.selectedDate ||
-          previous.items.length != current.items.length ||
-          previous.isGroupingByDevice != current.isGroupingByDevice,
-      builder: (context, state) {
-        final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
-        final dateLabel = l10n != null
-            ? l10n.otpFilterDateWithCount(dateDisplay, state.items.length)
-            : 'Ngày: $dateDisplay (${state.items.length} tin)';
-        final groupLabel = l10n?.otpGroupByDevice ?? 'Nhóm theo máy';
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          BlocBuilder<OtpListBloc, OtpListState>(
+            buildWhen: (p, c) {
+              return p.selectedDate != c.selectedDate ||
+                p.items.length != c.items.length;
+            },
+            builder: (context, state) {
+              final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
+              final dateLabel = l10n != null
+                  ? l10n.otpFilterDateWithCount(dateDisplay, state.items.length)
+                  : 'Ngày: $dateDisplay (${state.items.length} tin)';
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+              return Row(
                 children: [
                   Icon(
                     Icons.calendar_today_rounded,
@@ -53,8 +52,16 @@ class OtpFilterBar extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              InkWell(
+              );
+            },
+          ),
+          BlocBuilder<OtpListBloc, OtpListState>(
+            buildWhen: (p, c) => p.isGroupingByDevice != c.isGroupingByDevice,
+            builder: (context, state) {
+              final groupLabel = l10n?.otpGroupByDevice ?? 'Nhóm theo máy';
+              final isGrouping = state.isGroupingByDevice;
+
+              return InkWell(
                 onTap: () {
                   context.read<OtpListBloc>().add(
                         const OtpListToggleGroupEvent(),
@@ -67,7 +74,7 @@ class OtpFilterBar extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: state.isGroupingByDevice
+                    color: isGrouping
                         ? colorScheme.primaryContainer
                         : colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(20),
@@ -75,11 +82,11 @@ class OtpFilterBar extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        state.isGroupingByDevice
+                        isGrouping
                             ? Icons.check_circle_rounded
                             : Icons.radio_button_unchecked_rounded,
                         size: 14,
-                        color: state.isGroupingByDevice
+                        color: isGrouping
                             ? colorScheme.primary
                             : colorScheme.onSurfaceVariant,
                       ),
@@ -89,7 +96,7 @@ class OtpFilterBar extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: state.isGroupingByDevice
+                          color: isGrouping
                               ? colorScheme.primary
                               : colorScheme.onSurfaceVariant,
                         ),
@@ -97,11 +104,11 @@ class OtpFilterBar extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

@@ -57,14 +57,15 @@ void main() {
     bloc.close();
   });
 
-  test('OtpListLoadEvent emits loading and loaded items', () async {
+  test('OtpListChangeDateEvent updates selectedDate and loads items', () async {
     fakeRepository.stubItems = [item2, item1];
 
-    bloc.add(OtpListLoadEvent(date: sampleDate));
+    bloc.add(OtpListChangeDateEvent(sampleDate));
 
     await expectLater(
       bloc.stream,
       emitsInOrder([
+        predicate<dynamic>((s) => s.selectedDate == sampleDate),
         predicate<dynamic>((s) => s.isLoading == true),
         predicate<dynamic>(
           (s) =>
@@ -80,7 +81,7 @@ void main() {
     'OtpListToggleGroupEvent toggles grouping and groupedByDevice separates by device',
     () async {
       fakeRepository.stubItems = [item1, item2];
-      bloc.add(OtpListLoadEvent(date: sampleDate));
+      bloc.add(const OtpListLoadEvent());
       await bloc.stream.firstWhere((s) => !s.isLoading);
 
       expect(bloc.state.isGroupingByDevice, false);
@@ -103,7 +104,7 @@ void main() {
 
   test('OtpListLoadEvent creates and passes non-null CancelToken', () async {
     fakeRepository.stubItems = [item1];
-    bloc.add(OtpListLoadEvent(date: sampleDate));
+    bloc.add(const OtpListLoadEvent());
     await bloc.stream.firstWhere((s) => !s.isLoading);
 
     expect(fakeRepository.lastCancelToken, isNotNull);
