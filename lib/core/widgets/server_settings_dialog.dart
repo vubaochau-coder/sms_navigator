@@ -16,10 +16,10 @@ import '../utils/ui_utils.dart';
 class ServerSettingsDialog extends StatefulWidget {
   const ServerSettingsDialog({super.key});
 
-  static Future<String?> show(BuildContext context) {
-    return showDialog<String>(
+  static Future<String?> show([BuildContext? context]) {
+    return DialogUtils.showBaseForm<String>(
+      const ServerSettingsDialog(),
       context: context,
-      builder: (_) => const ServerSettingsDialog(),
     );
   }
 

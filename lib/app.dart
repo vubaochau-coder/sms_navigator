@@ -6,6 +6,7 @@ import 'core/constants/app_strings.dart';
 import 'core/services/analytics_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
+import 'core/utils/dialog_utils.dart';
 import 'features/home/presentation/pages/main_navigation_page.dart';
 import 'features/pairing/data/repositories/pairing_repository.dart';
 import 'features/pairing/presentation/bloc/pairing_bloc.dart';
@@ -31,6 +32,7 @@ class OtpRelayApp extends StatelessWidget {
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return MaterialApp(
+              navigatorKey: DialogUtils.navigatorKey,
               title: AppStrings.appTitle,
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,

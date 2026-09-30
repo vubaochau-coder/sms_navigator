@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/utils/dialog_utils.dart';
 import '../bloc/paired_receivers_bloc.dart';
 import '../bloc/paired_receivers_event.dart';
 import '../bloc/paired_senders_bloc.dart';
@@ -14,17 +15,15 @@ class PairingAddDeviceDialog extends StatelessWidget {
   const PairingAddDeviceDialog({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showDialog<void>(
+    return DialogUtils.showBaseForm<void>(
+      BlocProvider.value(
+        value: BlocProvider.of<PairedReceiversBloc>(context),
+        child: BlocProvider.value(
+          value: BlocProvider.of<PairedSendersBloc>(context),
+          child: const PairingAddDeviceDialog(),
+        ),
+      ),
       context: context,
-      builder: (_) {
-        return BlocProvider.value(
-          value: BlocProvider.of<PairedReceiversBloc>(context),
-          child: BlocProvider.value(
-            value: BlocProvider.of<PairedSendersBloc>(context),
-            child: const PairingAddDeviceDialog(),
-          ),
-        );
-      },
     );
   }
 
@@ -56,48 +55,45 @@ class PairingAddDeviceDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 360),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.pairingHubAddNew,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 360),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.pairingHubAddNew,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.pairingHubTitle,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.pairingHubTitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              _AddDeviceOption(
-                icon: Icons.qr_code_rounded,
-                label: l10n.pairingHubAddReceiver,
-                onTap: () => _openCreateQr(context),
-              ),
-              const SizedBox(height: 10),
-              _AddDeviceOption(
-                icon: Icons.qr_code_scanner_rounded,
-                label: l10n.pairingHubAddSender,
-                onTap: () => _openScanQr(context),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            _AddDeviceOption(
+              icon: Icons.qr_code_rounded,
+              label: l10n.pairingHubAddReceiver,
+              onTap: () => _openCreateQr(context),
+            ),
+            const SizedBox(height: 10),
+            _AddDeviceOption(
+              icon: Icons.qr_code_scanner_rounded,
+              label: l10n.pairingHubAddSender,
+              onTap: () => _openScanQr(context),
+            ),
+          ],
         ),
       ),
     );

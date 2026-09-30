@@ -95,6 +95,130 @@ void main() {
   });
 
   group('DialogUtils Tests', () {
+    test('DialogUtils insetPadding is 12dp on all 4 sides', () {
+      expect(DialogUtils.insetPadding, const EdgeInsets.all(12.0));
+    });
+
+    testWidgets('DialogUtils.showBaseForm displays custom child inside dialog', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: DialogUtils.navigatorKey,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  DialogUtils.showBaseForm(
+                    const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('Custom Content Inside Base Form'),
+                    ),
+                    context: context,
+                  );
+                },
+                child: const Text('Open Base Form'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Base Form'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Custom Content Inside Base Form'), findsOneWidget);
+    });
+
+    testWidgets('DialogUtils.showInfoDialog displays message with 1 close button', (
+      tester,
+    ) async {
+      bool? result;
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: DialogUtils.navigatorKey,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  result = await DialogUtils.showInfoDialog(
+                    context: context,
+                    title: 'Thông báo',
+                    message: 'Nội dung thông tin quan trọng.',
+                    buttonText: 'Đã hiểu',
+                  );
+                },
+                child: const Text('Open Info Dialog'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Info Dialog'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Thông báo'), findsOneWidget);
+      expect(find.text('Nội dung thông tin quan trọng.'), findsOneWidget);
+      expect(find.text('Đã hiểu'), findsOneWidget);
+
+      await tester.tap(find.text('Đã hiểu'));
+      await tester.pumpAndSettle();
+
+      expect(result, isTrue);
+      expect(find.text('Thông báo'), findsNothing);
+    });
+
+    testWidgets('DialogUtils.showTwoOptionsDialog handles positive, negative and swap', (
+      tester,
+    ) async {
+      bool? userChoice;
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: DialogUtils.navigatorKey,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      userChoice = await DialogUtils.showTwoOptionsDialog(
+                        context: context,
+                        title: 'Xác nhận xóa',
+                        message: 'Bạn có chắc chắn?',
+                        positiveText: 'Tiếp tục',
+                        negativeText: 'Quay lại',
+                        swapButtonPositions: true,
+                      );
+                    },
+                    child: const Text('Two Options Swapped'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Two Options Swapped'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Xác nhận xóa'), findsOneWidget);
+      expect(find.text('Tiếp tục'), findsOneWidget);
+      expect(find.text('Quay lại'), findsOneWidget);
+
+      // Verify button positions swapped: Tiếp tục is first
+      final tiepTucPos = tester.getTopLeft(find.text('Tiếp tục')).dx;
+      final quayLaiPos = tester.getTopLeft(find.text('Quay lại')).dx;
+      expect(tiepTucPos, lessThan(quayLaiPos));
+
+      // Tap negative button (Quay lại)
+      await tester.tap(find.text('Quay lại'));
+      await tester.pumpAndSettle();
+
+      expect(userChoice, isFalse);
+    });
+
     testWidgets('DialogUtils shows confirm dialog and returns boolean', (
       tester,
     ) async {
@@ -140,6 +264,41 @@ void main() {
   });
 
   group('BottomSheetUtils Tests', () {
+    testWidgets('BottomSheetUtils.showBaseForm opens bottom sheet and displays child', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: DialogUtils.navigatorKey,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  BottomSheetUtils.showBaseForm(
+                    const Text('Base Form Content'),
+                    context: context,
+                    title: 'Tiêu đề Sheet Base',
+                  );
+                },
+                child: const Text('Open Base Sheet'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Base Sheet'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tiêu đề Sheet Base'), findsOneWidget);
+      expect(find.text('Base Form Content'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tiêu đề Sheet Base'), findsNothing);
+    });
+
     testWidgets('BottomSheetUtils opens bottom sheet and displays content', (
       tester,
     ) async {

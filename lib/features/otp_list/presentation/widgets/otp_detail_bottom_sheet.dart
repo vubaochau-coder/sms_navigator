@@ -11,15 +11,9 @@ class OtpDetailBottomSheet extends StatelessWidget {
   final DecryptedOtpItem item;
 
   static void show(BuildContext context, DecryptedOtpItem item) {
-    final colorScheme = Theme.of(context).colorScheme;
-    showModalBottomSheet(
+    BottomSheetUtils.showBaseForm(
+      OtpDetailBottomSheet(item: item),
       context: context,
-      isScrollControlled: true,
-      backgroundColor: colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => OtpDetailBottomSheet(item: item),
     );
   }
 
@@ -36,11 +30,11 @@ class OtpDetailBottomSheet extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: 16,
         right: 16,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
