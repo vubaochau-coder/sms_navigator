@@ -12,6 +12,14 @@ class ReceiverLoadOtpsEvent extends ReceiverEvent {
   const ReceiverLoadOtpsEvent();
 }
 
+class ReceiverStartSyncEvent extends ReceiverEvent {
+  const ReceiverStartSyncEvent();
+}
+
+class ReceiverStopSyncEvent extends ReceiverEvent {
+  const ReceiverStopSyncEvent();
+}
+
 class ReceiverNewOtpPushedEvent extends ReceiverEvent {
   final ReceivedOtpModel otp;
 

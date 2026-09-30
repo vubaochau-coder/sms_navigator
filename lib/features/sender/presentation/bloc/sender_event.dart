@@ -11,6 +11,10 @@ class SenderLoadStatusEvent extends SenderEvent {
   const SenderLoadStatusEvent();
 }
 
+class SenderCheckSmsPermissionEvent extends SenderEvent {
+  const SenderCheckSmsPermissionEvent();
+}
+
 class SenderToggleRelayEvent extends SenderEvent {
   final bool isEnabled;
 

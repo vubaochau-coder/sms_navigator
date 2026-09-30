@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 abstract class OtpListEvent extends Equatable {
   const OtpListEvent();
@@ -28,4 +29,35 @@ class OtpListChangeDateEvent extends OtpListEvent {
 
   @override
   List<Object?> get props => [selectedDate];
+}
+
+class OtpListSelectDateEvent extends OtpListEvent {
+  final DateTime selectedDay;
+  final DateTime focusedDay;
+
+  const OtpListSelectDateEvent({
+    required this.selectedDay,
+    required this.focusedDay,
+  });
+
+  @override
+  List<Object?> get props => [selectedDay, focusedDay];
+}
+
+class OtpListChangeFormatEvent extends OtpListEvent {
+  final CalendarFormat format;
+
+  const OtpListChangeFormatEvent(this.format);
+
+  @override
+  List<Object?> get props => [format];
+}
+
+class OtpListChangeFocusedDayEvent extends OtpListEvent {
+  final DateTime focusedDay;
+
+  const OtpListChangeFocusedDayEvent(this.focusedDay);
+
+  @override
+  List<Object?> get props => [focusedDay];
 }

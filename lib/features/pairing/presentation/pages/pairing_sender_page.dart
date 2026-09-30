@@ -6,22 +6,12 @@ import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
 
-class PairingSenderPage extends StatefulWidget {
+class PairingSenderPage extends StatelessWidget {
   const PairingSenderPage({super.key});
 
   @override
-  State<PairingSenderPage> createState() => _PairingSenderPageState();
-}
-
-class _PairingSenderPageState extends State<PairingSenderPage> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<PairingBloc>().add(const PairingGenerateSenderCodeEvent());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    context.read<PairingBloc>().add(const PairingGenerateSenderCodeEvent());
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(

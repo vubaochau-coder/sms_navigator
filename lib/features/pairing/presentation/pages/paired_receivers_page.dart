@@ -1,24 +1,18 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
 import '../../data/services/pair_management_service.dart';
+import '../bloc/paired_devices_cubit.dart';
 import '../widgets/paired_receiver_card.dart';
 import 'pairing_sender_page.dart';
 
-/// Màn hình quản lý danh sách thiết bị nhận dành cho Máy Gửi (Sender).
-///
-/// Phía người gửi có thể:
-/// - Xem tất cả các thiết bị nhận đã ghép đôi.
-/// - Bật/Tắt (active/paused) việc gửi OTP tới từng máy nhận riêng biệt.
-/// - Xem chi tiết thời gian ghép đôi và thời điểm chuyển tiếp gần nhất.
-/// - Hủy kết nối (Unpair) bất kỳ máy nhận nào.
-class PairedReceiversPage extends StatefulWidget {
+/// Màn hình quản lý danh sách thiết bị nhận dành cho Máy Gửi (Sender) — Thuần Stateless với BLoC.
+class PairedReceiversPage extends StatelessWidget {
   const PairedReceiversPage({
     super.key,
     this.pairManagementService,
@@ -27,79 +21,30 @@ class PairedReceiversPage extends StatefulWidget {
   final PairManagementService? pairManagementService;
 
   @override
-  State<PairedReceiversPage> createState() => _PairedReceiversPageState();
+  Widget build(BuildContext context) {
+    final service = pairManagementService ??
+        DependencyContainer.instance.pairManagementService;
+
+    return BlocProvider(
+      create: (_) => PairedDevicesCubit(service)..loadReceivers(),
+      child: const _PairedReceiversBody(),
+    );
+  }
 }
 
-class _PairedReceiversPageState extends State<PairedReceiversPage> {
-  late final PairManagementService _service;
-  CancelToken? _cancelToken;
-  bool _isLoading = true;
-  String? _errorMessage;
-  List<PairedDeviceItem> _receivers = [];
-  final Set<String> _togglingPairIds = {};
+class _PairedReceiversBody extends StatelessWidget {
+  const _PairedReceiversBody();
 
-  @override
-  void initState() {
-    super.initState();
-    _service = widget.pairManagementService ??
-        DependencyContainer.instance.pairManagementService;
-    _fetchReceivers();
-  }
-
-  @override
-  void dispose() {
-    _cancelToken?.cancel('PairedReceiversPage disposed');
-    super.dispose();
-  }
-
-  Future<void> _fetchReceivers() async {
-    _cancelToken?.cancel('Refresh receivers');
-    final token = CancelToken();
-    _cancelToken = token;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final items = await _service.getPairedReceivers(cancelToken: token);
-      if (!mounted) return;
-      setState(() {
-        _receivers = items;
-        _isLoading = false;
-      });
-    } on RequestCancelledException {
-      // Bỏ qua nếu người dùng rời màn hình hoặc refresh
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Không thể tải danh sách thiết bị nhận: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _toggleActive(PairedDeviceItem item, bool newValue) async {
-    if (_togglingPairIds.contains(item.pairId)) return;
-
-    setState(() => _togglingPairIds.add(item.pairId));
-
-    final success = await _service.togglePairActive(
-      pairId: item.pairId,
-      isActive: newValue,
-    );
-
-    if (!mounted) return;
-    setState(() => _togglingPairIds.remove(item.pairId));
+  Future<void> _toggleActive(
+    BuildContext context,
+    PairedDeviceItem item,
+    bool newValue,
+  ) async {
+    final cubit = context.read<PairedDevicesCubit>();
+    final success = await cubit.toggleActive(item.pairId, newValue);
+    if (!context.mounted) return;
 
     if (success) {
-      setState(() {
-        final index = _receivers.indexWhere((e) => e.pairId == item.pairId);
-        if (index != -1) {
-          _receivers[index] = item.copyWith(isActive: newValue);
-        }
-      });
       UiUtils.showSuccessToast(
         context,
         newValue
@@ -114,7 +59,10 @@ class _PairedReceiversPageState extends State<PairedReceiversPage> {
     }
   }
 
-  Future<void> _confirmRevokePair(PairedDeviceItem item) async {
+  Future<void> _confirmRevokePair(
+    BuildContext context,
+    PairedDeviceItem item,
+  ) async {
     final confirmed = await UiUtils.showConfirmDialog(
       context,
       title: 'Hủy kết nối thiết bị?',
@@ -125,15 +73,13 @@ class _PairedReceiversPageState extends State<PairedReceiversPage> {
       icon: Icons.link_off_rounded,
     );
 
-    if (!confirmed || !mounted) return;
+    if (!confirmed || !context.mounted) return;
 
-    final success = await _service.revokePair(item.pairId);
-    if (!mounted) return;
+    final cubit = context.read<PairedDevicesCubit>();
+    final success = await cubit.revokePair(item.pairId);
+    if (!context.mounted) return;
 
     if (success) {
-      setState(() {
-        _receivers.removeWhere((e) => e.pairId == item.pairId);
-      });
       UiUtils.showSuccessToast(context, 'Đã hủy kết nối thành công');
     } else {
       UiUtils.showErrorToast(context, 'Không thể hủy kết nối. Vui lòng thử lại!');
@@ -153,71 +99,80 @@ class _PairedReceiversPageState extends State<PairedReceiversPage> {
               await Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PairingSenderPage()),
               );
-              _fetchReceivers();
+              if (context.mounted) {
+                context.read<PairedDevicesCubit>().loadReceivers();
+              }
             },
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Làm mới',
-            onPressed: _fetchReceivers,
+            onPressed: () {
+              context.read<PairedDevicesCubit>().loadReceivers();
+            },
           ),
         ],
       ),
       body: SafeArea(
         child: Padding(
           padding: Dimens.screenPadding,
-          child: _buildBody(),
+          child: BlocBuilder<PairedDevicesCubit, PairedDevicesState>(
+            builder: (context, state) {
+              if (state.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state.errorMessage != null) {
+                return EmptyStateView(
+                  icon: Icons.cloud_off_rounded,
+                  title: 'Có lỗi xảy ra',
+                  message: state.errorMessage,
+                  actionLabel: 'Thử lại',
+                  onAction: () =>
+                      context.read<PairedDevicesCubit>().loadReceivers(),
+                );
+              }
+
+              if (state.devices.isEmpty) {
+                return EmptyStateView(
+                  icon: Icons.phonelink_erase_rounded,
+                  title: 'Chưa có thiết bị nhận nào',
+                  message:
+                      'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
+                  actionLabel: 'Tạo mã QR ghép đôi',
+                  onAction: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const PairingSenderPage()),
+                    );
+                    if (context.mounted) {
+                      context.read<PairedDevicesCubit>().loadReceivers();
+                    }
+                  },
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () =>
+                    context.read<PairedDevicesCubit>().loadReceivers(),
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: state.devices.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (ctx, index) {
+                    final item = state.devices[index];
+                    return PairedReceiverCard(
+                      item: item,
+                      isToggling: state.togglingPairIds.contains(item.pairId),
+                      onToggleActive: (val) => _toggleActive(context, item, val),
+                      onRevokePair: () => _confirmRevokePair(context, item),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_errorMessage != null) {
-      return EmptyStateView(
-        icon: Icons.cloud_off_rounded,
-        title: 'Có lỗi xảy ra',
-        message: _errorMessage,
-        actionLabel: 'Thử lại',
-        onAction: _fetchReceivers,
-      );
-    }
-
-    if (_receivers.isEmpty) {
-      return EmptyStateView(
-        icon: Icons.phonelink_erase_rounded,
-        title: 'Chưa có thiết bị nhận nào',
-        message:
-            'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
-        actionLabel: 'Tạo mã QR ghép đôi',
-        onAction: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const PairingSenderPage()),
-          );
-          _fetchReceivers();
-        },
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _fetchReceivers,
-      child: ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: _receivers.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (context, index) {
-          final item = _receivers[index];
-          return PairedReceiverCard(
-            item: item,
-            isToggling: _togglingPairIds.contains(item.pairId),
-            onToggleActive: (val) => _toggleActive(item, val),
-            onRevokePair: () => _confirmRevokePair(item),
-          );
-        },
       ),
     );
   }

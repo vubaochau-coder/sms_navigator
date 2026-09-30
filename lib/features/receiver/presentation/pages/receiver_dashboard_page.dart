@@ -1,12 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/services/fcm_notification_service.dart';
 import '../../../../core/widgets/server_settings_dialog.dart';
 import '../../../notification_test/presentation/pages/notification_test_page.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
@@ -15,87 +13,23 @@ import '../../../pairing/presentation/bloc/pairing_event.dart';
 import '../../../pairing/presentation/bloc/pairing_state.dart';
 import '../../../pairing/presentation/pages/paired_senders_page.dart';
 import '../../../pairing/presentation/pages/pairing_receiver_page.dart';
-import '../../data/models/received_otp_model.dart';
 import '../bloc/receiver_bloc.dart';
 import '../bloc/receiver_event.dart';
 import '../bloc/receiver_state.dart';
 import '../widgets/receiver_connection_status_card.dart';
 import '../widgets/receiver_recent_otps_section.dart';
 
-class ReceiverDashboardPage extends StatefulWidget {
+/// Màn hình Máy Nhận (Malaysia) — Thuần Stateless với BLoC.
+class ReceiverDashboardPage extends StatelessWidget {
   const ReceiverDashboardPage({super.key});
 
-  @override
-  State<ReceiverDashboardPage> createState() => _ReceiverDashboardPageState();
-}
-
-class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
-  static const Duration _pollInterval = Duration(seconds: 3);
-
-  Timer? _pollTimer;
-  StreamSubscription<ReceivedOtpModel>? _fcmSubscription;
-  final Set<String> _knownOtpIds = <String>{};
-  bool _hasSyncedOtpHistory = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<ReceiverBloc>().add(const ReceiverLoadOtpsEvent());
-    context.read<PairingBloc>().add(const PairingCheckReceiverStatusEvent());
-
-    _fcmSubscription = FcmNotificationService.onOtpReceived.listen((otp) {
-      if (!mounted) return;
-      context.read<ReceiverBloc>().add(ReceiverNewOtpPushedEvent(otp));
-    });
-
-    _pollTimer = Timer.periodic(_pollInterval, (_) {
-      if (!mounted) return;
-      context.read<ReceiverBloc>().add(const ReceiverPollPendingOtpsEvent());
-    });
-  }
-
-  @override
-  void dispose() {
-    _fcmSubscription?.cancel();
-    _fcmSubscription = null;
-    _pollTimer?.cancel();
-    _pollTimer = null;
-    super.dispose();
-  }
-
-  void _showServerSettingsDialog() {
+  void _showServerSettingsDialog(BuildContext context) {
     final di = DependencyContainer.instance;
     showDialog(
       context: context,
       builder: (_) => ServerSettingsDialog(
         deviceStorageService: di.deviceStorageService,
         nativeRelayService: di.nativeRelayService,
-      ),
-    );
-  }
-
-  void _handleOtpListChanged(ReceiverState state) {
-    if (!_hasSyncedOtpHistory) {
-      _hasSyncedOtpHistory = true;
-      _knownOtpIds.addAll(state.otps.map((o) => o.id));
-      return;
-    }
-    if (state.otps.isEmpty) {
-      _knownOtpIds.clear();
-      return;
-    }
-
-    final freshOtps =
-        state.otps.where((o) => !_knownOtpIds.contains(o.id)).toList();
-    _knownOtpIds.addAll(state.otps.map((o) => o.id));
-    if (freshOtps.isEmpty) return;
-
-    final newest = freshOtps.first;
-    HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('OTP mới từ ${newest.sender}: ${newest.otp}'),
-        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -146,6 +80,10 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Đảm bảo sync được kích hoạt khi màn hình mở
+    context.read<ReceiverBloc>().add(const ReceiverStartSyncEvent());
+    context.read<PairingBloc>().add(const PairingCheckReceiverStatusEvent());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Máy Nhận (Malaysia)'),
@@ -183,7 +121,7 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
           IconButton(
             icon: const Icon(Icons.dns_rounded),
             tooltip: 'Cài đặt Server',
-            onPressed: _showServerSettingsDialog,
+            onPressed: () => _showServerSettingsDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -197,7 +135,19 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
         ],
       ),
       body: BlocListener<ReceiverBloc, ReceiverState>(
-        listener: (context, state) => _handleOtpListChanged(state),
+        listenWhen: (previous, current) =>
+            current.latestPushedOtp != null &&
+            current.latestPushedOtp != previous.latestPushedOtp,
+        listener: (context, state) {
+          final otp = state.latestPushedOtp!;
+          HapticFeedback.mediumImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('OTP mới từ ${otp.sender}: ${otp.otp}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        },
         child: BlocBuilder<PairingBloc, PairingState>(
           builder: (context, pairingState) {
             final isPaired = pairingState.isPaired;
@@ -227,10 +177,11 @@ class _ReceiverDashboardPageState extends State<ReceiverDashboardPage> {
                           MaterialPageRoute(
                               builder: (_) => const PairingReceiverPage()),
                         );
-                        if (!context.mounted) return;
-                        context
-                            .read<PairingBloc>()
-                            .add(const PairingCheckReceiverStatusEvent());
+                        if (context.mounted) {
+                          context
+                              .read<PairingBloc>()
+                              .add(const PairingCheckReceiverStatusEvent());
+                        }
                       },
                     ),
                     const SizedBox(height: 16),

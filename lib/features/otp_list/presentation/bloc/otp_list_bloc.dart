@@ -16,6 +16,9 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     on<OtpListLoadEvent>(_onLoadOtpList, transformer: restartable());
     on<OtpListChangeDateEvent>(_onChangeDate, transformer: restartable());
     on<OtpListToggleGroupEvent>(_onToggleGroup, transformer: droppable());
+    on<OtpListSelectDateEvent>(_onSelectDate, transformer: restartable());
+    on<OtpListChangeFormatEvent>(_onChangeFormat, transformer: droppable());
+    on<OtpListChangeFocusedDayEvent>(_onChangeFocusedDay, transformer: droppable());
   }
 
   Future<void> _onLoadOtpList(
@@ -29,6 +32,7 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     emit(state.copyWith(
       isLoading: true,
       selectedDate: event.date,
+      focusedDate: event.date,
       errorMessage: null,
     ));
     try {
@@ -42,6 +46,7 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
         isLoading: false,
         items: items,
         selectedDate: event.date,
+        focusedDate: event.date,
       ));
     } on RequestCancelledException {
       // Yêu cầu bị hủy có chủ đích khi chuyển ngày nhanh -> bỏ qua, không báo lỗi
@@ -66,6 +71,31 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     Emitter<OtpListState> emit,
   ) {
     emit(state.copyWith(isGroupingByDevice: !state.isGroupingByDevice));
+  }
+
+  Future<void> _onSelectDate(
+    OtpListSelectDateEvent event,
+    Emitter<OtpListState> emit,
+  ) async {
+    emit(state.copyWith(
+      selectedDate: event.selectedDay,
+      focusedDate: event.focusedDay,
+    ));
+    add(OtpListLoadEvent(date: event.selectedDay));
+  }
+
+  void _onChangeFormat(
+    OtpListChangeFormatEvent event,
+    Emitter<OtpListState> emit,
+  ) {
+    emit(state.copyWith(calendarFormat: event.format));
+  }
+
+  void _onChangeFocusedDay(
+    OtpListChangeFocusedDayEvent event,
+    Emitter<OtpListState> emit,
+  ) {
+    emit(state.copyWith(focusedDate: event.focusedDay));
   }
 
   @override

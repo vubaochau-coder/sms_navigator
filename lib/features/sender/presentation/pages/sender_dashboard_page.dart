@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/di/injection.dart';
@@ -19,29 +18,11 @@ import '../widgets/sender_pairing_card.dart';
 import '../widgets/sender_recent_logs_section.dart';
 import '../widgets/sender_status_card.dart';
 
-class SenderDashboardPage extends StatefulWidget {
+/// Màn hình Máy Gửi (Việt Nam) — Thuần Stateless với BLoC.
+class SenderDashboardPage extends StatelessWidget {
   const SenderDashboardPage({super.key});
 
-  @override
-  State<SenderDashboardPage> createState() => _SenderDashboardPageState();
-}
-
-class _SenderDashboardPageState extends State<SenderDashboardPage> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<SenderBloc>().add(const SenderLoadStatusEvent());
-    _checkSmsPermission();
-  }
-
-  Future<void> _checkSmsPermission() async {
-    final status = await Permission.sms.status;
-    if (!status.isGranted) {
-      await Permission.sms.request();
-    }
-  }
-
-  void _showServerSettingsDialog() {
+  void _showServerSettingsDialog(BuildContext context) {
     final di = DependencyContainer.instance;
     showDialog(
       context: context,
@@ -52,14 +33,14 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
     );
   }
 
-  Future<void> _showSimulateOtpDialog() async {
+  Future<void> _showSimulateOtpDialog(BuildContext context) async {
     final di = DependencyContainer.instance;
     final config = await di.nativeRelayService.getRelayConfig();
     final pairId = config['pairId']?.toString();
     final secret = config['sharedSecretBase64']?.toString();
 
     if (pairId == null || pairId.isEmpty || secret == null || secret.isEmpty) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Vui lòng ghép đôi thiết bị trước khi thử nghiệm.'),
@@ -73,7 +54,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
       text: (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString(),
     );
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     await showDialog(
       context: context,
       builder: (dialogCtx) {
@@ -144,7 +125,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                     },
                   );
 
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Đã gửi mã OTP $otpVal thành công sang máy nhận!'),
@@ -155,7 +136,7 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
                         .add(const SenderLoadStatusEvent());
                   }
                 } catch (e) {
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Lỗi gửi OTP: $e'),
@@ -174,6 +155,9 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    context.read<SenderBloc>().add(const SenderLoadStatusEvent());
+    context.read<SenderBloc>().add(const SenderCheckSmsPermissionEvent());
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Máy Gửi (Việt Nam)'),
@@ -211,12 +195,12 @@ class _SenderDashboardPageState extends State<SenderDashboardPage> {
           IconButton(
             icon: const Icon(Icons.send_to_mobile_rounded),
             tooltip: 'Mô phỏng gửi OTP',
-            onPressed: _showSimulateOtpDialog,
+            onPressed: () => _showSimulateOtpDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.dns_rounded),
             tooltip: 'Cài đặt Server',
-            onPressed: _showServerSettingsDialog,
+            onPressed: () => _showServerSettingsDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),

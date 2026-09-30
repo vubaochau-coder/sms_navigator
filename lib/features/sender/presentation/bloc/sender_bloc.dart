@@ -1,5 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../data/repositories/sender_repository.dart';
 import 'sender_event.dart';
 import 'sender_state.dart';
@@ -9,6 +10,7 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
 
   SenderBloc({required this.repository}) : super(const SenderState()) {
     on<SenderLoadStatusEvent>(_onLoadStatus, transformer: restartable());
+    on<SenderCheckSmsPermissionEvent>(_onCheckSmsPermission, transformer: droppable());
     on<SenderToggleRelayEvent>(_onToggleRelay, transformer: droppable());
     on<SenderUpdateRelayModeEvent>(_onUpdateRelayMode, transformer: droppable());
     on<SenderAddWhitelistPrefixEvent>(_onAddWhitelistPrefix, transformer: droppable());
@@ -20,6 +22,18 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
     repository.registerOtpListener((sender, otp) {
       add(SenderOtpDetectedEvent(sender, otp));
     });
+  }
+
+  Future<void> _onCheckSmsPermission(
+    SenderCheckSmsPermissionEvent event,
+    Emitter<SenderState> emit,
+  ) async {
+    try {
+      final status = await Permission.sms.status;
+      if (!status.isGranted) {
+        await Permission.sms.request();
+      }
+    } catch (_) {}
   }
 
   Future<void> _onLoadStatus(
@@ -57,6 +71,22 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
       emit(state.copyWith(
         isLoading: false,
         errorMessage: 'Lỗi tải trạng thái: ${e.toString()}',
+      ));
+    }
+  }
+
+  Future<void> _onToggleRelay(
+    SenderToggleRelayEvent event,
+    Emitter<SenderState> emit,
+  ) async {
+    try {
+      final success = await repository.setRelayEnabled(event.isEnabled);
+      if (success) {
+        emit(state.copyWith(isRelayEnabled: event.isEnabled));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        errorMessage: 'Không thể thay đổi trạng thái: ${e.toString()}',
       ));
     }
   }
@@ -110,22 +140,6 @@ class SenderBloc extends Bloc<SenderEvent, SenderState> {
     } catch (e) {
       emit(state.copyWith(
         errorMessage: 'Không thể xóa đầu số: ${e.toString()}',
-      ));
-    }
-  }
-
-  Future<void> _onToggleRelay(
-    SenderToggleRelayEvent event,
-    Emitter<SenderState> emit,
-  ) async {
-    try {
-      final success = await repository.setRelayEnabled(event.isEnabled);
-      if (success) {
-        emit(state.copyWith(isRelayEnabled: event.isEnabled));
-      }
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: 'Không thể thay đổi trạng thái: ${e.toString()}',
       ));
     }
   }

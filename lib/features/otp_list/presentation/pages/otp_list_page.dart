@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/date_time_utils.dart';
@@ -12,6 +11,7 @@ import '../bloc/otp_list_state.dart';
 import '../widgets/otp_calendar_card.dart';
 import '../widgets/otp_content_view.dart';
 
+/// Màn hình xem danh sách OTP theo ngày — Thuần Stateless với BLoC.
 class OtpListPage extends StatelessWidget {
   const OtpListPage({super.key});
 
@@ -26,29 +26,10 @@ class OtpListPage extends StatelessWidget {
   }
 }
 
-class _OtpListView extends StatefulWidget {
+class _OtpListView extends StatelessWidget {
   const _OtpListView();
 
-  @override
-  State<_OtpListView> createState() => _OtpListViewState();
-}
-
-class _OtpListViewState extends State<_OtpListView> {
-  CalendarFormat _calendarFormat = CalendarFormat.week;
-  DateTime _focusedDay = DateTime.now();
-  DateTime _selectedDay = DateTime.now();
-
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay;
-      });
-      context.read<OtpListBloc>().add(OtpListLoadEvent(date: selectedDay));
-    }
-  }
-
-  void _copyToClipboard(String text, String label) {
+  void _copyToClipboard(BuildContext context, String text, String label) {
     HapticFeedback.lightImpact();
     UiUtils.copyToClipboard(
       context,
@@ -60,7 +41,6 @@ class _OtpListViewState extends State<_OtpListView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final dateDisplay = DateTimeUtils.formatDate(_selectedDay);
 
     return Scaffold(
       appBar: AppBar(
@@ -89,9 +69,11 @@ class _OtpListViewState extends State<_OtpListView> {
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Làm mới',
             onPressed: () {
+              final selectedDate =
+                  context.read<OtpListBloc>().state.selectedDate;
               context
                   .read<OtpListBloc>()
-                  .add(OtpListLoadEvent(date: _selectedDay));
+                  .add(OtpListLoadEvent(date: selectedDate));
             },
           ),
         ],
@@ -108,18 +90,29 @@ class _OtpListViewState extends State<_OtpListView> {
           }
         },
         builder: (context, state) {
+          final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
+
           return Column(
             children: [
               OtpCalendarCard(
-                focusedDay: _focusedDay,
-                selectedDay: _selectedDay,
-                calendarFormat: _calendarFormat,
-                onDaySelected: _onDaySelected,
+                focusedDay: state.focusedDate,
+                selectedDay: state.selectedDate,
+                calendarFormat: state.calendarFormat,
+                onDaySelected: (selectedDay, focusedDay) {
+                  context.read<OtpListBloc>().add(OtpListSelectDateEvent(
+                        selectedDay: selectedDay,
+                        focusedDay: focusedDay,
+                      ));
+                },
                 onFormatChanged: (format) {
-                  setState(() => _calendarFormat = format);
+                  context
+                      .read<OtpListBloc>()
+                      .add(OtpListChangeFormatEvent(format));
                 },
                 onPageChanged: (focusedDay) {
-                  _focusedDay = focusedDay;
+                  context
+                      .read<OtpListBloc>()
+                      .add(OtpListChangeFocusedDayEvent(focusedDay));
                 },
               ),
               Padding(
@@ -194,7 +187,7 @@ class _OtpListViewState extends State<_OtpListView> {
                   onRefresh: () async {
                     context
                         .read<OtpListBloc>()
-                        .add(OtpListLoadEvent(date: _selectedDay));
+                        .add(OtpListLoadEvent(date: state.selectedDate));
                   },
                   child: state.isLoading
                       ? const Center(child: CircularProgressIndicator())
@@ -203,7 +196,8 @@ class _OtpListViewState extends State<_OtpListView> {
                           groupedByDevice: state.groupedByDevice,
                           isGroupingByDevice: state.isGroupingByDevice,
                           dateDisplay: dateDisplay,
-                          onCopyOtp: _copyToClipboard,
+                          onCopyOtp: (text, label) =>
+                              _copyToClipboard(context, text, label),
                         ),
                 ),
               ),
