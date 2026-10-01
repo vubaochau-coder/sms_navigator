@@ -4,6 +4,8 @@ import android.os.Handler
 import android.os.Looper
 import com.example.sms_navigator.data.OtpPreferences
 import com.example.sms_navigator.device.OemAutostartNavigator
+import com.example.sms_navigator.policy.WhitelistEntry
+import com.example.sms_navigator.policy.WhitelistMode
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 
@@ -22,6 +24,10 @@ class RelayMethodChannel(
                 "getRelayConfig" -> result.success(buildRelayConfig())
 
                 "setRelayConfig" -> handleSetRelayConfig(call, result)
+
+                "getWhitelist" -> result.success(buildWhitelist())
+
+                "setWhitelist" -> handleSetWhitelist(call, result)
 
                 "getRecentLogs" -> result.success(prefs.getRecentLogs())
 
@@ -85,8 +91,6 @@ class RelayMethodChannel(
 
     private fun buildRelayConfig(): Map<String, Any?> = mapOf(
         "isRelayEnabled" to prefs.isRelayEnabled,
-        "relayMode" to prefs.relayMode,
-        "senderWhitelist" to prefs.senderWhitelist,
         "pairId" to prefs.pairId,
         "sharedSecretBase64" to prefs.sharedSecretBase64,
         "relayUrl" to prefs.relayUrl,
@@ -94,13 +98,51 @@ class RelayMethodChannel(
         "deviceToken" to prefs.deviceToken
     )
 
+    private fun buildWhitelist(): Map<String, Any?> {
+        val (mode, entries) = prefs.getWhitelistConfig()
+        return mapOf(
+            "mode" to mode.name,
+            "entries" to entries.map {
+                mapOf(
+                    "address" to it.address,
+                    "allowOtp" to it.allowOtp
+                )
+            }
+        )
+    }
+
+    private fun handleSetWhitelist(
+        call: io.flutter.plugin.common.MethodCall,
+        result: MethodChannel.Result
+    ) {
+        val modeName = call.argument<String>("mode") ?: WhitelistMode.EXPLICIT.name
+        val mode = try {
+            WhitelistMode.valueOf(modeName)
+        } catch (_: Exception) {
+            WhitelistMode.EXPLICIT
+        }
+
+        val rawEntries = call.argument<List<*>>("entries") ?: emptyList<Any>()
+        val entries = rawEntries.mapNotNull { item ->
+            (item as? Map<*, *>)?.let { map ->
+                val address = (map["address"] as? String)?.trim()
+                if (address.isNullOrBlank()) {
+                    null
+                } else {
+                    WhitelistEntry(address = address, allowOtp = map["allowOtp"] == true)
+                }
+            }
+        }
+
+        prefs.setWhitelistConfig(mode, entries)
+        result.success(true)
+    }
+
     private fun handleSetRelayConfig(
         call: io.flutter.plugin.common.MethodCall,
         result: MethodChannel.Result
     ) {
         val isEnabled = call.argument<Boolean>("isRelayEnabled")
-        val relayMode = call.argument<String>("relayMode")
-        val senderWhitelist = call.argument<List<String>>("senderWhitelist")
         val pairId = call.argument<String>("pairId")
         val sharedSecretBase64 = call.argument<String>("sharedSecretBase64")
         val relayUrl = call.argument<String>("relayUrl")
@@ -108,8 +150,6 @@ class RelayMethodChannel(
         val deviceId = call.argument<String>("deviceId")
 
         if (isEnabled != null) prefs.isRelayEnabled = isEnabled
-        if (relayMode != null) prefs.relayMode = relayMode
-        if (senderWhitelist != null) prefs.senderWhitelist = senderWhitelist
         if (pairId != null) prefs.pairId = pairId
         if (sharedSecretBase64 != null) prefs.sharedSecretBase64 = sharedSecretBase64
         if (relayUrl != null) prefs.relayUrl = relayUrl

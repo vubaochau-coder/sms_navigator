@@ -2,6 +2,8 @@ package com.example.sms_navigator.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.sms_navigator.policy.WhitelistEntry
+import com.example.sms_navigator.policy.WhitelistMode
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
@@ -58,6 +60,64 @@ class OtpPreferences(context: Context) {
                 cleanSender == cleanItem ||
                 cleanSender.contains(cleanItem)
             }
+        }
+    }
+
+    /**
+     * Đọc cấu hình white-list v2. Nếu chưa có (lần chạy đầu sau nâng cấp),
+     * migrate từ cấu hình legacy (relay_mode + sender_whitelist) một lần duy nhất.
+     */
+    fun getWhitelistConfig(): Pair<WhitelistMode, List<WhitelistEntry>> {
+        val rawMode = prefs.getString(KEY_WHITELIST_MODE, null)
+        val rawEntries = prefs.getString(KEY_WHITELIST_ENTRIES, null)
+        if (rawMode != null && rawEntries != null) {
+            val mode = try {
+                WhitelistMode.valueOf(rawMode)
+            } catch (_: Exception) {
+                WhitelistMode.EXPLICIT
+            }
+            return mode to parseWhitelistEntries(rawEntries)
+        }
+
+        val mode = if (relayMode == MODE_ALL_SMS) WhitelistMode.ALL_ADDRESSES else WhitelistMode.EXPLICIT
+        val entries = senderWhitelist.map { WhitelistEntry(address = it, allowOtp = false) }
+        setWhitelistConfig(mode, entries)
+        return mode to entries
+    }
+
+    fun setWhitelistConfig(mode: WhitelistMode, entries: List<WhitelistEntry>) {
+        val array = JSONArray()
+        entries.forEach { entry ->
+            val address = entry.address.trim()
+            if (address.isNotBlank()) {
+                array.put(
+                    JSONObject().apply {
+                        put("address", address)
+                        put("allow_otp", entry.allowOtp)
+                    }
+                )
+            }
+        }
+        prefs.edit()
+            .putString(KEY_WHITELIST_MODE, mode.name)
+            .putString(KEY_WHITELIST_ENTRIES, array.toString())
+            .apply()
+    }
+
+    private fun parseWhitelistEntries(raw: String): List<WhitelistEntry> {
+        return try {
+            val array = JSONArray(raw)
+            val list = mutableListOf<WhitelistEntry>()
+            for (i in 0 until array.length()) {
+                val obj = array.optJSONObject(i) ?: continue
+                val address = obj.optString("address").trim()
+                if (address.isNotBlank()) {
+                    list.add(WhitelistEntry(address = address, allowOtp = obj.optBoolean("allow_otp", false)))
+                }
+            }
+            list
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
@@ -173,6 +233,8 @@ class OtpPreferences(context: Context) {
         private const val KEY_IS_ENABLED = "is_relay_enabled"
         private const val KEY_RELAY_MODE = "relay_mode"
         private const val KEY_SENDER_WHITELIST = "sender_whitelist"
+        private const val KEY_WHITELIST_MODE = "whitelist_v2_mode"
+        private const val KEY_WHITELIST_ENTRIES = "whitelist_v2_entries"
         private const val KEY_PAIR_ID = "pair_id"
         private const val KEY_SHARED_SECRET = "shared_secret"
         private const val KEY_RELAY_URL = "relay_url"

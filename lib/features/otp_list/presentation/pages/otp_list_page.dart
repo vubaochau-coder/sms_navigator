@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../settings/presentation/widgets/whitelist_blocked_banner.dart';
 import '../../data/repositories/otp_list_repository.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
@@ -36,6 +37,7 @@ class _OtpListView extends StatelessWidget {
         child: Column(
           children: [
             OtpCompactHeader(),
+            WhitelistBlockedBanner(),
             OtpCalendarCard(),
             OtpFilterBar(),
             Expanded(

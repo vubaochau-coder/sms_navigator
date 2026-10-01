@@ -10,10 +10,12 @@ import 'package:sms_navigator/core/storage/local_storage_service.dart';
 import 'package:sms_navigator/core/storage/storage_keys.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
 import 'package:sms_navigator/features/pairing/data/services/pairing_service.dart';
+import 'package:sms_navigator/features/sender/data/models/whitelist_config_model.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
 
 class _FakeNativeRelayService implements NativeRelayService {
   Map<String, dynamic>? lastConfig;
+  WhitelistConfigModel lastWhitelist = const WhitelistConfigModel();
 
   @override
   Future<Map<String, dynamic>> getRelayConfig() async => lastConfig ?? {};
@@ -21,8 +23,6 @@ class _FakeNativeRelayService implements NativeRelayService {
   @override
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
-    String? relayMode,
-    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
@@ -31,14 +31,21 @@ class _FakeNativeRelayService implements NativeRelayService {
   }) async {
     lastConfig = {
       'isRelayEnabled': isRelayEnabled,
-      'relayMode': relayMode,
-      'senderWhitelist': senderWhitelist,
       'pairId': pairId,
       'sharedSecretBase64': sharedSecretBase64,
       'relayUrl': relayUrl,
       'deviceToken': deviceToken,
       'deviceId': deviceId,
     };
+    return true;
+  }
+
+  @override
+  Future<WhitelistConfigModel> getWhitelist() async => lastWhitelist;
+
+  @override
+  Future<bool> setWhitelist(WhitelistConfigModel config) async {
+    lastWhitelist = config;
     return true;
   }
 

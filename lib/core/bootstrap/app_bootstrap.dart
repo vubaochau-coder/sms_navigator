@@ -10,6 +10,7 @@ import '../../features/pairing/data/services/pair_management_service.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
+import '../../features/settings/data/repositories/whitelist_repository.dart';
 import '../network/api_client.dart';
 import '../services/analytics_service.dart';
 import '../services/crashlytics_service.dart';
@@ -122,6 +123,11 @@ class AppBootstrap extends StatelessWidget {
             storageService: context.read<DeviceStorageService>(),
             nativeRelayService: context.read<NativeRelayService>(),
             localStorageService: context.read<LocalStorageService>(),
+          ),
+        ),
+        RepositoryProvider<WhitelistRepository>(
+          create: (context) => WhitelistRepositoryImpl(
+            nativeRelayService: context.read<NativeRelayService>(),
           ),
         ),
       ],

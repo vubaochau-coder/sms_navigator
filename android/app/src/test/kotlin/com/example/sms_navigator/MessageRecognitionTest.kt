@@ -1,11 +1,14 @@
 package com.example.sms_navigator
 
-import com.example.sms_navigator.data.OtpPreferences
 import com.example.sms_navigator.model.OtpEvent
+import com.example.sms_navigator.policy.RelayDecision
+import com.example.sms_navigator.policy.WhitelistEntry
+import com.example.sms_navigator.policy.WhitelistMode
+import com.example.sms_navigator.policy.WhitelistPolicy
+import com.example.sms_navigator.policy.PhoneNormalizer
 import com.example.sms_navigator.util.OtpParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,8 +16,8 @@ import java.security.MessageDigest
 
 /**
  * Kiểm thử tầng Java/Kotlin native cho nghiệp vụ Nhận Diện Tin Nhắn:
- * - Nhận diện người gửi theo Whitelist (đầu số quốc tế, brandname, số điện thoại, định dạng linh hoạt).
- * - Nhận diện và phân loại tin nhắn theo Chế độ chuyển tiếp (MODE_OTP_ONLY, MODE_ALL_SMS, MODE_WHITELIST_ALL).
+ * - Nhận diện người gửi theo Whitelist (đầu số, brandname, chuẩn hóa +84/84/0).
+ * - Ra quyết định relay theo WhitelistPolicy (deny-by-default, quyền OTP per-address).
  * - Nhận diện và lọc trùng lặp tin nhắn (Deduplication & Replay attack prevention).
  */
 class MessageRecognitionTest {
@@ -23,26 +26,6 @@ class MessageRecognitionTest {
     // 1. NHẬN DIỆN NGƯỜI GỬI THEO WHITELIST (SENDER WHITELIST RECOGNITION)
     // ==========================================
 
-    /**
-     * Thuật toán kiểm tra whitelist tương tự OtpPreferences.isSenderWhitelisted
-     * để kiểm thử độc lập mà không cần Android Context mock phức tạp.
-     */
-    private fun checkSenderWhitelisted(sender: String, whitelist: List<String>): Boolean {
-        if (sender.isBlank()) return false
-        val cleanSender = sender.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
-        if (whitelist.isEmpty()) return false
-
-        return whitelist.any { rawItem ->
-            val cleanItem = rawItem.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
-            if (cleanItem.isBlank()) false
-            else {
-                cleanSender.startsWith(cleanItem) ||
-                cleanSender == cleanItem ||
-                cleanSender.contains(cleanItem)
-            }
-        }
-    }
-
     @Test
     fun testRecognizeSenderByInternationalPrefix() {
         // Whitelist cấu hình đầu số Trung Quốc (+86, 1069) và đầu số Việt Nam (+84, 090)
@@ -50,52 +33,55 @@ class MessageRecognitionTest {
 
         // Đầu số Trung Quốc
         assertTrue("Should recognize China international prefix +86",
-            checkSenderWhitelisted("+8613800138000", whitelist))
+            PhoneNormalizer.matches("+8613800138000", "+86"))
         assertTrue("Should recognize China enterprise SMS gateway 1069",
-            checkSenderWhitelisted("10690001888", whitelist))
+            PhoneNormalizer.matches("10690001888", "1069"))
 
         // Đầu số Việt Nam
         assertTrue("Should recognize Vietnam international prefix +84",
-            checkSenderWhitelisted("+84987654321", whitelist))
+            PhoneNormalizer.matches("+84987654321", "+84"))
         assertTrue("Should recognize domestic prefix 090",
-            checkSenderWhitelisted("0909123456", whitelist))
+            PhoneNormalizer.matches("0909123456", "090"))
 
         // Đầu số không thuộc whitelist
-        assertFalse("Should reject non-whitelisted USA prefix +1",
-            checkSenderWhitelisted("+12025550199", whitelist))
+        val usaSender = "+12025550199"
+        assertFalse("Should reject non-whitelisted USA sender",
+            whitelist.any { PhoneNormalizer.matches(usaSender, it) })
+
+        // Whitelist chỉ chứa "090" -> đầu số 091 bị từ chối
         assertFalse("Should reject non-whitelisted prefix 091",
-            checkSenderWhitelisted("0912345678", whitelist))
+            PhoneNormalizer.matches("0912345678", "090"))
+
+        // Ngược lại, whitelist "+84" phủ mọi số VN sau chuẩn hóa (kể cả 091...)
+        assertTrue("Entry +84 covers all Vietnamese numbers after normalization",
+            PhoneNormalizer.matches("0912345678", "+84"))
     }
 
     @Test
     fun testRecognizeSenderByBrandname() {
-        val whitelist = listOf("Viettel", "TPBank", "Techcombank", "Alipay", "WeChat", "招商银行")
+        assertTrue("Should recognize brandname Viettel", PhoneNormalizer.matches("Viettel", "Viettel"))
+        assertTrue("Should recognize brandname TPBank case-insensitively", PhoneNormalizer.matches("tpbank", "TPBank"))
+        assertTrue("Should recognize brandname Alipay", PhoneNormalizer.matches("Alipay", "Alipay"))
+        assertTrue("Should recognize brandname WeChat", PhoneNormalizer.matches("WeChat", "WeChat"))
+        assertTrue("Should recognize Chinese brandname 招商银行", PhoneNormalizer.matches("招商银行", "招商银行"))
 
-        assertTrue("Should recognize brandname Viettel", checkSenderWhitelisted("Viettel", whitelist))
-        assertTrue("Should recognize brandname TPBank case-insensitively", checkSenderWhitelisted("tpbank", whitelist))
-        assertTrue("Should recognize brandname Alipay", checkSenderWhitelisted("Alipay", whitelist))
-        assertTrue("Should recognize brandname WeChat", checkSenderWhitelisted("WeChat", whitelist))
-        assertTrue("Should recognize Chinese brandname 招商银行", checkSenderWhitelisted("招商银行", whitelist))
-
-        assertFalse("Should reject unknown brandname Vietcombank", checkSenderWhitelisted("Vietcombank", whitelist))
-        assertFalse("Should reject spam brandname LoanNow", checkSenderWhitelisted("LoanNow", whitelist))
+        assertFalse("Should reject unknown brandname Vietcombank", PhoneNormalizer.matches("Vietcombank", "Viettel"))
+        assertFalse("Should reject spam brandname LoanNow", PhoneNormalizer.matches("LoanNow", "LoanNow2"))
     }
 
     @Test
     fun testRecognizeSenderWithPunctuationAndSpacing() {
-        val whitelist = listOf("+8490", "0901234567")
-
         // Số điện thoại chứa dấu ngoặc đơn, gạch ngang, dấu cách
         assertTrue("Should recognize normalized phone number with spaces",
-            checkSenderWhitelisted("+84 90 123 4567", whitelist))
+            PhoneNormalizer.matches("+84 90 123 4567", "+8490"))
         assertTrue("Should recognize normalized phone number with dashes",
-            checkSenderWhitelisted("090-123-4567", whitelist))
+            PhoneNormalizer.matches("090-123-4567", "0901234567"))
         assertTrue("Should recognize normalized phone number with parentheses",
-            checkSenderWhitelisted("+84 (90) 1234567", whitelist))
+            PhoneNormalizer.matches("+84 (90) 1234567", "+8490"))
     }
 
     // ==========================================
-    // 2. PHÂN LOẠI TIN NHẮN THEO CHẾ ĐỘ (RELAY MODE DECISION)
+    // 2. RA QUYẾT ĐỊNH RELAY THEO WHITELIST POLICY (DENY-BY-DEFAULT)
     // ==========================================
 
     data class RecognitionResult(
@@ -105,105 +91,98 @@ class MessageRecognitionTest {
     )
 
     /**
-     * Mô phỏng logic ra quyết định nhận diện tin nhắn trong SmsReceiver
+     * Mô phỏng logic ra quyết định trong SmsReceiver sau khi áp dụng WhitelistPolicy.
      */
     private fun processIncomingSms(
         sender: String,
         messageText: String,
-        relayMode: String,
-        whitelist: List<String>
+        mode: WhitelistMode,
+        entries: List<WhitelistEntry>
     ): RecognitionResult {
-        val isWhitelisted = checkSenderWhitelisted(sender, whitelist)
-        val isForwardAllMode = (relayMode == OtpPreferences.MODE_ALL_SMS) ||
-                              (relayMode == OtpPreferences.MODE_WHITELIST_ALL && isWhitelisted)
-
-        val detectedOtp = OtpParser.extractOtp(sender, messageText)
-
-        return if (detectedOtp != null) {
-            RecognitionResult(
-                shouldRelay = true,
-                otpEvent = detectedOtp,
-                reason = "Detected OTP: ${detectedOtp.otp}"
-            )
-        } else if (isForwardAllMode) {
-            val digits = OtpParser.findAnyDigits(messageText) ?: "SMS"
-            RecognitionResult(
-                shouldRelay = true,
-                otpEvent = OtpEvent(sender = sender, otp = digits, fullMessage = messageText),
-                reason = "Forwarding full SMS in mode $relayMode"
-            )
-        } else {
-            RecognitionResult(
+        val confidence = OtpParser.classifyConfidence(messageText)
+        return when (val decision = WhitelistPolicy.evaluate(mode, entries, sender, confidence)) {
+            is RelayDecision.Drop -> RecognitionResult(
                 shouldRelay = false,
                 otpEvent = null,
-                reason = "Not an OTP and sender is not in forward-all mode"
+                reason = decision.reason
             )
+            RelayDecision.Allow -> {
+                val otpEvent = OtpParser.extractOtp(sender, messageText)
+                    ?: OtpEvent(
+                        sender = sender,
+                        otp = OtpParser.findAnyDigits(messageText) ?: "SMS",
+                        fullMessage = messageText
+                    )
+                RecognitionResult(shouldRelay = true, otpEvent = otpEvent, reason = "Allowed by whitelist policy")
+            }
         }
     }
 
     @Test
-    fun testModeOtpOnlyRecognizesOnlyOtpMessages() {
-        val whitelist = emptyList<String>()
-        val mode = OtpPreferences.MODE_OTP_ONLY
+    fun testExplicitWhitelistDenyByDefault() {
+        val mode = WhitelistMode.EXPLICIT
+        val entries = listOf(WhitelistEntry("TPBank", allowOtp = false))
 
-        // 1. Tin nhắn có mã OTP -> Được nhận diện và chấp nhận chuyển tiếp
-        val otpSms = "Mã xác thực của bạn là 123456."
-        val res1 = processIncomingSms("TPBank", otpSms, mode, whitelist)
-        assertTrue("OTP message should be accepted in MODE_OTP_ONLY", res1.shouldRelay)
-        assertEquals("123456", res1.otpEvent?.otp)
+        // 1. Whitelist trống -> chặn TẤT CẢ, kể cả OTP
+        val emptyResult = processIncomingSms("TPBank", "Mã xác thực của bạn là 123456.", mode, emptyList())
+        assertFalse("Empty whitelist must block everything", emptyResult.shouldRelay)
+        assertEquals(WhitelistPolicy.REASON_WHITELIST_EMPTY, emptyResult.reason)
 
-        // 2. Tin nhắn thông thường không có OTP -> Bị từ chối
+        // 2. Sender trong whitelist nhưng CHƯA tick OTP -> OTP bị chặn (an toàn mặc định)
+        val otpBlocked = processIncomingSms("TPBank", "Mã xác thực của bạn là 123456.", mode, entries)
+        assertFalse("OTP must be blocked when allow_otp is false", otpBlocked.shouldRelay)
+        assertEquals(WhitelistPolicy.REASON_OTP_NOT_ALLOWED, otpBlocked.reason)
+        assertNull(otpBlocked.otpEvent)
+
+        // 3. Sau khi tick "Cho phép gửi OTP" -> OTP được relay
+        val ticked = listOf(WhitelistEntry("TPBank", allowOtp = true))
+        val otpAllowed = processIncomingSms("TPBank", "Mã xác thực của bạn là 123456.", mode, ticked)
+        assertTrue("Ticked OTP permission must relay the OTP", otpAllowed.shouldRelay)
+        assertEquals("123456", otpAllowed.otpEvent?.otp)
+
+        // 4. Sender trong whitelist, SMS thường -> relay full SMS dù không tick OTP
         val normalSms = "Cảm ơn quý khách đã mua sắm tại cửa hàng. Hẹn gặp lại quý khách!"
-        val res2 = processIncomingSms("ShopA", normalSms, mode, whitelist)
-        assertFalse("Non-OTP message should be rejected in MODE_OTP_ONLY", res2.shouldRelay)
-        assertNull(res2.otpEvent)
+        val normalAllowed = processIncomingSms("TPBank", normalSms, mode, entries)
+        assertTrue("Whitelisted sender's regular SMS must be relayed", normalAllowed.shouldRelay)
+        assertEquals("SMS", normalAllowed.otpEvent?.otp)
+
+        // 5. Sender ngoài whitelist -> chặn mọi loại tin
+        val unknown = processIncomingSms("UnknownStore", "Đơn hàng số 5678 đã sẵn sàng giao.", mode, entries)
+        assertFalse("Non-whitelisted sender must be blocked", unknown.shouldRelay)
+        assertEquals(WhitelistPolicy.REASON_NOT_WHITELISTED, unknown.reason)
     }
 
     @Test
-    fun testModeAllSmsRecognizesAnyMessage() {
-        val whitelist = emptyList<String>()
-        val mode = OtpPreferences.MODE_ALL_SMS
+    fun testAllAddressesModeBlocksOtpWithoutExplicitEntry() {
+        val mode = WhitelistMode.ALL_ADDRESSES
+        val emptyEntries = emptyList<WhitelistEntry>()
 
-        // 1. Tin nhắn có OTP
-        val otpSms = "Mã OTP là 998877."
-        val res1 = processIncomingSms("Viettel", otpSms, mode, whitelist)
-        assertTrue(res1.shouldRelay)
-        assertEquals("998877", res1.otpEvent?.otp)
-
-        // 2. Tin nhắn ngân hàng biến động số dư (có 4 số đuôi thẻ)
+        // 1. SMS thường từ bất kỳ đầu số nào -> relay
         val bankSms = "Tài khoản 9876 biến động -500,000 VND."
-        val res2 = processIncomingSms("VCB", bankSms, mode, whitelist)
-        assertTrue("In MODE_ALL_SMS, bank notification should be forwarded", res2.shouldRelay)
-        assertEquals("9876", res2.otpEvent?.otp)
+        val bankAllowed = processIncomingSms("VCB", bankSms, mode, emptyEntries)
+        assertTrue("Regular SMS from any address must be relayed in ALL_ADDRESSES", bankAllowed.shouldRelay)
+        assertEquals("9876", bankAllowed.otpEvent?.otp)
 
-        // 3. Tin nhắn thuần chữ (không có bất kỳ con số nào)
         val textOnlySms = "Chúc bạn một ngày tốt lành và nhiều may mắn!"
-        val res3 = processIncomingSms("Friend", textOnlySms, mode, whitelist)
-        assertTrue("In MODE_ALL_SMS, text-only SMS should also be forwarded with 'SMS' tag", res3.shouldRelay)
-        assertEquals("SMS", res3.otpEvent?.otp)
-    }
+        val textAllowed = processIncomingSms("Friend", textOnlySms, mode, emptyEntries)
+        assertTrue("Text-only SMS must be relayed with 'SMS' tag", textAllowed.shouldRelay)
+        assertEquals("SMS", textAllowed.otpEvent?.otp)
 
-    @Test
-    fun testModeWhitelistAllRecognizesFullSmsOnlyForWhitelistedSenders() {
-        val whitelist = listOf("Techcombank", "+8613800000000")
-        val mode = OtpPreferences.MODE_WHITELIST_ALL
+        // 2. OTP từ đầu số KHÔNG được tick -> chặn (không chấp nhận all-in OTP)
+        val otpSms = "Mã OTP là 998877."
+        val otpBlocked = processIncomingSms("Viettel", otpSms, mode, emptyEntries)
+        assertFalse("OTP must NOT be relayed all-in in ALL_ADDRESSES mode", otpBlocked.shouldRelay)
+        assertEquals(WhitelistPolicy.REASON_OTP_NOT_ALLOWED, otpBlocked.reason)
 
-        // 1. Sender trong whitelist gửi SMS thường (không có OTP) -> ĐƯỢC CHẤP NHẬN
-        val whitelistedNormalSms = "Thông báo: Quý khách đã chuyển tiền thành công tới số tài khoản 1234."
-        val res1 = processIncomingSms("Techcombank", whitelistedNormalSms, mode, whitelist)
-        assertTrue("Whitelisted sender SMS should be relayed in MODE_WHITELIST_ALL even without OTP", res1.shouldRelay)
-        assertEquals("1234", res1.otpEvent?.otp)
+        // 3. Chỉ khi chủ động tick từng address thì OTP mới đi được
+        val ticked = listOf(WhitelistEntry("Viettel", allowOtp = true))
+        val otpAllowed = processIncomingSms("Viettel", otpSms, mode, ticked)
+        assertTrue("Explicitly ticked address must relay OTP", otpAllowed.shouldRelay)
+        assertEquals("998877", otpAllowed.otpEvent?.otp)
 
-        // 2. Sender NGOÀI whitelist gửi SMS thường -> BỊ TỪ CHỐI
-        val nonWhitelistedNormalSms = "Thông báo từ cửa hàng: Đơn hàng số 5678 đã sẵn sàng giao."
-        val res2 = processIncomingSms("UnknownStore", nonWhitelistedNormalSms, mode, whitelist)
-        assertFalse("Non-whitelisted sender with normal SMS must be ignored in MODE_WHITELIST_ALL", res2.shouldRelay)
-
-        // 3. Sender NGOÀI whitelist nhưng gửi tin nhắn chứa mã OTP hợp lệ -> VẪN ĐƯỢC NHẬN DIỆN
-        val nonWhitelistedOtpSms = "Google: Your verification code is 445566."
-        val res3 = processIncomingSms("Google", nonWhitelistedOtpSms, mode, whitelist)
-        assertTrue("Authentic OTP must still be recognized even if sender is not in whitelist", res3.shouldRelay)
-        assertEquals("445566", res3.otpEvent?.otp)
+        // 4. Address khác vẫn bị chặn OTP
+        val otherBlocked = processIncomingSms("MOMO", otpSms, mode, ticked)
+        assertFalse("Other addresses must remain blocked for OTP", otherBlocked.shouldRelay)
     }
 
     // ==========================================

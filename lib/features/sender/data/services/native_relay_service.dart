@@ -2,19 +2,20 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../../../core/utils/data_converter.dart';
+import '../models/whitelist_config_model.dart';
 
 abstract class NativeRelayService {
   Future<Map<String, dynamic>> getRelayConfig();
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
-    String? relayMode,
-    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
     String? deviceToken,
     String? deviceId,
   });
+  Future<WhitelistConfigModel> getWhitelist();
+  Future<bool> setWhitelist(WhitelistConfigModel config);
   Future<List<Map<String, dynamic>>> getRecentLogs();
   Future<bool> clearPairing();
   Future<bool> isBatteryOptimizationIgnored();
@@ -92,12 +93,7 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
         'getRelayConfig',
       );
-      final map = DataConverter.cvToMap<String, dynamic>(result);
-      if (map == null) return {};
-      map['senderWhitelist'] = DataConverter.cvToStringList(
-        map['senderWhitelist'],
-      );
-      return map;
+      return DataConverter.cvToMap<String, dynamic>(result) ?? {};
     } catch (_) {
       return {};
     }
@@ -106,8 +102,6 @@ class NativeRelayServiceImpl implements NativeRelayService {
   @override
   Future<bool> setRelayConfig({
     bool? isRelayEnabled,
-    String? relayMode,
-    List<String>? senderWhitelist,
     String? pairId,
     String? sharedSecretBase64,
     String? relayUrl,
@@ -117,8 +111,6 @@ class NativeRelayServiceImpl implements NativeRelayService {
     try {
       final Map<String, dynamic> params = {};
       if (isRelayEnabled != null) params['isRelayEnabled'] = isRelayEnabled;
-      if (relayMode != null) params['relayMode'] = relayMode;
-      if (senderWhitelist != null) params['senderWhitelist'] = senderWhitelist;
       if (pairId != null) params['pairId'] = pairId;
       if (sharedSecretBase64 != null) {
         params['sharedSecretBase64'] = sharedSecretBase64;
@@ -130,6 +122,33 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final success = await _channel.invokeMethod<bool>(
         'setRelayConfig',
         params,
+      );
+      return success ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<WhitelistConfigModel> getWhitelist() async {
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getWhitelist',
+      );
+      final map = DataConverter.cvToMap<String, dynamic>(result);
+      if (map == null) return const WhitelistConfigModel();
+      return WhitelistConfigModel.fromMap(map);
+    } catch (_) {
+      return const WhitelistConfigModel();
+    }
+  }
+
+  @override
+  Future<bool> setWhitelist(WhitelistConfigModel config) async {
+    try {
+      final success = await _channel.invokeMethod<bool>(
+        'setWhitelist',
+        config.toMap(),
       );
       return success ?? false;
     } catch (_) {

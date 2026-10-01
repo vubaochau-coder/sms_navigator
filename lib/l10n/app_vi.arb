@@ -209,5 +209,25 @@
   "smsRestrictedGuideStep1Suffix": " (góc trên phải chọn 3 chấm ⋮ ➔ Cho phép cài đặt bị hạn chế).",
   "smsRestrictedGuideStep2Prefix": "- Quay lại ",
   "smsRestrictedGuideStep2Action": "Quyền ứng dụng",
-  "smsRestrictedGuideStep2Suffix": " ➔ Bật quyền SMS (Tin nhắn)."
+  "smsRestrictedGuideStep2Suffix": " ➔ Bật quyền SMS (Tin nhắn).",
+  "whitelistSettingsTitle": "Bộ lọc tin nhắn gửi",
+  "whitelistAllAddressesToggle": "Nhận từ mọi địa chỉ",
+  "whitelistAllAddressesDesc": "SMS thường từ mọi đầu số được chuyển tiếp. Riêng OTP bắt buộc phải liệt kê từng địa chỉ bên dưới.",
+  "whitelistExplicitDesc": "Chỉ SMS từ các địa chỉ trong danh sách được chuyển tiếp. Danh sách trống nghĩa là chặn tất cả.",
+  "whitelistOtpSectionCaption": "Địa chỉ được cấp quyền gửi OTP",
+  "whitelistEmptyListHint": "Chưa có địa chỉ nào. Thêm đầu số hoặc brandname để bắt đầu.",
+  "whitelistEmptyWarningTitle": "Chưa cấu hình bộ lọc gửi",
+  "whitelistEmptyWarningMessage": "Tin nhắn SMS đang tạm dừng chuyển tiếp để bảo vệ an toàn dữ liệu. Thêm địa chỉ bạn muốn chuyển tiếp.",
+  "whitelistConfigureAction": "Cấu hình ngay",
+  "addWhitelistDialogTitle": "Thêm địa chỉ",
+  "whitelistDuplicateError": "Địa chỉ \"{address}\" đã có trong danh sách",
+  "@whitelistDuplicateError": {
+    "placeholders": {
+      "address": { "type": "String" }
+    }
+  },
+  "whitelistEmptyAddressError": "Địa chỉ không được để trống",
+  "whitelistLoadFailed": "Không thể đọc cấu hình bộ lọc",
+  "whitelistSaveFailed": "Không thể lưu cấu hình bộ lọc",
+  "whitelistRemoveAction": "Xóa địa chỉ"
 }

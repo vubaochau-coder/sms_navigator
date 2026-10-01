@@ -3,7 +3,60 @@ package com.example.sms_navigator.util
 import com.example.sms_navigator.model.OtpEvent
 import java.util.regex.Pattern
 
+enum class OtpConfidence { NONE, SUSPECT, CONFIRMED }
+
 object OtpParser {
+
+    /**
+     * Cờ cấu hình: nếu bật, tin nhắn CHỈ chứa chuỗi 4-8 số (không kèm keyword nào)
+     * cũng bị đánh giá SUSPECT. Mặc định tắt vì đa số SMS giao dịch đều chứa số.
+     */
+    @Volatile
+    var DIGITS_ONLY_SUSPECT: Boolean = false
+
+    // Từ vựng xác thực — dùng riêng cho bộ phân loại an toàn.
+    // Cố ý KHÔNG chứa từ generic ("mã", "ma", "code") để "Mã đơn hàng 452319" không bị coi là OTP.
+    private val VERIFICATION_KEYWORDS = listOf(
+        "otp",
+        "passcode",
+        "one time password",
+        "one-time password",
+        "one time code",
+        "one-time code",
+        // Vietnamese
+        "xác thực",
+        "xac thuc",
+        "xác minh",
+        "xac minh",
+        "mã xác thực",
+        "ma xac thuc",
+        // English
+        "verification",
+        "verify",
+        "security code",
+        // Chinese
+        "验证码", "驗證碼",
+        "校验码", "校驗碼",
+        "动态验证码", "動態驗證碼",
+        "动态密码", "動態密碼",
+        "动态口令", "動態口令",
+        "短信验证码", "短信口令",
+        "授权码", "授權碼"
+    )
+
+    private val KEYWORD_ALTERNATION = VERIFICATION_KEYWORDS.joinToString("|") { Pattern.quote(it) }
+
+    // CONFIRMED: keyword xác thực đứng TRƯỚC chuỗi mã (context sát nhau)
+    private val CONFIRMED_FORWARD_REGEX = Pattern.compile(
+        """(?:$KEYWORD_ALTERNATION)\D{0,20}?(?<!\d)(\d{4,8})(?!\d)""",
+        Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE
+    )
+
+    // CONFIRMED: chuỗi mã đứng TRƯỚC keyword xác thực (thường gặp trong tiếng Trung)
+    private val CONFIRMED_REVERSE_REGEX = Pattern.compile(
+        """(?<!\d)(\d{4,8})(?!\d)\D{0,15}?(?:$KEYWORD_ALTERNATION)""",
+        Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE
+    )
 
     // Keywords that indicate an OTP / verification message (Vietnamese, English, Chinese)
     private val OTP_KEYWORDS = listOf(
@@ -163,5 +216,32 @@ object OtpParser {
             return matcher.group(1)
         }
         return null
+    }
+
+    /**
+     * Phân loại độ tin cậy "tin này là OTP" cho guard white-list:
+     * - CONFIRMED: keyword xác thực kèm mã theo ngữ cảnh chặt (forward/reverse).
+     * - SUSPECT: chỉ có keyword xác thực + chuỗi 4-8 số (không theo ngữ cảnh chặt).
+     * - NONE: không có tín hiệu OTP (tin SMS thường).
+     */
+    fun classifyConfidence(body: String): OtpConfidence {
+        if (body.isBlank()) return OtpConfidence.NONE
+
+        if (CONFIRMED_FORWARD_REGEX.matcher(body).find() ||
+            CONFIRMED_REVERSE_REGEX.matcher(body).find()
+        ) {
+            return OtpConfidence.CONFIRMED
+        }
+
+        val hasDigitRun = GENERAL_DIGITS_REGEX.matcher(body).find()
+        if (!hasDigitRun) return OtpConfidence.NONE
+
+        val lowerBody = body.lowercase()
+        val hasVerificationKeyword = VERIFICATION_KEYWORDS.any { lowerBody.contains(it) }
+        return if (DIGITS_ONLY_SUSPECT || hasVerificationKeyword) {
+            OtpConfidence.SUSPECT
+        } else {
+            OtpConfidence.NONE
+        }
     }
 }

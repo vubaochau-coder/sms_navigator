@@ -495,4 +495,55 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get smsRestrictedGuideStep2Suffix => ' ➔ Bật quyền SMS (Tin nhắn).';
+
+  @override
+  String get whitelistSettingsTitle => 'Bộ lọc tin nhắn gửi';
+
+  @override
+  String get whitelistAllAddressesToggle => 'Nhận từ mọi địa chỉ';
+
+  @override
+  String get whitelistAllAddressesDesc =>
+      'SMS thường từ mọi đầu số được chuyển tiếp. Riêng OTP bắt buộc phải liệt kê từng địa chỉ bên dưới.';
+
+  @override
+  String get whitelistExplicitDesc =>
+      'Chỉ SMS từ các địa chỉ trong danh sách được chuyển tiếp. Danh sách trống nghĩa là chặn tất cả.';
+
+  @override
+  String get whitelistOtpSectionCaption => 'Địa chỉ được cấp quyền gửi OTP';
+
+  @override
+  String get whitelistEmptyListHint =>
+      'Chưa có địa chỉ nào. Thêm đầu số hoặc brandname để bắt đầu.';
+
+  @override
+  String get whitelistEmptyWarningTitle => 'Chưa cấu hình bộ lọc gửi';
+
+  @override
+  String get whitelistEmptyWarningMessage =>
+      'Tin nhắn SMS đang tạm dừng chuyển tiếp để bảo vệ an toàn dữ liệu. Thêm địa chỉ bạn muốn chuyển tiếp.';
+
+  @override
+  String get whitelistConfigureAction => 'Cấu hình ngay';
+
+  @override
+  String get addWhitelistDialogTitle => 'Thêm địa chỉ';
+
+  @override
+  String whitelistDuplicateError(String address) {
+    return 'Địa chỉ \"$address\" đã có trong danh sách';
+  }
+
+  @override
+  String get whitelistEmptyAddressError => 'Địa chỉ không được để trống';
+
+  @override
+  String get whitelistLoadFailed => 'Không thể đọc cấu hình bộ lọc';
+
+  @override
+  String get whitelistSaveFailed => 'Không thể lưu cấu hình bộ lọc';
+
+  @override
+  String get whitelistRemoveAction => 'Xóa địa chỉ';
 }

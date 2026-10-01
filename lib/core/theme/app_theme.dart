@@ -20,6 +20,7 @@ class AppTheme {
     textMuted: AppColors.textMuted,
     success: AppColors.success,
     warning: AppColors.warning,
+    warningLight: AppColors.warningLight,
     error: AppColors.error,
     border: AppColors.border,
     divider: AppColors.divider,
@@ -40,6 +41,7 @@ class AppTheme {
     textMuted: AppDarkColors.textMuted,
     success: AppDarkColors.success,
     warning: AppDarkColors.warning,
+    warningLight: AppDarkColors.warningLight,
     error: AppDarkColors.error,
     border: AppDarkColors.border,
     divider: AppDarkColors.divider,
@@ -69,6 +71,11 @@ class AppTheme {
           onPrimary: Colors.white,
           onSurface: c.textPrimary,
           onSurfaceVariant: c.textSecondary,
+          // Warning palette của dự án được mang qua các slot tertiary
+          // để widget truy cập theo theme (đúng màu ở cả light & dark).
+          tertiary: c.warning,
+          tertiaryContainer: c.warningLight,
+          onTertiaryContainer: c.textPrimary,
         );
 
     return ThemeData(
@@ -282,6 +289,7 @@ class _SoftPalette {
     required this.textMuted,
     required this.success,
     required this.warning,
+    required this.warningLight,
     required this.error,
     required this.border,
     required this.divider,
@@ -301,6 +309,7 @@ class _SoftPalette {
   final Color textMuted;
   final Color success;
   final Color warning;
+  final Color warningLight;
   final Color error;
   final Color border;
   final Color divider;

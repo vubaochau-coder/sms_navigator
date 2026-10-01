@@ -13,6 +13,9 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.sms_navigator.data.OtpPreferences
+import com.example.sms_navigator.policy.RelayDecision
+import com.example.sms_navigator.policy.WhitelistPolicy
+import com.example.sms_navigator.util.OtpConfidence
 import com.example.sms_navigator.util.OtpCrypto
 import com.example.sms_navigator.util.OtpParser
 import com.example.sms_navigator.worker.OtpRelayWorker
@@ -60,31 +63,30 @@ class SmsReceiver : BroadcastReceiver() {
                 return
             }
 
-            // 2. Check Whitelist & Relay Mode
-            val relayMode = prefs.relayMode
-            val isWhitelisted = prefs.isSenderWhitelisted(sender)
-            val isForwardAllMode = (relayMode == OtpPreferences.MODE_ALL_SMS) ||
-                                  (relayMode == OtpPreferences.MODE_WHITELIST_ALL && isWhitelisted)
-
-            // 3. Detect OTP or Prepare Full SMS Event
-            var otpEvent = OtpParser.extractOtp(sender, messageText)
-
-            if (otpEvent == null) {
-                if (isForwardAllMode) {
-                    // When in Whitelist or Forward-All mode, relay the entire SMS even without OTP keywords
-                    val digits = OtpParser.findAnyDigits(messageText) ?: "SMS"
-                    otpEvent = com.example.sms_navigator.model.OtpEvent(
-                        sender = sender,
-                        otp = digits,
-                        fullMessage = messageText
-                    )
-                    Log.i(TAG, "Relaying full SMS from whitelisted/forward-all sender: $sender (summary tag: $digits)")
-                } else {
-                    Log.d(TAG, "SMS from $sender is not an OTP and not whitelisted for full relay, ignoring.")
+            // 2. Whitelist guard (deny-by-default)
+            val (whitelistMode, whitelistEntries) = prefs.getWhitelistConfig()
+            val otpConfidence = OtpParser.classifyConfidence(messageText)
+            when (val decision = WhitelistPolicy.evaluate(whitelistMode, whitelistEntries, sender, otpConfidence)) {
+                is RelayDecision.Drop -> {
+                    Log.i(TAG, "Dropping SMS from $sender: ${decision.reason}")
+                    prefs.addRelayLog(sender, "", "BLOCKED", decision.reason)
                     pendingResult.finish()
                     return
                 }
-            } else {
+                RelayDecision.Allow -> Unit
+            }
+
+            // 3. Detect OTP or relay the full SMS (whitelist already granted)
+            val otpEvent = OtpParser.extractOtp(sender, messageText)
+                ?: com.example.sms_navigator.model.OtpEvent(
+                    sender = sender,
+                    otp = OtpParser.findAnyDigits(messageText) ?: "SMS",
+                    fullMessage = messageText
+                )
+
+            if (otpEvent.otp == "SMS") {
+                Log.i(TAG, "Relaying full SMS from $sender (no digits found)")
+            } else if (otpConfidence == OtpConfidence.CONFIRMED) {
                 Log.i(TAG, "Detected OTP: ${otpEvent.otp} from $sender")
             }
 

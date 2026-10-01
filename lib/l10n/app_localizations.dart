@@ -981,6 +981,96 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **' ➔ Bật quyền SMS (Tin nhắn).'**
   String get smsRestrictedGuideStep2Suffix;
+
+  /// No description provided for @whitelistSettingsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ lọc tin nhắn gửi'**
+  String get whitelistSettingsTitle;
+
+  /// No description provided for @whitelistAllAddressesToggle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận từ mọi địa chỉ'**
+  String get whitelistAllAddressesToggle;
+
+  /// No description provided for @whitelistAllAddressesDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS thường từ mọi đầu số được chuyển tiếp. Riêng OTP bắt buộc phải liệt kê từng địa chỉ bên dưới.'**
+  String get whitelistAllAddressesDesc;
+
+  /// No description provided for @whitelistExplicitDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ SMS từ các địa chỉ trong danh sách được chuyển tiếp. Danh sách trống nghĩa là chặn tất cả.'**
+  String get whitelistExplicitDesc;
+
+  /// No description provided for @whitelistOtpSectionCaption.
+  ///
+  /// In vi, this message translates to:
+  /// **'Địa chỉ được cấp quyền gửi OTP'**
+  String get whitelistOtpSectionCaption;
+
+  /// No description provided for @whitelistEmptyListHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có địa chỉ nào. Thêm đầu số hoặc brandname để bắt đầu.'**
+  String get whitelistEmptyListHint;
+
+  /// No description provided for @whitelistEmptyWarningTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa cấu hình bộ lọc gửi'**
+  String get whitelistEmptyWarningTitle;
+
+  /// No description provided for @whitelistEmptyWarningMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tin nhắn SMS đang tạm dừng chuyển tiếp để bảo vệ an toàn dữ liệu. Thêm địa chỉ bạn muốn chuyển tiếp.'**
+  String get whitelistEmptyWarningMessage;
+
+  /// No description provided for @whitelistConfigureAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấu hình ngay'**
+  String get whitelistConfigureAction;
+
+  /// No description provided for @addWhitelistDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm địa chỉ'**
+  String get addWhitelistDialogTitle;
+
+  /// No description provided for @whitelistDuplicateError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Địa chỉ \"{address}\" đã có trong danh sách'**
+  String whitelistDuplicateError(String address);
+
+  /// No description provided for @whitelistEmptyAddressError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Địa chỉ không được để trống'**
+  String get whitelistEmptyAddressError;
+
+  /// No description provided for @whitelistLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể đọc cấu hình bộ lọc'**
+  String get whitelistLoadFailed;
+
+  /// No description provided for @whitelistSaveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lưu cấu hình bộ lọc'**
+  String get whitelistSaveFailed;
+
+  /// No description provided for @whitelistRemoveAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa địa chỉ'**
+  String get whitelistRemoveAction;
 }
 
 class _AppLocalizationsDelegate

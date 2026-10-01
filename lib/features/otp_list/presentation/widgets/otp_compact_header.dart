@@ -5,6 +5,7 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/theme_toggle_button.dart';
 import '../../../device/presentation/pages/device_setup_checklist_page.dart';
+import '../../../settings/presentation/pages/whitelist_settings_page.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_state.dart';
 
@@ -50,6 +51,17 @@ class OtpCompactHeader extends StatelessWidget {
                     color: colorScheme.onSurface,
                   ),
                 ),
+              ),
+              IconButton(
+                tooltip: l10n.whitelistSettingsTitle,
+                icon: const Icon(Icons.fact_check_rounded),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const WhitelistSettingsPage(),
+                    ),
+                  );
+                },
               ),
               IconButton(
                 tooltip: 'Thiết lập thiết bị',
