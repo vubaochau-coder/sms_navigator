@@ -82,7 +82,9 @@ class DataConverter {
     if (value is String) {
       final clean = value.trim();
       final parsedDate = DateTime.tryParse(clean);
-      if (parsedDate != null) return parsedDate;
+      // ISO 8601 UTC ("...Z") parse ra DateTime có isUtc == true; normalize
+      // về giờ local ngay tại biên parse để mọi formatter hiển thị đúng.
+      if (parsedDate != null) return parsedDate.toLocal();
       final parsedInt = int.tryParse(clean);
       if (parsedInt != null) {
         return cvToDateTime(parsedInt, defaultValue);
