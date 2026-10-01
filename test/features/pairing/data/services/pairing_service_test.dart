@@ -60,6 +60,9 @@ class _FakeNativeRelayService implements NativeRelayService {
       {'isAggressive': false, 'oem': null};
 
   @override
+  Future<String?> getDeviceName() async => 'Test Device';
+
+  @override
   Future<bool> openAutostartSettings() async => false;
 
   @override

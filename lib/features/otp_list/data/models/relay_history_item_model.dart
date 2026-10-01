@@ -5,6 +5,8 @@ class RelayHistoryItemModel {
   final String pairId;
   final String senderDeviceId;
   final String? senderDeviceName;
+  final String? receiverDeviceName;
+  final String? viewerRole;
   final String encryptedPayload;
   final String iv;
   final DateTime? sentAt;
@@ -17,6 +19,8 @@ class RelayHistoryItemModel {
     required this.pairId,
     required this.senderDeviceId,
     this.senderDeviceName,
+    this.receiverDeviceName,
+    this.viewerRole,
     required this.encryptedPayload,
     required this.iv,
     this.sentAt,
@@ -31,6 +35,8 @@ class RelayHistoryItemModel {
       pairId: map['pair_id']?.toString() ?? '',
       senderDeviceId: map['sender_device_id']?.toString() ?? '',
       senderDeviceName: map['sender_device_name']?.toString(),
+      receiverDeviceName: map['receiver_device_name']?.toString(),
+      viewerRole: map['viewer_role']?.toString(),
       encryptedPayload: map['encrypted_payload']?.toString() ?? '',
       iv: map['iv']?.toString() ?? '',
       sentAt: DataConverter.cvToDateTime(map['sent_at']),

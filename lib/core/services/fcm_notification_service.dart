@@ -177,6 +177,13 @@ class FcmNotificationService {
     if (data.isEmpty) return null;
 
     final type = data['type']?.toString();
+
+    // ACK từ server: Máy B đã nhận OTP thành công (hoặc OTP được xếp hàng chờ)
+    if (type == 'OTP_RELAY_ACK') {
+      await _showSenderAckNotification(data);
+      return null;
+    }
+
     if (type != 'OTP_RELAY') return null;
 
     final pairId = data['pair_id']?.toString() ?? '';
@@ -282,6 +289,54 @@ class FcmNotificationService {
       notificationDetails: notificationDetails,
       payload: otp.otp,
     );
+  }
+
+  /// Thông báo xác nhận chuyển tiếp OTP thành công về thiết bị gửi (Máy A),
+  /// kích hoạt bởi data message `type: OTP_RELAY_ACK` từ server.
+  static Future<void> _showSenderAckNotification(
+    Map<String, dynamic> data,
+  ) async {
+    await _ensureLocalNotificationsInitialized();
+
+    final receiverName = (data['receiver_name']?.toString() ?? '').trim();
+    final status = (data['status']?.toString() ?? 'DELIVERED').toUpperCase();
+
+    final target = receiverName.isEmpty
+        ? 'Máy Nhận'
+        : receiverName;
+    final body = status == 'QUEUED'
+        ? 'OTP đã được xếp hàng chờ cho $target (máy nhận sẽ lấy qua polling).'
+        : 'Đã gửi thành công OTP tới $target qua kênh E2EE.';
+
+    final androidDetails = AndroidNotificationDetails(
+      'sms_navigator_sender_channel',
+      'Thông Báo Chuyển Tiếp',
+      channelDescription: 'Thông báo trạng thái chuyển tiếp OTP thành công',
+      importance: Importance.high,
+      priority: Priority.high,
+      ticker: 'Chuyển tiếp OTP',
+      styleInformation: BigTextStyleInformation(''),
+      playSound: true,
+      enableVibration: true,
+    );
+
+    final notificationDetails = NotificationDetails(android: androidDetails);
+    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
+        .toInt();
+
+    try {
+      await _localNotifications.show(
+        id: notificationId,
+        title: status == 'QUEUED'
+            ? '⏳ OTP Đã Được Xếp Hàng'
+            : '✅ Đã Chuyển Tiếp OTP Thành Công',
+        body: body,
+        notificationDetails: notificationDetails,
+        payload: data['relay_message_id'] ?? '',
+      );
+    } catch (e) {
+      debugPrint('Could not show sender ACK notification: $e');
+    }
   }
 
   /// Bắn thông báo demo cho tình huống: Máy B nhận được OTP từ Máy A.

@@ -118,6 +118,12 @@ class OemAutostartNavigator(private val context: Context) {
             ?.oemKey
     }
 
+    fun getDeviceDisplayName(): String {
+        val manufacturer = Build.MANUFACTURER?.trim() ?: ""
+        val model = Build.MODEL?.trim() ?: ""
+        return "$manufacturer $model".trim()
+    }
+
     fun openAutostartSettings(): Boolean {
         val oemKey = detectAggressiveOem() ?: return false
         val oem = aggressiveOemSettings.firstOrNull { it.oemKey == oemKey }

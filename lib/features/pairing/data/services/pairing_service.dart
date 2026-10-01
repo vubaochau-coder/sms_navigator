@@ -32,6 +32,15 @@ class PairingServiceImpl implements PairingService {
 
   static const String _keyReceiverPairId = 'receiver_pair_id';
   static const String _keyReceiverSharedSecret = 'receiver_shared_secret';
+  static const String _platformAndroid = 'android';
+
+  Future<String?> _resolveDeviceName() async {
+    try {
+      return await nativeService.getDeviceName();
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<PairingPayloadModel> generateSenderPairing() async {
@@ -51,7 +60,10 @@ class PairingServiceImpl implements PairingService {
 
     // Đăng ký thiết bị gửi với server trước khi mở phiên ghép đôi nếu có kết nối.
     if (deviceApiService != null) {
-      await deviceApiService!.registerDevice();
+      await deviceApiService!.registerDevice(
+        deviceName: await _resolveDeviceName(),
+        platform: _platformAndroid,
+      );
     }
     if (apiClient != null) {
       final response = await apiClient!.post(
@@ -125,10 +137,18 @@ class PairingServiceImpl implements PairingService {
 
     // Đăng ký thiết bị nhận với server nếu có kết nối.
     if (deviceApiService != null) {
-      await deviceApiService!.registerDevice();
+      await deviceApiService!.registerDevice(
+        deviceName: await _resolveDeviceName(),
+        platform: _platformAndroid,
+      );
     }
     if (apiClient != null) {
-      final body = <String, dynamic>{'pair_id': payload.pairId};
+      final deviceName = await _resolveDeviceName();
+      final body = <String, dynamic>{
+        'pair_id': payload.pairId,
+        if (deviceName != null && deviceName.isNotEmpty) 'device_name': deviceName,
+        'platform': _platformAndroid,
+      };
       if (fcmToken != null) {
         body['fcm_token'] = fcmToken;
       }

@@ -40,6 +40,10 @@ class RelayMethodChannel(
                     )
                 }
 
+                "getDeviceName" -> {
+                    result.success(deviceNavigator.getDeviceDisplayName())
+                }
+
                 "openAutostartSettings" -> {
                     val opened = deviceNavigator.openAutostartSettings()
                     if (!opened) {

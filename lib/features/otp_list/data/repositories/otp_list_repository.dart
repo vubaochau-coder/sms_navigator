@@ -76,6 +76,23 @@ class OtpListRepositoryImpl implements OtpListRepository {
       DateTime receivedAt =
           model.relayedAt ?? model.sentAt ?? DateTime.now();
 
+      // Nhãn định hướng: tin do chính thiết bị này gửi hay được nhận từ máy gửi
+      final isViewerSender = model.viewerRole != 'RECEIVER';
+      final String deviceLabel;
+      if (isViewerSender) {
+        final receiverName = model.receiverDeviceName?.trim();
+        deviceLabel =
+            (receiverName == null || receiverName.isEmpty || receiverName == 'null')
+                ? 'Đã gửi tới Máy Nhận'
+                : 'Đã gửi tới $receiverName';
+      } else {
+        final senderName = model.senderDeviceName?.trim();
+        deviceLabel =
+            (senderName == null || senderName.isEmpty || senderName == 'null')
+                ? 'Nhận từ Máy Gửi'
+                : 'Nhận từ $senderName';
+      }
+
       // Attempt decryption if shared secret is available
       if (sharedSecret != null &&
           sharedSecret.isNotEmpty &&
@@ -114,7 +131,7 @@ class OtpListRepositoryImpl implements OtpListRepository {
           id: model.id,
           pairId: model.pairId,
           senderDeviceId: model.senderDeviceId,
-          senderDeviceName: model.senderDeviceName ?? 'Máy Gửi (Sender)',
+          senderDeviceName: deviceLabel,
           sender: sender,
           otp: otp,
           fullMessage: fullMessage,
