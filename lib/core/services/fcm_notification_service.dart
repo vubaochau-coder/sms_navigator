@@ -21,7 +21,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
   } catch (_) {}
-  await FcmNotificationService.processIncomingRemoteMessage(message);
+  // Khi message có khối notification, Android đã tự hiển thị thông báo hệ
+  // thống ở background -> chỉ bắn local notification khi đó là data-only.
+  await FcmNotificationService.processIncomingRemoteMessage(
+    message,
+    showLocalNotification: message.notification == null,
+  );
 }
 
 /// Dịch vụ quản lý FCM Notifications & High-priority Local Notifications.
@@ -102,7 +107,23 @@ class FcmNotificationService {
       // 4. Lắng nghe cập nhật token định kỳ (Firebase xoay vòng token)
       FirebaseMessaging.instance.onTokenRefresh.listen(_syncTokenToServer);
 
-      // 5. Lắng nghe tin nhắn khi App đang ở Foreground
+      // 5. Lắng nghe người dùng chạm notification hệ thống mở app lần đầu
+      // (app bị Terminated: data chỉ có qua getInitialMessage)
+      final initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
+      if (initialMessage != null) {
+        final otp = await processIncomingRemoteMessage(
+          initialMessage,
+          showLocalNotification: initialMessage.notification == null,
+        );
+        if (otp != null) {
+          _otpStreamController.add(otp);
+        }
+      }
+
+      // 6. Lắng nghe tin nhắn khi App đang ở Foreground
+      // (foreground: hệ điều hành KHÔNG tự hiển thị notification block,
+      // luôn phải bắn local notification)
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         final otp = await processIncomingRemoteMessage(message);
         if (otp != null) {
@@ -110,11 +131,14 @@ class FcmNotificationService {
         }
       });
 
-      // 6. Lắng nghe người dùng bấm vào notification mở app
+      // 7. Lắng nghe người dùng bấm vào notification mở app
       FirebaseMessaging.onMessageOpenedApp.listen((
         RemoteMessage message,
       ) async {
-        final otp = await processIncomingRemoteMessage(message);
+        final otp = await processIncomingRemoteMessage(
+          message,
+          showLocalNotification: message.notification == null,
+        );
         if (otp != null) {
           _otpStreamController.add(otp);
         }
@@ -175,9 +199,13 @@ class FcmNotificationService {
   }
 
   /// Xử lý giải mã và hiển thị thông báo cho một tin nhắn FCM đến.
+  ///
+  /// [showLocalNotification] = false khi hệ điều hành đã tự hiển thị
+  /// notification block của FCM (app background/killed), tránh thông báo kép.
   static Future<ReceivedOtpModel?> processIncomingRemoteMessage(
-    RemoteMessage message,
-  ) async {
+    RemoteMessage message, {
+    bool showLocalNotification = true,
+  }) async {
     final data = message.data;
     if (data.isEmpty) return null;
 
@@ -185,7 +213,9 @@ class FcmNotificationService {
 
     // ACK từ server: Máy B đã nhận OTP thành công (hoặc OTP được xếp hàng chờ)
     if (type == 'OTP_RELAY_ACK') {
-      await _showSenderAckNotification(data);
+      if (showLocalNotification) {
+        await _showSenderAckNotification(data);
+      }
       return null;
     }
 
@@ -253,11 +283,14 @@ class FcmNotificationService {
       final storage = ReceiverStorageServiceImpl(await LocalStorageService.create());
       await storage.saveReceivedOtp(model);
 
-      // Hiển thị thông báo nổi (Heads-up notification) nếu platform hỗ trợ
-      try {
-        await _showLocalOtpNotification(model);
-      } catch (e) {
-        debugPrint('Could not show local notification: $e');
+      // Hiển thị thông báo nổi (Heads-up notification) nếu được phép
+      // (bỏ qua khi hệ điều hành đã hiển thị notification block của FCM)
+      if (showLocalNotification) {
+        try {
+          await _showLocalOtpNotification(model);
+        } catch (e) {
+          debugPrint('Could not show local notification: $e');
+        }
       }
 
       return model;
