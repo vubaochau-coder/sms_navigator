@@ -26,7 +26,7 @@ Future<void> showSmsPermissionPromptDialog(
         TextButton(
           onPressed: () {
             Navigator.of(context).pop();
-            context.read<DeviceSetupBloc>().add(
+            BlocProvider.of<DeviceSetupBloc>(context).add(
               const DeviceSetupDontPromptDismissed(),
             );
           },

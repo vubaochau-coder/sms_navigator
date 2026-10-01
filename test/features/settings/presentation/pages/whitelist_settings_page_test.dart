@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
 import 'package:sms_navigator/core/storage/storage_keys.dart';
+import 'package:sms_navigator/core/widgets/app_switch.dart';
 import 'package:sms_navigator/features/sender/data/models/whitelist_config_model.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
 import 'package:sms_navigator/features/settings/data/repositories/whitelist_repository.dart';
@@ -79,7 +80,7 @@ void main() {
       await _pumpSettingsPage(tester, _FakeWhitelistRepository());
 
       expect(find.text('Chưa cấu hình bộ lọc gửi'), findsOneWidget);
-      expect(find.byType(SwitchListTile), findsOneWidget);
+      expect(find.byType(AppSwitch), findsOneWidget);
     });
 
     testWidgets('hides warning banner when entries exist', (tester) async {
@@ -112,7 +113,7 @@ void main() {
       final repo = _FakeWhitelistRepository();
       await _pumpSettingsPage(tester, repo);
 
-      await tester.tap(find.byType(SwitchListTile));
+      await tester.tap(find.byType(AppSwitch));
       await tester.pumpAndSettle();
 
       expect(repo.stored.mode, WhitelistMode.allAddresses);

@@ -12,7 +12,6 @@ class OtpListState extends Equatable {
   final bool isGroupingByDevice;
   final OtpDirectionFilter directionFilter;
   final List<DecryptedOtpItem> items;
-  final String? errorMessage;
 
   OtpListState({
     this.isLoading = false,
@@ -22,7 +21,6 @@ class OtpListState extends Equatable {
     this.isGroupingByDevice = false,
     this.directionFilter = OtpDirectionFilter.all,
     this.items = const [],
-    this.errorMessage,
   }) : selectedDate = selectedDate ?? DateTime.now(),
        focusedDate = focusedDate ?? (selectedDate ?? DateTime.now());
 
@@ -72,7 +70,6 @@ class OtpListState extends Equatable {
     bool? isGroupingByDevice,
     OtpDirectionFilter? directionFilter,
     List<DecryptedOtpItem>? items,
-    String? errorMessage,
   }) {
     return OtpListState(
       isLoading: isLoading ?? this.isLoading,
@@ -82,7 +79,6 @@ class OtpListState extends Equatable {
       isGroupingByDevice: isGroupingByDevice ?? this.isGroupingByDevice,
       directionFilter: directionFilter ?? this.directionFilter,
       items: items ?? this.items,
-      errorMessage: errorMessage,
     );
   }
 
@@ -95,6 +91,5 @@ class OtpListState extends Equatable {
     isGroupingByDevice,
     directionFilter,
     items,
-    errorMessage,
   ];
 }

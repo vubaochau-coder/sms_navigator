@@ -30,7 +30,9 @@ class ThemeToggleButton extends StatelessWidget {
               key: ValueKey<bool>(isDark),
             ),
           ),
-          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+          onPressed: () {
+            BlocProvider.of<ThemeCubit>(context).toggleTheme();
+          },
         );
       },
     );

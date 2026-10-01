@@ -66,7 +66,9 @@ class PairedDevicesBody<B extends Bloc<E, S>, E, S> extends StatelessWidget {
                 title: context.l10n.errorOccurred,
                 message: error,
                 actionLabel: context.l10n.retry,
-                onAction: () => context.read<B>().add(loadEvent(null)),
+                onAction: () {
+                  BlocProvider.of<B>(context).add(loadEvent(null));
+                },
               );
             }
 
@@ -79,12 +81,15 @@ class PairedDevicesBody<B extends Bloc<E, S>, E, S> extends StatelessWidget {
                   slivers: [
                     SliverFillRemaining(
                       hasScrollBody: false,
-                      child: EmptyStateView(
-                        icon: emptyIcon,
-                        title: emptyTitle,
-                        message: emptyMessage,
-                        actionLabel: emptyActionLabel,
-                        onAction: () => onEmptyAction(context),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 56),
+                        child: EmptyStateView(
+                          icon: emptyIcon,
+                          title: emptyTitle,
+                          message: emptyMessage,
+                          actionLabel: emptyActionLabel,
+                          onAction: () => onEmptyAction(context),
+                        ),
                       ),
                     ),
                   ],
@@ -109,7 +114,7 @@ class PairedDevicesBody<B extends Bloc<E, S>, E, S> extends StatelessWidget {
 
   Future<void> _load(BuildContext context) {
     final completer = Completer<void>();
-    context.read<B>().add(loadEvent(completer));
+    BlocProvider.of<B>(context).add(loadEvent(completer));
     return completer.future;
   }
 }
@@ -137,9 +142,9 @@ class PairedReceiversBody extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const PairingSenderPage()),
         );
         if (changed == true && context.mounted) {
-          context
-              .read<PairedReceiversBloc>()
-              .add(const PairedReceiversLoadEvent());
+          BlocProvider.of<PairedReceiversBloc>(
+            context,
+          ).add(const PairedReceiversLoadEvent());
         }
       },
     );
@@ -169,7 +174,7 @@ class PairedSendersBody extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const QrScanPage()),
         );
         if (context.mounted) {
-          context.read<PairedSendersBloc>().add(const PairedSendersLoadEvent());
+          BlocProvider.of<PairedSendersBloc>(context).add(const PairedSendersLoadEvent());
         }
       },
     );

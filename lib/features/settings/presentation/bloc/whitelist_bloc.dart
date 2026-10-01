@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/toast_utils.dart';
 import '../../../sender/data/models/whitelist_config_model.dart';
 import '../../data/repositories/whitelist_repository.dart';
 import 'whitelist_event.dart';
@@ -20,17 +21,13 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     WhitelistStarted event,
     Emitter<WhitelistState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, clearError: true, clearSuccess: true));
+    emit(state.copyWith(isLoading: true));
     try {
       final config = await repository.getWhitelist();
       emit(state.copyWith(isLoading: false, config: config));
     } catch (e) {
-      emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: 'Không thể đọc cấu hình white-list: $e',
-        ),
-      );
+      ToastUtils.showError('Không thể đọc cấu hình white-list: $e');
+      emit(state.copyWith(isLoading: false));
     }
   }
 
@@ -49,12 +46,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
   ) async {
     final address = event.address.trim();
     if (address.isEmpty) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Địa chỉ không được để trống',
-          clearSuccess: true,
-        ),
-      );
+      ToastUtils.showError('Địa chỉ không được để trống');
       return;
     }
 
@@ -62,12 +54,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
       (entry) => entry.address.toLowerCase() == address.toLowerCase(),
     );
     if (isDuplicate) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Địa chỉ "$address" đã có trong danh sách',
-          clearSuccess: true,
-        ),
-      );
+      ToastUtils.showError('Địa chỉ "$address" đã có trong danh sách');
       return;
     }
 
@@ -115,16 +102,11 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     WhitelistConfigModel updated,
     Emitter<WhitelistState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, clearError: true, clearSuccess: true));
+    emit(state.copyWith(isLoading: true));
     final saved = await repository.saveWhitelist(updated);
     if (!saved) {
-      emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: 'Không thể lưu cấu hình white-list',
-          clearSuccess: true,
-        ),
-      );
+      ToastUtils.showError('Không thể lưu cấu hình white-list');
+      emit(state.copyWith(isLoading: false));
       return;
     }
     emit(state.copyWith(isLoading: false, config: updated));

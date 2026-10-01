@@ -57,11 +57,10 @@ class OtpFilterBar extends StatelessWidget {
               );
             },
           ),
-          BlocBuilder<OtpListBloc, OtpListState>(
-            buildWhen: (p, c) => p.isGroupingByDevice != c.isGroupingByDevice,
-            builder: (context, state) {
+          BlocSelector<OtpListBloc, OtpListState, bool>(
+            selector: (state) => state.isGroupingByDevice,
+            builder: (context, isGrouping) {
               final groupLabel = l10n.otpGroupByDevice;
-              final isGrouping = state.isGroupingByDevice;
 
               return InkWell(
                 onTap: () {

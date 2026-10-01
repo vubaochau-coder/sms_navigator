@@ -23,19 +23,14 @@ class _QrScanPageState extends State<QrScanPage> {
   /// Cờ chống quét lặp lại nhiều lần trong khi đang xử lý một mã.
   bool _isProcessing = false;
 
-  /// Lưu lỗi đã hiển thị để tránh SnackBar lặp lại khi state đổi
-  /// do các sự kiện khác của bloc (errorMessage vẫn giữ nguyên giữa các tick).
-  String? _shownError;
-
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
     for (final barcode in capture.barcodes) {
       final rawValue = barcode.rawValue;
       if (rawValue == null || rawValue.isEmpty) continue;
       _isProcessing = true;
-      _shownError = null;
       if (mounted) {
-        context.read<PairingBloc>().add(PairingSubmitReceiverQrEvent(rawValue));
+        BlocProvider.of<PairingBloc>(context).add(PairingSubmitReceiverQrEvent(rawValue));
       }
       return;
     }
@@ -43,19 +38,11 @@ class _QrScanPageState extends State<QrScanPage> {
 
   void _onPairingStateChanged(BuildContext context, PairingState state) {
     if (state.isSuccess && _isProcessing) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.pairingSuccess)));
       Navigator.of(context).pop(true);
       return;
     }
 
-    final error = state.errorMessage;
-    if (error != null && _shownError != error) {
-      _shownError = error;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+    if (state.errorMessage != null && _isProcessing) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) setState(() => _isProcessing = false);
       });
@@ -72,24 +59,22 @@ class _QrScanPageState extends State<QrScanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: BlocConsumer<PairingBloc, PairingState>(
+      body: BlocListener<PairingBloc, PairingState>(
         listener: _onPairingStateChanged,
-        builder: (context, state) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              MobileScanner(controller: _controller, onDetect: _onDetect),
-              const _ViewfinderOverlay(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _ScannerTopBar(onBack: () => Navigator.pop(context)),
-                  _ScannerControls(controller: _controller),
-                ],
-              ),
-            ],
-          );
-        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            MobileScanner(controller: _controller, onDetect: _onDetect),
+            const _ViewfinderOverlay(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _ScannerTopBar(onBack: () => Navigator.pop(context)),
+                _ScannerControls(controller: _controller),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

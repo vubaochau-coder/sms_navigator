@@ -16,27 +16,33 @@ class OtpDirectionFilterBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: BlocBuilder<OtpListBloc, OtpListState>(
-        buildWhen: (p, c) => p.directionFilter != c.directionFilter,
-        builder: (context, state) {
+      child: BlocSelector<OtpListBloc, OtpListState, OtpDirectionFilter>(
+        selector: (state) => state.directionFilter,
+        builder: (context, directionFilter) {
           return Row(
             children: [
               _DirectionOption(
                 label: l10n.smsFilterAll,
-                isSelected: state.directionFilter == OtpDirectionFilter.all,
-                onTap: () => _onSelect(context, OtpDirectionFilter.all),
+                isSelected: directionFilter == OtpDirectionFilter.all,
+                onTap: () {
+                  _onSelect(context, OtpDirectionFilter.all);
+                },
               ),
               const SizedBox(width: 16),
               _DirectionOption(
                 label: l10n.smsFilterSent,
-                isSelected: state.directionFilter == OtpDirectionFilter.sent,
-                onTap: () => _onSelect(context, OtpDirectionFilter.sent),
+                isSelected: directionFilter == OtpDirectionFilter.sent,
+                onTap: () {
+                  _onSelect(context, OtpDirectionFilter.sent);
+                },
               ),
               const SizedBox(width: 16),
               _DirectionOption(
                 label: l10n.smsFilterReceived,
-                isSelected: state.directionFilter == OtpDirectionFilter.received,
-                onTap: () => _onSelect(context, OtpDirectionFilter.received),
+                isSelected: directionFilter == OtpDirectionFilter.received,
+                onTap: () {
+                  _onSelect(context, OtpDirectionFilter.received);
+                },
               ),
             ],
           );

@@ -55,13 +55,13 @@ void main() {
       expect(bloc.state.config.entries.first.address, 'VCB');
     });
 
-    test('emits error when load fails', () async {
+    test('keeps default config when load fails', () async {
       repository.shouldFailLoad = true;
 
       bloc.add(const WhitelistStarted());
       await bloc.close();
 
-      expect(bloc.state.errorMessage, isNotNull);
+      expect(bloc.state.isLoading, isFalse);
       expect(bloc.state.config, const WhitelistConfigModel());
     });
 
@@ -92,7 +92,7 @@ void main() {
       bloc.add(const WhitelistEntryAdded(address: '   '));
       await Future<void>.delayed(Duration.zero);
 
-      expect(bloc.state.errorMessage, isNotNull);
+      expect(bloc.state.config.entries, isEmpty);
       expect(repository.saveCallCount, 0);
     });
 
@@ -105,7 +105,6 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.config.entries.length, 1);
-      expect(bloc.state.errorMessage, contains('đã có trong danh sách'));
       expect(repository.saveCallCount, 1);
     });
   });
@@ -152,7 +151,7 @@ void main() {
       expect(repository.stored.mode, WhitelistMode.allAddresses);
     });
 
-    test('save failure keeps old config and emits error', () async {
+    test('save failure keeps old config', () async {
       bloc.add(const WhitelistStarted());
       await Future<void>.delayed(Duration.zero);
       repository.shouldFailSave = true;
@@ -160,7 +159,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.config.entries, isEmpty);
-      expect(bloc.state.errorMessage, isNotNull);
+      expect(bloc.state.isLoading, isFalse);
     });
   });
 }

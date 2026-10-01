@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/widgets/app_common_widgets.dart';
 import '../bloc/whitelist_bloc.dart';
 import '../bloc/whitelist_event.dart';
 
@@ -42,11 +43,14 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
             ),
             onSubmitted: (_) => _submit(),
           ),
-          SwitchListTile(
+          ListTile(
             contentPadding: EdgeInsets.zero,
-            value: _allowOtp,
             title: Text(l10n.allowSendingOtp),
-            onChanged: (value) => setState(() => _allowOtp = value),
+            trailing: AppSwitch(
+              value: _allowOtp,
+              onChanged: (value) => setState(() => _allowOtp = value),
+            ),
+            onTap: () => setState(() => _allowOtp = !_allowOtp),
           ),
         ],
       ),
@@ -64,7 +68,7 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
   }
 
   void _submit() {
-    context.read<WhitelistBloc>().add(
+    BlocProvider.of<WhitelistBloc>(context).add(
           WhitelistEntryAdded(
             address: _addressController.text,
             allowOtp: _allowOtp,

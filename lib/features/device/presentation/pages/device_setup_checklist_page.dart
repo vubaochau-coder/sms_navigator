@@ -47,12 +47,12 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      context.read<DeviceSetupBloc>().add(const DeviceSetupStarted());
+      BlocProvider.of<DeviceSetupBloc>(context).add(const DeviceSetupStarted());
     }
   }
 
   String get _oemDisplayName {
-    final bloc = context.read<DeviceSetupBloc>();
+    final bloc = BlocProvider.of<DeviceSetupBloc>(context);
     switch (bloc.state.oemName) {
       case 'xiaomi':
         return 'Xiaomi / HyperOS / MIUI';
@@ -104,7 +104,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                     ? l10n.openAppDetailsAction
                     : l10n.grantPermissionStepAction,
                 onAction: () {
-                  context.read<DeviceSetupBloc>().add(
+                  BlocProvider.of<DeviceSetupBloc>(context).add(
                     state.smsPermissionPermanentlyDenied
                         ? const DeviceSetupAppSettingsOpened()
                         : const DeviceSetupSmsPermissionRequested(),
@@ -112,7 +112,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                 },
                 child: _SmsRestrictedSettingsGuide(
                   onOpenAppSettings: () {
-                    context.read<DeviceSetupBloc>().add(
+                    BlocProvider.of<DeviceSetupBloc>(context).add(
                       const DeviceSetupAppSettingsOpened(),
                     );
                   },
@@ -126,7 +126,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                 isDone: state.batteryUnrestricted == true,
                 actionLabel: l10n.requestBatteryOptimizationAction,
                 onAction: () {
-                  context.read<DeviceSetupBloc>().add(
+                  BlocProvider.of<DeviceSetupBloc>(context).add(
                     const DeviceSetupBatteryOptimizationRequested(),
                   );
                 },
@@ -148,7 +148,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                     : l10n.openBackgroundAction,
                 doneActionLabel: l10n.reopenSettingsAction,
                 onAction: () {
-                  context.read<DeviceSetupBloc>().add(
+                  BlocProvider.of<DeviceSetupBloc>(context).add(
                     const DeviceSetupAutostartSettingsOpened(),
                   );
                 },
@@ -157,7 +157,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                     ? l10n.iHaveEnabledAction
                     : null,
                 onSecondaryAction: () {
-                  context.read<DeviceSetupBloc>().add(
+                  BlocProvider.of<DeviceSetupBloc>(context).add(
                     const DeviceSetupAutostartAcknowledged(),
                   );
                 },

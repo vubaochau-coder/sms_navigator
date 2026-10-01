@@ -18,22 +18,22 @@ class OtpCompactHeader extends StatelessWidget {
     final colorScheme = context.colorScheme;
     final l10n = context.l10n;
 
-    return BlocBuilder<OtpListBloc, OtpListState>(
-      buildWhen: (p, c) => p.selectedDate != c.selectedDate,
-      builder: (context, state) {
+    return BlocSelector<OtpListBloc, OtpListState, DateTime>(
+      selector: (state) => state.selectedDate,
+      builder: (context, selectedDate) {
         final isToday = DateTimeUtils.isSameDay(
-          state.selectedDate,
+          selectedDate,
           DateTime.now(),
         );
         final String dateText;
         if (isToday) {
           final dateDayMonth = DateTimeUtils.formatDate(
-            state.selectedDate,
+            selectedDate,
             pattern: 'dd/MM',
           );
           dateText = l10n.otpTodayWithDate(dateDayMonth);
         } else {
-          dateText = DateTimeUtils.formatDate(state.selectedDate);
+          dateText = DateTimeUtils.formatDate(selectedDate);
         }
 
         return Padding(

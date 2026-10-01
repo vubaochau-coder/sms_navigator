@@ -17,7 +17,7 @@ class PairingSenderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.read<PairingBloc>().add(const PairingGenerateSenderCodeEvent());
+    BlocProvider.of<PairingBloc>(context).add(const PairingGenerateSenderCodeEvent());
     return BlocProvider(
       create: (_) =>
           DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
@@ -70,7 +70,7 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
               return _ErrorView(
                 message: state.errorMessage ?? context.l10n.cannotGeneratePairingCode,
                 onRetry: () {
-                  context.read<PairingBloc>().add(
+                  BlocProvider.of<PairingBloc>(context).add(
                     const PairingGenerateSenderCodeEvent(),
                   );
                 },
@@ -108,7 +108,7 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                   const SizedBox(height: 32),
                   _ActionButtons(
                     onRegenerate: () {
-                      context.read<PairingBloc>().add(
+                      BlocProvider.of<PairingBloc>(context).add(
                         const PairingGenerateSenderCodeEvent(),
                       );
                     },
@@ -347,7 +347,7 @@ class _SmsPermissionBannerState extends State<_SmsPermissionBanner>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      context.read<DeviceSetupBloc>().add(const DeviceSetupStarted());
+      BlocProvider.of<DeviceSetupBloc>(context).add(const DeviceSetupStarted());
     }
   }
 
@@ -386,7 +386,7 @@ class _SmsPermissionBannerState extends State<_SmsPermissionBanner>
               const SizedBox(width: 8),
               FilledButton.tonal(
                 onPressed: () {
-                  context.read<DeviceSetupBloc>().add(
+                  BlocProvider.of<DeviceSetupBloc>(context).add(
                     state.smsPermissionPermanentlyDenied
                         ? const DeviceSetupAppSettingsOpened()
                         : const DeviceSetupSmsPermissionRequested(),

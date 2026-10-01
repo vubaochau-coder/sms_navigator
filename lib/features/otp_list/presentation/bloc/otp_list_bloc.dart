@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/utils/date_time_utils.dart';
+import '../../../../core/utils/toast_utils.dart';
 import '../../data/repositories/otp_list_repository.dart';
 import 'otp_list_event.dart';
 import 'otp_list_state.dart';
@@ -29,12 +30,7 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     final currentCancelToken = CancelToken();
     _cancelToken = currentCancelToken;
 
-    emit(
-      state.copyWith(
-        isLoading: true,
-        errorMessage: null,
-      ),
-    );
+    emit(state.copyWith(isLoading: true));
     try {
       final items = await repository.getOtpListForDate(
         state.selectedDate,
@@ -51,12 +47,8 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
       // Yêu cầu bị hủy có chủ đích khi chuyển ngày nhanh -> bỏ qua, không báo lỗi
     } catch (e) {
       if (emit.isDone) return;
-      emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: 'Lỗi tải danh sách OTP: ${e.toString()}',
-        ),
-      );
+      ToastUtils.showError('Lỗi tải danh sách OTP: ${e.toString()}');
+      emit(state.copyWith(isLoading: false));
     }
   }
 
