@@ -53,13 +53,6 @@ class _MockPairManagementService implements PairManagementService {
     }
     return true;
   }
-
-  @override
-  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async {
-    receiversList.removeWhere((e) => e.pairId == pairId);
-    sendersList.removeWhere((e) => e.pairId == pairId);
-    return true;
-  }
 }
 
 void main() {

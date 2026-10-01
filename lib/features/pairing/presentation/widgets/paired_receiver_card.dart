@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
 import '../bloc/paired_receivers_bloc.dart';
@@ -26,23 +25,6 @@ class PairedReceiverCard extends StatelessWidget {
         displayName: item.displayName,
       ),
     );
-  }
-
-  Future<void> _confirmRevokePair(BuildContext context) async {
-    final confirmed = await UiUtils.showConfirmDialog(
-      context,
-      title: context.l10n.confirmRevokeReceiverTitle,
-      message: context.l10n.confirmRevokeReceiverMessage(item.displayName),
-      confirmText: context.l10n.disconnect,
-      isDestructive: true,
-      icon: Icons.link_off_rounded,
-    );
-
-    if (confirmed && context.mounted) {
-      BlocProvider.of<PairedReceiversBloc>(context).add(
-        PairedReceiversRevokeEvent(pairId: item.pairId),
-      );
-    }
   }
 
   @override
@@ -161,14 +143,6 @@ class PairedReceiverCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.link_off_rounded,
-                  color: AppColors.error,
-                ),
-                tooltip: context.l10n.revokePairTooltip,
-                onPressed: () => _confirmRevokePair(context),
               ),
             ],
           ),

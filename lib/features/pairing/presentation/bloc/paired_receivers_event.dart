@@ -21,9 +21,3 @@ class PairedReceiversToggleActiveEvent extends PairedReceiversEvent {
     this.displayName,
   });
 }
-
-class PairedReceiversRevokeEvent extends PairedReceiversEvent {
-  final String pairId;
-
-  const PairedReceiversRevokeEvent({required this.pairId});
-}

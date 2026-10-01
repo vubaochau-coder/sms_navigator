@@ -7,11 +7,9 @@ class _FakePairManagementService implements PairManagementService {
   List<PairedDeviceItem> receivers = [];
   List<PairedDeviceItem> senders = [];
   bool toggleSuccess = true;
-  bool revokeSuccess = true;
 
   String? lastToggledPairId;
   bool? lastToggledIsActive;
-  String? lastRevokedPairId;
 
   @override
   Future<List<PairedDeviceItem>> getPairedReceivers({
@@ -38,16 +36,6 @@ class _FakePairManagementService implements PairManagementService {
       }
     }
     return toggleSuccess;
-  }
-
-  @override
-  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async {
-    lastRevokedPairId = pairId;
-    if (revokeSuccess) {
-      receivers.removeWhere((e) => e.pairId == pairId);
-      senders.removeWhere((e) => e.pairId == pairId);
-    }
-    return revokeSuccess;
   }
 }
 
@@ -129,22 +117,6 @@ void main() {
       expect(service.lastToggledPairId, 'pair_toggle_test');
       expect(service.lastToggledIsActive, isFalse);
       expect(service.receivers.first.isActive, isFalse);
-    });
-
-    test('revokePair removes paired record', () async {
-      final service = _FakePairManagementService();
-      service.receivers = [
-        const PairedDeviceItem(
-          pairId: 'pair_revoke_test',
-          deviceId: 'rec_02',
-          isActive: true,
-        ),
-      ];
-
-      final success = await service.revokePair('pair_revoke_test');
-      expect(success, isTrue);
-      expect(service.lastRevokedPairId, 'pair_revoke_test');
-      expect(service.receivers.isEmpty, isTrue);
     });
   });
 }

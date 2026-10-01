@@ -56,10 +56,6 @@ class _TrackingPairManagementService implements PairManagementService {
     required bool isActive,
     CancelToken? cancelToken,
   }) async => true;
-
-  @override
-  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async =>
-      true;
 }
 
 void main() {

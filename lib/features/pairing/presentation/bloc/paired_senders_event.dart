@@ -9,9 +9,3 @@ class PairedSendersLoadEvent extends PairedSendersEvent {
 
   const PairedSendersLoadEvent({this.completer});
 }
-
-class PairedSendersRevokeEvent extends PairedSendersEvent {
-  final String pairId;
-
-  const PairedSendersRevokeEvent({required this.pairId});
-}

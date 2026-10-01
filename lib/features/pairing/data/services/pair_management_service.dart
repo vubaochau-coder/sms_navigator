@@ -17,9 +17,6 @@ abstract class PairManagementService {
     required bool isActive,
     CancelToken? cancelToken,
   });
-
-  /// Hủy ghép đôi một cặp
-  Future<bool> revokePair(String pairId, {CancelToken? cancelToken});
 }
 
 class PairManagementServiceImpl implements PairManagementService {
@@ -88,20 +85,6 @@ class PairManagementServiceImpl implements PairManagementService {
         return response['success'] == true;
       }
       return false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  @override
-  Future<bool> revokePair(String pairId, {CancelToken? cancelToken}) async {
-    try {
-      final path = ApiEndpoints.revokePairPath(pairId);
-      final response = await apiClient.delete(path, cancelToken: cancelToken);
-      if (response is Map<String, dynamic>) {
-        return response['success'] == true;
-      }
-      return true;
     } catch (_) {
       return false;
     }

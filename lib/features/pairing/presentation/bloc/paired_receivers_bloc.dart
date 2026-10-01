@@ -13,7 +13,6 @@ class PairedReceiversBloc
   PairedReceiversBloc(this.service) : super(const PairedReceiversState()) {
     on<PairedReceiversLoadEvent>(_onLoadReceivers);
     on<PairedReceiversToggleActiveEvent>(_onToggleActive);
-    on<PairedReceiversRevokeEvent>(_onRevokePair);
   }
 
   @override
@@ -90,22 +89,6 @@ class PairedReceiversBloc
     } else {
       emit(state.copyWith(togglingPairIds: updatedToggling));
       ToastUtils.showError('Không thể cập nhật trạng thái. Vui lòng thử lại!');
-    }
-  }
-
-  Future<void> _onRevokePair(
-    PairedReceiversRevokeEvent event,
-    Emitter<PairedReceiversState> emit,
-  ) async {
-    final success = await service.revokePair(event.pairId);
-    if (success) {
-      final updatedList = state.devices
-          .where((e) => e.pairId != event.pairId)
-          .toList();
-      emit(state.copyWith(devices: updatedList));
-      ToastUtils.showSuccess('Đã hủy kết nối thành công');
-    } else {
-      ToastUtils.showError('Không thể hủy kết nối. Vui lòng thử lại!');
     }
   }
 }

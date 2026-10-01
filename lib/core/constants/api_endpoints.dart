@@ -14,7 +14,6 @@ class ApiEndpoints {
   static const String pairedSenders = '/api/v1/pair/senders';
 
   // --- URL Path Builders (Dành cho dynamic call không dùng Retrofit template) ---
-  static String revokePairPath(String pairId) => '/api/v1/pair/$pairId';
   static String togglePairPath(String pairId) =>
       '/api/v1/pair/$pairId/toggle';
 

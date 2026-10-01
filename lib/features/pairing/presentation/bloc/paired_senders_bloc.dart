@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/utils/toast_utils.dart';
 import '../../data/services/pair_management_service.dart';
 import 'paired_senders_event.dart';
 import 'paired_senders_state.dart';
@@ -11,7 +10,6 @@ class PairedSendersBloc extends Bloc<PairedSendersEvent, PairedSendersState> {
 
   PairedSendersBloc(this.service) : super(const PairedSendersState()) {
     on<PairedSendersLoadEvent>(_onLoadSenders);
-    on<PairedSendersRevokeEvent>(_onRevokePair);
   }
 
   @override
@@ -49,22 +47,6 @@ class PairedSendersBloc extends Bloc<PairedSendersEvent, PairedSendersState> {
       if (event.completer != null && !event.completer!.isCompleted) {
         event.completer!.complete();
       }
-    }
-  }
-
-  Future<void> _onRevokePair(
-    PairedSendersRevokeEvent event,
-    Emitter<PairedSendersState> emit,
-  ) async {
-    final success = await service.revokePair(event.pairId);
-    if (success) {
-      final updatedList = state.devices
-          .where((e) => e.pairId != event.pairId)
-          .toList();
-      emit(state.copyWith(devices: updatedList));
-      ToastUtils.showSuccess('Đã hủy kết nối thành công');
-    } else {
-      ToastUtils.showError('Không thể hủy kết nối. Vui lòng thử lại!');
     }
   }
 }
