@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -109,6 +110,13 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                         : const DeviceSetupSmsPermissionRequested(),
                   );
                 },
+                child: _SmsRestrictedSettingsGuide(
+                  onOpenAppSettings: () {
+                    context.read<DeviceSetupBloc>().add(
+                      const DeviceSetupAppSettingsOpened(),
+                    );
+                  },
+                ),
               ),
               _SetupStepCard(
                 icon: Icons.battery_saver_rounded,
@@ -180,6 +188,7 @@ class _SetupStepCard extends StatelessWidget {
     this.doneActionLabel,
     this.secondaryActionLabel,
     this.onSecondaryAction,
+    this.child,
   });
 
   final IconData icon;
@@ -192,6 +201,7 @@ class _SetupStepCard extends StatelessWidget {
   final VoidCallback? onAction;
   final String? secondaryActionLabel;
   final VoidCallback? onSecondaryAction;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -266,6 +276,10 @@ class _SetupStepCard extends StatelessWidget {
               ),
             ],
           ),
+          if (child != null) ...[
+            const SizedBox(height: 12),
+            child!,
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -322,3 +336,130 @@ class _SetupStepCard extends StatelessWidget {
     );
   }
 }
+
+class _SmsRestrictedSettingsGuide extends StatefulWidget {
+  const _SmsRestrictedSettingsGuide({required this.onOpenAppSettings});
+
+  final VoidCallback onOpenAppSettings;
+
+  @override
+  State<_SmsRestrictedSettingsGuide> createState() =>
+      _SmsRestrictedSettingsGuideState();
+}
+
+class _SmsRestrictedSettingsGuideState
+    extends State<_SmsRestrictedSettingsGuide> {
+  late final TapGestureRecognizer _step1Recognizer;
+  late final TapGestureRecognizer _step2Recognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _step1Recognizer = TapGestureRecognizer()
+      ..onTap = widget.onOpenAppSettings;
+    _step2Recognizer = TapGestureRecognizer()
+      ..onTap = widget.onOpenAppSettings;
+  }
+
+  @override
+  void dispose() {
+    _step1Recognizer.dispose();
+    _step2Recognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
+
+    final linkStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      color: colorScheme.primary,
+      decoration: TextDecoration.underline,
+      decorationColor: colorScheme.primary,
+    );
+
+    final regularStyle = TextStyle(
+      fontSize: 12,
+      height: 1.45,
+      color: colorScheme.onSurfaceVariant,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.help_outline_rounded,
+                size: 16,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  l10n.smsRestrictedGuideTitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text.rich(
+              TextSpan(
+                style: regularStyle,
+                children: [
+                  TextSpan(text: l10n.smsRestrictedGuideStep1Prefix),
+                  TextSpan(
+                    text: l10n.smsRestrictedGuideStep1Action,
+                    style: linkStyle,
+                    recognizer: _step1Recognizer,
+                  ),
+                  TextSpan(text: l10n.smsRestrictedGuideStep1Suffix),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text.rich(
+              TextSpan(
+                style: regularStyle,
+                children: [
+                  TextSpan(text: l10n.smsRestrictedGuideStep2Prefix),
+                  TextSpan(
+                    text: l10n.smsRestrictedGuideStep2Action,
+                    style: linkStyle,
+                    recognizer: _step2Recognizer,
+                  ),
+                  TextSpan(text: l10n.smsRestrictedGuideStep2Suffix),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

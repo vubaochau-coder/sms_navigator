@@ -472,4 +472,27 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get otpLabel => 'mã OTP';
+
+  @override
+  String get smsRestrictedGuideTitle =>
+      'Nếu việc cấp quyền không thành công, thực hiện theo hướng dẫn sau:';
+
+  @override
+  String get smsRestrictedGuideStep1Prefix => '- Bấm vào ';
+
+  @override
+  String get smsRestrictedGuideStep1Action => '\"Cài đặt ứng dụng\"';
+
+  @override
+  String get smsRestrictedGuideStep1Suffix =>
+      ' (góc trên phải chọn 3 chấm ⋮ ➔ Cho phép cài đặt bị hạn chế).';
+
+  @override
+  String get smsRestrictedGuideStep2Prefix => '- Quay lại ';
+
+  @override
+  String get smsRestrictedGuideStep2Action => 'Quyền ứng dụng';
+
+  @override
+  String get smsRestrictedGuideStep2Suffix => ' ➔ Bật quyền SMS (Tin nhắn).';
 }

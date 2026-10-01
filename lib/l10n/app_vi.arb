@@ -202,5 +202,12 @@
   "otpCopyFullMessage": "Sao chép toàn bộ tin nhắn",
   "otpCopiedFullMessage": "toàn bộ tin nhắn",
   "otpAuthCodeTitle": "MÃ XÁC THỰC (OTP)",
-  "otpLabel": "mã OTP"
+  "otpLabel": "mã OTP",
+  "smsRestrictedGuideTitle": "Nếu việc cấp quyền không thành công, thực hiện theo hướng dẫn sau:",
+  "smsRestrictedGuideStep1Prefix": "- Bấm vào ",
+  "smsRestrictedGuideStep1Action": "\"Cài đặt ứng dụng\"",
+  "smsRestrictedGuideStep1Suffix": " (góc trên phải chọn 3 chấm ⋮ ➔ Cho phép cài đặt bị hạn chế).",
+  "smsRestrictedGuideStep2Prefix": "- Quay lại ",
+  "smsRestrictedGuideStep2Action": "Quyền ứng dụng",
+  "smsRestrictedGuideStep2Suffix": " ➔ Bật quyền SMS (Tin nhắn)."
 }

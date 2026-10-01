@@ -939,6 +939,48 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'mã OTP'**
   String get otpLabel;
+
+  /// No description provided for @smsRestrictedGuideTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nếu việc cấp quyền không thành công, thực hiện theo hướng dẫn sau:'**
+  String get smsRestrictedGuideTitle;
+
+  /// No description provided for @smsRestrictedGuideStep1Prefix.
+  ///
+  /// In vi, this message translates to:
+  /// **'- Bấm vào '**
+  String get smsRestrictedGuideStep1Prefix;
+
+  /// No description provided for @smsRestrictedGuideStep1Action.
+  ///
+  /// In vi, this message translates to:
+  /// **'\"Cài đặt ứng dụng\"'**
+  String get smsRestrictedGuideStep1Action;
+
+  /// No description provided for @smsRestrictedGuideStep1Suffix.
+  ///
+  /// In vi, this message translates to:
+  /// **' (góc trên phải chọn 3 chấm ⋮ ➔ Cho phép cài đặt bị hạn chế).'**
+  String get smsRestrictedGuideStep1Suffix;
+
+  /// No description provided for @smsRestrictedGuideStep2Prefix.
+  ///
+  /// In vi, this message translates to:
+  /// **'- Quay lại '**
+  String get smsRestrictedGuideStep2Prefix;
+
+  /// No description provided for @smsRestrictedGuideStep2Action.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền ứng dụng'**
+  String get smsRestrictedGuideStep2Action;
+
+  /// No description provided for @smsRestrictedGuideStep2Suffix.
+  ///
+  /// In vi, this message translates to:
+  /// **' ➔ Bật quyền SMS (Tin nhắn).'**
+  String get smsRestrictedGuideStep2Suffix;
 }
 
 class _AppLocalizationsDelegate
