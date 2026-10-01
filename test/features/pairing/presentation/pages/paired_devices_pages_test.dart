@@ -10,6 +10,16 @@ import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_
 import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_event.dart';
 import 'package:sms_navigator/features/pairing/presentation/widgets/paired_receivers_body.dart';
 import 'package:sms_navigator/features/pairing/presentation/widgets/paired_senders_body.dart';
+import 'package:sms_navigator/l10n/app_localizations.dart';
+
+Widget _buildTestApp({required Widget body}) {
+  return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('vi'),
+    home: Scaffold(body: body),
+  );
+}
 
 class _MockPairManagementService implements PairManagementService {
   List<PairedDeviceItem> receiversList = [];
@@ -63,7 +73,7 @@ void main() {
         BlocProvider(
           create: (_) => PairedReceiversBloc(mock)
             ..add(const PairedReceiversLoadEvent()),
-          child: const MaterialApp(home: Scaffold(body: PairedReceiversBody())),
+          child: _buildTestApp(body: const PairedReceiversBody()),
         ),
       );
       await tester.pumpAndSettle();
@@ -91,7 +101,7 @@ void main() {
           BlocProvider(
             create: (_) => PairedReceiversBloc(mock)
               ..add(const PairedReceiversLoadEvent()),
-            child: const MaterialApp(home: Scaffold(body: PairedReceiversBody())),
+            child: _buildTestApp(body: const PairedReceiversBody()),
           ),
         );
         await tester.pumpAndSettle();
@@ -123,7 +133,7 @@ void main() {
         BlocProvider(
           create: (_) => PairedSendersBloc(mock)
             ..add(const PairedSendersLoadEvent()),
-          child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
+          child: _buildTestApp(body: const PairedSendersBody()),
         ),
       );
       await tester.pumpAndSettle();
@@ -152,7 +162,7 @@ void main() {
           BlocProvider(
             create: (_) => PairedSendersBloc(mock)
               ..add(const PairedSendersLoadEvent()),
-            child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
+            child: _buildTestApp(body: const PairedSendersBody()),
           ),
         );
         await tester.pumpAndSettle();
@@ -189,7 +199,7 @@ void main() {
           BlocProvider(
             create: (_) => PairedSendersBloc(mock)
               ..add(const PairedSendersLoadEvent()),
-            child: const MaterialApp(home: Scaffold(body: PairedSendersBody())),
+            child: _buildTestApp(body: const PairedSendersBody()),
           ),
         );
         await tester.pumpAndSettle();

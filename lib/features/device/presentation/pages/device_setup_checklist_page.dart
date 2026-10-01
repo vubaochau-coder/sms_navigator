@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../data/repositories/device_setup_repository.dart';
 import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_event.dart';
@@ -70,8 +71,9 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Thiết Lập Thiết Bị')),
+      appBar: AppBar(title: Text(l10n.deviceSetupTitle)),
       body: BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
         builder: (context, state) {
           if (state.isLoading &&
@@ -83,7 +85,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
             padding: Dimens.screenPadding,
             children: [
               Text(
-                'Hoàn tất các bước dưới đây để máy luôn bắt được SMS OTP và chuyển tiếp ổn định, kể cả khi ứng dụng bị đóng.',
+                l10n.deviceSetupGuide,
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
@@ -93,13 +95,13 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
               const SizedBox(height: 16),
               _SetupStepCard(
                 icon: Icons.sms_rounded,
-                title: '1. Quyền đọc tin nhắn SMS',
-                subtitle: '(Bắt buộc với thiết bị gửi)',
-                status: _statusLabel(state.smsPermissionGranted),
+                title: l10n.stepSmsPermissionTitle,
+                subtitle: l10n.stepRequiredForSender,
+                status: _statusLabel(context, state.smsPermissionGranted),
                 isDone: state.smsPermissionGranted == true,
                 actionLabel: state.smsPermissionPermanentlyDenied
-                    ? 'Mở Cài Đặt Ứng Dụng'
-                    : 'Cấp Quyền',
+                    ? l10n.openAppDetailsAction
+                    : l10n.grantPermissionStepAction,
                 onAction: () {
                   context.read<DeviceSetupBloc>().add(
                     state.smsPermissionPermanentlyDenied
@@ -110,11 +112,11 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
               ),
               _SetupStepCard(
                 icon: Icons.battery_saver_rounded,
-                title: '2. Miễn trừ tối ưu pin',
-                subtitle: '(Bắt buộc với thiết bị gửi)',
-                status: _statusLabel(state.batteryUnrestricted),
+                title: l10n.stepBatteryOptimizationTitle,
+                subtitle: l10n.stepRequiredForSender,
+                status: _statusLabel(context, state.batteryUnrestricted),
                 isDone: state.batteryUnrestricted == true,
-                actionLabel: 'Yêu Cầu Miễn Trừ',
+                actionLabel: l10n.requestBatteryOptimizationAction,
                 onAction: () {
                   context.read<DeviceSetupBloc>().add(
                     const DeviceSetupBatteryOptimizationRequested(),
@@ -124,19 +126,19 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
               _SetupStepCard(
                 icon: Icons.restart_alt_rounded,
                 title: state.isAggressiveRom
-                    ? '3. Tự khởi chạy (Autostart) — $_oemDisplayName'
-                    : '3. Cho phép chạy nền & tự khởi chạy',
-                subtitle: '(Bắt buộc với thiết bị gửi)',
+                    ? l10n.stepAutostartTitle(_oemDisplayName)
+                    : l10n.stepBackgroundTitle,
+                subtitle: l10n.stepRequiredForSender,
                 status: state.autostartAcknowledged
-                    ? 'Đã hoàn tất'
+                    ? l10n.statusCompleted
                     : (state.autostartScreenOpened
-                        ? 'Đang chờ xác nhận'
-                        : 'Chưa thực hiện'),
+                        ? l10n.statusPendingConfirm
+                        : l10n.statusNotDone),
                 isDone: state.autostartAcknowledged,
                 actionLabel: state.isAggressiveRom
-                    ? 'Mở Cài Đặt Autostart'
-                    : 'Mở Cài Đặt Chạy Nền',
-                doneActionLabel: 'Mở Lại Cài Đặt',
+                    ? l10n.openAutostartAction
+                    : l10n.openBackgroundAction,
+                doneActionLabel: l10n.reopenSettingsAction,
                 onAction: () {
                   context.read<DeviceSetupBloc>().add(
                     const DeviceSetupAutostartSettingsOpened(),
@@ -144,7 +146,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                 },
                 secondaryActionLabel: state.autostartScreenOpened &&
                         !state.autostartAcknowledged
-                    ? 'Tôi Đã Bật'
+                    ? l10n.iHaveEnabledAction
                     : null,
                 onSecondaryAction: () {
                   context.read<DeviceSetupBloc>().add(
@@ -160,9 +162,9 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
     );
   }
 
-  String _statusLabel(bool? status) {
-    if (status == null) return 'Đang kiểm tra...';
-    return status ? 'Đã hoàn tất' : 'Chưa thực hiện';
+  String _statusLabel(BuildContext context, bool? status) {
+    if (status == null) return context.l10n.statusChecking;
+    return status ? context.l10n.statusCompleted : context.l10n.statusNotDone;
   }
 }
 

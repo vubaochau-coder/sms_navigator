@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../device/data/repositories/device_setup_repository.dart';
 import '../../../device/presentation/bloc/device_setup_bloc.dart';
 import '../../../device/presentation/bloc/device_setup_event.dart';
@@ -51,7 +52,7 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Ghép Đôi Thiết Bị')),
+      appBar: AppBar(title: Text(context.l10n.pairingTitle)),
       body: BlocListener<DeviceSetupBloc, DeviceSetupState>(
         listener: (context, state) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,7 +68,7 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
             final payload = state.pairingPayload;
             if (payload == null) {
               return _ErrorView(
-                message: state.errorMessage ?? 'Không thể tạo mã ghép đôi.',
+                message: state.errorMessage ?? context.l10n.cannotGeneratePairingCode,
                 onRetry: () {
                   context.read<PairingBloc>().add(
                     const PairingGenerateSenderCodeEvent(),
@@ -84,10 +85,10 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                   const SizedBox(height: 8),
                   const _HeaderIcon(),
                   const SizedBox(height: 24),
-                  Text('Mã QR Ghép Đôi', style: theme.textTheme.headlineSmall),
+                  Text(context.l10n.qrPairingTitle, style: theme.textTheme.headlineSmall),
                   const SizedBox(height: 8),
                   Text(
-                    'Dùng Thiết Bị Nhận để quét mã QR bên dưới, thiết lập kênh E2EE an toàn tức thì.',
+                    context.l10n.qrPairingDesc,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -265,7 +266,7 @@ class _ActionButtons extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: borderRadius),
             ),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Làm Mới'),
+            label: Text(context.l10n.refresh),
           ),
         ),
         const SizedBox(width: 12),
@@ -275,7 +276,7 @@ class _ActionButtons extends StatelessWidget {
             style: FilledButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: borderRadius),
             ),
-            child: const Text('Hoàn Tất'),
+            child: Text(context.l10n.done),
           ),
         ),
       ],
@@ -314,7 +315,7 @@ class _ErrorView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            FilledButton(onPressed: onRetry, child: const Text('Thử Lại')),
+            FilledButton(onPressed: onRetry, child: Text(context.l10n.retry)),
           ],
         ),
       ),
@@ -373,7 +374,7 @@ class _SmsPermissionBannerState extends State<_SmsPermissionBanner>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Chưa cấp quyền đọc SMS — tính năng chuyển tiếp OTP đang tạm dừng.',
+                  context.l10n.smsPermissionBannerWarning,
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.35,
@@ -398,8 +399,8 @@ class _SmsPermissionBannerState extends State<_SmsPermissionBanner>
                 ),
                 child: Text(
                   state.smsPermissionPermanentlyDenied
-                      ? 'Mở Cài Đặt'
-                      : 'Cấp Quyền',
+                      ? context.l10n.openAppSettingsAction
+                      : context.l10n.grantPermissionAction,
                   style: const TextStyle(fontSize: 13),
                 ),
               ),

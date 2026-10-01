@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../domain/models/decrypted_otp_item.dart';
@@ -18,7 +19,10 @@ class OtpDetailBottomSheet extends StatelessWidget {
   }
 
   void _copy(BuildContext context, String text, String label) {
-    UiUtils.copyToClipboard(text, successMessage: 'Đã sao chép $label: $text');
+    UiUtils.copyToClipboard(
+      text,
+      successMessage: context.l10n.copiedWithLabel(label, text),
+    );
   }
 
   @override
@@ -121,9 +125,9 @@ class OtpDetailBottomSheet extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'MÃ XÁC THỰC (OTP)',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.otpAuthCodeTitle,
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
@@ -142,11 +146,12 @@ class OtpDetailBottomSheet extends StatelessWidget {
                   ),
                   FilledButton.icon(
                     icon: const Icon(Icons.copy_rounded, size: 16),
-                    label: const Text('Sao chép'),
+                    label: Text(context.l10n.copy),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.success,
                     ),
-                    onPressed: () => _copy(context, item.otp, 'mã OTP'),
+                    onPressed: () =>
+                        _copy(context, item.otp, context.l10n.otpLabel),
                   ),
                 ],
               ),
@@ -154,7 +159,7 @@ class OtpDetailBottomSheet extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           Text(
-            'Nội dung tin nhắn gốc:',
+            context.l10n.otpOriginalMessageTitle,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -173,7 +178,7 @@ class OtpDetailBottomSheet extends StatelessWidget {
             child: SelectableText(
               item.fullMessage.isNotEmpty
                   ? item.fullMessage
-                  : '[Không có nội dung]',
+                  : context.l10n.otpNoContent,
               style: TextStyle(
                 fontSize: 14,
                 height: 1.4,
@@ -187,9 +192,12 @@ class OtpDetailBottomSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.copy_all_rounded, size: 18),
-                  label: const Text('Sao chép toàn bộ tin nhắn'),
-                  onPressed: () =>
-                      _copy(context, item.fullMessage, 'toàn bộ tin nhắn'),
+                  label: Text(context.l10n.otpCopyFullMessage),
+                  onPressed: () => _copy(
+                    context,
+                    item.fullMessage,
+                    context.l10n.otpCopiedFullMessage,
+                  ),
                 ),
               ),
             ],

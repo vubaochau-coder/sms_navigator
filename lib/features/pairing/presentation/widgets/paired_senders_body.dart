@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../bloc/paired_senders_bloc.dart';
@@ -18,6 +19,7 @@ class PairedSendersBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SafeArea(
       child: Padding(
         padding: Dimens.screenPadding,
@@ -30,9 +32,9 @@ class PairedSendersBody extends StatelessWidget {
             if (state.errorMessage != null) {
               return EmptyStateView(
                 icon: Icons.cloud_off_rounded,
-                title: 'Có lỗi xảy ra',
+                title: l10n.errorOccurred,
                 message: state.errorMessage,
-                actionLabel: 'Thử lại',
+                actionLabel: l10n.retry,
                 onAction: () => BlocProvider.of<PairedSendersBloc>(context)
                     .add(const PairedSendersLoadEvent()),
               );
@@ -41,10 +43,9 @@ class PairedSendersBody extends StatelessWidget {
             if (state.devices.isEmpty) {
               return EmptyStateView(
                 icon: Icons.phonelink_ring_rounded,
-                title: 'Chưa kết nối máy gửi nào',
-                message:
-                    'Thiết bị này chưa nhận OTP từ máy gửi nào. Vui lòng quét mã QR từ máy gửi để hoàn tất ghép đôi.',
-                actionLabel: 'Quét mã QR ghép đôi',
+                title: l10n.emptySendersTitle,
+                message: l10n.emptySendersMessage,
+                actionLabel: l10n.scanSenderQrAction,
                 onAction: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const QrScanPage()),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../bloc/paired_receivers_bloc.dart';
@@ -30,9 +31,9 @@ class PairedReceiversBody extends StatelessWidget {
             if (state.errorMessage != null) {
               return EmptyStateView(
                 icon: Icons.cloud_off_rounded,
-                title: 'Có lỗi xảy ra',
+                title: context.l10n.errorOccurred,
                 message: state.errorMessage,
-                actionLabel: 'Thử lại',
+                actionLabel: context.l10n.retry,
                 onAction: () => BlocProvider.of<PairedReceiversBloc>(context)
                     .add(const PairedReceiversLoadEvent()),
               );
@@ -41,10 +42,9 @@ class PairedReceiversBody extends StatelessWidget {
             if (state.devices.isEmpty) {
               return EmptyStateView(
                 icon: Icons.phonelink_erase_rounded,
-                title: 'Chưa có thiết bị nhận nào',
-                message:
-                    'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.',
-                actionLabel: 'Tạo mã QR ghép đôi',
+                title: context.l10n.emptyReceiversTitle,
+                message: context.l10n.emptyReceiversMessage,
+                actionLabel: context.l10n.pairingGenerateQr,
                 onAction: () async {
                   final changed = await Navigator.of(context).push<bool>(
                     MaterialPageRoute(

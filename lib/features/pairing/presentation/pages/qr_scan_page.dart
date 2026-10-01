@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/dimens.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
@@ -44,7 +45,7 @@ class _QrScanPageState extends State<QrScanPage> {
     if (state.isSuccess && _isProcessing) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Ghép đôi thành công!')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.pairingSuccess)));
       Navigator.of(context).pop(true);
       return;
     }
@@ -174,10 +175,10 @@ class _ScannerTopBar extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
             ),
             const SizedBox(width: 4),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Quét Mã Ghép Đôi',
-                style: TextStyle(
+                context.l10n.scannerTitle,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -203,7 +204,7 @@ class _ScannerControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Căn chỉnh mã QR trên Thiết Bị Gửi vào giữa khung ngắm',
+          context.l10n.scannerAlignGuide,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.85),

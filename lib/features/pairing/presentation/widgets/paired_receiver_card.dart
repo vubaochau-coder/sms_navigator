@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
@@ -30,10 +31,9 @@ class PairedReceiverCard extends StatelessWidget {
   Future<void> _confirmRevokePair(BuildContext context) async {
     final confirmed = await UiUtils.showConfirmDialog(
       context,
-      title: 'Hủy kết nối thiết bị?',
-      message:
-          'Bạn có chắc chắn muốn ngắt kết nối với "${item.displayName}"? Thiết bị này sẽ không thể nhận OTP từ bạn nữa.',
-      confirmText: 'Ngắt kết nối',
+      title: context.l10n.confirmRevokeReceiverTitle,
+      message: context.l10n.confirmRevokeReceiverMessage(item.displayName),
+      confirmText: context.l10n.disconnect,
       isDestructive: true,
       icon: Icons.link_off_rounded,
     );
@@ -101,9 +101,9 @@ class PairedReceiverCard extends StatelessWidget {
                 ),
               ),
               if (item.isActive)
-                StatusBadge.active(label: 'Đang gửi')
+                StatusBadge.active(label: context.l10n.statusSending)
               else
-                StatusBadge.paused(label: 'Đã tạm dừng'),
+                StatusBadge.paused(label: context.l10n.statusPaused),
             ],
           ),
           const Divider(height: 14),
@@ -116,11 +116,11 @@ class PairedReceiverCard extends StatelessWidget {
             value: item.deviceId,
           ),
           PlainInfoRow(
-            label: 'Ghép đôi lúc',
+            label: context.l10n.pairedAt,
             value: item.formattedPairedAt,
           ),
           PlainInfoRow(
-            label: 'Hoạt động gần nhất',
+            label: context.l10n.lastActiveAt,
             value: item.formattedLastActiveAt,
           ),
           const SizedBox(height: 8),
@@ -147,7 +147,9 @@ class PairedReceiverCard extends StatelessWidget {
                     ),
                   const SizedBox(width: 8),
                   Text(
-                    item.isActive ? 'Cho phép gửi OTP' : 'Tạm dừng gửi OTP',
+                    item.isActive
+                        ? context.l10n.allowSendingOtp
+                        : context.l10n.pauseSendingOtp,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -165,7 +167,7 @@ class PairedReceiverCard extends StatelessWidget {
                   Icons.link_off_rounded,
                   color: AppColors.error,
                 ),
-                tooltip: 'Hủy ghép đôi',
+                tooltip: context.l10n.revokePairTooltip,
                 onPressed: () => _confirmRevokePair(context),
               ),
             ],

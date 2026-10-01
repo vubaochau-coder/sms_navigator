@@ -287,4 +287,189 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get otpGroupByDevice => 'Nhóm theo máy';
+
+  @override
+  String get retry => 'Thử lại';
+
+  @override
+  String get refresh => 'Làm mới';
+
+  @override
+  String get done => 'Hoàn tất';
+
+  @override
+  String get errorOccurred => 'Có lỗi xảy ra';
+
+  @override
+  String get emptySendersTitle => 'Chưa kết nối máy gửi nào';
+
+  @override
+  String get emptySendersMessage =>
+      'Thiết bị này chưa nhận OTP từ máy gửi nào. Vui lòng quét mã QR từ máy gửi để hoàn tất ghép đôi.';
+
+  @override
+  String get scanSenderQrAction => 'Quét mã QR ghép đôi';
+
+  @override
+  String get emptyReceiversTitle => 'Chưa có thiết bị nhận nào';
+
+  @override
+  String get emptyReceiversMessage =>
+      'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.';
+
+  @override
+  String get statusSending => 'Đang gửi';
+
+  @override
+  String get statusPaused => 'Đã tạm dừng';
+
+  @override
+  String get statusSenderMaintaining => 'Đang duy trì gửi';
+
+  @override
+  String get statusSenderPaused => 'Người gửi tạm dừng';
+
+  @override
+  String get pairedAt => 'Ghép đôi lúc';
+
+  @override
+  String get lastActiveAt => 'Hoạt động gần nhất';
+
+  @override
+  String get lastReceivedAt => 'Lần nhận gần nhất';
+
+  @override
+  String get allowSendingOtp => 'Cho phép gửi OTP';
+
+  @override
+  String get pauseSendingOtp => 'Tạm dừng gửi OTP';
+
+  @override
+  String get senderMaintainingDesc =>
+      'Người gửi đang duy trì truyền tin. (Chỉ xem)';
+
+  @override
+  String get senderPausedDesc =>
+      'Người gửi đang tạm dừng truyền tin. (Chỉ xem)';
+
+  @override
+  String get revokePairTooltip => 'Hủy ghép đôi';
+
+  @override
+  String get qrPairingTitle => 'Mã QR Ghép Đôi';
+
+  @override
+  String get qrPairingDesc =>
+      'Dùng Thiết Bị Nhận để quét mã QR bên dưới, thiết lập kênh E2EE an toàn tức thì.';
+
+  @override
+  String get cannotGeneratePairingCode => 'Không thể tạo mã ghép đôi.';
+
+  @override
+  String get smsPermissionBannerWarning =>
+      'Chưa cấp quyền đọc SMS — tính năng chuyển tiếp OTP đang tạm dừng.';
+
+  @override
+  String get openAppSettingsAction => 'Mở Cài Đặt';
+
+  @override
+  String get grantPermissionAction => 'Cấp Quyền';
+
+  @override
+  String get scannerTitle => 'Quét Mã Ghép Đôi';
+
+  @override
+  String get scannerAlignGuide =>
+      'Căn chỉnh mã QR từ Máy Gửi vào giữa khung hình để hoàn tất ghép đôi';
+
+  @override
+  String get deviceSetupTitle => 'Thiết Lập Thiết Bị';
+
+  @override
+  String get deviceSetupGuide =>
+      'Hoàn tất các bước dưới đây để máy luôn bắt được SMS OTP và chuyển tiếp ổn định, kể cả khi ứng dụng bị đóng.';
+
+  @override
+  String get stepSmsPermissionTitle => '1. Quyền đọc tin nhắn SMS';
+
+  @override
+  String get stepRequiredForSender => '(Bắt buộc với thiết bị gửi)';
+
+  @override
+  String get stepRequiredForReceiver => '(Bắt buộc với thiết bị nhận)';
+
+  @override
+  String get stepBatteryOptimizationTitle => '2. Miễn trừ tối ưu pin';
+
+  @override
+  String stepAutostartTitle(String oem) {
+    return '3. Tự khởi chạy (Autostart) — $oem';
+  }
+
+  @override
+  String get stepBackgroundTitle => '3. Cho phép chạy nền & tự khởi chạy';
+
+  @override
+  String get openAppDetailsAction => 'Mở Cài Đặt Ứng Dụng';
+
+  @override
+  String get grantPermissionStepAction => 'Cấp Quyền';
+
+  @override
+  String get requestBatteryOptimizationAction => 'Yêu Cầu Miễn Trừ';
+
+  @override
+  String get openAutostartAction => 'Mở Cài Đặt Autostart';
+
+  @override
+  String get openBackgroundAction => 'Mở Cài Đặt Chạy Nền';
+
+  @override
+  String get reopenSettingsAction => 'Mở Lại Cài Đặt';
+
+  @override
+  String get iHaveEnabledAction => 'Tôi Đã Bật';
+
+  @override
+  String get statusChecking => 'Đang kiểm tra...';
+
+  @override
+  String get statusCompleted => 'Đã hoàn tất';
+
+  @override
+  String get statusPendingConfirm => 'Đang chờ xác nhận';
+
+  @override
+  String get statusNotDone => 'Chưa thực hiện';
+
+  @override
+  String get permissionDialogTitle => 'Thiết lập quyền';
+
+  @override
+  String get permissionDialogMessage =>
+      'Một số quyền quan trọng chưa được cấp, ứng dụng có thể sẽ không hoạt động chính xác.';
+
+  @override
+  String get dontRemindAgain => 'Không nhắc lại';
+
+  @override
+  String get goToSettings => 'Đi đến cài đặt';
+
+  @override
+  String get otpOriginalMessageTitle => 'Nội dung tin nhắn gốc:';
+
+  @override
+  String get otpNoContent => '[Không có nội dung]';
+
+  @override
+  String get otpCopyFullMessage => 'Sao chép toàn bộ tin nhắn';
+
+  @override
+  String get otpCopiedFullMessage => 'toàn bộ tin nhắn';
+
+  @override
+  String get otpAuthCodeTitle => 'MÃ XÁC THỰC (OTP)';
+
+  @override
+  String get otpLabel => 'mã OTP';
 }

@@ -591,6 +591,354 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Nhóm theo máy'**
   String get otpGroupByDevice;
+
+  /// No description provided for @retry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get retry;
+
+  /// No description provided for @refresh.
+  ///
+  /// In vi, this message translates to:
+  /// **'Làm mới'**
+  String get refresh;
+
+  /// No description provided for @done.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoàn tất'**
+  String get done;
+
+  /// No description provided for @errorOccurred.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có lỗi xảy ra'**
+  String get errorOccurred;
+
+  /// No description provided for @emptySendersTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa kết nối máy gửi nào'**
+  String get emptySendersTitle;
+
+  /// No description provided for @emptySendersMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị này chưa nhận OTP từ máy gửi nào. Vui lòng quét mã QR từ máy gửi để hoàn tất ghép đôi.'**
+  String get emptySendersMessage;
+
+  /// No description provided for @scanSenderQrAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét mã QR ghép đôi'**
+  String get scanSenderQrAction;
+
+  /// No description provided for @emptyReceiversTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có thiết bị nhận nào'**
+  String get emptyReceiversTitle;
+
+  /// No description provided for @emptyReceiversMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hiện tại chưa có máy nhận nào ghép đôi với thiết bị này. Bấm nút bên dưới để tạo mã QR kết nối.'**
+  String get emptyReceiversMessage;
+
+  /// No description provided for @statusSending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get statusSending;
+
+  /// No description provided for @statusPaused.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã tạm dừng'**
+  String get statusPaused;
+
+  /// No description provided for @statusSenderMaintaining.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang duy trì gửi'**
+  String get statusSenderMaintaining;
+
+  /// No description provided for @statusSenderPaused.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người gửi tạm dừng'**
+  String get statusSenderPaused;
+
+  /// No description provided for @pairedAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi lúc'**
+  String get pairedAt;
+
+  /// No description provided for @lastActiveAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoạt động gần nhất'**
+  String get lastActiveAt;
+
+  /// No description provided for @lastReceivedAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lần nhận gần nhất'**
+  String get lastReceivedAt;
+
+  /// No description provided for @allowSendingOtp.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cho phép gửi OTP'**
+  String get allowSendingOtp;
+
+  /// No description provided for @pauseSendingOtp.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạm dừng gửi OTP'**
+  String get pauseSendingOtp;
+
+  /// No description provided for @senderMaintainingDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người gửi đang duy trì truyền tin. (Chỉ xem)'**
+  String get senderMaintainingDesc;
+
+  /// No description provided for @senderPausedDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người gửi đang tạm dừng truyền tin. (Chỉ xem)'**
+  String get senderPausedDesc;
+
+  /// No description provided for @revokePairTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy ghép đôi'**
+  String get revokePairTooltip;
+
+  /// No description provided for @qrPairingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR Ghép Đôi'**
+  String get qrPairingTitle;
+
+  /// No description provided for @qrPairingDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dùng Thiết Bị Nhận để quét mã QR bên dưới, thiết lập kênh E2EE an toàn tức thì.'**
+  String get qrPairingDesc;
+
+  /// No description provided for @cannotGeneratePairingCode.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể tạo mã ghép đôi.'**
+  String get cannotGeneratePairingCode;
+
+  /// No description provided for @smsPermissionBannerWarning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa cấp quyền đọc SMS — tính năng chuyển tiếp OTP đang tạm dừng.'**
+  String get smsPermissionBannerWarning;
+
+  /// No description provided for @openAppSettingsAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài Đặt'**
+  String get openAppSettingsAction;
+
+  /// No description provided for @grantPermissionAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp Quyền'**
+  String get grantPermissionAction;
+
+  /// No description provided for @scannerTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét Mã Ghép Đôi'**
+  String get scannerTitle;
+
+  /// No description provided for @scannerAlignGuide.
+  ///
+  /// In vi, this message translates to:
+  /// **'Căn chỉnh mã QR từ Máy Gửi vào giữa khung hình để hoàn tất ghép đôi'**
+  String get scannerAlignGuide;
+
+  /// No description provided for @deviceSetupTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết Lập Thiết Bị'**
+  String get deviceSetupTitle;
+
+  /// No description provided for @deviceSetupGuide.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoàn tất các bước dưới đây để máy luôn bắt được SMS OTP và chuyển tiếp ổn định, kể cả khi ứng dụng bị đóng.'**
+  String get deviceSetupGuide;
+
+  /// No description provided for @stepSmsPermissionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'1. Quyền đọc tin nhắn SMS'**
+  String get stepSmsPermissionTitle;
+
+  /// No description provided for @stepRequiredForSender.
+  ///
+  /// In vi, this message translates to:
+  /// **'(Bắt buộc với thiết bị gửi)'**
+  String get stepRequiredForSender;
+
+  /// No description provided for @stepRequiredForReceiver.
+  ///
+  /// In vi, this message translates to:
+  /// **'(Bắt buộc với thiết bị nhận)'**
+  String get stepRequiredForReceiver;
+
+  /// No description provided for @stepBatteryOptimizationTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'2. Miễn trừ tối ưu pin'**
+  String get stepBatteryOptimizationTitle;
+
+  /// No description provided for @stepAutostartTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'3. Tự khởi chạy (Autostart) — {oem}'**
+  String stepAutostartTitle(String oem);
+
+  /// No description provided for @stepBackgroundTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'3. Cho phép chạy nền & tự khởi chạy'**
+  String get stepBackgroundTitle;
+
+  /// No description provided for @openAppDetailsAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài Đặt Ứng Dụng'**
+  String get openAppDetailsAction;
+
+  /// No description provided for @grantPermissionStepAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp Quyền'**
+  String get grantPermissionStepAction;
+
+  /// No description provided for @requestBatteryOptimizationAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu Cầu Miễn Trừ'**
+  String get requestBatteryOptimizationAction;
+
+  /// No description provided for @openAutostartAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài Đặt Autostart'**
+  String get openAutostartAction;
+
+  /// No description provided for @openBackgroundAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài Đặt Chạy Nền'**
+  String get openBackgroundAction;
+
+  /// No description provided for @reopenSettingsAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Lại Cài Đặt'**
+  String get reopenSettingsAction;
+
+  /// No description provided for @iHaveEnabledAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tôi Đã Bật'**
+  String get iHaveEnabledAction;
+
+  /// No description provided for @statusChecking.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang kiểm tra...'**
+  String get statusChecking;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hoàn tất'**
+  String get statusCompleted;
+
+  /// No description provided for @statusPendingConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ xác nhận'**
+  String get statusPendingConfirm;
+
+  /// No description provided for @statusNotDone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thực hiện'**
+  String get statusNotDone;
+
+  /// No description provided for @permissionDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết lập quyền'**
+  String get permissionDialogTitle;
+
+  /// No description provided for @permissionDialogMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Một số quyền quan trọng chưa được cấp, ứng dụng có thể sẽ không hoạt động chính xác.'**
+  String get permissionDialogMessage;
+
+  /// No description provided for @dontRemindAgain.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không nhắc lại'**
+  String get dontRemindAgain;
+
+  /// No description provided for @goToSettings.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đi đến cài đặt'**
+  String get goToSettings;
+
+  /// No description provided for @otpOriginalMessageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nội dung tin nhắn gốc:'**
+  String get otpOriginalMessageTitle;
+
+  /// No description provided for @otpNoContent.
+  ///
+  /// In vi, this message translates to:
+  /// **'[Không có nội dung]'**
+  String get otpNoContent;
+
+  /// No description provided for @otpCopyFullMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép toàn bộ tin nhắn'**
+  String get otpCopyFullMessage;
+
+  /// No description provided for @otpCopiedFullMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'toàn bộ tin nhắn'**
+  String get otpCopiedFullMessage;
+
+  /// No description provided for @otpAuthCodeTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'MÃ XÁC THỰC (OTP)'**
+  String get otpAuthCodeTitle;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'mã OTP'**
+  String get otpLabel;
 }
 
 class _AppLocalizationsDelegate

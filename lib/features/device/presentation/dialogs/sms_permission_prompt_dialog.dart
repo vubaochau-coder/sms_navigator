@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/extensions/context_extensions.dart';
 import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_event.dart';
 import '../pages/device_setup_checklist_page.dart';
@@ -13,11 +14,12 @@ Future<void> showSmsPermissionPromptDialog(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
       return AlertDialog(
-        title: const Text('Thiết lập quyền'),
-        content: const Text(
-          'Một số quyền quan trọng chưa được cấp, ứng dụng có thể sẽ không hoạt động chính xác.',
-          style: TextStyle(height: 1.4),
+        title: Text(l10n.permissionDialogTitle),
+        content: Text(
+          l10n.permissionDialogMessage,
+          style: const TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
@@ -27,7 +29,7 @@ Future<void> showSmsPermissionPromptDialog(
                 const DeviceSetupDontPromptDismissed(),
               );
             },
-            child: const Text('Không nhắc lại'),
+            child: Text(l10n.dontRemindAgain),
           ),
           FilledButton(
             onPressed: () {
@@ -38,7 +40,7 @@ Future<void> showSmsPermissionPromptDialog(
                 ),
               );
             },
-            child: const Text('Đi đến cài đặt'),
+            child: Text(l10n.goToSettings),
           ),
         ],
       );

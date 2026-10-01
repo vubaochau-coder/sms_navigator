@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
@@ -20,10 +21,9 @@ class PairedSenderCard extends StatelessWidget {
   Future<void> _confirmRevokePair(BuildContext context) async {
     final confirmed = await UiUtils.showConfirmDialog(
       context,
-      title: 'Hủy kết nối máy gửi?',
-      message:
-          'Bạn có chắc chắn muốn ngắt kết nối với "${item.displayName}"? Bạn sẽ không nhận được OTP từ thiết bị này nữa.',
-      confirmText: 'Ngắt kết nối',
+      title: context.l10n.confirmRevokeSenderTitle,
+      message: context.l10n.confirmRevokeSenderMessage(item.displayName),
+      confirmText: context.l10n.disconnect,
       isDestructive: true,
       icon: Icons.link_off_rounded,
     );
@@ -87,9 +87,9 @@ class PairedSenderCard extends StatelessWidget {
                 ),
               ),
               if (item.isActive)
-                StatusBadge.active(label: 'Đang duy trì gửi')
+                StatusBadge.active(label: context.l10n.statusSenderMaintaining)
               else
-                StatusBadge.paused(label: 'Người gửi tạm dừng'),
+                StatusBadge.paused(label: context.l10n.statusSenderPaused),
             ],
           ),
           const Divider(height: 14),
@@ -102,11 +102,11 @@ class PairedSenderCard extends StatelessWidget {
             value: item.deviceId,
           ),
           PlainInfoRow(
-            label: 'Ghép đôi lúc',
+            label: context.l10n.pairedAt,
             value: item.formattedPairedAt,
           ),
           PlainInfoRow(
-            label: 'Lần nhận gần nhất',
+            label: context.l10n.lastReceivedAt,
             value: item.formattedLastActiveAt,
           ),
           const SizedBox(height: 8),
@@ -122,7 +122,7 @@ class PairedSenderCard extends StatelessWidget {
               children: [
                 Icon(
                   item.isActive
-                      ? Icons.lock_open_rounded
+                       ? Icons.lock_open_rounded
                       : Icons.pause_circle_outline_rounded,
                   size: 16,
                   color: item.isActive ? AppColors.success : AppColors.warning,
@@ -131,8 +131,8 @@ class PairedSenderCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item.isActive
-                        ? 'Người gửi đang duy trì truyền tin. (Chỉ xem)'
-                        : 'Người gửi đang tạm dừng truyền tin. (Chỉ xem)',
+                        ? context.l10n.senderMaintainingDesc
+                        : context.l10n.senderPausedDesc,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -148,7 +148,7 @@ class PairedSenderCard extends StatelessWidget {
                     size: 20,
                     color: AppColors.error,
                   ),
-                  tooltip: 'Hủy ghép đôi',
+                  tooltip: context.l10n.revokePairTooltip,
                   onPressed: () => _confirmRevokePair(context),
                 ),
               ],
