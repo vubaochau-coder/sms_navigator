@@ -1,5 +1,7 @@
 import 'package:table_calendar/table_calendar.dart';
 
+import 'otp_list_state.dart';
+
 abstract class OtpListEvent {
   const OtpListEvent();
 }
@@ -26,4 +28,10 @@ class OtpListChangeFormatEvent extends OtpListEvent {
   final CalendarFormat format;
 
   const OtpListChangeFormatEvent(this.format);
+}
+
+class OtpListChangeDirectionFilterEvent extends OtpListEvent {
+  final OtpDirectionFilter filter;
+
+  const OtpListChangeDirectionFilterEvent(this.filter);
 }

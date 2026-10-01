@@ -12,6 +12,7 @@ import '../bloc/paired_senders_event.dart';
 import '../bloc/paired_senders_state.dart';
 import '../pages/qr_scan_page.dart';
 import 'paired_sender_card.dart';
+import 'refreshable_empty_state.dart';
 
 /// Widget thân danh sách thiết bị gửi OTP (Dành cho máy nhận).
 class PairedSendersBody extends StatelessWidget {
@@ -41,21 +42,30 @@ class PairedSendersBody extends StatelessWidget {
             }
 
             if (state.devices.isEmpty) {
-              return EmptyStateView(
-                icon: Icons.phonelink_ring_rounded,
-                title: l10n.emptySendersTitle,
-                message: l10n.emptySendersMessage,
-                actionLabel: l10n.scanSenderQrAction,
-                onAction: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const QrScanPage()),
+              return RefreshableEmptyState(
+                onRefresh: () {
+                  final completer = Completer<void>();
+                  BlocProvider.of<PairedSendersBloc>(context).add(
+                    PairedSendersLoadEvent(completer: completer),
                   );
-                  if (context.mounted) {
-                    BlocProvider.of<PairedSendersBloc>(context).add(
-                      const PairedSendersLoadEvent(),
-                    );
-                  }
+                  return completer.future;
                 },
+                child: EmptyStateView(
+                  icon: Icons.phonelink_ring_rounded,
+                  title: l10n.emptySendersTitle,
+                  message: l10n.emptySendersMessage,
+                  actionLabel: l10n.scanSenderQrAction,
+                  onAction: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const QrScanPage()),
+                    );
+                    if (context.mounted) {
+                      BlocProvider.of<PairedSendersBloc>(context).add(
+                        const PairedSendersLoadEvent(),
+                      );
+                    }
+                  },
+                ),
               );
             }
 

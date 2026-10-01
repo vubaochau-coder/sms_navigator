@@ -289,6 +289,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get otpGroupByDevice => 'Nhóm theo máy';
 
   @override
+  String get smsFilterAll => 'Tất cả';
+
+  @override
+  String get smsFilterSent => 'SMS Gửi Đi';
+
+  @override
+  String get smsFilterReceived => 'SMS Nhận Được';
+
+  @override
   String get retry => 'Thử lại';
 
   @override

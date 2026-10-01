@@ -27,13 +27,14 @@ class OtpFilterBar extends StatelessWidget {
           BlocBuilder<OtpListBloc, OtpListState>(
             buildWhen: (p, c) {
               return p.selectedDate != c.selectedDate ||
+                p.directionFilter != c.directionFilter ||
                 p.items.length != c.items.length;
             },
             builder: (context, state) {
               final dateDisplay = DateTimeUtils.formatDate(state.selectedDate);
               final dateLabel = l10n.otpFilterDateWithCount(
                 dateDisplay,
-                state.items.length,
+                state.filteredItems.length,
               );
 
               return Row(

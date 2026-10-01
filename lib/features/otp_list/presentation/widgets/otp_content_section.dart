@@ -18,6 +18,7 @@ class OtpContentSection extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.isLoading != current.isLoading ||
           previous.items != current.items ||
+          previous.directionFilter != current.directionFilter ||
           previous.groupedByDevice != current.groupedByDevice ||
           previous.isGroupingByDevice != current.isGroupingByDevice ||
           previous.selectedDate != current.selectedDate,
@@ -33,8 +34,8 @@ class OtpContentSection extends StatelessWidget {
           child: state.isLoading
               ? const ShimmerLoadingList()
               : OtpContentView(
-                  items: state.items,
-                  groupedByDevice: state.groupedByDevice,
+                  items: state.filteredItems,
+                  groupedByDevice: state.filteredGroupedByDevice,
                   isGroupingByDevice: state.isGroupingByDevice,
                   dateDisplay: dateDisplay,
                 ),

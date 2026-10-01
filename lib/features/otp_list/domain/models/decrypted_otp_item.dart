@@ -11,6 +11,7 @@ class DecryptedOtpItem extends Equatable {
   final DateTime receivedAt;
   final DateTime? sentAt;
   final String status;
+  final String viewerRole;
 
   const DecryptedOtpItem({
     required this.id,
@@ -23,6 +24,7 @@ class DecryptedOtpItem extends Equatable {
     required this.receivedAt,
     this.sentAt,
     this.status = 'SUCCESS',
+    this.viewerRole = 'SENDER',
   });
 
   @override
@@ -37,5 +39,6 @@ class DecryptedOtpItem extends Equatable {
     receivedAt,
     sentAt,
     status,
+    viewerRole,
   ];
 }

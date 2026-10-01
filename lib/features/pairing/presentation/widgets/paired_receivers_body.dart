@@ -12,6 +12,7 @@ import '../bloc/paired_receivers_event.dart';
 import '../bloc/paired_receivers_state.dart';
 import '../pages/pairing_sender_page.dart';
 import 'paired_receiver_card.dart';
+import 'refreshable_empty_state.dart';
 
 /// Widget thân danh sách thiết bị nhận OTP (Dành cho máy gửi).
 class PairedReceiversBody extends StatelessWidget {
@@ -40,23 +41,32 @@ class PairedReceiversBody extends StatelessWidget {
             }
 
             if (state.devices.isEmpty) {
-              return EmptyStateView(
-                icon: Icons.phonelink_erase_rounded,
-                title: context.l10n.emptyReceiversTitle,
-                message: context.l10n.emptyReceiversMessage,
-                actionLabel: context.l10n.pairingGenerateQr,
-                onAction: () async {
-                  final changed = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => const PairingSenderPage(),
-                    ),
+              return RefreshableEmptyState(
+                onRefresh: () {
+                  final completer = Completer<void>();
+                  BlocProvider.of<PairedReceiversBloc>(context).add(
+                    PairedReceiversLoadEvent(completer: completer),
                   );
-                  if (changed == true && context.mounted) {
-                    BlocProvider.of<PairedReceiversBloc>(context).add(
-                      const PairedReceiversLoadEvent(),
-                    );
-                  }
+                  return completer.future;
                 },
+                child: EmptyStateView(
+                  icon: Icons.phonelink_erase_rounded,
+                  title: context.l10n.emptyReceiversTitle,
+                  message: context.l10n.emptyReceiversMessage,
+                  actionLabel: context.l10n.pairingGenerateQr,
+                  onAction: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (_) => const PairingSenderPage(),
+                      ),
+                    );
+                    if (changed == true && context.mounted) {
+                      BlocProvider.of<PairedReceiversBloc>(context).add(
+                        const PairedReceiversLoadEvent(),
+                      );
+                    }
+                  },
+                ),
               );
             }
 

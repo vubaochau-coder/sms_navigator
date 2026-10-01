@@ -592,6 +592,24 @@ abstract class AppLocalizations {
   /// **'Nhóm theo máy'**
   String get otpGroupByDevice;
 
+  /// No description provided for @smsFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get smsFilterAll;
+
+  /// No description provided for @smsFilterSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS Gửi Đi'**
+  String get smsFilterSent;
+
+  /// No description provided for @smsFilterReceived.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS Nhận Được'**
+  String get smsFilterReceived;
+
   /// No description provided for @retry.
   ///
   /// In vi, this message translates to:

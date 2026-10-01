@@ -41,5 +41,10 @@ void main() {
 
     // Verify Grouping toggle button is present
     expect(find.text('Nhóm theo máy'), findsOneWidget);
+
+    // Verify direction filter bar shows all 3 options
+    expect(find.text('Tất cả'), findsOneWidget);
+    expect(find.text('SMS Gửi Đi'), findsOneWidget);
+    expect(find.text('SMS Nhận Được'), findsOneWidget);
   });
 }

@@ -4,10 +4,12 @@ import 'package:sms_navigator/features/otp_list/data/repositories/otp_list_repos
 import 'package:sms_navigator/features/otp_list/domain/models/decrypted_otp_item.dart';
 import 'package:sms_navigator/features/otp_list/presentation/bloc/otp_list_bloc.dart';
 import 'package:sms_navigator/features/otp_list/presentation/bloc/otp_list_event.dart';
+import 'package:sms_navigator/features/otp_list/presentation/bloc/otp_list_state.dart';
 
 class _FakeOtpListRepository implements OtpListRepository {
   List<DecryptedOtpItem> stubItems = [];
   CancelToken? lastCancelToken;
+  int callCount = 0;
 
   @override
   Future<List<DecryptedOtpItem>> getOtpListForDate(
@@ -16,6 +18,7 @@ class _FakeOtpListRepository implements OtpListRepository {
     CancelToken? cancelToken,
   }) async {
     lastCancelToken = cancelToken;
+    callCount++;
     return stubItems;
   }
 }
@@ -138,5 +141,94 @@ void main() {
 
     expect(fakeRepository.lastCancelToken, isNotNull);
     expect(fakeRepository.lastCancelToken!.isCancelled, isFalse);
+  });
+
+  group('direction filter (local, viewerRole based)', () {
+    final sentItem1 = DecryptedOtpItem(
+      id: 'otp-1',
+      pairId: 'pair_123',
+      senderDeviceId: 'dev_sender_a',
+      senderDeviceName: 'Đã gửi tới Pixel 8',
+      sender: 'Vietcombank',
+      otp: '123456',
+      fullMessage: 'OTP: 123456',
+      receivedAt: DateTime(2026, 10, 1, 9, 0),
+      viewerRole: 'SENDER',
+    );
+    final sentItem2 = DecryptedOtpItem(
+      id: 'otp-2',
+      pairId: 'pair_123',
+      senderDeviceId: 'dev_sender_a',
+      senderDeviceName: 'Đã gửi tới Pixel 8',
+      sender: 'Vietcombank',
+      otp: '223456',
+      fullMessage: 'OTP: 223456',
+      receivedAt: DateTime(2026, 10, 1, 9, 5),
+      viewerRole: 'SENDER',
+    );
+    final receivedItem = DecryptedOtpItem(
+      id: 'otp-3',
+      pairId: 'pair_123',
+      senderDeviceId: 'dev_sender_b',
+      senderDeviceName: 'Nhận từ Xiaomi 13 (Việt Nam)',
+      sender: '95555',
+      otp: '192837',
+      fullMessage: '【招商银行】您的验证码是 192837',
+      receivedAt: DateTime(2026, 10, 1, 9, 10),
+      viewerRole: 'RECEIVER',
+    );
+
+    test('defaults to all and keeps every item after load', () async {
+      fakeRepository.stubItems = [sentItem1, receivedItem, sentItem2];
+      bloc.add(const OtpListLoadEvent());
+      await bloc.stream.firstWhere((s) => !s.isLoading);
+
+      expect(bloc.state.directionFilter, OtpDirectionFilter.all);
+      expect(bloc.state.filteredItems.length, 3);
+      expect(bloc.state.filteredGroupedByDevice.length, 2);
+    });
+
+    test('sent filter keeps only messages sent by this device', () async {
+      fakeRepository.stubItems = [sentItem1, receivedItem, sentItem2];
+      bloc.add(const OtpListLoadEvent());
+      await bloc.stream.firstWhere((s) => !s.isLoading);
+      bloc.add(
+        const OtpListChangeDirectionFilterEvent(OtpDirectionFilter.sent),
+      );
+      await bloc.stream.first;
+
+      expect(bloc.state.directionFilter, OtpDirectionFilter.sent);
+      expect(bloc.state.filteredItems.map((i) => i.id), ['otp-1', 'otp-2']);
+      expect(bloc.state.filteredGroupedByDevice.length, 1);
+    });
+
+    test('received filter keeps only messages received from sender', () async {
+      fakeRepository.stubItems = [sentItem1, receivedItem, sentItem2];
+      bloc.add(const OtpListLoadEvent());
+      await bloc.stream.firstWhere((s) => !s.isLoading);
+      bloc.add(
+        const OtpListChangeDirectionFilterEvent(OtpDirectionFilter.received),
+      );
+      await bloc.stream.first;
+
+      expect(bloc.state.directionFilter, OtpDirectionFilter.received);
+      expect(bloc.state.filteredItems.map((i) => i.id), ['otp-3']);
+      expect(bloc.state.filteredGroupedByDevice.length, 1);
+    });
+
+    test('changing filter does not hit the repository again', () async {
+      fakeRepository.stubItems = [sentItem1, receivedItem];
+      bloc.add(const OtpListLoadEvent());
+      await bloc.stream.firstWhere((s) => !s.isLoading);
+      expect(fakeRepository.callCount, 1);
+
+      bloc.add(
+        const OtpListChangeDirectionFilterEvent(OtpDirectionFilter.received),
+      );
+      await bloc.stream.first;
+
+      expect(fakeRepository.callCount, 1);
+      expect(bloc.state.filteredItems.length, 1);
+    });
   });
 }

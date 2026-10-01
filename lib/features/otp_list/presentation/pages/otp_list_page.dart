@@ -8,6 +8,7 @@ import '../bloc/otp_list_event.dart';
 import '../widgets/otp_calendar_card.dart';
 import '../widgets/otp_compact_header.dart';
 import '../widgets/otp_content_section.dart';
+import '../widgets/otp_direction_filter_bar.dart';
 import '../widgets/otp_filter_bar.dart';
 
 /// Màn hình xem danh sách OTP theo ngày — Thuần Stateless với BLoC.
@@ -40,6 +41,7 @@ class _OtpListView extends StatelessWidget {
             WhitelistBlockedBanner(),
             OtpCalendarCard(),
             OtpFilterBar(),
+            OtpDirectionFilterBar(),
             Expanded(
               child: OtpContentSection(),
             ),

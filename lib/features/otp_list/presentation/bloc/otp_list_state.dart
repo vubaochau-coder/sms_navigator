@@ -2,12 +2,15 @@ import 'package:equatable/equatable.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../domain/models/decrypted_otp_item.dart';
 
+enum OtpDirectionFilter { all, sent, received }
+
 class OtpListState extends Equatable {
   final bool isLoading;
   final DateTime selectedDate;
   final DateTime focusedDate;
   final CalendarFormat calendarFormat;
   final bool isGroupingByDevice;
+  final OtpDirectionFilter directionFilter;
   final List<DecryptedOtpItem> items;
   final String? errorMessage;
 
@@ -17,12 +20,38 @@ class OtpListState extends Equatable {
     DateTime? focusedDate,
     this.calendarFormat = CalendarFormat.week,
     this.isGroupingByDevice = false,
+    this.directionFilter = OtpDirectionFilter.all,
     this.items = const [],
     this.errorMessage,
   }) : selectedDate = selectedDate ?? DateTime.now(),
        focusedDate = focusedDate ?? (selectedDate ?? DateTime.now());
 
+  List<DecryptedOtpItem> get filteredItems {
+    switch (directionFilter) {
+      case OtpDirectionFilter.all:
+        return items;
+      case OtpDirectionFilter.sent:
+        return items
+            .where((item) => item.viewerRole != 'RECEIVER')
+            .toList(growable: false);
+      case OtpDirectionFilter.received:
+        return items
+            .where((item) => item.viewerRole == 'RECEIVER')
+            .toList(growable: false);
+    }
+  }
+
   Map<String, List<DecryptedOtpItem>> get groupedByDevice {
+    return _groupItemsByDevice(items);
+  }
+
+  Map<String, List<DecryptedOtpItem>> get filteredGroupedByDevice {
+    return _groupItemsByDevice(filteredItems);
+  }
+
+  static Map<String, List<DecryptedOtpItem>> _groupItemsByDevice(
+    List<DecryptedOtpItem> items,
+  ) {
     final Map<String, List<DecryptedOtpItem>> map = {};
     for (final item in items) {
       final key = item.senderDeviceName.isNotEmpty
@@ -41,6 +70,7 @@ class OtpListState extends Equatable {
     DateTime? focusedDate,
     CalendarFormat? calendarFormat,
     bool? isGroupingByDevice,
+    OtpDirectionFilter? directionFilter,
     List<DecryptedOtpItem>? items,
     String? errorMessage,
   }) {
@@ -50,6 +80,7 @@ class OtpListState extends Equatable {
       focusedDate: focusedDate ?? this.focusedDate,
       calendarFormat: calendarFormat ?? this.calendarFormat,
       isGroupingByDevice: isGroupingByDevice ?? this.isGroupingByDevice,
+      directionFilter: directionFilter ?? this.directionFilter,
       items: items ?? this.items,
       errorMessage: errorMessage,
     );
@@ -62,6 +93,7 @@ class OtpListState extends Equatable {
     focusedDate,
     calendarFormat,
     isGroupingByDevice,
+    directionFilter,
     items,
     errorMessage,
   ];

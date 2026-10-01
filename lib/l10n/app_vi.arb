@@ -140,6 +140,9 @@
     }
   },
   "otpGroupByDevice": "Nhóm theo máy",
+  "smsFilterAll": "Tất cả",
+  "smsFilterSent": "SMS Gửi Đi",
+  "smsFilterReceived": "SMS Nhận Được",
   "retry": "Thử lại",
   "refresh": "Làm mới",
   "done": "Hoàn tất",

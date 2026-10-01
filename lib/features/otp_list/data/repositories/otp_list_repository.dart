@@ -143,6 +143,7 @@ class OtpListRepositoryImpl implements OtpListRepository {
           receivedAt: receivedAt,
           sentAt: model.sentAt,
           status: model.status,
+          viewerRole: model.viewerRole ?? 'SENDER',
         ),
       );
     }

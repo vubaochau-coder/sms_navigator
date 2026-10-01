@@ -18,6 +18,10 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
     on<OtpListChangeDateEvent>(_onChangeDate, transformer: restartable());
     on<OtpListToggleGroupEvent>(_onToggleGroup, transformer: droppable());
     on<OtpListChangeFormatEvent>(_onChangeFormat, transformer: droppable());
+    on<OtpListChangeDirectionFilterEvent>(
+      _onChangeDirectionFilter,
+      transformer: droppable(),
+    );
   }
 
   Future<void> _onLoadOtpList(OtpListLoadEvent event, Emitter emit) async {
@@ -90,6 +94,14 @@ class OtpListBloc extends Bloc<OtpListEvent, OtpListState> {
 
   void _onChangeFormat(OtpListChangeFormatEvent event, Emitter emit) {
     emit(state.copyWith(calendarFormat: event.format));
+  }
+
+  void _onChangeDirectionFilter(
+    OtpListChangeDirectionFilterEvent event,
+    Emitter emit,
+  ) {
+    if (state.directionFilter == event.filter) return;
+    emit(state.copyWith(directionFilter: event.filter));
   }
 
   @override
