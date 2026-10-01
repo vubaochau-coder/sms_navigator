@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/utils/ui_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
-import '../bloc/paired_senders_bloc.dart';
-import '../bloc/paired_senders_event.dart';
 
-/// Thẻ hiển thị thiết bị gửi đã ghép đôi (Tự quản lý tương tác với BLoC, không truyền callback).
+/// Thẻ hiển thị thiết bị gửi đã ghép đôi (Chỉ xem).
 class PairedSenderCard extends StatelessWidget {
   const PairedSenderCard({
     super.key,
@@ -17,23 +13,6 @@ class PairedSenderCard extends StatelessWidget {
   });
 
   final PairedDeviceItem item;
-
-  Future<void> _confirmRevokePair(BuildContext context) async {
-    final confirmed = await UiUtils.showConfirmDialog(
-      context,
-      title: context.l10n.confirmRevokeSenderTitle,
-      message: context.l10n.confirmRevokeSenderMessage(item.displayName),
-      confirmText: context.l10n.disconnect,
-      isDestructive: true,
-      icon: Icons.link_off_rounded,
-    );
-
-    if (confirmed && context.mounted) {
-      BlocProvider.of<PairedSendersBloc>(context).add(
-        PairedSendersRevokeEvent(pairId: item.pairId),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,15 +120,6 @@ class PairedSenderCard extends StatelessWidget {
                       ).colorScheme.onSurface.withValues(alpha: 0.75),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.link_off_rounded,
-                    size: 20,
-                    color: AppColors.error,
-                  ),
-                  tooltip: context.l10n.revokePairTooltip,
-                  onPressed: () => _confirmRevokePair(context),
                 ),
               ],
             ),
