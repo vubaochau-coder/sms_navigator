@@ -24,9 +24,6 @@ Widget _buildTestApp({required Widget body}) {
 class _MockPairManagementService implements PairManagementService {
   List<PairedDeviceItem> receiversList = [];
   List<PairedDeviceItem> sendersList = [];
-  bool toggleCalled = false;
-  String? toggledPairId;
-  bool? toggledActiveState;
 
   @override
   Future<List<PairedDeviceItem>> getPairedReceivers({
@@ -37,22 +34,6 @@ class _MockPairManagementService implements PairManagementService {
   Future<List<PairedDeviceItem>> getPairedSenders({
     CancelToken? cancelToken,
   }) async => sendersList;
-
-  @override
-  Future<bool> togglePairActive({
-    required String pairId,
-    required bool isActive,
-    CancelToken? cancelToken,
-  }) async {
-    toggleCalled = true;
-    toggledPairId = pairId;
-    toggledActiveState = isActive;
-    final idx = receiversList.indexWhere((e) => e.pairId == pairId);
-    if (idx != -1) {
-      receiversList[idx] = receiversList[idx].copyWith(isActive: isActive);
-    }
-    return true;
-  }
 }
 
 void main() {
@@ -75,47 +56,33 @@ void main() {
       expect(find.text('Tạo mã QR ghép đôi'), findsOneWidget);
     });
 
-    testWidgets(
-      'renders receiver items with toggle switch and handles toggle',
-      (tester) async {
-        final mock = _MockPairManagementService();
-        mock.receiversList = [
-          PairedDeviceItem(
-            pairId: 'pair_123',
-            deviceId: 'rec_device_abc',
-            deviceName: 'Máy Nhận Malaysia',
-            platform: 'android',
-            isActive: true,
-            pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
-          ),
-        ];
+    testWidgets('renders receiver items', (tester) async {
+      final mock = _MockPairManagementService();
+      mock.receiversList = [
+        PairedDeviceItem(
+          pairId: 'pair_123',
+          deviceId: 'rec_device_abc',
+          deviceName: 'Máy Nhận Malaysia',
+          platform: 'android',
+          pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
+        ),
+      ];
 
-        await tester.pumpWidget(
-          BlocProvider(
-            create: (_) => PairedReceiversBloc(mock)
-              ..add(const PairedReceiversLoadEvent()),
-            child: _buildTestApp(body: const PairedReceiversBody()),
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        BlocProvider(
+          create: (_) => PairedReceiversBloc(mock)
+            ..add(const PairedReceiversLoadEvent()),
+          child: _buildTestApp(body: const PairedReceiversBody()),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('Máy Nhận Malaysia'), findsOneWidget);
-        expect(find.text('Đang gửi'), findsOneWidget);
-        expect(find.text('Cho phép gửi OTP'), findsOneWidget);
+      expect(find.text('Máy Nhận Malaysia'), findsOneWidget);
+      expect(find.text('Đang gửi'), findsOneWidget);
 
-        final switchFinder = find.byType(Switch);
-        expect(switchFinder, findsOneWidget);
-
-        // Tap the switch to pause forwarding
-        await tester.tap(switchFinder);
-        await tester.pumpAndSettle();
-
-        expect(mock.toggleCalled, isTrue);
-        expect(mock.toggledPairId, 'pair_123');
-        expect(mock.toggledActiveState, isFalse);
-        expect(find.text('Đã tạm dừng'), findsOneWidget);
-      },
-    );
+      // Toggle feature has been removed for MVP: no Switch anywhere
+      expect(find.byType(Switch), findsNothing);
+    });
   });
 
   group('PairedSendersBody Widget Tests (Receiver Side)', () {
@@ -145,7 +112,6 @@ void main() {
             deviceId: 'send_device_xyz',
             deviceName: 'Máy Gửi Việt Nam',
             platform: 'android',
-            isActive: true,
             pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
             isSender: true,
           ),
@@ -167,42 +133,8 @@ void main() {
           findsOneWidget,
         );
 
-        // On receiver side, there must NOT be any interactive toggle Switch
+        // Toggle feature has been removed for MVP: no interactive Switch
         expect(find.byType(Switch), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'renders paused status clearly for receiver when sender paused relay',
-      (tester) async {
-        final mock = _MockPairManagementService();
-        mock.sendersList = [
-          PairedDeviceItem(
-            pairId: 'pair_789',
-            deviceId: 'send_device_paused',
-            deviceName: 'Máy Gửi Tạm Dừng',
-            platform: 'android',
-            isActive: false,
-            pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
-            isSender: true,
-          ),
-        ];
-
-        await tester.pumpWidget(
-          BlocProvider(
-            create: (_) => PairedSendersBloc(mock)
-              ..add(const PairedSendersLoadEvent()),
-            child: _buildTestApp(body: const PairedSendersBody()),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.text('Máy Gửi Tạm Dừng'), findsOneWidget);
-        expect(find.text('Người gửi tạm dừng'), findsOneWidget);
-        expect(
-          find.textContaining('Người gửi đang tạm dừng truyền tin. (Chỉ xem)'),
-          findsOneWidget,
-        );
       },
     );
   });

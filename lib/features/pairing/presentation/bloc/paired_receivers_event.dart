@@ -9,15 +9,3 @@ class PairedReceiversLoadEvent extends PairedReceiversEvent {
 
   const PairedReceiversLoadEvent({this.completer});
 }
-
-class PairedReceiversToggleActiveEvent extends PairedReceiversEvent {
-  final String pairId;
-  final bool isActive;
-  final String? displayName;
-
-  const PairedReceiversToggleActiveEvent({
-    required this.pairId,
-    required this.isActive,
-    this.displayName,
-  });
-}

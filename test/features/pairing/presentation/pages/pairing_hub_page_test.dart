@@ -17,7 +17,6 @@ class _TrackingPairManagementService implements PairManagementService {
       deviceId: 'dev_rec_1',
       deviceName: 'Receiver A',
       platform: 'android',
-      isActive: true,
       pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
     ),
   ];
@@ -28,7 +27,6 @@ class _TrackingPairManagementService implements PairManagementService {
       deviceId: 'dev_send_1',
       deviceName: 'Sender B',
       platform: 'android',
-      isActive: true,
       pairedAt: DateTime.fromMillisecondsSinceEpoch(1727620000 * 1000),
       isSender: true,
     ),
@@ -49,13 +47,6 @@ class _TrackingPairManagementService implements PairManagementService {
     getSendersCallCount++;
     return senders;
   }
-
-  @override
-  Future<bool> togglePairActive({
-    required String pairId,
-    required bool isActive,
-    CancelToken? cancelToken,
-  }) async => true;
 }
 
 void main() {

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../../data/models/paired_device_item.dart';
-import '../bloc/paired_receivers_bloc.dart';
-import '../bloc/paired_receivers_event.dart';
 
-/// Thẻ hiển thị thiết bị nhận đã ghép đôi kèm công tắc bật/tắt gửi (Tự quản lý tương tác với BLoC).
+/// Thẻ hiển thị thiết bị nhận đã ghép đôi (Chỉ hiển thị, không còn toggle gửi).
 class PairedReceiverCard extends StatelessWidget {
   const PairedReceiverCard({
     super.key,
@@ -17,22 +14,8 @@ class PairedReceiverCard extends StatelessWidget {
 
   final PairedDeviceItem item;
 
-  void _onToggleActive(BuildContext context, bool newValue) {
-    BlocProvider.of<PairedReceiversBloc>(context).add(
-      PairedReceiversToggleActiveEvent(
-        pairId: item.pairId,
-        isActive: newValue,
-        displayName: item.displayName,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isToggling = context.select<PairedReceiversBloc, bool>(
-      (b) => b.state.togglingPairIds.contains(item.pairId),
-    );
-
     return InfoCard(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
@@ -43,8 +26,7 @@ class PairedReceiverCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (item.isActive ? AppColors.success : AppColors.warning)
-                      .withValues(alpha: 0.15),
+                  color: AppColors.success.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -52,7 +34,7 @@ class PairedReceiverCard extends StatelessWidget {
                       ? Icons.phone_iphone_rounded
                       : Icons.phone_android_rounded,
                   size: 22,
-                  color: item.isActive ? AppColors.success : AppColors.warning,
+                  color: AppColors.success,
                 ),
               ),
               const SizedBox(width: 10),
@@ -82,10 +64,7 @@ class PairedReceiverCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.isActive)
-                StatusBadge.active(label: context.l10n.statusSending)
-              else
-                StatusBadge.paused(label: context.l10n.statusPaused),
+              StatusBadge.active(label: context.l10n.statusSending),
             ],
           ),
           const Divider(height: 14),
@@ -104,47 +83,6 @@ class PairedReceiverCard extends StatelessWidget {
           PlainInfoRow(
             label: context.l10n.lastActiveAt,
             value: item.formattedLastActiveAt,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  if (isToggling)
-                    const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    Transform.scale(
-                      scale: 0.8,
-                      child: Switch(
-                        value: item.isActive,
-                        activeTrackColor: AppColors.success,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onChanged: (val) => _onToggleActive(context, val),
-                      ),
-                    ),
-                  const SizedBox(width: 8),
-                  Text(
-                    item.isActive
-                        ? context.l10n.allowSendingOtp
-                        : context.l10n.pauseSendingOtp,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: item.isActive
-                          ? AppColors.success
-                          : Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ),
         ],
       ),

@@ -26,8 +26,7 @@ class PairedSenderCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (item.isActive ? AppColors.success : AppColors.warning)
-                      .withValues(alpha: 0.15),
+                  color: AppColors.success.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -35,7 +34,7 @@ class PairedSenderCard extends StatelessWidget {
                       ? Icons.phone_iphone_rounded
                       : Icons.phone_android_rounded,
                   size: 22,
-                  color: item.isActive ? AppColors.success : AppColors.warning,
+                  color: AppColors.success,
                 ),
               ),
               const SizedBox(width: 10),
@@ -65,10 +64,7 @@ class PairedSenderCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.isActive)
-                StatusBadge.active(label: context.l10n.statusSenderMaintaining)
-              else
-                StatusBadge.paused(label: context.l10n.statusSenderPaused),
+              StatusBadge.active(label: context.l10n.statusSenderMaintaining),
             ],
           ),
           const Divider(height: 14),
@@ -100,18 +96,14 @@ class PairedSenderCard extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  item.isActive
-                       ? Icons.lock_open_rounded
-                      : Icons.pause_circle_outline_rounded,
+                  Icons.lock_open_rounded,
                   size: 16,
-                  color: item.isActive ? AppColors.success : AppColors.warning,
+                  color: AppColors.success,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    item.isActive
-                        ? context.l10n.senderMaintainingDesc
-                        : context.l10n.senderPausedDesc,
+                    context.l10n.senderMaintainingDesc,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

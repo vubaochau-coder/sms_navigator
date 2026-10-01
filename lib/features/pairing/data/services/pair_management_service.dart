@@ -10,13 +10,6 @@ abstract class PairManagementService {
 
   /// Lấy danh sách các máy gửi đã kết nối tới máy nhận hiện tại (Read-only)
   Future<List<PairedDeviceItem>> getPairedSenders({CancelToken? cancelToken});
-
-  /// Phía máy gửi bật/tắt quyền chuyển tiếp OTP tới máy nhận
-  Future<bool> togglePairActive({
-    required String pairId,
-    required bool isActive,
-    CancelToken? cancelToken,
-  });
 }
 
 class PairManagementServiceImpl implements PairManagementService {
@@ -65,28 +58,6 @@ class PairManagementServiceImpl implements PairManagementService {
       return [];
     } catch (_) {
       return [];
-    }
-  }
-
-  @override
-  Future<bool> togglePairActive({
-    required String pairId,
-    required bool isActive,
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final path = ApiEndpoints.togglePairPath(pairId);
-      final response = await apiClient.patch(
-        path,
-        body: {'is_active': isActive},
-        cancelToken: cancelToken,
-      );
-      if (response is Map<String, dynamic>) {
-        return response['success'] == true;
-      }
-      return false;
-    } catch (_) {
-      return false;
     }
   }
 }

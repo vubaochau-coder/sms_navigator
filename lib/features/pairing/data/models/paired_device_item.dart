@@ -8,7 +8,6 @@ class PairedDeviceItem extends Equatable {
   const PairedDeviceItem({
     required this.pairId,
     required this.deviceId,
-    required this.isActive,
     this.deviceName,
     this.platform,
     this.pairedAt,
@@ -21,9 +20,6 @@ class PairedDeviceItem extends Equatable {
   /// Đối với Sender nhìn sang: deviceId của Receiver.
   /// Đối với Receiver nhìn sang: deviceId của Sender.
   final String deviceId;
-
-  /// Trạng thái người gửi duy trì gửi OTP (true) hay tạm dừng (false).
-  final bool isActive;
 
   final String? deviceName;
   final String? platform;
@@ -55,7 +51,6 @@ class PairedDeviceItem extends Equatable {
   PairedDeviceItem copyWith({
     String? pairId,
     String? deviceId,
-    bool? isActive,
     String? deviceName,
     String? platform,
     DateTime? pairedAt,
@@ -65,7 +60,6 @@ class PairedDeviceItem extends Equatable {
     return PairedDeviceItem(
       pairId: pairId ?? this.pairId,
       deviceId: deviceId ?? this.deviceId,
-      isActive: isActive ?? this.isActive,
       deviceName: deviceName ?? this.deviceName,
       platform: platform ?? this.platform,
       pairedAt: pairedAt ?? this.pairedAt,
@@ -78,7 +72,6 @@ class PairedDeviceItem extends Equatable {
     return PairedDeviceItem(
       pairId: DataConverter.cvToString(json['pair_id'], '')!,
       deviceId: DataConverter.cvToString(json['receiver_device_id'], '')!,
-      isActive: DataConverter.cvToBool(json['is_active'], true)!,
       deviceName: DataConverter.cvToString(json['device_name']),
       platform: DataConverter.cvToString(json['platform']),
       pairedAt: DataConverter.cvToDateTime(json['paired_at']),
@@ -91,7 +84,6 @@ class PairedDeviceItem extends Equatable {
     return PairedDeviceItem(
       pairId: DataConverter.cvToString(json['pair_id'], '')!,
       deviceId: DataConverter.cvToString(json['sender_device_id'], '')!,
-      isActive: DataConverter.cvToBool(json['is_active'], true)!,
       deviceName: DataConverter.cvToString(json['device_name']),
       platform: DataConverter.cvToString(json['platform']),
       pairedAt: DataConverter.cvToDateTime(json['paired_at']),
@@ -104,7 +96,6 @@ class PairedDeviceItem extends Equatable {
   List<Object?> get props => [
     pairId,
     deviceId,
-    isActive,
     deviceName,
     platform,
     pairedAt,

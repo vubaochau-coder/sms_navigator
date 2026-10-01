@@ -13,10 +13,6 @@ class ApiEndpoints {
   static const String pairedReceivers = '/api/v1/pair/receivers';
   static const String pairedSenders = '/api/v1/pair/senders';
 
-  // --- URL Path Builders (Dành cho dynamic call không dùng Retrofit template) ---
-  static String togglePairPath(String pairId) =>
-      '/api/v1/pair/$pairId/toggle';
-
   // --- Relay & History ---
   static const String relay = '/api/v1/relay';
   static const String relayHistory = '/api/v1/relay/history';
