@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/data_converter.dart';
+
 class PairingPayloadModel extends Equatable {
   final String pairId;
   final String sharedSecretBase64;
@@ -50,16 +52,14 @@ class PairingPayloadModel extends Equatable {
 
   factory PairingPayloadModel.fromMap(Map<String, dynamic> map) {
     return PairingPayloadModel(
-      pairId: map['pairId']?.toString() ?? '',
-      code: map['code']?.toString() ?? '',
-      sharedSecretBase64:
-          (map['sharedSecretBase64'] ?? map['secret'])?.toString() ?? '',
-      createdAt: (map['createdAt'] is num)
-          ? (map['createdAt'] as num).toInt()
-          : 0,
-      expiresAt: (map['expiresAt'] is num)
-          ? (map['expiresAt'] as num).toInt()
-          : 0,
+      pairId: DataConverter.cvToString(map['pairId'], '')!,
+      code: DataConverter.cvToString(map['code'], '')!,
+      sharedSecretBase64: DataConverter.cvToString(
+        map['sharedSecretBase64'] ?? map['secret'],
+        '',
+      )!,
+      createdAt: DataConverter.cvToInt(map['createdAt'], 0)!,
+      expiresAt: DataConverter.cvToInt(map['expiresAt'], 0)!,
     );
   }
 
@@ -85,9 +85,9 @@ class PairingPayloadModel extends Equatable {
       throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
     }
     final map = decoded;
-    final pairId = map['pairId']?.toString() ?? '';
-    final secret = map['secret']?.toString() ?? '';
-    final exp = (map['exp'] is num) ? (map['exp'] as num).toInt() : 0;
+    final pairId = DataConverter.cvToString(map['pairId'], '')!;
+    final secret = DataConverter.cvToString(map['secret'], '')!;
+    final exp = DataConverter.cvToInt(map['exp'], 0)!;
     if (pairId.isEmpty || secret.isEmpty) {
       throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
     }

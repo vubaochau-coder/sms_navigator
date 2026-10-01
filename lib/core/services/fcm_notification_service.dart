@@ -12,6 +12,7 @@ import '../../features/receiver/data/services/receiver_storage_service.dart';
 import '../storage/local_storage_service.dart';
 import '../storage/storage_keys.dart';
 import '../utils/crypto_helper.dart';
+import '../utils/data_converter.dart';
 import 'device_storage_service.dart';
 
 /// Top-level background message handler cho Firebase Messaging.
@@ -209,7 +210,7 @@ class FcmNotificationService {
     final data = message.data;
     if (data.isEmpty) return null;
 
-    final type = data['type']?.toString();
+    final type = DataConverter.cvToString(data['type']);
 
     // ACK từ server: Máy B đã nhận OTP thành công (hoặc OTP được xếp hàng chờ)
     if (type == 'OTP_RELAY_ACK') {
@@ -221,9 +222,12 @@ class FcmNotificationService {
 
     if (type != 'OTP_RELAY') return null;
 
-    final pairId = data['pair_id']?.toString() ?? '';
-    final encryptedPayload = data['encrypted_payload']?.toString() ?? '';
-    final iv = data['iv']?.toString() ?? '';
+    final pairId = DataConverter.cvToString(data['pair_id'], '')!;
+    final encryptedPayload = DataConverter.cvToString(
+      data['encrypted_payload'],
+      '',
+    )!;
+    final iv = DataConverter.cvToString(data['iv'], '')!;
 
     if (encryptedPayload.isEmpty || iv.isEmpty) return null;
 
@@ -260,12 +264,12 @@ class FcmNotificationService {
       );
 
       final Map<String, dynamic> payload = jsonDecode(decryptedJson);
-      final sender = payload['sender']?.toString() ?? 'OTP Service';
-      final otp = payload['otp']?.toString() ?? '';
-      final rawMessage =
-          payload['message']?.toString() ??
-          payload['rawMessage']?.toString() ??
-          '';
+      final sender = DataConverter.cvToString(payload['sender'], 'OTP Service')!;
+      final otp = DataConverter.cvToString(payload['otp'], '')!;
+      final rawMessage = DataConverter.cvToString(
+        payload['message'] ?? payload['rawMessage'],
+        '',
+      )!;
 
       if (otp.isEmpty) return null;
 
@@ -338,8 +342,10 @@ class FcmNotificationService {
   ) async {
     await _ensureLocalNotificationsInitialized();
 
-    final receiverName = (data['receiver_name']?.toString() ?? '').trim();
-    final status = (data['status']?.toString() ?? 'DELIVERED').toUpperCase();
+    final receiverName =
+        DataConverter.cvToString(data['receiver_name'], '')!.trim();
+    final status =
+        DataConverter.cvToString(data['status'], 'DELIVERED')!.toUpperCase();
 
     final target = receiverName.isEmpty
         ? 'Máy Nhận'
@@ -372,7 +378,7 @@ class FcmNotificationService {
             : '✅ Đã Chuyển Tiếp OTP Thành Công',
         body: body,
         notificationDetails: notificationDetails,
-        payload: data['relay_message_id'] ?? '',
+        payload: DataConverter.cvToString(data['relay_message_id'], '')!,
       );
     } catch (e) {
       debugPrint('Could not show sender ACK notification: $e');

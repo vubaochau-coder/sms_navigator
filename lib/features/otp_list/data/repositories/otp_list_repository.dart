@@ -6,6 +6,7 @@ import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/utils/crypto_helper.dart';
+import '../../../../core/utils/data_converter.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../sender/data/services/native_relay_service.dart';
 import '../../domain/models/decrypted_otp_item.dart';
@@ -52,8 +53,10 @@ class OtpListRepositoryImpl implements OtpListRepository {
 
     if (sharedSecret == null || sharedSecret.isEmpty) {
       final senderConfig = await nativeRelayService.getRelayConfig();
-      sharedSecret = senderConfig['sharedSecretBase64']?.toString();
-      targetPairId ??= senderConfig['pairId']?.toString();
+      sharedSecret = DataConverter.cvToString(
+        senderConfig['sharedSecretBase64'],
+      );
+      targetPairId ??= DataConverter.cvToString(senderConfig['pairId']);
     }
 
     final response = await apiClient.get(
@@ -65,9 +68,10 @@ class OtpListRepositoryImpl implements OtpListRepository {
       },
       cancelToken: cancelToken,
     );
-    final List<dynamic> rawRecords = (response is Map)
-        ? (response['records'] as List<dynamic>? ?? [])
-        : [];
+    final rawRecords = DataConverter.cvToList<dynamic>(
+      DataConverter.cvToMap<String, dynamic>(response)?['records'],
+      (item) => item,
+    );
 
     final List<DecryptedOtpItem> items = [];
 
@@ -109,19 +113,15 @@ class OtpListRepositoryImpl implements OtpListRepository {
             secretKeyBase64: sharedSecret,
           );
           final Map<String, dynamic> data = jsonDecode(decryptedJson);
-          sender = data['sender']?.toString() ?? sender;
-          otp = data['otp']?.toString() ?? otp;
-          fullMessage =
-              data['fullMessage']?.toString() ??
-              data['full_message']?.toString() ??
-              '';
-          if (data['timestamp'] != null) {
-            final ts = data['timestamp'];
-            if (ts is int) {
-              receivedAt = DateTime.fromMillisecondsSinceEpoch(
-                ts > 10000000000 ? ts : ts * 1000,
-              );
-            }
+          sender = DataConverter.cvToString(data['sender'], sender)!;
+          otp = DataConverter.cvToString(data['otp'], otp)!;
+          fullMessage = DataConverter.cvToString(
+            data['fullMessage'] ?? data['full_message'],
+            fullMessage,
+          )!;
+          final parsedTs = DataConverter.cvToDateTime(data['timestamp']);
+          if (parsedTs != null) {
+            receivedAt = parsedTs;
           }
         } catch (_) {
           // If decryption fails, payload remains hidden for security

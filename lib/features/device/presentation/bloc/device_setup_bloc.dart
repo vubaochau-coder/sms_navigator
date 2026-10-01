@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/data_converter.dart';
 import '../../data/repositories/device_setup_repository.dart';
 import 'device_setup_event.dart';
 import 'device_setup_state.dart';
@@ -53,8 +54,8 @@ class DeviceSetupBloc extends Bloc<DeviceSetupEvent, DeviceSetupState> {
         smsPermissionGranted: results[0] as bool,
         smsPermissionPermanentlyDenied: results[1] as bool,
         batteryUnrestricted: results[2] as bool,
-        isAggressiveRom: romInfo['isAggressive'] == true,
-        oemName: romInfo['oem']?.toString(),
+        isAggressiveRom: DataConverter.cvToBool(romInfo['isAggressive']) == true,
+        oemName: DataConverter.cvToString(romInfo['oem']),
         autostartAcknowledged: results[4] as bool,
         smsPromptNeeded: results[5] as bool,
       ),

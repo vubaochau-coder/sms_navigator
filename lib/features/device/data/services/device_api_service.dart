@@ -3,6 +3,7 @@ import 'dart:math';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/services/device_storage_service.dart';
+import '../../../../core/utils/data_converter.dart';
 
 /// Service đăng ký thiết bị & đồng bộ FCM token với server.
 abstract class DeviceApiService {
@@ -41,13 +42,15 @@ class DeviceApiServiceImpl implements DeviceApiService {
     }..removeWhere((_, v) => v == null);
 
     final data = await apiClient.post(_registerPath, body: body);
-    final payload = _asMap(data);
+    final payload = DataConverter.cvToMap<String, dynamic>(data) ?? {};
 
-    final serverDeviceId = payload['device_id']?.toString() ?? deviceId;
+    final serverDeviceId =
+        DataConverter.cvToString(payload['device_id'], deviceId)!;
     await storageService.saveDeviceId(serverDeviceId);
 
-    final deviceToken = (payload['device_token'] ?? payload['token'])
-        ?.toString();
+    final deviceToken = DataConverter.cvToString(
+      payload['device_token'] ?? payload['token'],
+    );
     if (deviceToken != null && deviceToken.isNotEmpty) {
       await storageService.saveDeviceToken(deviceToken);
     }
@@ -64,12 +67,6 @@ class DeviceApiServiceImpl implements DeviceApiService {
       _fcmTokenPath,
       body: <String, dynamic>{'fcm_token': fcmToken.trim()},
     );
-  }
-
-  Map<String, dynamic> _asMap(dynamic data) {
-    if (data is Map<String, dynamic>) return data;
-    if (data is Map) return Map<String, dynamic>.from(data);
-    return <String, dynamic>{};
   }
 
   String _generateDeviceId() {

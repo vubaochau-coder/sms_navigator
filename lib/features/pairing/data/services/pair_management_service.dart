@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/utils/data_converter.dart';
 import '../models/paired_device_item.dart';
 
 abstract class PairManagementService {
@@ -26,14 +27,7 @@ class PairManagementServiceImpl implements PairManagementService {
         ApiEndpoints.pairedReceivers,
         cancelToken: cancelToken,
       );
-      if (response is Map<String, dynamic> && response['receivers'] is List) {
-        final list = response['receivers'] as List<dynamic>;
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map(PairedDeviceItem.fromReceiverJson)
-            .toList();
-      }
-      return [];
+      return _mapDeviceList(response, 'receivers', PairedDeviceItem.fromReceiverJson);
     } catch (_) {
       return [];
     }
@@ -48,16 +42,28 @@ class PairManagementServiceImpl implements PairManagementService {
         ApiEndpoints.pairedSenders,
         cancelToken: cancelToken,
       );
-      if (response is Map<String, dynamic> && response['senders'] is List) {
-        final list = response['senders'] as List<dynamic>;
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map(PairedDeviceItem.fromSenderJson)
-            .toList();
-      }
-      return [];
+      return _mapDeviceList(response, 'senders', PairedDeviceItem.fromSenderJson);
     } catch (_) {
       return [];
     }
+  }
+
+  /// Chuẩn hóa payload danh sách từ server về danh sách [PairedDeviceItem]
+  /// thông qua DataConverter (cvToMap + cvToList), bỏ qua phần tử lỗi.
+  static List<PairedDeviceItem> _mapDeviceList(
+    dynamic response,
+    String listKey,
+    PairedDeviceItem Function(Map<String, dynamic>) fromJson,
+  ) {
+    final payload = DataConverter.cvToMap<String, dynamic>(response);
+    final rawList = DataConverter.cvToList<dynamic>(
+      payload?[listKey],
+      (item) => item,
+    );
+    return rawList
+        .map((e) => DataConverter.cvToMap<String, dynamic>(e))
+        .whereType<Map<String, dynamic>>()
+        .map(fromJson)
+        .toList();
   }
 }

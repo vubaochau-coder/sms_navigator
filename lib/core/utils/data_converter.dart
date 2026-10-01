@@ -81,14 +81,16 @@ class DataConverter {
     }
     if (value is String) {
       final clean = value.trim();
-      final parsedDate = DateTime.tryParse(clean);
-      // ISO 8601 UTC ("...Z") parse ra DateTime có isUtc == true; normalize
-      // về giờ local ngay tại biên parse để mọi formatter hiển thị đúng.
-      if (parsedDate != null) return parsedDate.toLocal();
+      // Chuỗi số thuần phải parse theo epoch TRƯỚC: DateTime.tryParse sẽ
+      // diễn giải sai thành "năm" (VD: "1790841600000" -> year 1790841600000).
       final parsedInt = int.tryParse(clean);
       if (parsedInt != null) {
         return cvToDateTime(parsedInt, defaultValue);
       }
+      final parsedDate = DateTime.tryParse(clean);
+      // ISO 8601 UTC ("...Z") parse ra DateTime có isUtc == true; normalize
+      // về giờ local ngay tại biên parse để mọi formatter hiển thị đúng.
+      if (parsedDate != null) return parsedDate.toLocal();
     }
     return defaultValue;
   }

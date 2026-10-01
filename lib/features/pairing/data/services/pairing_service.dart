@@ -5,6 +5,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/utils/crypto_helper.dart';
+import '../../../../core/utils/data_converter.dart';
 import '../../../device/data/services/device_api_service.dart';
 import '../../../../core/services/device_storage_service.dart';
 import '../models/pairing_payload_model.dart';
@@ -72,9 +73,13 @@ class PairingServiceImpl implements PairingService {
         body: {'pair_id': payload.pairId},
       );
       if (response is Map<String, dynamic>) {
-        if (response['success'] != true || response['pair_id'] == null) {
+        if (DataConverter.cvToBool(response['success']) != true ||
+            DataConverter.cvToString(response['pair_id']) == null) {
           throw ApiException(
-            response['message']?.toString() ?? 'Khởi tạo ghép đôi thất bại',
+            DataConverter.cvToString(
+                  response['message'],
+                  'Khởi tạo ghép đôi thất bại',
+                )!,
           );
         }
       }
@@ -157,9 +162,13 @@ class PairingServiceImpl implements PairingService {
         ApiEndpoints.confirmPair,
         body: body,
       );
-      if (response is Map<String, dynamic> && response['success'] != true) {
+      if (response is Map<String, dynamic> &&
+          DataConverter.cvToBool(response['success']) != true) {
         throw ApiException(
-          response['message']?.toString() ?? 'Server từ chối xác nhận ghép đôi',
+          DataConverter.cvToString(
+                response['message'],
+                'Server từ chối xác nhận ghép đôi',
+              )!,
         );
       }
     }

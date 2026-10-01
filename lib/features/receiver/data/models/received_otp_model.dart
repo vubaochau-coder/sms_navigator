@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/data_converter.dart';
+
 class ReceivedOtpModel extends Equatable {
   final String id;
   final String sender;
@@ -57,16 +59,12 @@ class ReceivedOtpModel extends Equatable {
 
   factory ReceivedOtpModel.fromMap(Map<String, dynamic> map) {
     return ReceivedOtpModel(
-      id: map['id']?.toString() ?? '',
-      sender: map['sender']?.toString() ?? 'Unknown',
-      otp: map['otp']?.toString() ?? '',
-      receivedAt: (map['receivedAt'] is num)
-          ? (map['receivedAt'] as num).toInt()
-          : 0,
-      expiresAt: (map['expiresAt'] is num)
-          ? (map['expiresAt'] as num).toInt()
-          : 0,
-      rawMessage: map['rawMessage']?.toString() ?? '',
+      id: DataConverter.cvToString(map['id'], '')!,
+      sender: DataConverter.cvToString(map['sender'], 'Unknown')!,
+      otp: DataConverter.cvToString(map['otp'], '')!,
+      receivedAt: DataConverter.cvToInt(map['receivedAt'], 0)!,
+      expiresAt: DataConverter.cvToInt(map['expiresAt'], 0)!,
+      rawMessage: DataConverter.cvToString(map['rawMessage'], '')!,
     );
   }
 

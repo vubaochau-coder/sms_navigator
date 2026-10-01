@@ -2,6 +2,7 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
+import '../../../../core/utils/data_converter.dart';
 import '../../../sender/data/services/native_relay_service.dart';
 
 abstract class DeviceSetupService {
@@ -138,8 +139,9 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
       if (granted) return false;
 
       final config = await nativeRelayService.getRelayConfig();
-      final pairId = config['pairId']?.toString() ?? '';
-      final isSenderActive = config['isRelayEnabled'] == true && pairId.isNotEmpty;
+      final pairId = DataConverter.cvToString(config['pairId'], '')!;
+      final isSenderActive =
+          config['isRelayEnabled'] == true && pairId.isNotEmpty;
       if (isSenderActive) return true;
 
       final isReceiverPaired = (localStorageService.getString(

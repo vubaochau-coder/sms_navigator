@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
+import '../../../../core/utils/data_converter.dart';
 import '../models/received_otp_model.dart';
 
 abstract class ReceiverStorageService {
@@ -23,7 +24,9 @@ class ReceiverStorageServiceImpl implements ReceiverStorageService {
     try {
       final List<dynamic> list = jsonDecode(raw);
       return list
-          .map((e) => ReceivedOtpModel.fromMap(Map<String, dynamic>.from(e)))
+          .map((e) => DataConverter.cvToMap<String, dynamic>(e))
+          .whereType<Map<String, dynamic>>()
+          .map(ReceivedOtpModel.fromMap)
           .toList();
     } catch (_) {
       return [];

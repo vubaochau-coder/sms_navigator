@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
+import '../../../../core/utils/data_converter.dart';
+
 abstract class NativeRelayService {
   Future<Map<String, dynamic>> getRelayConfig();
   Future<bool> setRelayConfig({
@@ -36,9 +38,9 @@ class NativeRelayServiceImpl implements NativeRelayService {
 
   Future<dynamic> _handleMethodCall(MethodCall call) async {
     if (call.method == 'onOtpDetected') {
-      final args = call.arguments as Map<dynamic, dynamic>?;
-      final sender = args?['sender']?.toString() ?? 'Unknown';
-      final otp = args?['otp']?.toString() ?? '';
+      final args = DataConverter.cvToMap<String, dynamic>(call.arguments);
+      final sender = DataConverter.cvToString(args?['sender'], 'Unknown')!;
+      final otp = DataConverter.cvToString(args?['otp'], '')!;
       _otpListener?.call(sender, otp);
     }
   }
@@ -49,8 +51,8 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
         'isAggressiveBatteryRom',
       );
-      if (result == null) return {'isAggressive': false, 'oem': null};
-      return Map<String, dynamic>.from(result);
+      return DataConverter.cvToMap<String, dynamic>(result) ??
+          {'isAggressive': false, 'oem': null};
     } catch (_) {
       return {'isAggressive': false, 'oem': null};
     }
@@ -90,13 +92,11 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
         'getRelayConfig',
       );
-      if (result == null) return {};
-      final map = Map<String, dynamic>.from(result);
-      if (map['senderWhitelist'] is List) {
-        map['senderWhitelist'] = (map['senderWhitelist'] as List)
-            .map((e) => e.toString())
-            .toList();
-      }
+      final map = DataConverter.cvToMap<String, dynamic>(result);
+      if (map == null) return {};
+      map['senderWhitelist'] = DataConverter.cvToStringList(
+        map['senderWhitelist'],
+      );
       return map;
     } catch (_) {
       return {};
@@ -143,7 +143,10 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final raw = await _channel.invokeMethod<String>('getRecentLogs');
       if (raw == null || raw.isEmpty) return [];
       final List<dynamic> decoded = jsonDecode(raw);
-      return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      return decoded
+          .map((e) => DataConverter.cvToMap<String, dynamic>(e))
+          .whereType<Map<String, dynamic>>()
+          .toList();
     } catch (_) {
       return [];
     }

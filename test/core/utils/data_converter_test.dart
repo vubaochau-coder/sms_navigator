@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:sms_navigator/core/utils/data_converter.dart';
+import 'package:sms_navigator/core/utils/date_time_utils.dart';
 
 void main() {
   group('DataConverter Tests', () {
@@ -103,6 +105,123 @@ void main() {
       expect(parsed, equals(map));
       expect(DataConverter.cvToMap('not_a_map'), isNull);
       expect(DataConverter.cvToMap(null, {'a': 1}), equals({'a': 1}));
+    });
+  });
+
+  group('cvToDateTime timezone regression (bug: 7h offset on +07:00)', () {
+    // Mốc tham chiếu: 08:00 UTC == 15:00 giờ VN (+07:00).
+    // Test phải pass trên MỌI máy bất kể timezone nên luôn so với
+    // DateTime.parse(...).toLocal() / fromMillisecondsSinceEpoch.
+    const utcIso = '2026-10-01T08:00:00.000Z';
+
+    test('ISO string with Z suffix must be normalized to local time', () {
+      final parsed = DataConverter.cvToDateTime(utcIso);
+
+      expect(parsed, isNotNull);
+      // Trước fix: DateTime.tryParse giữ isUtc == true -> formatter in thô 08:00.
+      expect(parsed!.isUtc, isFalse,
+          reason: 'ISO UTC phải được convert về local ngay khi parse');
+      expect(parsed, equals(DateTime.parse(utcIso).toLocal()));
+      // Vẫn đúng tuyệt đối thời điểm (epoch không đổi).
+      expect(
+        parsed.millisecondsSinceEpoch,
+        equals(DateTime.parse(utcIso).millisecondsSinceEpoch),
+      );
+    });
+
+    test('ISO string with explicit +07:00 offset parses to same instant', () {
+      final parsed = DataConverter.cvToDateTime('2026-10-01T15:00:00.000+07:00');
+
+      expect(parsed, isNotNull);
+      expect(parsed!.isUtc, isFalse);
+      expect(
+        parsed.millisecondsSinceEpoch,
+        equals(DateTime.parse(utcIso).millisecondsSinceEpoch),
+      );
+    });
+
+    test('int epoch (seconds & milliseconds) returns local DateTime', () {
+      final ms = DateTime.parse(utcIso).millisecondsSinceEpoch;
+
+      final fromMs = DataConverter.cvToDateTime(ms)!;
+      final fromSec = DataConverter.cvToDateTime(ms ~/ 1000)!;
+
+      expect(fromMs.isUtc, isFalse);
+      expect(fromSec.isUtc, isFalse);
+      expect(fromMs.millisecondsSinceEpoch, equals(ms));
+      expect(fromSec.millisecondsSinceEpoch, equals(ms));
+    });
+
+    test('numeric string epoch is accepted', () {
+      final ms = DateTime.parse(utcIso).millisecondsSinceEpoch;
+
+      expect(
+        DataConverter.cvToDateTime(ms.toString())!.millisecondsSinceEpoch,
+        equals(ms),
+      );
+      expect(
+        DataConverter.cvToDateTime('${ms ~/ 1000}')!.millisecondsSinceEpoch,
+        equals(ms),
+      );
+    });
+
+    test(
+      'every input form of the same instant yields identical wall clock',
+      () {
+        final expected = DateTime.fromMillisecondsSinceEpoch(
+          DateTime.parse(utcIso).millisecondsSinceEpoch,
+        );
+
+        final forms = <DateTime?>[
+          DataConverter.cvToDateTime(utcIso),
+          DataConverter.cvToDateTime('2026-10-01T15:00:00.000+07:00'),
+          DataConverter.cvToDateTime(
+            DateTime.parse(utcIso).millisecondsSinceEpoch,
+          ),
+          DataConverter.cvToDateTime(
+            DateTime.parse(utcIso).millisecondsSinceEpoch ~/ 1000,
+          ),
+          DataConverter.cvToDateTime(
+            '${DateTime.parse(utcIso).millisecondsSinceEpoch}',
+          ),
+        ];
+
+        for (final parsed in forms) {
+          expect(parsed!.isUtc, isFalse);
+          // Bất biến cốt lõi: field giờ/phút hiển thị phải khớp giờ local.
+          expect(
+            '${parsed.hour}:${parsed.minute}',
+            equals('${expected.hour}:${expected.minute}'),
+          );
+        }
+      },
+    );
+
+    test('ISO UTC formatted via DateTimeUtils shows device-local wall clock', () {
+      // Regression trực tiếp của bug UI: trước fix, máy +07:00 pair lúc 15:00
+      // hiển thị 08:00. Bất biến: format(cvToDateTime(isoUtc)) phải bằng
+      // format(DateTime local cùng khoảnh khắc) trên MỌI timezone.
+      final displayed = DateTimeUtils.formatDateTime(
+        DataConverter.cvToDateTime(utcIso),
+      );
+      final expected = DateFormat('dd/MM/yyyy HH:mm').format(
+        DateTime.fromMillisecondsSinceEpoch(
+          DateTime.parse(utcIso).millisecondsSinceEpoch,
+        ),
+      );
+
+      expect(displayed, equals(expected));
+    });
+
+    test('whitespace-padded and invalid strings handled safely', () {
+      expect(
+        DataConverter.cvToDateTime('  $utcIso  '),
+        equals(DateTime.parse(utcIso).toLocal()),
+      );
+      expect(DataConverter.cvToDateTime(''), isNull);
+      expect(DataConverter.cvToDateTime('   '), isNull);
+      expect(DataConverter.cvToDateTime('not_a_timestamp'), isNull);
+      expect(DataConverter.cvToDateTime('invalid', DateTime(2026)), isNotNull);
     });
   });
 }

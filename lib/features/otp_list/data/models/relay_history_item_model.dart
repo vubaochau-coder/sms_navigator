@@ -31,18 +31,18 @@ class RelayHistoryItemModel {
 
   factory RelayHistoryItemModel.fromMap(Map<String, dynamic> map) {
     return RelayHistoryItemModel(
-      id: map['id']?.toString() ?? '',
-      pairId: map['pair_id']?.toString() ?? '',
-      senderDeviceId: map['sender_device_id']?.toString() ?? '',
-      senderDeviceName: map['sender_device_name']?.toString(),
-      receiverDeviceName: map['receiver_device_name']?.toString(),
-      viewerRole: map['viewer_role']?.toString(),
-      encryptedPayload: map['encrypted_payload']?.toString() ?? '',
-      iv: map['iv']?.toString() ?? '',
+      id: DataConverter.cvToString(map['id'], '')!,
+      pairId: DataConverter.cvToString(map['pair_id'], '')!,
+      senderDeviceId: DataConverter.cvToString(map['sender_device_id'], '')!,
+      senderDeviceName: DataConverter.cvToString(map['sender_device_name']),
+      receiverDeviceName: DataConverter.cvToString(map['receiver_device_name']),
+      viewerRole: DataConverter.cvToString(map['viewer_role']),
+      encryptedPayload: DataConverter.cvToString(map['encrypted_payload'], '')!,
+      iv: DataConverter.cvToString(map['iv'], '')!,
       sentAt: DataConverter.cvToDateTime(map['sent_at']),
       relayedAt: DataConverter.cvToDateTime(map['relayed_at']),
-      status: map['status']?.toString() ?? 'SUCCESS',
-      messageId: map['message_id']?.toString(),
+      status: DataConverter.cvToString(map['status'], 'SUCCESS')!,
+      messageId: DataConverter.cvToString(map['message_id']),
     );
   }
 }
