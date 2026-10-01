@@ -1,6 +1,7 @@
 import 'package:permission_handler/permission_handler.dart' as ph;
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../../sender/data/services/native_relay_service.dart';
 
 abstract class DeviceSetupService {
@@ -20,11 +21,12 @@ abstract class DeviceSetupService {
 
 class DeviceSetupServiceImpl implements DeviceSetupService {
   final NativeRelayService nativeRelayService;
+  final LocalStorageService localStorageService;
 
-  static const String _keyAutostartAck = 'device_setup_autostart_ack';
-  static const String _keyDontPrompt = 'device_setup_dont_prompt_dialog';
-
-  DeviceSetupServiceImpl({required this.nativeRelayService});
+  DeviceSetupServiceImpl({
+    required this.nativeRelayService,
+    required this.localStorageService,
+  });
 
   @override
   Future<bool> isSmsPermissionGranted() async {
@@ -107,8 +109,8 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
   @override
   Future<bool> isAutostartAcknowledged() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_keyAutostartAck) ?? false;
+      return localStorageService.getBool(StorageKeys.autostartAcknowledged) ??
+          false;
     } catch (_) {
       return false;
     }
@@ -117,8 +119,7 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
   @override
   Future<bool> acknowledgeAutostart() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyAutostartAck, true);
+      await localStorageService.setBool(StorageKeys.autostartAcknowledged, true);
       return true;
     } catch (_) {
       return false;
@@ -128,8 +129,10 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
   @override
   Future<bool> shouldPromptSmsPermission() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool(_keyDontPrompt) == true) return false;
+      if (localStorageService.getBool(StorageKeys.dontPromptPermission) ==
+          true) {
+        return false;
+      }
 
       final granted = await isSmsPermissionGranted();
       if (granted) return false;
@@ -139,8 +142,11 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
       final isSenderActive = config['isRelayEnabled'] == true && pairId.isNotEmpty;
       if (isSenderActive) return true;
 
-      final isReceiverPaired =
-          (prefs.getString('receiver_pair_id') ?? '').isNotEmpty;
+      final isReceiverPaired = (localStorageService.getString(
+                StorageKeys.receiverPairId,
+              ) ??
+              '')
+          .isNotEmpty;
       return !isReceiverPaired;
     } catch (_) {
       return false;
@@ -150,8 +156,7 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
   @override
   Future<bool> setDontPromptDeviceSetup() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyDontPrompt, true);
+      await localStorageService.setBool(StorageKeys.dontPromptPermission, true);
       return true;
     } catch (_) {
       return false;

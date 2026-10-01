@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'app.dart';
 import 'core/bootstrap/app_bootstrap.dart';
 import 'core/services/fcm_notification_service.dart';
+import 'core/storage/local_storage_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,9 +18,13 @@ Future<void> main() async {
     debugPrint('Firebase not available in current environment: $e');
   }
 
+  // Khởi tạo Local Storage sớm (trước khi dựng cây Widget)
+  final localStorage = await LocalStorageService.create();
+
   runApp(
-    const AppBootstrap(
-      child: OtpRelayApp(),
+    AppBootstrap(
+      localStorageService: localStorage,
+      child: const OtpRelayApp(),
     ),
   );
 }

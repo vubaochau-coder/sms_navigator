@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/network/api_client.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
+import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/storage/storage_keys.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
 import 'package:sms_navigator/features/pairing/data/services/pairing_service.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
@@ -114,12 +116,13 @@ class _FakeDeviceStorageService implements DeviceStorageService {
   Future<void> clearAll() async {}
 }
 
-PairingServiceImpl _buildService({
+Future<PairingServiceImpl> _buildService({
   ApiClient? apiClient,
   DeviceStorageService? storageService,
-}) {
+}) async {
   return PairingServiceImpl(
     nativeService: _FakeNativeRelayService(),
+    localStorageService: await LocalStorageService.create(),
     apiClient: apiClient,
     deviceStorageService: storageService,
   );
@@ -132,7 +135,7 @@ void main() {
 
   group('generateSenderPairing', () {
     test('generates a 256-bit random secret with 10 minute TTL', () async {
-      final service = _buildService();
+      final service = await _buildService();
 
       final payload = await service.generateSenderPairing();
 
@@ -144,7 +147,7 @@ void main() {
     });
 
     test('generates unique secrets per session', () async {
-      final service = _buildService();
+      final service = await _buildService();
 
       final first = await service.generateSenderPairing();
       final second = await service.generateSenderPairing();
@@ -154,7 +157,7 @@ void main() {
 
     test('calls /pair/init on server and throws ApiException when init fails', () async {
       final fakeApi = _FakeApiClient()..shouldThrow = true;
-      final service = _buildService(apiClient: fakeApi);
+      final service = await _buildService(apiClient: fakeApi);
 
       expect(
         () => service.generateSenderPairing(),
@@ -165,7 +168,7 @@ void main() {
     test('calls /pair/init and succeeds when server returns success: true and pair_id', () async {
       final fakeApi = _FakeApiClient()
         ..postResponse = {'success': true, 'pair_id': 'pair_server_123'};
-      final service = _buildService(apiClient: fakeApi);
+      final service = await _buildService(apiClient: fakeApi);
 
       final payload = await service.generateSenderPairing();
       expect(payload.pairId, startsWith('pair_'));
@@ -177,7 +180,7 @@ void main() {
     test('omits fcm_token in body when FCM token is null or empty', () async {
       final fakeApi = _FakeApiClient()..postResponse = {'success': true};
       final fakeStorage = _FakeDeviceStorageService()..fcmToken = null;
-      final service = _buildService(apiClient: fakeApi, storageService: fakeStorage);
+      final service = await _buildService(apiClient: fakeApi, storageService: fakeStorage);
 
       final payload = PairingPayloadModel(
         pairId: 'pair_no_fcm',
@@ -195,7 +198,7 @@ void main() {
     test('includes fcm_token in body when FCM token is available', () async {
       final fakeApi = _FakeApiClient()..postResponse = {'success': true};
       final fakeStorage = _FakeDeviceStorageService()..fcmToken = 'real_fcm_token_123';
-      final service = _buildService(apiClient: fakeApi, storageService: fakeStorage);
+      final service = await _buildService(apiClient: fakeApi, storageService: fakeStorage);
 
       final payload = PairingPayloadModel(
         pairId: 'pair_with_fcm',
@@ -212,7 +215,7 @@ void main() {
 
     test('throws ApiException and does not store credentials when server confirm fails', () async {
       final fakeApi = _FakeApiClient()..shouldThrow = true;
-      final service = _buildService(apiClient: fakeApi);
+      final service = await _buildService(apiClient: fakeApi);
 
       final payload = PairingPayloadModel(
         pairId: 'pair_fail_server',
@@ -226,14 +229,14 @@ void main() {
         throwsA(isA<ApiException>()),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), isNull);
-      expect(prefs.getString('receiver_shared_secret'), isNull);
+      expect(prefs.getString(StorageKeys.receiverPairId), isNull);
+      expect(prefs.getString(StorageKeys.receiverSharedSecret), isNull);
     });
 
     test('throws when server responds 200 with success: false', () async {
       final fakeApi = _FakeApiClient()
         ..postResponse = {'success': false, 'message': 'Pair already confirmed'};
-      final service = _buildService(apiClient: fakeApi);
+      final service = await _buildService(apiClient: fakeApi);
 
       final payload = PairingPayloadModel(
         pairId: 'pair_success_false',
@@ -253,10 +256,10 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), isNull);
+      expect(prefs.getString(StorageKeys.receiverPairId), isNull);
     });
     test('stores pairId and shared secret for a valid QR payload', () async {
-      final service = _buildService();
+      final service = await _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_valid_1234',
         sharedSecretBase64: 'VALID_SECRET',
@@ -268,12 +271,12 @@ void main() {
 
       expect(ok, isTrue);
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), 'pair_valid_1234');
-      expect(prefs.getString('receiver_shared_secret'), 'VALID_SECRET');
+      expect(prefs.getString(StorageKeys.receiverPairId), 'pair_valid_1234');
+      expect(prefs.getString(StorageKeys.receiverSharedSecret), 'VALID_SECRET');
     });
 
     test('rejects an expired QR payload with a typed error', () async {
-      final service = _buildService();
+      final service = await _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_expired',
         sharedSecretBase64: 'EXPIRED_SECRET',
@@ -290,12 +293,12 @@ void main() {
         ),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), isNull);
-      expect(prefs.getString('receiver_shared_secret'), isNull);
+      expect(prefs.getString(StorageKeys.receiverPairId), isNull);
+      expect(prefs.getString(StorageKeys.receiverSharedSecret), isNull);
     });
 
     test('rejects malformed QR data with a typed error', () async {
-      final service = _buildService();
+      final service = await _buildService();
 
       await expectLater(
         service.confirmReceiverPairingFromQr('garbage'),
@@ -306,25 +309,25 @@ void main() {
         throwsA(isA<ApiException>()),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), isNull);
-      expect(prefs.getString('receiver_shared_secret'), isNull);
+      expect(prefs.getString(StorageKeys.receiverPairId), isNull);
+      expect(prefs.getString(StorageKeys.receiverSharedSecret), isNull);
     });
   });
 
   group('confirmReceiverPairing (legacy alias)', () {
     test('rejects the removed 6-digit OTP code mechanism with a typed error', () async {
-      final service = _buildService();
+      final service = await _buildService();
 
       await expectLater(
         service.confirmReceiverPairing('123456'),
         throwsA(isA<ApiException>()),
       );
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('receiver_pair_id'), isNull);
+      expect(prefs.getString(StorageKeys.receiverPairId), isNull);
     });
 
     test('still accepts a QR payload string', () async {
-      final service = _buildService();
+      final service = await _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_via_alias',
         sharedSecretBase64: 'ALIAS_SECRET',
@@ -340,7 +343,7 @@ void main() {
 
   group('getReceiverPairing / clearReceiverPairing', () {
     test('returns null before pairing and payload after pairing', () async {
-      final service = _buildService();
+      final service = await _buildService();
 
       expect(await service.getReceiverPairing(), isNull);
 
@@ -359,7 +362,7 @@ void main() {
     });
 
     test('clearReceiverPairing removes stored pairing data', () async {
-      final service = _buildService();
+      final service = await _buildService();
       final payload = PairingPayloadModel(
         pairId: 'pair_to_clear',
         sharedSecretBase64: 'CLEAR_SECRET',

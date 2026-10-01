@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
+import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/storage/storage_keys.dart';
 import 'package:sms_navigator/core/utils/crypto_helper.dart';
 import 'package:sms_navigator/features/receiver/data/services/receiver_storage_service.dart';
 
@@ -31,9 +33,9 @@ void main() {
         final secretKey = CryptoHelper.generateSecretKeyBase64();
         const pairId = 'pair_test_123';
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('receiver_pair_id', pairId);
-        await prefs.setString('receiver_shared_secret', secretKey);
+        final storage = await LocalStorageService.create();
+        await storage.setString(StorageKeys.receiverPairId, pairId);
+        await storage.setString(StorageKeys.receiverSharedSecret, secretKey);
 
         final payloadJson = jsonEncode({
           'sender': 'VPBank',
@@ -67,8 +69,10 @@ void main() {
           expect(result.sender, 'VPBank');
           expect(result.otp, '982103');
 
-          final storage = ReceiverStorageServiceImpl();
-          final history = await storage.getReceivedOtps();
+          final receiverStorage = ReceiverStorageServiceImpl(
+            await LocalStorageService.create(),
+          );
+          final history = await receiverStorage.getReceivedOtps();
           expect(history.any((item) => item.otp == '982103'), isTrue);
         }
       },

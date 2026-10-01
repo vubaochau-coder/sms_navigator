@@ -15,16 +15,19 @@ import '../services/analytics_service.dart';
 import '../services/crashlytics_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
+import '../storage/local_storage_service.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
 /// sử dụng [MultiRepositoryProvider] để làm phẳng cấu trúc lồng nhau.
 class AppBootstrap extends StatelessWidget {
   final Widget child;
+  final LocalStorageService localStorageService;
   final bool initializeAsyncServices;
 
   const AppBootstrap({
     super.key,
     required this.child,
+    required this.localStorageService,
     this.initializeAsyncServices = true,
   });
 
@@ -46,14 +49,19 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // 2. Tầng Platform Native & Local Storage
+        RepositoryProvider<LocalStorageService>.value(
+          value: localStorageService,
+        ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),
         ),
         RepositoryProvider<DeviceStorageService>(
-          create: (_) => DeviceStorageServiceImpl(),
+          create: (context) =>
+              DeviceStorageServiceImpl(context.read<LocalStorageService>()),
         ),
         RepositoryProvider<ReceiverStorageService>(
-          create: (_) => ReceiverStorageServiceImpl(),
+          create: (context) =>
+              ReceiverStorageServiceImpl(context.read<LocalStorageService>()),
         ),
 
         // 3. Tầng Network (phụ thuộc DeviceStorageService)
@@ -78,12 +86,14 @@ class AppBootstrap extends StatelessWidget {
           create: (context) => DeviceSetupRepositoryImpl(
             deviceSetupService: DeviceSetupServiceImpl(
               nativeRelayService: context.read<NativeRelayService>(),
+              localStorageService: context.read<LocalStorageService>(),
             ),
           ),
         ),
         RepositoryProvider<PairingService>(
           create: (context) => PairingServiceImpl(
             nativeService: context.read<NativeRelayService>(),
+            localStorageService: context.read<LocalStorageService>(),
             apiClient: context.read<ApiClient>(),
             deviceApiService: context.read<DeviceApiService>(),
             deviceStorageService: context.read<DeviceStorageService>(),
@@ -111,6 +121,7 @@ class AppBootstrap extends StatelessWidget {
             apiClient: context.read<ApiClient>(),
             storageService: context.read<DeviceStorageService>(),
             nativeRelayService: context.read<NativeRelayService>(),
+            localStorageService: context.read<LocalStorageService>(),
           ),
         ),
       ],

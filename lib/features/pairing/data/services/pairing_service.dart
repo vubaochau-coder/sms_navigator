@@ -1,8 +1,9 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../device/data/services/device_api_service.dart';
 import '../../../../core/services/device_storage_service.dart';
@@ -22,16 +23,16 @@ class PairingServiceImpl implements PairingService {
   final ApiClient? apiClient;
   final DeviceApiService? deviceApiService;
   final DeviceStorageService? deviceStorageService;
+  final LocalStorageService localStorageService;
 
   PairingServiceImpl({
     required this.nativeService,
+    required this.localStorageService,
     this.apiClient,
     this.deviceApiService,
     this.deviceStorageService,
   });
 
-  static const String _keyReceiverPairId = 'receiver_pair_id';
-  static const String _keyReceiverSharedSecret = 'receiver_shared_secret';
   static const String _platformAndroid = 'android';
 
   Future<String?> _resolveDeviceName() async {
@@ -163,10 +164,12 @@ class PairingServiceImpl implements PairingService {
       }
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyReceiverPairId, payload.pairId);
-    await prefs.setString(
-      _keyReceiverSharedSecret,
+    await localStorageService.setString(
+      StorageKeys.receiverPairId,
+      payload.pairId,
+    );
+    await localStorageService.setString(
+      StorageKeys.receiverSharedSecret,
       payload.sharedSecretBase64,
     );
 
@@ -180,9 +183,10 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<PairingPayloadModel?> getReceiverPairing() async {
-    final prefs = await SharedPreferences.getInstance();
-    final pairId = prefs.getString(_keyReceiverPairId);
-    final sharedSecret = prefs.getString(_keyReceiverSharedSecret);
+    final pairId = localStorageService.getString(StorageKeys.receiverPairId);
+    final sharedSecret = localStorageService.getString(
+      StorageKeys.receiverSharedSecret,
+    );
 
     if (pairId == null || sharedSecret == null) return null;
 
@@ -196,9 +200,8 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<bool> clearReceiverPairing() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyReceiverPairId);
-    await prefs.remove(_keyReceiverSharedSecret);
+    await localStorageService.remove(StorageKeys.receiverPairId);
+    await localStorageService.remove(StorageKeys.receiverSharedSecret);
     return true;
   }
 }

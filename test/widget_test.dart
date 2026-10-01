@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/app.dart';
 import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
+import 'package:sms_navigator/core/storage/local_storage_service.dart';
 
 void main() {
   setUp(() {
@@ -10,10 +11,12 @@ void main() {
   });
 
   Future<void> pumpApp(WidgetTester tester) async {
+    final localStorage = await LocalStorageService.create();
     await tester.pumpWidget(
-      const AppBootstrap(
+      AppBootstrap(
+        localStorageService: localStorage,
         initializeAsyncServices: false,
-        child: OtpRelayApp(),
+        child: const OtpRelayApp(),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));

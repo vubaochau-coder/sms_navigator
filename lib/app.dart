@@ -4,6 +4,7 @@ import 'package:toastification/toastification.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/services/analytics_service.dart';
+import 'core/storage/local_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/dialog_utils.dart';
@@ -22,7 +23,10 @@ class OtpRelayApp extends StatelessWidget {
     return ToastificationWrapper(
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+          BlocProvider<ThemeCubit>(
+            create: (ctx) =>
+                ThemeCubit(localStorage: ctx.read<LocalStorageService>()),
+          ),
           BlocProvider<PairingBloc>(
             create: (ctx) => PairingBloc(
               repository: ctx.read<PairingRepository>(),

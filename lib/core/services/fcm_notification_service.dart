@@ -5,11 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/device/data/services/device_api_service.dart';
 import '../../features/receiver/data/models/received_otp_model.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
+import '../storage/local_storage_service.dart';
+import '../storage/storage_keys.dart';
 import '../utils/crypto_helper.dart';
 import 'device_storage_service.dart';
 
@@ -95,18 +96,11 @@ class FcmNotificationService {
       // 2. Yêu cầu quyền thông báo (Android 13+ POST_NOTIFICATIONS)
       await _requestPermissions();
 
-      // 3. Lấy và đồng bộ FCM token
+      // 3. Lấy và đồng bộ FCM token (chỉ gọi API khi token thay đổi)
       await _syncFcmToken();
 
-      // 4. Lắng nghe cập nhật token định kỳ
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        await deviceStorageService.saveFcmToken(newToken);
-        try {
-          await deviceApiService.updateFcmToken(newToken);
-        } catch (e) {
-          debugPrint('Failed to sync refreshed FCM token: $e');
-        }
-      });
+      // 4. Lắng nghe cập nhật token định kỳ (Firebase xoay vòng token)
+      FirebaseMessaging.instance.onTokenRefresh.listen(_syncTokenToServer);
 
       // 5. Lắng nghe tin nhắn khi App đang ở Foreground
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -153,19 +147,30 @@ class FcmNotificationService {
   Future<void> _syncFcmToken() async {
     try {
       final token = await FirebaseMessaging.instance.getToken();
-      if (token != null && token.isNotEmpty) {
-        await deviceStorageService.saveFcmToken(token);
-        try {
-          await deviceApiService.updateFcmToken(token);
-          debugPrint(
-            'FCM Token synced successfully: ${token.substring(0, 15)}...',
-          );
-        } catch (e) {
-          debugPrint('Failed to update FCM token with server: $e');
-        }
-      }
+      await _syncTokenToServer(token);
     } catch (e) {
       debugPrint('Could not retrieve FCM token: $e');
+    }
+  }
+
+  /// Đồng bộ token lên server, chỉ gọi API khi token thực sự thay đổi
+  /// so với bản cache trong Local Storage. Cache chỉ được ghi sau khi
+  /// API thành công để lần mở app tiếp theo được retry khi thất bại.
+  Future<void> _syncTokenToServer(String? token) async {
+    if (token == null || token.isEmpty) return;
+
+    try {
+      final cachedToken = await deviceStorageService.getFcmToken();
+      if (cachedToken != null && cachedToken == token) {
+        debugPrint('FCM token unchanged, skipping server sync');
+        return;
+      }
+
+      await deviceApiService.updateFcmToken(token);
+      await deviceStorageService.saveFcmToken(token);
+      debugPrint('FCM token synced successfully: ${token.substring(0, 15)}...');
+    } catch (e) {
+      debugPrint('Failed to sync FCM token with server: $e');
     }
   }
 
@@ -193,10 +198,12 @@ class FcmNotificationService {
     if (encryptedPayload.isEmpty || iv.isEmpty) return null;
 
     try {
-      // Đọc secret key ghép đôi từ SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final storedPairId = prefs.getString('receiver_pair_id');
-      final sharedSecret = prefs.getString('receiver_shared_secret');
+      // Đọc secret key ghép đôi từ Local Storage (an toàn cho background isolate)
+      final localStorage = await LocalStorageService.create();
+      final storedPairId = localStorage.getString(StorageKeys.receiverPairId);
+      final sharedSecret = localStorage.getString(
+        StorageKeys.receiverSharedSecret,
+      );
 
       if (sharedSecret == null || sharedSecret.isEmpty) {
         debugPrint(
@@ -243,7 +250,7 @@ class FcmNotificationService {
       );
 
       // Lưu vào lịch sử nhận OTP
-      final storage = ReceiverStorageServiceImpl();
+      final storage = ReceiverStorageServiceImpl(await LocalStorageService.create());
       await storage.saveReceivedOtp(model);
 
       // Hiển thị thông báo nổi (Heads-up notification) nếu platform hỗ trợ

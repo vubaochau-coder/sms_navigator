@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/services/device_storage_service.dart';
+import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../sender/data/services/native_relay_service.dart';
@@ -22,11 +23,13 @@ class OtpListRepositoryImpl implements OtpListRepository {
   final ApiClient apiClient;
   final DeviceStorageService storageService;
   final NativeRelayService nativeRelayService;
+  final LocalStorageService localStorageService;
 
   OtpListRepositoryImpl({
     required this.apiClient,
     required this.storageService,
     required this.nativeRelayService,
+    required this.localStorageService,
   });
 
   @override
@@ -41,9 +44,11 @@ class OtpListRepositoryImpl implements OtpListRepository {
     final to = DateTimeUtils.endOfDay(date).toIso8601String();
 
     // Retrieve shared secret and pairId (support both receiver and sender modes)
-    final prefs = await SharedPreferences.getInstance();
-    String? sharedSecret = prefs.getString('receiver_shared_secret');
-    String? targetPairId = pairId ?? prefs.getString('receiver_pair_id');
+    String? sharedSecret = localStorageService.getString(
+      StorageKeys.receiverSharedSecret,
+    );
+    String? targetPairId =
+        pairId ?? localStorageService.getString(StorageKeys.receiverPairId);
 
     if (sharedSecret == null || sharedSecret.isEmpty) {
       final senderConfig = await nativeRelayService.getRelayConfig();

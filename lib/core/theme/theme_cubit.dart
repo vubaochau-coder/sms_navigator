@@ -1,30 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// Quản lý chế độ giao diện Light/Dark/System, lưu lựa chọn vào SharedPreferences.
+import '../storage/local_storage_service.dart';
+import '../storage/storage_keys.dart';
+
+/// Quản lý chế độ giao diện Light/Dark/System, lưu lựa chọn vào Local Storage.
 class ThemeCubit extends Cubit<ThemeMode> {
-  ThemeCubit() : super(ThemeMode.system) {
-    _loadSavedThemeMode();
-  }
+  ThemeCubit({required this.localStorage})
+    : super(_modeFromString(localStorage.getString(StorageKeys.themeMode)));
 
-  static const String _prefKey = 'app_theme_mode';
+  final LocalStorageService localStorage;
+
   static const String _keyLight = 'light';
   static const String _keyDark = 'dark';
   static const String _keySystem = 'system';
-
-  Future<void> _loadSavedThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    emit(_modeFromString(prefs.getString(_prefKey)));
-  }
 
   /// Chuyển đổi Light/Dark. Với trạng thái System, chọn chế độ ngược
   /// với độ sáng hiện tại của hệ điều hành.
   Future<void> toggleTheme() async {
     final next = _nextThemeMode();
     emit(next);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKey, _stringFromMode(next));
+    await localStorage.setString(StorageKeys.themeMode, _stringFromMode(next));
   }
 
   ThemeMode _nextThemeMode() {

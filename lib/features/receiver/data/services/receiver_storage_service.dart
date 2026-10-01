@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../models/received_otp_model.dart';
 
 abstract class ReceiverStorageService {
@@ -9,12 +11,13 @@ abstract class ReceiverStorageService {
 }
 
 class ReceiverStorageServiceImpl implements ReceiverStorageService {
-  static const String _keyOtps = 'received_otps_history';
+  ReceiverStorageServiceImpl(this.localStorage);
+
+  final LocalStorageService localStorage;
 
   @override
   Future<List<ReceivedOtpModel>> getReceivedOtps() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyOtps);
+    final raw = localStorage.getString(StorageKeys.receivedOtpsHistory);
     if (raw == null || raw.isEmpty) return [];
 
     try {
@@ -32,16 +35,14 @@ class ReceiverStorageServiceImpl implements ReceiverStorageService {
     final currentList = await getReceivedOtps();
     // Prepend new OTP, limit to 50 entries
     final updatedList = [otp, ...currentList.take(49)];
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _keyOtps,
+    await localStorage.setString(
+      StorageKeys.receivedOtpsHistory,
       jsonEncode(updatedList.map((e) => e.toMap()).toList()),
     );
   }
 
   @override
-  Future<void> clearAllOtps() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyOtps);
+  Future<void> clearAllOtps() {
+    return localStorage.remove(StorageKeys.receivedOtpsHistory);
   }
 }
