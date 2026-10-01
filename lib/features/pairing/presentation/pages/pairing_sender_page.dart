@@ -6,6 +6,7 @@ import '../../../device/data/repositories/device_setup_repository.dart';
 import '../../../device/presentation/bloc/device_setup_bloc.dart';
 import '../../../device/presentation/bloc/device_setup_event.dart';
 import '../../../device/presentation/bloc/device_setup_state.dart';
+import '../../../device/presentation/dialogs/sms_permission_prompt_dialog.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
@@ -40,38 +41,9 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
     if (state.isLoading) return;
     if (state.smsPermissionGranted != false) return;
     _permissionPromptShown = true;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Cần quyền đọc SMS'),
-          content: const Text(
-            'Để máy này nhận diện và chuyển tiếp SMS OTP từ mọi ứng dụng khác, '
-            'SMS Navigator cần quyền đọc tin nhắn. Bạn có thể cấp ngay bây giờ.',
-            style: TextStyle(height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Để Sau'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                context.read<DeviceSetupBloc>().add(
-                  state.smsPermissionPermanentlyDenied
-                      ? const DeviceSetupAppSettingsOpened()
-                      : const DeviceSetupSmsPermissionRequested(),
-                );
-              },
-              child: Text(state.smsPermissionPermanentlyDenied
-                  ? 'Mở Cài Đặt'
-                  : 'Cấp Quyền Ngay'),
-            ),
-          ],
-        );
-      },
+    showSmsPermissionPromptDialog(
+      context,
+      permanentlyDenied: state.smsPermissionPermanentlyDenied,
     );
   }
 

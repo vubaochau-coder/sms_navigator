@@ -9,6 +9,7 @@ class DeviceSetupState extends Equatable {
   final String? oemName;
   final bool autostartScreenOpened;
   final bool autostartAcknowledged;
+  final bool smsPromptNeeded;
 
   const DeviceSetupState({
     this.isLoading = false,
@@ -19,6 +20,7 @@ class DeviceSetupState extends Equatable {
     this.oemName,
     this.autostartScreenOpened = false,
     this.autostartAcknowledged = false,
+    this.smsPromptNeeded = false,
   });
 
   bool get isAllCriticalStepsDone =>
@@ -33,6 +35,7 @@ class DeviceSetupState extends Equatable {
     String? oemName,
     bool? autostartScreenOpened,
     bool? autostartAcknowledged,
+    bool? smsPromptNeeded,
   }) {
     return DeviceSetupState(
       isLoading: isLoading ?? this.isLoading,
@@ -44,6 +47,7 @@ class DeviceSetupState extends Equatable {
       oemName: oemName ?? this.oemName,
       autostartScreenOpened: autostartScreenOpened ?? this.autostartScreenOpened,
       autostartAcknowledged: autostartAcknowledged ?? this.autostartAcknowledged,
+      smsPromptNeeded: smsPromptNeeded ?? this.smsPromptNeeded,
     );
   }
 
@@ -57,5 +61,6 @@ class DeviceSetupState extends Equatable {
     oemName,
     autostartScreenOpened,
     autostartAcknowledged,
+    smsPromptNeeded,
   ];
 }

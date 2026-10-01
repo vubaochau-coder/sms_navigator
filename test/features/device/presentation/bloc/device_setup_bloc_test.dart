@@ -16,6 +16,7 @@ class _FakeDeviceSetupRepository implements DeviceSetupRepository {
     this.autostartAcknowledged = false,
     this.smsRequestResult = false,
     this.batteryRequestResult = false,
+    this.smsPromptNeeded = false,
   });
 
   bool smsGranted;
@@ -26,6 +27,7 @@ class _FakeDeviceSetupRepository implements DeviceSetupRepository {
   bool autostartAcknowledged;
   bool smsRequestResult;
   bool batteryRequestResult;
+  bool smsPromptNeeded;
 
   int autostartOpenCallCount = 0;
   int autostartAckCallCount = 0;
@@ -74,6 +76,18 @@ class _FakeDeviceSetupRepository implements DeviceSetupRepository {
     if (smsRequestResult) smsGranted = true;
     return smsRequestResult;
   }
+
+  @override
+  Future<bool> shouldPromptSmsPermission() async => smsPromptNeeded;
+
+  int dontPromptCallCount = 0;
+
+  @override
+  Future<bool> setDontPromptDeviceSetup() async {
+    dontPromptCallCount++;
+    smsPromptNeeded = false;
+    return true;
+  }
 }
 
 Future<List<DeviceSetupState>> _collectUntil(
@@ -103,6 +117,7 @@ void main() {
         isAggressiveRom: true,
         oemName: 'xiaomi',
         autostartAcknowledged: true,
+        smsPromptNeeded: true,
       ),
     );
 
@@ -121,6 +136,7 @@ void main() {
     expect(states.last.isAggressiveRom, isTrue);
     expect(states.last.oemName, 'xiaomi');
     expect(states.last.autostartAcknowledged, isTrue);
+    expect(states.last.smsPromptNeeded, isTrue);
   });
 
   test('started on non-aggressive rom keeps steps hidden flags', () async {
@@ -239,5 +255,22 @@ void main() {
 
     expect(repo.autostartAckCallCount, 1);
     expect(states.last.autostartAcknowledged, isTrue);
+  });
+
+  test('dont prompt dismissed persists and updates state', () async {
+    final repo = _FakeDeviceSetupRepository(smsPromptNeeded: true);
+    final bloc = DeviceSetupBloc(repository: repo);
+
+    final statesFuture = _collectUntil(
+      bloc,
+      (state) => !state.smsPromptNeeded,
+    );
+    bloc.add(const DeviceSetupDontPromptDismissed());
+
+    final states = await statesFuture;
+    await bloc.close();
+
+    expect(repo.dontPromptCallCount, 1);
+    expect(states.last.smsPromptNeeded, isFalse);
   });
 }

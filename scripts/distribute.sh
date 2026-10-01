@@ -7,6 +7,8 @@ cd "$DIR"
 
 PUBSPEC_FILE="pubspec.yaml"
 APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
+PROJECT_ID="sms-navigator-relay-81229"
+GROUPS="${1:-"internal-dev"}"
 APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 
 # Đọc version hiện tại từ pubspec.yaml
@@ -37,23 +39,27 @@ echo "=========================================="
 echo "📦 SMS NAVIGATOR - DISTRIBUTE TO FIREBASE"
 echo "=========================================="
 echo "🏷️  Version: 0.0.1 (Build number: $NEW_BUILD)"
+echo "👥 Nhóm Tester: $GROUPS"
 echo "📝 Release Notes:"
 echo "$RELEASE_NOTES"
 echo "------------------------------------------"
 
 echo "🔨 [1/2] Đang build Flutter APK (Release)..."
-flutter build apk --release
+fvm flutter build apk --release
 
 if [ ! -f "$APK_PATH" ]; then
   echo "❌ Lỗi: Không tìm thấy file APK tại $APK_PATH"
   exit 1
 fi
 
-echo "🚀 [2/2] Đang tải APK lên Firebase App Distribution..."
+echo "🚀 [2/2] Đang tải APK lên Firebase App Distribution & phân phối cho tester ($GROUPS)..."
 firebase appdistribution:distribute "$APK_PATH" \
   --app "$APP_ID" \
+  --project "$PROJECT_ID" \
+  --groups "$GROUPS" \
   --release-notes "$RELEASE_NOTES"
 
 echo "=========================================="
 echo "🎉 PHÂN PHỐI THÀNH CÔNG: v0.0.1+$NEW_BUILD"
+echo "👉 Thông báo đã được tự động gửi tới nhóm tester '$GROUPS' qua Firebase App Tester!"
 echo "=========================================="

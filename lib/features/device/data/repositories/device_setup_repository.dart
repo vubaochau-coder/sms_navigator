@@ -11,6 +11,8 @@ abstract class DeviceSetupRepository {
   Future<bool> openAutostartSettings();
   Future<bool> isAutostartAcknowledged();
   Future<bool> acknowledgeAutostart();
+  Future<bool> shouldPromptSmsPermission();
+  Future<bool> setDontPromptDeviceSetup();
 }
 
 class DeviceSetupRepositoryImpl implements DeviceSetupRepository {
@@ -56,4 +58,12 @@ class DeviceSetupRepositoryImpl implements DeviceSetupRepository {
   @override
   Future<bool> acknowledgeAutostart() =>
       deviceSetupService.acknowledgeAutostart();
+
+  @override
+  Future<bool> shouldPromptSmsPermission() =>
+      deviceSetupService.shouldPromptSmsPermission();
+
+  @override
+  Future<bool> setDontPromptDeviceSetup() =>
+      deviceSetupService.setDontPromptDeviceSetup();
 }

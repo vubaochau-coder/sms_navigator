@@ -52,7 +52,7 @@ class PairedReceiverCard extends StatelessWidget {
     );
 
     return InfoCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,7 +106,7 @@ class PairedReceiverCard extends StatelessWidget {
                 StatusBadge.paused(label: 'Đã tạm dừng'),
             ],
           ),
-          const Divider(height: 20),
+          const Divider(height: 14),
           PlainInfoRow(
             label: 'Pair ID',
             value: item.pairId,
@@ -123,7 +123,7 @@ class PairedReceiverCard extends StatelessWidget {
             label: 'Hoạt động gần nhất',
             value: item.formattedLastActiveAt,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -136,10 +136,14 @@ class PairedReceiverCard extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
-                    Switch(
-                      value: item.isActive,
-                      activeTrackColor: AppColors.success,
-                      onChanged: (val) => _onToggleActive(context, val),
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: item.isActive,
+                        activeTrackColor: AppColors.success,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onChanged: (val) => _onToggleActive(context, val),
+                      ),
                     ),
                   const SizedBox(width: 8),
                   Text(

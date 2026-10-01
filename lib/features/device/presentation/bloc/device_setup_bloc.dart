@@ -27,6 +27,10 @@ class DeviceSetupBloc extends Bloc<DeviceSetupEvent, DeviceSetupState> {
       _onAutostartAcknowledged,
       transformer: droppable(),
     );
+    on<DeviceSetupDontPromptDismissed>(
+      _onDontPromptDismissed,
+      transformer: droppable(),
+    );
   }
 
   Future<void> _onStarted(
@@ -40,6 +44,7 @@ class DeviceSetupBloc extends Bloc<DeviceSetupEvent, DeviceSetupState> {
       repository.isBatteryOptimizationIgnored(),
       repository.getAggressiveRomInfo(),
       repository.isAutostartAcknowledged(),
+      repository.shouldPromptSmsPermission(),
     ]);
     final romInfo = results[3] as Map<String, dynamic>;
     emit(
@@ -51,6 +56,7 @@ class DeviceSetupBloc extends Bloc<DeviceSetupEvent, DeviceSetupState> {
         isAggressiveRom: romInfo['isAggressive'] == true,
         oemName: romInfo['oem']?.toString(),
         autostartAcknowledged: results[4] as bool,
+        smsPromptNeeded: results[5] as bool,
       ),
     );
   }
@@ -105,5 +111,13 @@ class DeviceSetupBloc extends Bloc<DeviceSetupEvent, DeviceSetupState> {
     if (success) {
       emit(state.copyWith(autostartAcknowledged: true));
     }
+  }
+
+  Future<void> _onDontPromptDismissed(
+    DeviceSetupDontPromptDismissed event,
+    Emitter<DeviceSetupState> emit,
+  ) async {
+    await repository.setDontPromptDeviceSetup();
+    emit(state.copyWith(smsPromptNeeded: false));
   }
 }

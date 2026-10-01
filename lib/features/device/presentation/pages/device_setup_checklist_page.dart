@@ -60,6 +60,8 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
         return 'Vivo / iQOO (FuntouchOS)';
       case 'huawei':
         return 'Huawei / Honor (EMUI / HarmonyOS)';
+      case 'samsung':
+        return 'Samsung (One UI)';
       default:
         return 'thiết bị của bạn';
     }
@@ -92,8 +94,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
               _SetupStepCard(
                 icon: Icons.sms_rounded,
                 title: '1. Quyền đọc tin nhắn SMS',
-                description:
-                    'Bắt buộc để ứng dụng nhận diện SMS OTP từ mọi ứng dụng khác.',
+                subtitle: '(Bắt buộc với thiết bị gửi)',
                 status: _statusLabel(state.smsPermissionGranted),
                 isDone: state.smsPermissionGranted == true,
                 actionLabel: state.smsPermissionPermanentlyDenied
@@ -110,8 +111,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
               _SetupStepCard(
                 icon: Icons.battery_saver_rounded,
                 title: '2. Miễn trừ tối ưu pin',
-                description:
-                    'Tránh hệ thống đóng băng ứng dụng khi chạy nền, đảm bảo gửi OTP lên máy chủ ngay lập tức.',
+                subtitle: '(Bắt buộc với thiết bị gửi)',
                 status: _statusLabel(state.batteryUnrestricted),
                 isDone: state.batteryUnrestricted == true,
                 actionLabel: 'Yêu Cầu Miễn Trừ',
@@ -121,36 +121,37 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
                   );
                 },
               ),
-              if (state.isAggressiveRom) ...[
-                _SetupStepCard(
-                  icon: Icons.restart_alt_rounded,
-                  title: '3. Tự khởi chạy (Autostart) — $_oemDisplayName',
-                  description:
-                      'Bắt buộc trên $_oemDisplayName: cho phép ứng dụng được đánh thức khi có SMS đến dù đã bị đóng. Bật toggle "Tự khởi động / Autostart" cho SMS Navigator trong màn hình tiếp theo, sau đó quay lại đây và xác nhận.',
-                  status: state.autostartAcknowledged
-                      ? 'Đã hoàn tất'
-                      : (state.autostartScreenOpened
-                          ? 'Đang chờ xác nhận'
-                          : 'Chưa thực hiện'),
-                  isDone: state.autostartAcknowledged,
-                  actionLabel: 'Mở Cài Đặt Autostart',
-                  doneActionLabel: 'Mở Lại Cài Đặt',
-                  onAction: () {
-                    context.read<DeviceSetupBloc>().add(
-                      const DeviceSetupAutostartSettingsOpened(),
-                    );
-                  },
-                  secondaryActionLabel: state.autostartScreenOpened &&
-                          !state.autostartAcknowledged
-                      ? 'Tôi Đã Bật'
-                      : null,
-                  onSecondaryAction: () {
-                    context.read<DeviceSetupBloc>().add(
-                      const DeviceSetupAutostartAcknowledged(),
-                    );
-                  },
-                ),
-              ],
+              _SetupStepCard(
+                icon: Icons.restart_alt_rounded,
+                title: state.isAggressiveRom
+                    ? '3. Tự khởi chạy (Autostart) — $_oemDisplayName'
+                    : '3. Cho phép chạy nền & tự khởi chạy',
+                subtitle: '(Bắt buộc với thiết bị gửi)',
+                status: state.autostartAcknowledged
+                    ? 'Đã hoàn tất'
+                    : (state.autostartScreenOpened
+                        ? 'Đang chờ xác nhận'
+                        : 'Chưa thực hiện'),
+                isDone: state.autostartAcknowledged,
+                actionLabel: state.isAggressiveRom
+                    ? 'Mở Cài Đặt Autostart'
+                    : 'Mở Cài Đặt Chạy Nền',
+                doneActionLabel: 'Mở Lại Cài Đặt',
+                onAction: () {
+                  context.read<DeviceSetupBloc>().add(
+                    const DeviceSetupAutostartSettingsOpened(),
+                  );
+                },
+                secondaryActionLabel: state.autostartScreenOpened &&
+                        !state.autostartAcknowledged
+                    ? 'Tôi Đã Bật'
+                    : null,
+                onSecondaryAction: () {
+                  context.read<DeviceSetupBloc>().add(
+                    const DeviceSetupAutostartAcknowledged(),
+                  );
+                },
+              ),
               const SizedBox(height: 24),
             ],
           );
@@ -169,7 +170,7 @@ class _SetupStepCard extends StatelessWidget {
   const _SetupStepCard({
     required this.icon,
     required this.title,
-    required this.description,
+    required this.subtitle,
     required this.status,
     required this.isDone,
     required this.actionLabel,
@@ -181,7 +182,7 @@ class _SetupStepCard extends StatelessWidget {
 
   final IconData icon;
   final String title;
-  final String description;
+  final String subtitle;
   final String status;
   final bool? isDone;
   final String? actionLabel;
@@ -226,13 +227,28 @@ class _SetupStepCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 8),
               Icon(
                 isDone == true
                     ? Icons.check_circle_rounded
@@ -247,15 +263,6 @@ class _SetupStepCard extends StatelessWidget {
                         : pendingColor),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.4,
-              color: colorScheme.onSurfaceVariant,
-            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -295,16 +302,15 @@ class _SetupStepCard extends StatelessWidget {
                   child: Text(actionLabel!, style: const TextStyle(fontSize: 13)),
                 ),
               if (doneActionLabel != null && isDone == true)
-                TextButton.icon(
+                FilledButton.tonal(
                   onPressed: onAction,
-                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                  label: Text(
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: Text(
                     doneActionLabel!,
                     style: const TextStyle(fontSize: 13),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    minimumSize: const Size(0, 36),
                   ),
                 ),
             ],

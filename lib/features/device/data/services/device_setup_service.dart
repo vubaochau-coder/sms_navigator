@@ -14,12 +14,15 @@ abstract class DeviceSetupService {
   Future<bool> openAutostartSettings();
   Future<bool> isAutostartAcknowledged();
   Future<bool> acknowledgeAutostart();
+  Future<bool> shouldPromptSmsPermission();
+  Future<bool> setDontPromptDeviceSetup();
 }
 
 class DeviceSetupServiceImpl implements DeviceSetupService {
   final NativeRelayService nativeRelayService;
 
   static const String _keyAutostartAck = 'device_setup_autostart_ack';
+  static const String _keyDontPrompt = 'device_setup_dont_prompt_dialog';
 
   DeviceSetupServiceImpl({required this.nativeRelayService});
 
@@ -116,6 +119,39 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyAutostartAck, true);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> shouldPromptSmsPermission() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_keyDontPrompt) == true) return false;
+
+      final granted = await isSmsPermissionGranted();
+      if (granted) return false;
+
+      final config = await nativeRelayService.getRelayConfig();
+      final pairId = config['pairId']?.toString() ?? '';
+      final isSenderActive = config['isRelayEnabled'] == true && pairId.isNotEmpty;
+      if (isSenderActive) return true;
+
+      final isReceiverPaired =
+          (prefs.getString('receiver_pair_id') ?? '').isNotEmpty;
+      return !isReceiverPaired;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> setDontPromptDeviceSetup() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyDontPrompt, true);
       return true;
     } catch (_) {
       return false;

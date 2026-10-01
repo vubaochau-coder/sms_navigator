@@ -38,7 +38,7 @@ class PairedSenderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -92,7 +92,7 @@ class PairedSenderCard extends StatelessWidget {
                 StatusBadge.paused(label: 'Người gửi tạm dừng'),
             ],
           ),
-          const Divider(height: 20),
+          const Divider(height: 14),
           PlainInfoRow(
             label: 'Pair ID',
             value: item.pairId,
@@ -109,9 +109,9 @@ class PairedSenderCard extends StatelessWidget {
             label: 'Lần nhận gần nhất',
             value: item.formattedLastActiveAt,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white.withValues(alpha: 0.05)

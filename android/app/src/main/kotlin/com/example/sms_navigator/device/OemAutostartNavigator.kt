@@ -84,6 +84,28 @@ class OemAutostartNavigator(private val context: Context) {
                     "com.hihonor.systemmanager.startupmgr.ui.StartupNormalAppListActivity"
                 )
             )
+        ),
+        OemAutoStartSettings(
+            oemKey = "samsung",
+            brandKeywords = listOf("samsung"),
+            components = listOf(
+                ComponentName(
+                    "com.samsung.android.lool",
+                    "com.samsung.android.sm.ui.battery.BatteryActivity"
+                ),
+                ComponentName(
+                    "com.samsung.android.lool",
+                    "com.samsung.android.sm.battery.ui.BatteryActivity"
+                ),
+                ComponentName(
+                    "com.samsung.android.sm",
+                    "com.samsung.android.sm.ui.battery.BatteryActivity"
+                ),
+                ComponentName(
+                    "com.samsung.android.sm",
+                    "com.samsung.android.sm.battery.ui.BatteryActivity"
+                )
+            )
         )
     )
 

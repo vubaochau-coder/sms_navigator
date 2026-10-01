@@ -30,3 +30,7 @@ class DeviceSetupAutostartSettingsOpened extends DeviceSetupEvent {
 class DeviceSetupAutostartAcknowledged extends DeviceSetupEvent {
   const DeviceSetupAutostartAcknowledged();
 }
+
+class DeviceSetupDontPromptDismissed extends DeviceSetupEvent {
+  const DeviceSetupDontPromptDismissed();
+}

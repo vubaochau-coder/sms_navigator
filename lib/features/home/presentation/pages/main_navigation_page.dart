@@ -1,19 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../device/data/repositories/device_setup_repository.dart';
+import '../../../device/presentation/bloc/device_setup_bloc.dart';
+import '../../../device/presentation/bloc/device_setup_event.dart';
+import '../../../device/presentation/bloc/device_setup_state.dart';
+import '../../../device/presentation/dialogs/sms_permission_prompt_dialog.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/pages/pairing_hub_page.dart';
 import '../../../pairing/presentation/pages/qr_scan_page.dart';
 
-class MainNavigationPage extends StatefulWidget {
+class MainNavigationPage extends StatelessWidget {
   const MainNavigationPage({super.key});
 
   @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) =>
+          DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
+            ..add(const DeviceSetupStarted()),
+      child: const _MainNavigationView(),
+    );
+  }
 }
 
-class _MainNavigationPageState extends State<MainNavigationPage> {
+class _MainNavigationView extends StatefulWidget {
+  const _MainNavigationView();
+
+  @override
+  State<_MainNavigationView> createState() => _MainNavigationViewState();
+}
+
+class _MainNavigationViewState extends State<_MainNavigationView> {
   int _selectedIndex = 0;
+  bool _smsPromptShown = false;
+
+  void _maybeShowSmsPermissionPrompt(DeviceSetupState state) {
+    if (_smsPromptShown) return;
+    if (state.isLoading) return;
+    if (!state.smsPromptNeeded) return;
+    if (state.smsPermissionGranted != false) return;
+    _smsPromptShown = true;
+    showSmsPermissionPromptDialog(
+      context,
+      permanentlyDenied: state.smsPermissionPermanentlyDenied,
+    );
+  }
 
   void _selectTab(int index) {
     if (index == _selectedIndex) return;
@@ -30,7 +63,13 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return BlocListener<DeviceSetupBloc, DeviceSetupState>(
+      listener: (context, state) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _maybeShowSmsPermissionPrompt(state);
+        });
+      },
+      child: Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -86,6 +125,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
