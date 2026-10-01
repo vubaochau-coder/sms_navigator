@@ -94,13 +94,13 @@ void main() {
   test(
       'OtpListChangeDateEvent only updates focusedDate without loading when only focusedDate changes',
       () async {
-    final nextMonth = DateTime(2026, 10, 1);
-    bloc.add(OtpListChangeDateEvent(focusedDate: nextMonth));
+    final farFutureDate = DateTime.now().add(const Duration(days: 400));
+    bloc.add(OtpListChangeDateEvent(focusedDate: farFutureDate));
 
     await expectLater(
       bloc.stream,
       emits(predicate<dynamic>(
-        (s) => s.focusedDate == nextMonth && s.isLoading == false,
+        (s) => s.focusedDate == farFutureDate && s.isLoading == false,
       )),
     );
     expect(fakeRepository.lastCancelToken, isNull);

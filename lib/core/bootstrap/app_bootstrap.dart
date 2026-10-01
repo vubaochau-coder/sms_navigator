@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../features/device/data/repositories/device_setup_repository.dart';
+import '../../features/device/data/services/device_setup_service.dart';
 import '../../features/device/data/services/device_api_service.dart';
 import '../../features/otp_list/data/repositories/otp_list_repository.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
@@ -72,6 +74,13 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // 4. Tầng Services & Repositories nghiệp vụ
+        RepositoryProvider<DeviceSetupRepository>(
+          create: (context) => DeviceSetupRepositoryImpl(
+            deviceSetupService: DeviceSetupServiceImpl(
+              nativeRelayService: context.read<NativeRelayService>(),
+            ),
+          ),
+        ),
         RepositoryProvider<PairingService>(
           create: (context) => PairingServiceImpl(
             nativeService: context.read<NativeRelayService>(),

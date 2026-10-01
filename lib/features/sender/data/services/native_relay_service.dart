@@ -17,6 +17,8 @@ abstract class NativeRelayService {
   Future<bool> clearPairing();
   Future<bool> isBatteryOptimizationIgnored();
   Future<bool> requestIgnoreBatteryOptimization();
+  Future<Map<String, dynamic>> getAggressiveRomInfo();
+  Future<bool> openAutostartSettings();
   void setOnOtpDetectedListener(Function(String sender, String otp) listener);
 }
 
@@ -37,6 +39,31 @@ class NativeRelayServiceImpl implements NativeRelayService {
       final sender = args?['sender']?.toString() ?? 'Unknown';
       final otp = args?['otp']?.toString() ?? '';
       _otpListener?.call(sender, otp);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getAggressiveRomInfo() async {
+    try {
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'isAggressiveBatteryRom',
+      );
+      if (result == null) return {'isAggressive': false, 'oem': null};
+      return Map<String, dynamic>.from(result);
+    } catch (_) {
+      return {'isAggressive': false, 'oem': null};
+    }
+  }
+
+  @override
+  Future<bool> openAutostartSettings() async {
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'openAutostartSettings',
+      );
+      return result ?? false;
+    } catch (_) {
+      return false;
     }
   }
 

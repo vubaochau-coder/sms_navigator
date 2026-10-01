@@ -56,6 +56,13 @@ class _FakeNativeRelayService implements NativeRelayService {
   Future<bool> requestIgnoreBatteryOptimization() async => true;
 
   @override
+  Future<Map<String, dynamic>> getAggressiveRomInfo() async =>
+      {'isAggressive': false, 'oem': null};
+
+  @override
+  Future<bool> openAutostartSettings() async => false;
+
+  @override
   void setOnOtpDetectedListener(Function(String sender, String otp) listener) {}
 }
 

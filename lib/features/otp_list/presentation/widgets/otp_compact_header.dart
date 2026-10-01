@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/theme_toggle_button.dart';
+import '../../../device/presentation/pages/device_setup_checklist_page.dart';
 import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_state.dart';
 
@@ -49,6 +50,17 @@ class OtpCompactHeader extends StatelessWidget {
                     color: colorScheme.onSurface,
                   ),
                 ),
+              ),
+              IconButton(
+                tooltip: 'Thiết lập thiết bị',
+                icon: const Icon(Icons.settings_rounded),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const DeviceSetupChecklistPage(),
+                    ),
+                  );
+                },
               ),
               const ThemeToggleButton(),
             ],

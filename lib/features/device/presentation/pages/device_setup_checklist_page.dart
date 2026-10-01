@@ -1,0 +1,316 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/constants/dimens.dart';
+import '../../data/repositories/device_setup_repository.dart';
+import '../bloc/device_setup_bloc.dart';
+import '../bloc/device_setup_event.dart';
+import '../bloc/device_setup_state.dart';
+
+class DeviceSetupChecklistPage extends StatelessWidget {
+  const DeviceSetupChecklistPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) =>
+          DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
+            ..add(const DeviceSetupStarted()),
+      child: const _DeviceSetupView(),
+    );
+  }
+}
+
+class _DeviceSetupView extends StatefulWidget {
+  const _DeviceSetupView();
+
+  @override
+  State<_DeviceSetupView> createState() => _DeviceSetupViewState();
+}
+
+class _DeviceSetupViewState extends State<_DeviceSetupView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<DeviceSetupBloc>().add(const DeviceSetupStarted());
+    }
+  }
+
+  String get _oemDisplayName {
+    final bloc = context.read<DeviceSetupBloc>();
+    switch (bloc.state.oemName) {
+      case 'xiaomi':
+        return 'Xiaomi / HyperOS / MIUI';
+      case 'oppo':
+        return 'Oppo / Realme / OnePlus (ColorOS)';
+      case 'vivo':
+        return 'Vivo / iQOO (FuntouchOS)';
+      case 'huawei':
+        return 'Huawei / Honor (EMUI / HarmonyOS)';
+      default:
+        return 'thiết bị của bạn';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Thiết Lập Thiết Bị')),
+      body: BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
+        builder: (context, state) {
+          if (state.isLoading &&
+              state.smsPermissionGranted == null &&
+              state.batteryUnrestricted == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return ListView(
+            padding: Dimens.screenPadding,
+            children: [
+              Text(
+                'Hoàn tất các bước dưới đây để máy luôn bắt được SMS OTP và chuyển tiếp ổn định, kể cả khi ứng dụng bị đóng.',
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _SetupStepCard(
+                icon: Icons.sms_rounded,
+                title: '1. Quyền đọc tin nhắn SMS',
+                description:
+                    'Bắt buộc để ứng dụng nhận diện SMS OTP từ mọi ứng dụng khác.',
+                status: _statusLabel(state.smsPermissionGranted),
+                isDone: state.smsPermissionGranted == true,
+                actionLabel: state.smsPermissionPermanentlyDenied
+                    ? 'Mở Cài Đặt Ứng Dụng'
+                    : 'Cấp Quyền',
+                onAction: () {
+                  context.read<DeviceSetupBloc>().add(
+                    state.smsPermissionPermanentlyDenied
+                        ? const DeviceSetupAppSettingsOpened()
+                        : const DeviceSetupSmsPermissionRequested(),
+                  );
+                },
+              ),
+              _SetupStepCard(
+                icon: Icons.battery_saver_rounded,
+                title: '2. Miễn trừ tối ưu pin',
+                description:
+                    'Tránh hệ thống đóng băng ứng dụng khi chạy nền, đảm bảo gửi OTP lên máy chủ ngay lập tức.',
+                status: _statusLabel(state.batteryUnrestricted),
+                isDone: state.batteryUnrestricted == true,
+                actionLabel: 'Yêu Cầu Miễn Trừ',
+                onAction: () {
+                  context.read<DeviceSetupBloc>().add(
+                    const DeviceSetupBatteryOptimizationRequested(),
+                  );
+                },
+              ),
+              if (state.isAggressiveRom) ...[
+                _SetupStepCard(
+                  icon: Icons.restart_alt_rounded,
+                  title: '3. Tự khởi chạy (Autostart) — $_oemDisplayName',
+                  description:
+                      'Bắt buộc trên $_oemDisplayName: cho phép ứng dụng được đánh thức khi có SMS đến dù đã bị đóng. Bật toggle "Tự khởi động / Autostart" cho SMS Navigator trong màn hình tiếp theo, sau đó quay lại đây và xác nhận.',
+                  status: state.autostartAcknowledged
+                      ? 'Đã hoàn tất'
+                      : (state.autostartScreenOpened
+                          ? 'Đang chờ xác nhận'
+                          : 'Chưa thực hiện'),
+                  isDone: state.autostartAcknowledged,
+                  actionLabel: 'Mở Cài Đặt Autostart',
+                  doneActionLabel: 'Mở Lại Cài Đặt',
+                  onAction: () {
+                    context.read<DeviceSetupBloc>().add(
+                      const DeviceSetupAutostartSettingsOpened(),
+                    );
+                  },
+                  secondaryActionLabel: state.autostartScreenOpened &&
+                          !state.autostartAcknowledged
+                      ? 'Tôi Đã Bật'
+                      : null,
+                  onSecondaryAction: () {
+                    context.read<DeviceSetupBloc>().add(
+                      const DeviceSetupAutostartAcknowledged(),
+                    );
+                  },
+                ),
+              ],
+              const SizedBox(height: 24),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String _statusLabel(bool? status) {
+    if (status == null) return 'Đang kiểm tra...';
+    return status ? 'Đã hoàn tất' : 'Chưa thực hiện';
+  }
+}
+
+class _SetupStepCard extends StatelessWidget {
+  const _SetupStepCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.isDone,
+    required this.actionLabel,
+    required this.onAction,
+    this.doneActionLabel,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final String status;
+  final bool? isDone;
+  final String? actionLabel;
+  final String? doneActionLabel;
+  final VoidCallback? onAction;
+  final String? secondaryActionLabel;
+  final VoidCallback? onSecondaryAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final doneColor = Colors.green.shade700;
+    final pendingColor = Colors.orange.shade800;
+    final statusColor =
+        isDone == true ? doneColor : (isDone == null ? colorScheme.onSurfaceVariant : pendingColor);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDone == true
+              ? Colors.green.shade300
+              : colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 22, color: colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                isDone == true
+                    ? Icons.check_circle_rounded
+                    : (isDone == null
+                        ? Icons.info_outline_rounded
+                        : Icons.radio_button_unchecked_rounded),
+                size: 22,
+                color: isDone == true
+                    ? doneColor
+                    : (isDone == null
+                        ? colorScheme.onSurfaceVariant
+                        : pendingColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              if (secondaryActionLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: OutlinedButton(
+                    onPressed: onSecondaryAction,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, 36),
+                    ),
+                    child: Text(
+                      secondaryActionLabel!,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ),
+              if (actionLabel != null && isDone != true)
+                FilledButton.tonal(
+                  onPressed: onAction,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: Text(actionLabel!, style: const TextStyle(fontSize: 13)),
+                ),
+              if (doneActionLabel != null && isDone == true)
+                TextButton.icon(
+                  onPressed: onAction,
+                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                  label: Text(
+                    doneActionLabel!,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    minimumSize: const Size(0, 36),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
