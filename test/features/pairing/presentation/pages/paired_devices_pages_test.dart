@@ -8,8 +8,7 @@ import 'package:sms_navigator/features/pairing/presentation/bloc/paired_receiver
 import 'package:sms_navigator/features/pairing/presentation/bloc/paired_receivers_event.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_bloc.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/paired_senders_event.dart';
-import 'package:sms_navigator/features/pairing/presentation/widgets/paired_receivers_body.dart';
-import 'package:sms_navigator/features/pairing/presentation/widgets/paired_senders_body.dart';
+import 'package:sms_navigator/features/pairing/presentation/widgets/paired_devices_body.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
 Widget _buildTestApp({required Widget body}) {

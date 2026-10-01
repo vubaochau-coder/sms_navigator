@@ -7,8 +7,7 @@ import '../bloc/paired_receivers_bloc.dart';
 import '../bloc/paired_receivers_event.dart';
 import '../bloc/paired_senders_bloc.dart';
 import '../bloc/paired_senders_event.dart';
-import '../widgets/paired_receivers_body.dart';
-import '../widgets/paired_senders_body.dart';
+import '../widgets/paired_devices_body.dart';
 import '../widgets/pairing_add_device_dialog.dart';
 import '../widgets/pairing_list_section.dart';
 

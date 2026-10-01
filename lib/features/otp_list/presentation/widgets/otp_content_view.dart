@@ -1,13 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/utils/date_time_utils.dart';
+import '../../../../core/widgets/shimmer_loading.dart';
 import '../../domain/models/decrypted_otp_item.dart';
+import '../bloc/otp_list_bloc.dart';
+import '../bloc/otp_list_event.dart';
+import '../bloc/otp_list_state.dart';
 import 'otp_record_card.dart';
 
-/// View hiển thị nội dung danh sách OTP (dạng phẳng hoặc gom nhóm theo thiết bị).
+/// View nội dung danh sách OTP kết nối OtpListBloc (RefreshIndicator, Shimmer).
 class OtpContentView extends StatelessWidget {
-  const OtpContentView({
-    super.key,
+  const OtpContentView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        BlocProvider.of<OtpListBloc>(context).add(
+          const OtpListLoadEvent(),
+        );
+      },
+      child: BlocBuilder<OtpListBloc, OtpListState>(
+        builder: (context, state) {
+          if (state.isLoading) {
+            return const ShimmerLoadingList();
+          }
+
+          return _ContentView(
+            items: state.filteredItems,
+            groupedByDevice: state.filteredGroupedByDevice,
+            isGroupingByDevice: state.isGroupingByDevice,
+            dateDisplay: DateTimeUtils.formatDate(state.selectedDate),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// View thuần túy hiển thị danh sách OTP (dạng phẳng, gom nhóm hoặc empty).
+class _ContentView extends StatelessWidget {
+  const _ContentView({
     required this.items,
     required this.groupedByDevice,
     required this.isGroupingByDevice,
@@ -124,7 +160,7 @@ class OtpContentView extends StatelessWidget {
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

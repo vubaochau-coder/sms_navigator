@@ -78,19 +78,17 @@ class _BannerView extends StatelessWidget {
                       l10n.whitelistEmptyWarningMessage,
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
                         color: colorScheme.onTertiaryContainer,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Text(
                     l10n.whitelistConfigureAction,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: colorScheme.onTertiaryContainer,
-                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ],

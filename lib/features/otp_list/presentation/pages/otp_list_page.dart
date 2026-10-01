@@ -7,7 +7,7 @@ import '../bloc/otp_list_bloc.dart';
 import '../bloc/otp_list_event.dart';
 import '../widgets/otp_calendar_card.dart';
 import '../widgets/otp_compact_header.dart';
-import '../widgets/otp_content_section.dart';
+import '../widgets/otp_content_view.dart';
 import '../widgets/otp_direction_filter_bar.dart';
 import '../widgets/otp_filter_bar.dart';
 
@@ -43,7 +43,7 @@ class _OtpListView extends StatelessWidget {
             OtpFilterBar(),
             OtpDirectionFilterBar(),
             Expanded(
-              child: OtpContentSection(),
+              child: OtpContentView(),
             ),
           ],
         ),

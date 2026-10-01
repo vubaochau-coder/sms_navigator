@@ -12,47 +12,89 @@ class OtpDirectionFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: BlocBuilder<OtpListBloc, OtpListState>(
-        buildWhen: (previous, current) =>
-            previous.directionFilter != current.directionFilter,
+        buildWhen: (p, c) => p.directionFilter != c.directionFilter,
         builder: (context, state) {
-          return SegmentedButton<OtpDirectionFilter>(
-            segments: [
-              ButtonSegment(
-                value: OtpDirectionFilter.all,
-                label: Text(l10n.smsFilterAll),
+          return Row(
+            children: [
+              _DirectionOption(
+                label: l10n.smsFilterAll,
+                isSelected: state.directionFilter == OtpDirectionFilter.all,
+                onTap: () => _onSelect(context, OtpDirectionFilter.all),
               ),
-              ButtonSegment(
-                value: OtpDirectionFilter.sent,
-                label: Text(l10n.smsFilterSent),
+              const SizedBox(width: 16),
+              _DirectionOption(
+                label: l10n.smsFilterSent,
+                isSelected: state.directionFilter == OtpDirectionFilter.sent,
+                onTap: () => _onSelect(context, OtpDirectionFilter.sent),
               ),
-              ButtonSegment(
-                value: OtpDirectionFilter.received,
-                label: Text(l10n.smsFilterReceived),
+              const SizedBox(width: 16),
+              _DirectionOption(
+                label: l10n.smsFilterReceived,
+                isSelected: state.directionFilter == OtpDirectionFilter.received,
+                onTap: () => _onSelect(context, OtpDirectionFilter.received),
               ),
             ],
-            selected: {state.directionFilter},
-            showSelectedIcon: false,
-            style: ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-                return states.contains(WidgetState.selected)
-                    ? colorScheme.primaryContainer
-                    : colorScheme.surfaceContainerHighest;
-              }),
-            ),
-            onSelectionChanged: (selection) {
-              BlocProvider.of<OtpListBloc>(context).add(
-                OtpListChangeDirectionFilterEvent(selection.first),
-              );
-            },
           );
         },
+      ),
+    );
+  }
+
+  void _onSelect(BuildContext context, OtpDirectionFilter filter) {
+    BlocProvider.of<OtpListBloc>(context).add(
+      OtpListChangeDirectionFilterEvent(filter),
+    );
+  }
+}
+
+class _DirectionOption extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DirectionOption({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final contentColor =
+        isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              size: 16,
+              color: contentColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: contentColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
