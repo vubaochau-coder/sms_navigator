@@ -1137,6 +1137,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Mã QR này không được SMS Navigator hỗ trợ'**
   String get scannerUnsupportedQr;
+
+  /// No description provided for @pairingLinkedChip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã kết nối — Máy B đã quét mã'**
+  String get pairingLinkedChip;
 }
 
 class _AppLocalizationsDelegate

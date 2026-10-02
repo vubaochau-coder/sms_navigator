@@ -13,6 +13,11 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
 
   StreamSubscription<void>? _countdownSubscription;
 
+  /// Poll trạng thái liên kết phía Máy A (xem [_startLinkPolling]).
+  Timer? _linkPollTimer;
+
+  static const Duration _linkPollInterval = Duration(seconds: 5);
+
   PairingBloc({required this.repository}) : super(const PairingState()) {
     on<PairingGenerateSenderCodeEvent>((event, emit) async {
       await _onGenerateSenderCode(event, emit);
@@ -23,6 +28,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
           ),
         );
         _startCountdown();
+        _startLinkPolling();
       }
     }, transformer: droppable());
     on<PairingTimerTickedEvent>(_onTimerTicked, transformer: sequential());
@@ -33,6 +39,10 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
     on<PairingCheckReceiverStatusEvent>(
       _onCheckReceiverStatus,
       transformer: restartable(),
+    );
+    on<PairingSenderLinkPolled>(
+      _onSenderLinkPolled,
+      transformer: droppable(),
     );
     on<PairingExportQrRequested>(_onExportQrRequested, transformer: droppable());
     on<PairingDisconnectReceiverEvent>(
@@ -48,7 +58,29 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
     ).listen((_) => add(const PairingTimerTickedEvent()));
   }
 
+  /// Máy A: poll `/pair/status` định kỳ tới khi Máy B confirm. Lượng request
+  /// rất nhỏ (1 lần / 5 giây, dừng ngay khi linked) — không phải polling
+  /// chờ duyệt, chỉ là phát hiện liên kết hoàn tất.
+  void _startLinkPolling() {
+    _linkPollTimer?.cancel();
+    if (state.pairingPayload?.senderPrivateKeyBase64 == null ||
+        (state.pairingPayload?.senderPrivateKeyBase64.isEmpty ?? true)) {
+      return;
+    }
+    _linkPollTimer = Timer.periodic(
+      _linkPollInterval,
+      (_) => add(const PairingSenderLinkPolled()),
+    );
+  }
+
+  void _stopLinkPolling() {
+    _linkPollTimer?.cancel();
+    _linkPollTimer = null;
+  }
+
   void _onTimerTicked(PairingTimerTickedEvent event, Emitter emit) {
+    // Đã linked: QR đã được tiêu — không xoay mã nữa.
+    if (state.isReceiverLinked) return;
     final next = state.countdownSeconds - 1;
     if (next <= 0) {
       emit(
@@ -64,6 +96,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
   Future<void> close() {
     _countdownSubscription?.cancel();
     _countdownSubscription = null;
+    _stopLinkPolling();
     return super.close();
   }
 
@@ -71,7 +104,13 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
     PairingGenerateSenderCodeEvent event,
     Emitter emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(
+      state.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        isReceiverLinked: false,
+      ),
+    );
     try {
       final payload = await repository.createSenderPairingSession();
       emit(
@@ -88,6 +127,27 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
           errorMessage: 'Lỗi tạo phiên ghép đôi: ${e.toString()}',
         ),
       );
+    }
+  }
+
+  Future<void> _onSenderLinkPolled(
+    PairingSenderLinkPolled event,
+    Emitter emit,
+  ) async {
+    final payload = state.pairingPayload;
+    if (payload == null ||
+        state.isReceiverLinked ||
+        payload.senderPrivateKeyBase64.isEmpty) {
+      return;
+    }
+    try {
+      final status = await repository.checkSenderPairingLink(payload);
+      if (status.linked && !state.isReceiverLinked) {
+        _stopLinkPolling();
+        emit(state.copyWith(isReceiverLinked: true));
+      }
+    } catch (_) {
+      // Lỗi tạm thời (mạng, server): im lặng, tick sau thử lại.
     }
   }
 

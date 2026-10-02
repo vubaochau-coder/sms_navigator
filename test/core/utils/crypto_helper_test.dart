@@ -176,4 +176,106 @@ void main() {
       );
     });
   });
+
+  group('X25519 keypair generation', () {
+    test('generates a 32-byte seed-based private key and 32-byte public key', () async {
+      final keys = await CryptoHelper.generateX25519KeyPairBase64();
+
+      expect(base64Decode(keys.privateKeyBase64).length, 32);
+      expect(base64Decode(keys.publicKeyBase64).length, 32);
+      expect(keys.publicKeyBase64, isNot(keys.privateKeyBase64));
+    });
+
+    test('generates unique keypairs across calls', () async {
+      final first = await CryptoHelper.generateX25519KeyPairBase64();
+      final second = await CryptoHelper.generateX25519KeyPairBase64();
+
+      expect(first.privateKeyBase64, isNot(second.privateKeyBase64));
+      expect(first.publicKeyBase64, isNot(second.publicKeyBase64));
+    });
+  });
+
+  group('ECDH derivePairingSecretBase64 (pairing v3)', () {
+    test('both parties derive the identical 32-byte shared secret', () async {
+      final sender = await CryptoHelper.generateX25519KeyPairBase64();
+      final receiver = await CryptoHelper.generateX25519KeyPairBase64();
+      const pairId = 'pair_ecdh_roundtrip';
+
+      final senderSecret = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: pairId,
+      );
+      final receiverSecret = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: receiver.privateKeyBase64,
+        remotePublicKeyBase64: sender.publicKeyBase64,
+        salt: pairId,
+      );
+
+      expect(senderSecret, receiverSecret);
+      // Khớp AES-256 (32 byte) của OtpCrypto.kt
+      expect(base64Decode(senderSecret).length, 32);
+    });
+
+    test('derives deterministic output for the same inputs', () async {
+      final sender = await CryptoHelper.generateX25519KeyPairBase64();
+      final receiver = await CryptoHelper.generateX25519KeyPairBase64();
+
+      final first = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: 'pair_same_salt',
+      );
+      final second = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: 'pair_same_salt',
+      );
+
+      expect(first, second);
+    });
+
+    test('different pairId salts yield different secrets', () async {
+      final sender = await CryptoHelper.generateX25519KeyPairBase64();
+      final receiver = await CryptoHelper.generateX25519KeyPairBase64();
+
+      final first = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: 'pair_first',
+      );
+      final second = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: 'pair_second',
+      );
+
+      expect(first, isNot(second));
+    });
+
+    test('derived secret works as an AES-256-GCM key end-to-end', () async {
+      final sender = await CryptoHelper.generateX25519KeyPairBase64();
+      final receiver = await CryptoHelper.generateX25519KeyPairBase64();
+      const pairId = 'pair_aes_usage';
+
+      final secret = await CryptoHelper.derivePairingSecretBase64(
+        privateKeyBase64: sender.privateKeyBase64,
+        remotePublicKeyBase64: receiver.publicKeyBase64,
+        salt: pairId,
+      );
+
+      const plaintext = 'OTP 552210';
+      final encrypted = await CryptoHelper.encryptAesGcm256(
+        plaintext: plaintext,
+        secretKeyBase64: secret,
+      );
+      final decrypted = await CryptoHelper.decryptAesGcm256(
+        ciphertextWithTagBase64: encrypted['ciphertext']!,
+        ivBase64: encrypted['iv']!,
+        secretKeyBase64: secret,
+      );
+
+      expect(decrypted, plaintext);
+    });
+  });
 }

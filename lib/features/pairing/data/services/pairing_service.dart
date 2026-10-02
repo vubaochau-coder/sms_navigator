@@ -9,10 +9,12 @@ import '../../../../core/utils/data_converter.dart';
 import '../../../device/data/services/device_api_service.dart';
 import '../../../../core/services/device_storage_service.dart';
 import '../models/pairing_payload_model.dart';
+import '../models/sender_link_status.dart';
 
 abstract class PairingService {
   Future<PairingPayloadModel> generateSenderPairing();
   Future<bool> confirmSenderPairing(PairingPayloadModel payload);
+  Future<SenderLinkStatus> checkSenderPairingLink(PairingPayloadModel payload);
   Future<bool> confirmReceiverPairingFromQr(String qrData);
   Future<bool> confirmReceiverPairing(String data);
   Future<PairingPayloadModel?> getReceiverPairing();
@@ -53,14 +55,15 @@ class PairingServiceImpl implements PairingService {
       );
     }
 
-    final sharedSecretBase64 = CryptoHelper.generateSecretKeyBase64();
+    // Handshake ECDH: Máy A sinh cặp khóa X25519 một lần. Private key chỉ
+    // tồn tại trong RAM; server chỉ nhận public key.
+    final keys = await CryptoHelper.generateX25519KeyPairBase64();
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // Máy chủ phát hành cả pairId lẫn one-time pairing_key; client chỉ sinh
-    // shared secret (máy chủ không bao giờ biết giá trị này).
+    // Máy chủ phát hành cả pairId lẫn one-time pairing_key.
     final response = await api.post(
       ApiEndpoints.initPair,
-      body: <String, dynamic>{},
+      body: {'sender_pubkey': keys.publicKeyBase64},
     );
     final map = DataConverter.cvToMap<String, dynamic>(response);
     final success = DataConverter.cvToBool(map?['success']) == true;
@@ -77,39 +80,16 @@ class PairingServiceImpl implements PairingService {
     final expiresAt =
         _parseServerExpiryMs(map?['expires_at']) ?? now + (10 * 60 * 1000);
 
-    final payload = PairingPayloadModel(
+    // Shared secret chưa tồn tại ở giai đoạn này: nó chỉ được derive sau khi
+    // Máy B confirm (xem [checkSenderPairingLink]). Do đó KHÔNG bật relay ngay.
+    return PairingPayloadModel(
       pairId: pairId,
       pairingKey: pairingKey,
-      sharedSecretBase64: sharedSecretBase64,
+      senderPubkey: keys.publicKeyBase64,
+      senderPrivateKeyBase64: keys.privateKeyBase64,
       createdAt: now,
       expiresAt: expiresAt,
     );
-
-    // Đăng ký thiết bị gửi với server trước khi mở phiên ghép đôi nếu có kết nối.
-    if (deviceApiService != null) {
-      await deviceApiService!.registerDevice(
-        deviceName: await _resolveDeviceName(),
-        platform: _platformAndroid,
-      );
-    }
-
-    // Cập nhật cấu hình relay (kèm relayUrl, deviceToken, deviceId) cho Android native.
-    final serverUrl =
-        await deviceStorageService?.getServerUrl() ?? ApiClient.defaultBaseUrl;
-    final relayUrl = '$serverUrl${ApiEndpoints.relay}';
-    final deviceToken = await deviceStorageService?.getDeviceToken();
-    final deviceId = await deviceStorageService?.getDeviceId();
-
-    await nativeService.setRelayConfig(
-      isRelayEnabled: true,
-      pairId: payload.pairId,
-      sharedSecretBase64: payload.sharedSecretBase64,
-      relayUrl: relayUrl,
-      deviceToken: deviceToken,
-      deviceId: deviceId,
-    );
-
-    return payload;
   }
 
   /// `expires_at` từ server là chuỗi ISO 8601 UTC.
@@ -121,6 +101,13 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<bool> confirmSenderPairing(PairingPayloadModel payload) async {
+    // Với ECDH, relay chỉ được bật khi đã derive được shared secret
+    // (sau khi link với Máy B). Payload chưa link thì bỏ qua.
+    if (payload.sharedSecretBase64.isEmpty) return false;
+    return _applySenderRelayConfig(payload);
+  }
+
+  Future<bool> _applySenderRelayConfig(PairingPayloadModel payload) async {
     final deviceToken = await deviceStorageService?.getDeviceToken();
     final deviceId = await deviceStorageService?.getDeviceId();
 
@@ -130,6 +117,40 @@ class PairingServiceImpl implements PairingService {
       sharedSecretBase64: payload.sharedSecretBase64,
       deviceToken: deviceToken,
       deviceId: deviceId,
+    );
+  }
+
+  @override
+  Future<SenderLinkStatus> checkSenderPairingLink(
+    PairingPayloadModel payload,
+  ) async {
+    final api = apiClient;
+    if (api == null) return SenderLinkStatus.waiting;
+    if (payload.pairId.isEmpty || payload.senderPrivateKeyBase64.isEmpty) {
+      return SenderLinkStatus.waiting;
+    }
+
+    final response = await api.get('${ApiEndpoints.pairStatus}/${payload.pairId}');
+    final map = DataConverter.cvToMap<String, dynamic>(response);
+    if (map == null) return SenderLinkStatus.waiting;
+
+    final isPaired = DataConverter.cvToBool(map['is_paired']) == true;
+    final receiverPubkey = DataConverter.cvToString(map['receiver_pubkey'], '')!;
+    if (!isPaired || receiverPubkey.isEmpty) return SenderLinkStatus.waiting;
+
+    // Máy B đã confirm: derive shared secret từ ECDH rồi kích hoạt relay.
+    final derivedSecret = await CryptoHelper.derivePairingSecretBase64(
+      privateKeyBase64: payload.senderPrivateKeyBase64,
+      remotePublicKeyBase64: receiverPubkey,
+      salt: payload.pairId,
+    );
+    final linked = payload.copyWith(sharedSecretBase64: derivedSecret);
+    final applied = await _applySenderRelayConfig(linked);
+    if (!applied) return SenderLinkStatus.waiting;
+
+    return SenderLinkStatus(
+      linked: true,
+      receiverDeviceName: DataConverter.cvToString(map['device_name']),
     );
   }
 
@@ -171,11 +192,17 @@ class PairingServiceImpl implements PairingService {
       );
     }
 
+    // Sinh cặp khóa X25519 của Máy B. Private key không rời khỏi thiết bị.
+    final keys = await CryptoHelper.generateX25519KeyPairBase64();
+
     final deviceName = await _resolveDeviceName();
     final body = <String, dynamic>{
       // Bằng chứng sở hữu QR: server chỉ xác nhận khi pairing_key khớp
       // phiên còn hiệu lực và chưa được sử dụng (one-time).
       'pairing_key': payload.pairingKey,
+      // Public key của Máy B cho handshake ECDH — server chỉ forward,
+      // không thể derive shared secret từ nó.
+      'receiver_pubkey': keys.publicKeyBase64,
       if (deviceName != null && deviceName.isNotEmpty) 'device_name': deviceName,
       'platform': _platformAndroid,
     };
@@ -203,13 +230,33 @@ class PairingServiceImpl implements PairingService {
       throw const ApiException('Máy chủ không trả về mã phiên ghép đôi.');
     }
 
+    // Chống server key-swap: public key của Máy A phải khớp đúng giá trị
+    // đọc từ QR (kênh tin cậy vật lý), nếu không từ chối ghép đôi.
+    final serverSenderPubkey =
+        DataConverter.cvToString(map['sender_pubkey'], '')!;
+    if (serverSenderPubkey.isNotEmpty &&
+        serverSenderPubkey != payload.senderPubkey) {
+      throw const ApiException(
+        'Khóa phiên ghép đôi không khớp mã QR. Vui lòng quét lại mã mới.',
+        statusCode: 422,
+      );
+    }
+
+    // Derive shared secret bằng ECDH với public key của Máy A lấy TỪ QR
+    // (kênh tin cậy), không dùng giá trị do server trả về.
+    final derivedSecret = await CryptoHelper.derivePairingSecretBase64(
+      privateKeyBase64: keys.privateKeyBase64,
+      remotePublicKeyBase64: payload.senderPubkey,
+      salt: confirmedPairId,
+    );
+
     await localStorageService.setString(
       StorageKeys.receiverPairId,
       confirmedPairId,
     );
     await localStorageService.setString(
       StorageKeys.receiverSharedSecret,
-      payload.sharedSecretBase64,
+      derivedSecret,
     );
 
     return true;

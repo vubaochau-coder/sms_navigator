@@ -17,6 +17,11 @@ class PairingState extends Equatable {
   final String? errorMessage;
   final PairingPayloadModel? pairingPayload;
   final bool isPaired;
+
+  /// Máy A: Máy B đã quét mã, confirm và shared secret đã được derive —
+  /// relay đã sẵn sàng gửi OTP.
+  final bool isReceiverLinked;
+
   final int countdownSeconds;
   final bool isExportingQr;
   final QrExportStatus? qrExportStatus;
@@ -28,6 +33,7 @@ class PairingState extends Equatable {
     this.errorMessage,
     this.pairingPayload,
     this.isPaired = false,
+    this.isReceiverLinked = false,
     this.countdownSeconds = defaultCountdownSeconds,
     this.isExportingQr = false,
     this.qrExportStatus,
@@ -40,6 +46,7 @@ class PairingState extends Equatable {
     String? errorMessage,
     PairingPayloadModel? pairingPayload,
     bool? isPaired,
+    bool? isReceiverLinked,
     int? countdownSeconds,
     bool? isExportingQr,
     QrExportStatus? qrExportStatus,
@@ -51,6 +58,7 @@ class PairingState extends Equatable {
       errorMessage: errorMessage,
       pairingPayload: pairingPayload ?? this.pairingPayload,
       isPaired: isPaired ?? this.isPaired,
+      isReceiverLinked: isReceiverLinked ?? this.isReceiverLinked,
       countdownSeconds: countdownSeconds ?? this.countdownSeconds,
       isExportingQr: isExportingQr ?? this.isExportingQr,
       qrExportStatus: qrExportStatus,
@@ -65,6 +73,7 @@ class PairingState extends Equatable {
     errorMessage,
     pairingPayload,
     isPaired,
+    isReceiverLinked,
     countdownSeconds,
     isExportingQr,
     qrExportStatus,

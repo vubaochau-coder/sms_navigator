@@ -581,4 +581,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get scannerUnsupportedQr => 'Mã QR này không được SMS Navigator hỗ trợ';
+
+  @override
+  String get pairingLinkedChip => 'Đã kết nối — Máy B đã quét mã';
 }

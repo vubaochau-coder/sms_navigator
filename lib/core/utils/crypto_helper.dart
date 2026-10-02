@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
 
 class CryptoHelper {
@@ -11,6 +11,12 @@ class CryptoHelper {
   /// Độ dài GCM authentication tag (byte) — khớp 128 bit của Android native.
   static const int gcmTagLengthBytes = 16;
 
+  /// HKDF `info` cố định cho Handshake ghép đôi — đổi khi nâng giao thức.
+  static const String _pairingHkdfInfo = 'sms-navigator-pair-v3';
+
+  static final X25519 _x25519 = X25519();
+  static final Hkdf _hkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
+
   /// Generates a random 32-byte Base64 key string.
   static String generateSecretKeyBase64() {
     final random = Random.secure();
@@ -18,9 +24,55 @@ class CryptoHelper {
     return base64Encode(bytes);
   }
 
+  /// Sinh cặp khóa X25519 dùng một lần cho Handshake ghép đôi.
+  ///
+  /// Private key lưu dưới dạng seed 32 byte (Base64) — tái tạo được key pair
+  /// gốc bằng [newKeyPairFromSeed] nên không cần giữ object trong bộ nhớ.
+  static Future<({String publicKeyBase64, String privateKeyBase64})>
+      generateX25519KeyPairBase64() async {
+    final random = Random.secure();
+    final seed = Uint8List.fromList(
+      List<int>.generate(32, (_) => random.nextInt(256)),
+    );
+    final keyPair = await _x25519.newKeyPairFromSeed(seed);
+    final publicKey = await keyPair.extractPublicKey();
+    return (
+      publicKeyBase64: base64Encode(publicKey.bytes),
+      privateKeyBase64: base64Encode(seed),
+    );
+  }
+
+  /// Derive shared secret 32 byte (AES-256) từ ECDH X25519 + HKDF-SHA256.
+  ///
+  /// Cả hai bên gọi với (private của mình, public của đối tác, salt = pairId)
+  /// sẽ ra cùng một kết quả. Máy chủ chỉ thấy public key — không thể derive.
+  static Future<String> derivePairingSecretBase64({
+    required String privateKeyBase64,
+    required String remotePublicKeyBase64,
+    required String salt,
+  }) async {
+    final keyPair = await _x25519.newKeyPairFromSeed(
+      base64Decode(privateKeyBase64),
+    );
+    final remoteKey = SimplePublicKey(
+      base64Decode(remotePublicKeyBase64),
+      type: KeyPairType.x25519,
+    );
+    final sharedSecret = await _x25519.sharedSecretKey(
+      keyPair: keyPair,
+      remotePublicKey: remoteKey,
+    );
+    final derived = await _hkdf.deriveKey(
+      secretKey: sharedSecret,
+      nonce: utf8.encode(salt),
+      info: utf8.encode(_pairingHkdfInfo),
+    );
+    return base64Encode(await derived.extractBytes());
+  }
+
   /// Computes SHA-256 hash string of input.
   static String sha256Hash(String input) {
-    return sha256.convert(utf8.encode(input)).toString();
+    return crypto.sha256.convert(utf8.encode(input)).toString();
   }
 
   /// Mã hóa AES-256-GCM, trả về ciphertext (nối sẵn 16-byte GCM tag) + IV

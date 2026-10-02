@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:toastification/toastification.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
+import 'package:sms_navigator/features/pairing/data/models/sender_link_status.dart';
 import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
 import 'package:sms_navigator/features/pairing/presentation/pages/pairing_qr_scan_page.dart';
@@ -23,6 +24,11 @@ class _RecordingPairingRepository implements PairingRepository {
 
   @override
   Future<bool> applySenderPairing(PairingPayloadModel payload) async => true;
+
+  @override
+  Future<SenderLinkStatus> checkSenderPairingLink(
+    PairingPayloadModel payload,
+  ) async => SenderLinkStatus.waiting;
 
   @override
   Future<bool> submitReceiverPairingQr(String qrData) async {
@@ -57,7 +63,8 @@ class _FakeScannerController extends MobileScannerController {
       analyzeResult;
 }
 
-const _validPairingQr = '{"v":2,"k":"pairkey1234567890","s":"SECRET"}';
+const _validPairingQr =
+    '{"v":3,"k":"pairkey1234567890","a":"c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM="}';
 
 void main() {
   const imagePickerChannel = MethodChannel('plugins.flutter.io/image_picker');

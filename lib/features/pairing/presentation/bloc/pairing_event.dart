@@ -33,6 +33,12 @@ class PairingCheckReceiverStatusEvent extends PairingEvent {
   const PairingCheckReceiverStatusEvent();
 }
 
+/// Timer nội bộ của bloc: kiểm tra xem Máy B đã quét mã và confirm chưa.
+/// Khi đã confirm, bloc derive shared secret (qua repository) và bật relay.
+class PairingSenderLinkPolled extends PairingEvent {
+  const PairingSenderLinkPolled();
+}
+
 class PairingExportQrRequested extends PairingEvent {
   const PairingExportQrRequested();
 }

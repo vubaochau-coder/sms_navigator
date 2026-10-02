@@ -1,10 +1,12 @@
 import '../models/pairing_payload_model.dart';
+import '../models/sender_link_status.dart';
 import '../services/pairing_service.dart';
 import '../services/qr_image_export_service.dart';
 
 abstract class PairingRepository {
   Future<PairingPayloadModel> createSenderPairingSession();
   Future<bool> applySenderPairing(PairingPayloadModel payload);
+  Future<SenderLinkStatus> checkSenderPairingLink(PairingPayloadModel payload);
   Future<bool> submitReceiverPairingQr(String qrData);
   Future<bool> submitReceiverPairingCode(String code);
   Future<PairingPayloadModel?> checkReceiverPairingStatus();
@@ -31,6 +33,13 @@ class PairingRepositoryImpl implements PairingRepository {
   @override
   Future<bool> applySenderPairing(PairingPayloadModel payload) async {
     return await pairingService.confirmSenderPairing(payload);
+  }
+
+  @override
+  Future<SenderLinkStatus> checkSenderPairingLink(
+    PairingPayloadModel payload,
+  ) async {
+    return await pairingService.checkSenderPairingLink(payload);
   }
 
   @override

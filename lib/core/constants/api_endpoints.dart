@@ -10,6 +10,7 @@ class ApiEndpoints {
   // --- Pairing Flow & Management ---
   static const String initPair = '/api/v1/pair/init';
   static const String confirmPair = '/api/v1/pair/confirm';
+  static const String pairStatus = '/api/v1/pair/status';
   static const String pairedReceivers = '/api/v1/pair/receivers';
   static const String pairedSenders = '/api/v1/pair/senders';
 

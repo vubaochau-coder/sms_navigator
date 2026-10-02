@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
+import 'package:sms_navigator/features/pairing/data/models/sender_link_status.dart';
 import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
 import 'package:sms_navigator/features/pairing/data/services/pairing_service.dart';
 import 'package:sms_navigator/features/pairing/data/services/qr_image_export_service.dart';
@@ -10,29 +11,46 @@ import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_event.d
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_state.dart';
 
 class _FakePairingRepository implements PairingRepository {
-  _FakePairingRepository({required this.onSubmitQr, this.exportError});
+  _FakePairingRepository({
+    required this.onSubmitQr,
+    this.exportError,
+    this.linkStatus = SenderLinkStatus.waiting,
+  });
 
   final bool Function(String qrData) onSubmitQr;
 
   /// Lỗi ném ra khi export QR; null = export thành công.
   final Object? exportError;
 
+  /// Trạng thái poll liên kết Máy B trả về.
+  SenderLinkStatus linkStatus;
+
+  int linkPollCallCount = 0;
   int exportCallCount = 0;
 
   @override
   Future<PairingPayloadModel> createSenderPairingSession() async {
-    final payload = PairingPayloadModel(
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return PairingPayloadModel(
       pairId: 'pair_fake',
       pairingKey: 'fake_pairing_key_value',
-      sharedSecretBase64: 'FAKE_SECRET',
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      expiresAt: DateTime.now().millisecondsSinceEpoch + 60000,
+      senderPubkey: 'ZmFrZV9wdWJsaWNfa2V5XzMyX2J5dGVzX2FhYQ==',
+      senderPrivateKeyBase64: 'ZmFrZV9wcml2YXRlX2tleV8zMl9ieXRlc19hYQ==',
+      createdAt: now,
+      expiresAt: now + 60000,
     );
-    return payload;
   }
 
   @override
   Future<bool> applySenderPairing(PairingPayloadModel payload) async => true;
+
+  @override
+  Future<SenderLinkStatus> checkSenderPairingLink(
+    PairingPayloadModel payload,
+  ) async {
+    linkPollCallCount++;
+    return linkStatus;
+  }
 
   @override
   Future<bool> submitReceiverPairingQr(String qrData) async =>
@@ -84,7 +102,11 @@ void main() {
       bloc,
       (state) => state.isSuccess && state.isPaired,
     );
-    bloc.add(const PairingSubmitReceiverQrEvent('{"v":2,"k":"pairkey1234567890","s":"SECRET"}'));
+    bloc.add(
+      const PairingSubmitReceiverQrEvent(
+        '{"v":3,"k":"pairkey1234567890","a":"c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM="}',
+      ),
+    );
 
     final states = await statesFuture;
     await bloc.close();
@@ -153,8 +175,48 @@ void main() {
     },
   );
 
-  group('PairingExportQrRequested', () {
-    test('export success emits success status and bumps qrExportToken',
+  group('sender link polling (ECDH handoff)', () {
+    test('PairingSenderLinkPolled emits isReceiverLinked when repo reports linked', () async {
+      final repository = _FakePairingRepository(
+        onSubmitQr: (_) => true,
+        linkStatus: const SenderLinkStatus(
+          linked: true,
+          receiverDeviceName: 'Máy B của Minh',
+        ),
+      );
+      final bloc = PairingBloc(repository: repository);
+      bloc.add(const PairingGenerateSenderCodeEvent());
+      await Future<void>.delayed(Duration.zero);
+
+      final statesFuture = _collectUntil(
+        bloc,
+        (state) => state.isReceiverLinked,
+      );
+      bloc.add(const PairingSenderLinkPolled());
+      final states = await statesFuture;
+      await bloc.close();
+
+      expect(states.last.isReceiverLinked, isTrue);
+      expect(repository.linkPollCallCount, 1);
+    });
+
+    test('waiting poll result keeps isReceiverLinked false', () async {
+      final repository = _FakePairingRepository(onSubmitQr: (_) => true);
+      final bloc = PairingBloc(repository: repository);
+      bloc.add(const PairingGenerateSenderCodeEvent());
+      await Future<void>.delayed(Duration.zero);
+
+      bloc.add(const PairingSenderLinkPolled());
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      await bloc.close();
+
+      expect(bloc.state.isReceiverLinked, isFalse);
+      expect(repository.linkPollCallCount, 1);
+    });
+  });
+
+  group('PairingExportQrRequested', () {    test('export success emits success status and bumps qrExportToken',
         () async {
       final bloc = PairingBloc(
         repository: _FakePairingRepository(onSubmitQr: (_) => true),
@@ -295,6 +357,11 @@ class _ForwardingServiceProbe implements PairingService {
   @override
   Future<bool> confirmReceiverPairing(String data) =>
       confirmReceiverPairingFromQr(data);
+
+  @override
+  Future<SenderLinkStatus> checkSenderPairingLink(
+    PairingPayloadModel payload,
+  ) async => SenderLinkStatus.waiting;
 
   @override
   Future<PairingPayloadModel?> getReceiverPairing() async => null;

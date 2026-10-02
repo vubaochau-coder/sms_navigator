@@ -128,7 +128,9 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  _CountdownChip(seconds: state.countdownSeconds),
+                  state.isReceiverLinked
+                      ? const _LinkedChip()
+                      : _CountdownChip(seconds: state.countdownSeconds),
                   const SizedBox(height: 24),
                   const _E2eeBadge(),
                   const SizedBox(height: 32),
@@ -207,6 +209,42 @@ class _QrCard extends StatelessWidget {
         data: qrData,
         size: 200,
         backgroundColor: Colors.white,
+      ),
+    );
+  }
+}
+
+class _LinkedChip extends StatelessWidget {
+  const _LinkedChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: colorScheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            size: 16,
+            color: colorScheme.onTertiaryContainer,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            context.l10n.pairingLinkedChip,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onTertiaryContainer,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
