@@ -1,4 +1,5 @@
 import '../storage/local_storage_service.dart';
+import '../storage/secure_storage_service.dart';
 import '../storage/storage_keys.dart';
 
 /// Lưu trữ định danh & thông tin kết nối của thiết bị trên thiết bị.
@@ -16,9 +17,13 @@ abstract class DeviceStorageService {
 }
 
 class DeviceStorageServiceImpl implements DeviceStorageService {
-  DeviceStorageServiceImpl(this.localStorage);
+  DeviceStorageServiceImpl(this.localStorage, {SecureStorageService? secureStorage})
+    : _secure = secureStorage ?? SecureStorageServiceImpl();
 
   final LocalStorageService localStorage;
+
+  /// Device token là credential gọi API — lưu secure storage (GĐ4.1).
+  final SecureStorageService _secure;
 
   @override
   Future<String?> getDeviceId() async =>
@@ -29,12 +34,25 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
       localStorage.setString(StorageKeys.deviceId, deviceId);
 
   @override
-  Future<String?> getDeviceToken() async =>
-      localStorage.getString(StorageKeys.deviceToken);
+  Future<String?> getDeviceToken() async {
+    final secureToken = await _secure.read(StorageKeys.deviceToken);
+    if (secureToken != null && secureToken.isNotEmpty) return secureToken;
+
+    // Migrate một lần từ shared_preferences (phiên bản trước GĐ4.1)
+    final legacy = localStorage.getString(StorageKeys.deviceToken);
+    if (legacy != null && legacy.isNotEmpty) {
+      await _secure.write(StorageKeys.deviceToken, legacy);
+      await localStorage.remove(StorageKeys.deviceToken);
+      return legacy;
+    }
+    return null;
+  }
 
   @override
-  Future<void> saveDeviceToken(String deviceToken) =>
-      localStorage.setString(StorageKeys.deviceToken, deviceToken);
+  Future<void> saveDeviceToken(String deviceToken) async {
+    await _secure.write(StorageKeys.deviceToken, deviceToken);
+    await localStorage.remove(StorageKeys.deviceToken);
+  }
 
   @override
   Future<String?> getServerUrl() async =>
@@ -58,5 +76,6 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
     await localStorage.remove(StorageKeys.deviceToken);
     await localStorage.remove(StorageKeys.serverUrl);
     await localStorage.remove(StorageKeys.fcmToken);
+    await _secure.delete(StorageKeys.deviceToken);
   }
 }

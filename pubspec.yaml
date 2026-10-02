@@ -46,6 +46,7 @@ dependencies:
   mobile_scanner: 7.4.2
   cryptography: 2.9.0
   app_links: 7.2.1
+  flutter_secure_storage: 11.2.0
   intl: 0.20.3
   dio: 5.11.1
   firebase_core: 4.15.0

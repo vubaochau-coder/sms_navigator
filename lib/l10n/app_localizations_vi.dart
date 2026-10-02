@@ -597,4 +597,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deeplinkPairingFailed => 'Ghép nối không thành công';
+
+  @override
+  String get pairingQrNoSecretHint =>
+      'Mã QR không chứa mật khẩu — nếu ảnh bị lộ, kẻ khác vẫn không đọc được tin nhắn của bạn.';
+
+  @override
+  String get pairingDeletePhotoReminder =>
+      'Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi.';
 }

@@ -134,11 +134,23 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                         ).add(const PairingExportQrRequested());
                       },
                     ),
-                    const SizedBox(height: 16),
-                    state.isReceiverLinked
-                        ? const _LinkedChip()
-                        : _CountdownChip(seconds: state.countdownSeconds),
-                    const SizedBox(height: 24),
+                     const SizedBox(height: 16),
+                     state.isReceiverLinked
+                         ? const _LinkedChip()
+                         : _CountdownChip(seconds: state.countdownSeconds),
+                     if (state.isReceiverLinked) ...[
+                       const SizedBox(height: 12),
+                       _SecurityHint(
+                         icon: Icons.delete_sweep_rounded,
+                         text: context.l10n.pairingDeletePhotoReminder,
+                       ),
+                     ],
+                     const SizedBox(height: 12),
+                     _SecurityHint(
+                       icon: Icons.verified_user_rounded,
+                       text: context.l10n.pairingQrNoSecretHint,
+                     ),
+                     const SizedBox(height: 24),
                     const _E2eeBadge(),
                     const SizedBox(height: 32),
                     _ActionButtons(
@@ -216,6 +228,41 @@ class _QrCard extends StatelessWidget {
         data: qrData,
         size: 200,
         backgroundColor: Colors.white,
+      ),
+    );
+  }
+}
+
+class _SecurityHint extends StatelessWidget {
+  const _SecurityHint({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.4,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

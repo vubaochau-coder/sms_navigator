@@ -104,9 +104,42 @@ class OtpPreferences(context: Context) {
         get() = prefs.getString(KEY_PAIR_ID, null)
         set(value) = prefs.edit().putString(KEY_PAIR_ID, value).apply()
 
+    /**
+     * Shared secret ECDH — mã hóa bằng AES-256-GCM với key trong Android
+     * Keystore trước khi lưu (roadmap GĐ4.1). Đọc giá trị plaintext cũ
+     * (phiên bản trước GĐ4) sẽ tự migrate sang dạng mã hóa một lần.
+     */
     var sharedSecretBase64: String?
-        get() = prefs.getString(KEY_SHARED_SECRET, null)
-        set(value) = prefs.edit().putString(KEY_SHARED_SECRET, value).apply()
+        get() {
+            val stored = prefs.getString(KEY_SHARED_SECRET, null) ?: return null
+            return try {
+                SecureVault.decryptFromBase64(stored)
+            } catch (_: Exception) {
+                // Giá trị plaintext cũ hoặc blob lỗi (key bị invalidate):
+                // trả nguyên gốc để không phá phiên ghép đôi đang hoạt động,
+                // đồng thời thử migrate sang dạng mã hóa.
+                runCatching {
+                    prefs.edit()
+                        .putString(KEY_SHARED_SECRET, SecureVault.encryptToBase64(stored))
+                        .apply()
+                }
+                stored
+            }
+        }
+        set(value) {
+            if (value == null) {
+                prefs.edit().remove(KEY_SHARED_SECRET).apply()
+                return
+            }
+            val encrypted = try {
+                SecureVault.encryptToBase64(value)
+            } catch (_: Exception) {
+                // Keystore lỗi trên một số thiết bị: lưu plaintext để đảm bảo
+                // tính khả dụng (đánh đổi có chủ ý, xem roadmap GĐ4.1).
+                value
+            }
+            prefs.edit().putString(KEY_SHARED_SECRET, encrypted).apply()
+        }
 
     var relayUrl: String
         get() = prefs.getString(KEY_RELAY_URL, DEFAULT_RELAY_URL) ?: DEFAULT_RELAY_URL

@@ -245,5 +245,7 @@
   "deeplinkPairingTitle": "Ghép đôi từ mã QR",
   "deeplinkPairingInProgress": "Đang ghép nối...",
   "deeplinkPairingSuccess": "Đã ghép nối thành công",
-  "deeplinkPairingFailed": "Ghép nối không thành công"
+  "deeplinkPairingFailed": "Ghép nối không thành công",
+  "pairingQrNoSecretHint": "Mã QR không chứa mật khẩu — nếu ảnh bị lộ, kẻ khác vẫn không đọc được tin nhắn của bạn.",
+  "pairingDeletePhotoReminder": "Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi."
 }

@@ -7,6 +7,7 @@ import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/network/api_client.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/storage/secure_storage_service.dart';
 import 'package:sms_navigator/core/storage/storage_keys.dart';
 import 'package:sms_navigator/core/utils/crypto_helper.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
@@ -113,6 +114,24 @@ class _FakeApiClient extends ApiClient {
   }
 }
 
+/// Secure storage in-memory cho test (GĐ4.1): secret KHÔNG còn nằm trong
+/// shared_preferences nữa.
+class _FakeSecureStorageService implements SecureStorageService {
+  final Map<String, String> values = {};
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String value) async => values[key] = value;
+
+  @override
+  Future<void> delete(String key) async => values.remove(key);
+
+  @override
+  Future<bool> containsKey(String key) async => values.containsKey(key);
+}
+
 class _FakeDeviceStorageService implements DeviceStorageService {
   String? fcmToken;
   @override
@@ -178,12 +197,14 @@ Future<PairingServiceImpl> _buildService({
   required _FakeNativeRelayService native,
   ApiClient? apiClient,
   DeviceStorageService? storageService,
+  _FakeSecureStorageService? secureStorage,
 }) async {
   return PairingServiceImpl(
     nativeService: native,
     localStorageService: await LocalStorageService.create(),
     apiClient: apiClient,
     deviceStorageService: storageService,
+    secureStorageService: secureStorage ?? _FakeSecureStorageService(),
   );
 }
 
@@ -331,11 +352,13 @@ void main() {
           'sender_pubkey': senderPayload.senderPubkey,
         };
       final fakeStorage = _FakeDeviceStorageService()..fcmToken = null;
+      final secureStorage = _FakeSecureStorageService();
       final native = _FakeNativeRelayService();
       final service = await _buildService(
         native: native,
         apiClient: fakeApi,
         storageService: fakeStorage,
+        secureStorage: secureStorage,
       );
 
       final ok = await service.confirmReceiverPairingFromQr(
@@ -352,8 +375,10 @@ void main() {
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString(StorageKeys.receiverPairId), 'pair_from_server');
+      // GĐ4.1: secret nằm trong secure storage, KHÔNG còn trong shared_prefs
       final storedSecret =
-          prefs.getString(StorageKeys.receiverSharedSecret) ?? '';
+          await secureStorage.read(StorageKeys.receiverSharedSecret) ?? '';
+      expect(prefs.getString(StorageKeys.receiverSharedSecret), isNull);
       // Secret được derive nội bộ từ ECDH (priv B sinh trong service + pub A
       // từ QR): chỉ kiểm chứng cấu trúc 32 byte — tính hai bên derive cùng
       // key đã được chứng minh ở test checkSenderPairingLink và crypto test.

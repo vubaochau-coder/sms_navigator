@@ -3,6 +3,7 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../../core/utils/crypto_helper.dart';
 import '../../../../core/utils/data_converter.dart';
@@ -28,13 +29,44 @@ class PairingServiceImpl implements PairingService {
   final DeviceStorageService? deviceStorageService;
   final LocalStorageService localStorageService;
 
+  /// Shared secret ECDH lưu trong secure storage (GĐ4.1), KHÔNG lưu
+  /// shared_preferences. Cấu hình qua constructor để test dễ dàng.
+  final SecureStorageService? secureStorageService;
+
   PairingServiceImpl({
     required this.nativeService,
     required this.localStorageService,
     this.apiClient,
     this.deviceApiService,
     this.deviceStorageService,
+    this.secureStorageService,
   });
+
+  SecureStorageService get _secureStorage =>
+      secureStorageService ?? SecureStorageServiceImpl();
+
+  /// Đọc shared secret: ưu tiên secure storage; nếu trống thì migrate giá trị
+  /// cũ từ shared_preferences (phiên bản trước GĐ4.1) một cách trong suốt.
+  Future<String?> _readSharedSecret() async {
+    final secret = await _secureStorage.read(StorageKeys.receiverSharedSecret);
+    if (secret != null && secret.isNotEmpty) return secret;
+
+    final legacy = localStorageService.getString(
+      StorageKeys.receiverSharedSecret,
+    );
+    if (legacy != null && legacy.isNotEmpty) {
+      await _secureStorage.write(StorageKeys.receiverSharedSecret, legacy);
+      await localStorageService.remove(StorageKeys.receiverSharedSecret);
+      return legacy;
+    }
+    return null;
+  }
+
+  Future<void> _writeSharedSecret(String secret) async {
+    await _secureStorage.write(StorageKeys.receiverSharedSecret, secret);
+    // Dọn bản plaintext cũ (nếu có) khỏi shared_preferences
+    await localStorageService.remove(StorageKeys.receiverSharedSecret);
+  }
 
   static const String _platformAndroid = 'android';
 
@@ -259,10 +291,7 @@ class PairingServiceImpl implements PairingService {
       StorageKeys.receiverPairId,
       confirmedPairId,
     );
-    await localStorageService.setString(
-      StorageKeys.receiverSharedSecret,
-      derivedSecret,
-    );
+    await _writeSharedSecret(derivedSecret);
 
     return true;
   }
@@ -275,9 +304,7 @@ class PairingServiceImpl implements PairingService {
   @override
   Future<PairingPayloadModel?> getReceiverPairing() async {
     final pairId = localStorageService.getString(StorageKeys.receiverPairId);
-    final sharedSecret = localStorageService.getString(
-      StorageKeys.receiverSharedSecret,
-    );
+    final sharedSecret = await _readSharedSecret();
 
     if (pairId == null || sharedSecret == null) return null;
 
@@ -294,6 +321,7 @@ class PairingServiceImpl implements PairingService {
   @override
   Future<bool> clearReceiverPairing() async {
     await localStorageService.remove(StorageKeys.receiverPairId);
+    await _secureStorage.delete(StorageKeys.receiverSharedSecret);
     await localStorageService.remove(StorageKeys.receiverSharedSecret);
     return true;
   }
