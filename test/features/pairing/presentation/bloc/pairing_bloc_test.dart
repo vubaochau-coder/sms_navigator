@@ -23,6 +23,7 @@ class _FakePairingRepository implements PairingRepository {
   Future<PairingPayloadModel> createSenderPairingSession() async {
     final payload = PairingPayloadModel(
       pairId: 'pair_fake',
+      pairingKey: 'fake_pairing_key_value',
       sharedSecretBase64: 'FAKE_SECRET',
       createdAt: DateTime.now().millisecondsSinceEpoch,
       expiresAt: DateTime.now().millisecondsSinceEpoch + 60000,
@@ -83,7 +84,7 @@ void main() {
       bloc,
       (state) => state.isSuccess && state.isPaired,
     );
-    bloc.add(const PairingSubmitReceiverQrEvent('{"v":1,"pairId":"p"}'));
+    bloc.add(const PairingSubmitReceiverQrEvent('{"v":2,"k":"pairkey1234567890","s":"SECRET"}'));
 
     final states = await statesFuture;
     await bloc.close();

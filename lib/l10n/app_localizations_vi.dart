@@ -578,4 +578,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get scannerNoQrFound => 'Không tìm thấy mã QR trong ảnh đã chọn';
+
+  @override
+  String get scannerUnsupportedQr => 'Mã QR này không được SMS Navigator hỗ trợ';
 }

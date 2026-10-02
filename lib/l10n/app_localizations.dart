@@ -1131,6 +1131,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không tìm thấy mã QR trong ảnh đã chọn'**
   String get scannerNoQrFound;
+
+  /// No description provided for @scannerUnsupportedQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR này không được SMS Navigator hỗ trợ'**
+  String get scannerUnsupportedQr;
 }
 
 class _AppLocalizationsDelegate

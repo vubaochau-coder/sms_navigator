@@ -1,22 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/utils/toast_utils.dart';
-import '../bloc/pairing_bloc.dart';
-import '../bloc/pairing_event.dart';
-import '../bloc/pairing_state.dart';
+import '../scanning/qr_scan_handler.dart';
+import '../scanning/qr_scan_handler_registry.dart';
 
+/// Màn hình quét QR trung tính: chỉ lo camera, thư viện ảnh và điều phối
+/// payload qua [QrScanHandlerRegistry]. Nghiệp vụ cụ thể (ghép đôi...) được
+/// inject từ bên ngoài qua registry.
 class QrScanPage extends StatefulWidget {
   const QrScanPage({
     super.key,
+    required this.registry,
     MobileScannerController? controller,
     ImagePicker? imagePicker,
   }) : _controllerOverride = controller,
        _imagePickerOverride = imagePicker;
 
+  final QrScanHandlerRegistry registry;
   final MobileScannerController? _controllerOverride;
   final ImagePicker? _imagePickerOverride;
 
@@ -37,16 +42,14 @@ class _QrScanPageState extends State<QrScanPage> {
   /// Cờ chống quét lặp lại nhiều lần trong khi đang xử lý một mã.
   bool _isProcessing = false;
   bool _isPickingImage = false;
+  Timer? _resumeTimer;
 
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
     for (final barcode in capture.barcodes) {
       final rawValue = barcode.rawValue;
       if (rawValue == null || rawValue.isEmpty) continue;
-      _isProcessing = true;
-      if (mounted) {
-        BlocProvider.of<PairingBloc>(context).add(PairingSubmitReceiverQrEvent(rawValue));
-      }
+      _dispatch(rawValue);
       return;
     }
   }
@@ -64,18 +67,31 @@ class _QrScanPageState extends State<QrScanPage> {
         if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
         return;
       }
-      _isProcessing = true;
-      if (mounted) {
-        BlocProvider.of<PairingBloc>(context).add(
-          PairingSubmitReceiverQrEvent(rawValue),
-        );
-      }
+      _dispatch(rawValue);
     } catch (_) {
       if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
     } finally {
       _isPickingImage = false;
       await _startCameraSafely();
     }
+  }
+
+  void _dispatch(String rawValue) {
+    _isProcessing = true;
+    final handled = widget.registry.route(context, _QrScanFlow(this), rawValue);
+    if (!handled) {
+      ToastUtils.showError(context.l10n.scannerUnsupportedQr);
+      _scheduleResume();
+    }
+  }
+
+  void _scheduleResume() {
+    _resumeTimer?.cancel();
+    _resumeTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    });
   }
 
   Future<void> _stopCameraSafely() async {
@@ -90,21 +106,10 @@ class _QrScanPageState extends State<QrScanPage> {
     } catch (_) {}
   }
 
-  void _onPairingStateChanged(BuildContext context, PairingState state) {
-    if (state.isSuccess && _isProcessing) {
-      Navigator.of(context).pop(true);
-      return;
-    }
-
-    if (state.errorMessage != null && _isProcessing) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _isProcessing = false);
-      });
-    }
-  }
-
   @override
   void dispose() {
+    _resumeTimer?.cancel();
+    widget.registry.dispose();
     if (widget._controllerOverride == null) {
       _controller.dispose();
     }
@@ -115,28 +120,42 @@ class _QrScanPageState extends State<QrScanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: BlocListener<PairingBloc, PairingState>(
-        listener: _onPairingStateChanged,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            MobileScanner(controller: _controller, onDetect: _onDetect),
-            const _ViewfinderOverlay(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _ScannerTopBar(onBack: () => Navigator.pop(context)),
-                _ScannerControls(
-                  controller: _controller,
-                  onPickFromGallery: _pickAndScanFromGallery,
-                ),
-              ],
-            ),
-          ],
-        ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(controller: _controller, onDetect: _onDetect),
+          const _ViewfinderOverlay(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _ScannerTopBar(onBack: () => Navigator.pop(context)),
+              _ScannerControls(
+                controller: _controller,
+                onPickFromGallery: _pickAndScanFromGallery,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+}
+
+/// Kết nối nghiệp vụ với vòng đời phiên quét của [_QrScanPageState].
+class _QrScanFlow implements QrScanFlow {
+  const _QrScanFlow(this._state);
+
+  final _QrScanPageState _state;
+
+  @override
+  void complete() {
+    if (_state.mounted) {
+      Navigator.of(_state.context).pop(true);
+    }
+  }
+
+  @override
+  void fail() => _state._scheduleResume();
 }
 
 /// Lớp phủ tối mờ với lỗ cắt vuông ở giữa và viền bo góc phát sáng.

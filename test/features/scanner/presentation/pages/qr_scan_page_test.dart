@@ -5,10 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:toastification/toastification.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
 import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
-import 'package:sms_navigator/features/pairing/presentation/pages/qr_scan_page.dart';
+import 'package:sms_navigator/features/pairing/presentation/pages/pairing_qr_scan_page.dart';
+import 'package:sms_navigator/features/scanner/presentation/pages/qr_scan_page.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
 class _RecordingPairingRepository implements PairingRepository {
@@ -55,6 +57,8 @@ class _FakeScannerController extends MobileScannerController {
       analyzeResult;
 }
 
+const _validPairingQr = '{"v":2,"k":"pairkey1234567890","s":"SECRET"}';
+
 void main() {
   const imagePickerChannel = MethodChannel('plugins.flutter.io/image_picker');
 
@@ -87,21 +91,24 @@ void main() {
     required MobileScannerController controller,
   }) async {
     await tester.pumpWidget(
-      BlocProvider<PairingBloc>.value(
-        value: bloc,
-        child: MaterialApp(
-          locale: const Locale('vi'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (context) => Center(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => QrScanPage(controller: controller),
+      ToastificationWrapper(
+        child: BlocProvider<PairingBloc>.value(
+          value: bloc,
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) => Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          PairingQrScanPage(controller: controller),
+                    ),
                   ),
+                  child: const Text('open'),
                 ),
-                child: const Text('open'),
               ),
             ),
           ),
@@ -113,13 +120,13 @@ void main() {
   }
 
   testWidgets(
-    'gallery image containing a QR code submits the pairing event',
+    'gallery image containing a pairing QR submits the pairing event',
     (tester) async {
       final repository = _RecordingPairingRepository();
       final bloc = PairingBloc(repository: repository);
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(
-          barcodes: [Barcode(rawValue: '{"v":1,"pairId":"p"}')],
+          barcodes: [Barcode(rawValue: _validPairingQr)],
         ),
       );
       mockImagePicker('/tmp/fake_qr.png');
@@ -128,7 +135,36 @@ void main() {
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(repository.submittedQr, ['{"v":1,"pairId":"p"}']);
+      expect(repository.submittedQr, [_validPairingQr]);
+      // Toast thành công của Bloc có timer tự hủy 3s - cho nó chạy hết
+      // để không còn pending timer khi test kết thúc.
+      await tester.pump(const Duration(seconds: 4));
+      unawaited(bloc.close());
+    },
+  );
+
+  testWidgets(
+    'unrecognized QR payload shows a toast and is not dispatched',
+    (tester) async {
+      final repository = _RecordingPairingRepository();
+      final bloc = PairingBloc(repository: repository);
+      final controller = _FakeScannerController(
+        analyzeResult: const BarcodeCapture(
+          barcodes: [
+            Barcode(rawValue: 'https://example.com/some/other/qr'),
+          ],
+        ),
+      );
+      mockImagePicker('/tmp/foreign_qr.png');
+
+      await pumpScannerPage(tester, bloc: bloc, controller: controller);
+      await tester.tap(find.byIcon(Icons.photo_library_rounded));
+      await pumpFrames(tester);
+
+      expect(repository.submittedQr, isEmpty);
+      expect(find.text('Mã QR này không được SMS Navigator hỗ trợ'),
+          findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
       unawaited(bloc.close());
     },
   );
@@ -149,6 +185,7 @@ void main() {
 
       expect(repository.submittedQr, isEmpty);
       expect(find.byType(QrScanPage), findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
       unawaited(bloc.close());
     },
   );

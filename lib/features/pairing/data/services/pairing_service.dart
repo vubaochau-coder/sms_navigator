@@ -46,18 +46,43 @@ class PairingServiceImpl implements PairingService {
 
   @override
   Future<PairingPayloadModel> generateSenderPairing() async {
+    final api = apiClient;
+    if (api == null) {
+      throw const ApiException(
+        'Chưa cấu hình kết nối máy chủ, không thể tạo phiên ghép đôi.',
+      );
+    }
+
     final sharedSecretBase64 = CryptoHelper.generateSecretKeyBase64();
-    final pairId =
-        'pair_${DateTime.now().millisecondsSinceEpoch.toRadixString(16)}_${CryptoHelper.sha256Hash(sharedSecretBase64).substring(0, 8)}';
     final now = DateTime.now().millisecondsSinceEpoch;
-    final expiresAt = now + (10 * 60 * 1000); // 10 minutes
+
+    // Máy chủ phát hành cả pairId lẫn one-time pairing_key; client chỉ sinh
+    // shared secret (máy chủ không bao giờ biết giá trị này).
+    final response = await api.post(
+      ApiEndpoints.initPair,
+      body: <String, dynamic>{},
+    );
+    final map = DataConverter.cvToMap<String, dynamic>(response);
+    final success = DataConverter.cvToBool(map?['success']) == true;
+    final pairId = DataConverter.cvToString(map?['pair_id'], '')!;
+    final pairingKey = DataConverter.cvToString(map?['pairing_key'], '')!;
+    if (!success || pairId.isEmpty || pairingKey.isEmpty) {
+      throw ApiException(
+        DataConverter.cvToString(
+              map?['message'],
+              'Khởi tạo ghép đôi thất bại',
+            )!,
+      );
+    }
+    final expiresAt =
+        _parseServerExpiryMs(map?['expires_at']) ?? now + (10 * 60 * 1000);
 
     final payload = PairingPayloadModel(
       pairId: pairId,
+      pairingKey: pairingKey,
       sharedSecretBase64: sharedSecretBase64,
       createdAt: now,
       expiresAt: expiresAt,
-      code: '',
     );
 
     // Đăng ký thiết bị gửi với server trước khi mở phiên ghép đôi nếu có kết nối.
@@ -66,23 +91,6 @@ class PairingServiceImpl implements PairingService {
         deviceName: await _resolveDeviceName(),
         platform: _platformAndroid,
       );
-    }
-    if (apiClient != null) {
-      final response = await apiClient!.post(
-        ApiEndpoints.initPair,
-        body: {'pair_id': payload.pairId},
-      );
-      if (response is Map<String, dynamic>) {
-        if (DataConverter.cvToBool(response['success']) != true ||
-            DataConverter.cvToString(response['pair_id']) == null) {
-          throw ApiException(
-            DataConverter.cvToString(
-                  response['message'],
-                  'Khởi tạo ghép đôi thất bại',
-                )!,
-          );
-        }
-      }
     }
 
     // Cập nhật cấu hình relay (kèm relayUrl, deviceToken, deviceId) cho Android native.
@@ -102,6 +110,13 @@ class PairingServiceImpl implements PairingService {
     );
 
     return payload;
+  }
+
+  /// `expires_at` từ server là chuỗi ISO 8601 UTC.
+  int? _parseServerExpiryMs(Object? value) {
+    final iso = DataConverter.cvToString(value, '');
+    if (iso == null || iso.isEmpty) return null;
+    return DateTime.tryParse(iso)?.toUtc().millisecondsSinceEpoch;
   }
 
   @override
@@ -134,6 +149,13 @@ class PairingServiceImpl implements PairingService {
       );
     }
 
+    final api = apiClient;
+    if (api == null) {
+      throw const ApiException(
+        'Chưa cấu hình kết nối máy chủ, không thể xác nhận ghép đôi.',
+      );
+    }
+
     // Lấy FCM token hiện tại để đồng bộ nhận thông báo tức thì từ server.
     // Nếu chưa có FCM token, tuyệt đối không bịa token giả mà để optional (không gửi field fcm_token).
     final storedFcm = await deviceStorageService?.getFcmToken();
@@ -148,34 +170,42 @@ class PairingServiceImpl implements PairingService {
         platform: _platformAndroid,
       );
     }
-    if (apiClient != null) {
-      final deviceName = await _resolveDeviceName();
-      final body = <String, dynamic>{
-        'pair_id': payload.pairId,
-        if (deviceName != null && deviceName.isNotEmpty) 'device_name': deviceName,
-        'platform': _platformAndroid,
-      };
-      if (fcmToken != null) {
-        body['fcm_token'] = fcmToken;
-      }
-      final response = await apiClient!.post(
-        ApiEndpoints.confirmPair,
-        body: body,
+
+    final deviceName = await _resolveDeviceName();
+    final body = <String, dynamic>{
+      // Bằng chứng sở hữu QR: server chỉ xác nhận khi pairing_key khớp
+      // phiên còn hiệu lực và chưa được sử dụng (one-time).
+      'pairing_key': payload.pairingKey,
+      if (deviceName != null && deviceName.isNotEmpty) 'device_name': deviceName,
+      'platform': _platformAndroid,
+    };
+    if (fcmToken != null) {
+      body['fcm_token'] = fcmToken;
+    }
+
+    final response = await api.post(
+      ApiEndpoints.confirmPair,
+      body: body,
+    );
+    final map = DataConverter.cvToMap<String, dynamic>(response);
+    if (map == null || DataConverter.cvToBool(map['success']) != true) {
+      throw ApiException(
+        DataConverter.cvToString(
+              map?['message'],
+              'Server từ chối xác nhận ghép đôi',
+            )!,
       );
-      if (response is Map<String, dynamic> &&
-          DataConverter.cvToBool(response['success']) != true) {
-        throw ApiException(
-          DataConverter.cvToString(
-                response['message'],
-                'Server từ chối xác nhận ghép đôi',
-              )!,
-        );
-      }
+    }
+
+    // pairId do máy chủ phát hành và chỉ được biết sau khi confirm thành công.
+    final confirmedPairId = DataConverter.cvToString(map['pair_id'], '')!;
+    if (confirmedPairId.isEmpty) {
+      throw const ApiException('Máy chủ không trả về mã phiên ghép đôi.');
     }
 
     await localStorageService.setString(
       StorageKeys.receiverPairId,
-      payload.pairId,
+      confirmedPairId,
     );
     await localStorageService.setString(
       StorageKeys.receiverSharedSecret,
@@ -199,8 +229,10 @@ class PairingServiceImpl implements PairingService {
 
     if (pairId == null || sharedSecret == null) return null;
 
+    // pairing_key không được lưu lại: nó đã được tiêu (one-time) lúc confirm.
     return PairingPayloadModel(
       pairId: pairId,
+      pairingKey: '',
       sharedSecretBase64: sharedSecret,
       createdAt: 0,
       expiresAt: 0,

@@ -4,45 +4,48 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/utils/data_converter.dart';
 
+/// Phiên ghép đôi - giao thức QR v2.
+///
+/// QR chỉ mang cặp `[pairingKey, sharedSecret]` do máy chủ cấp/sinh ra;
+/// `pairId` do máy chủ phát hành và KHÔNG nằm trong QR (máy B nhận pairId
+/// từ response của /pair/confirm).
 class PairingPayloadModel extends Equatable {
   final String pairId;
+  final String pairingKey;
   final String sharedSecretBase64;
   final int createdAt;
   final int expiresAt;
 
-  /// Giữ lại để tương thích ngược với code cũ tham chiếu trường `code`.
-  final String code;
-
   const PairingPayloadModel({
     required this.pairId,
+    required this.pairingKey,
     required this.sharedSecretBase64,
     required this.createdAt,
     required this.expiresAt,
-    this.code = '',
   });
 
   bool get isExpired => DateTime.now().millisecondsSinceEpoch > expiresAt;
 
   PairingPayloadModel copyWith({
     String? pairId,
+    String? pairingKey,
     String? sharedSecretBase64,
     int? createdAt,
     int? expiresAt,
-    String? code,
   }) {
     return PairingPayloadModel(
       pairId: pairId ?? this.pairId,
+      pairingKey: pairingKey ?? this.pairingKey,
       sharedSecretBase64: sharedSecretBase64 ?? this.sharedSecretBase64,
       createdAt: createdAt ?? this.createdAt,
       expiresAt: expiresAt ?? this.expiresAt,
-      code: code ?? this.code,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'pairId': pairId,
-      'code': code,
+      'pairingKey': pairingKey,
       'sharedSecretBase64': sharedSecretBase64,
       'secret': sharedSecretBase64,
       'createdAt': createdAt,
@@ -53,7 +56,7 @@ class PairingPayloadModel extends Equatable {
   factory PairingPayloadModel.fromMap(Map<String, dynamic> map) {
     return PairingPayloadModel(
       pairId: DataConverter.cvToString(map['pairId'], '')!,
-      code: DataConverter.cvToString(map['code'], '')!,
+      pairingKey: DataConverter.cvToString(map['pairingKey'], '')!,
       sharedSecretBase64: DataConverter.cvToString(
         map['sharedSecretBase64'] ?? map['secret'],
         '',
@@ -63,17 +66,20 @@ class PairingPayloadModel extends Equatable {
     );
   }
 
-  /// Xuất dữ liệu JSON nhúng vào mã QR ghép đôi.
+  /// Xuất dữ liệu JSON nhúng vào mã QR ghép đôi (giao thức v2):
+  /// - `k`: one-time pairing key do máy chủ cấp (bằng chứng sở hữu QR).
+  /// - `s`: shared secret mã hoá nội dung OTP (E2E, máy chủ không biết).
+  /// - `e`: thời điểm hết hạn (epoch ms, cửa sổ 10 phút).
   String toQrData() {
     return jsonEncode({
-      'v': 1,
-      'pairId': pairId,
-      'secret': sharedSecretBase64,
-      'exp': expiresAt,
+      'v': 2,
+      'k': pairingKey,
+      's': sharedSecretBase64,
+      'e': expiresAt,
     });
   }
 
-  /// Parse dữ liệu JSON đọc được từ mã QR ghép đôi.
+  /// Parse dữ liệu JSON đọc được từ mã QR ghép đôi (chỉ nhận giao thức v2).
   factory PairingPayloadModel.fromQrData(String rawData) {
     final Object? decoded;
     try {
@@ -84,27 +90,44 @@ class PairingPayloadModel extends Equatable {
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
     }
-    final map = decoded;
-    final pairId = DataConverter.cvToString(map['pairId'], '')!;
-    final secret = DataConverter.cvToString(map['secret'], '')!;
-    final exp = DataConverter.cvToInt(map['exp'], 0)!;
-    if (pairId.isEmpty || secret.isEmpty) {
+    if (!_isPairingQrMap(decoded)) {
       throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
     }
+    final map = decoded;
     return PairingPayloadModel(
-      pairId: pairId,
-      sharedSecretBase64: secret,
+      pairId: '',
+      pairingKey: map['k'] as String,
+      sharedSecretBase64: map['s'] as String,
       createdAt: DateTime.now().millisecondsSinceEpoch,
-      expiresAt: exp,
+      expiresAt: DataConverter.cvToInt(map['e'], 0)!,
     );
+  }
+
+  /// Kiểm tra nhanh payload thô (từ camera/ảnh/deep link) có phải QR ghép
+  /// đôi giao thức v2 hay không - dùng bởi QrScanHandlerRegistry.
+  static bool looksLikePairingQr(String rawData) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(rawData);
+    } on FormatException {
+      return false;
+    }
+    return decoded is Map<String, dynamic> && _isPairingQrMap(decoded);
+  }
+
+  static bool _isPairingQrMap(Map<String, dynamic> map) {
+    if (map['v'] != 2) return false;
+    final key = map['k'];
+    final secret = map['s'];
+    return key is String && key.isNotEmpty && secret is String && secret.isNotEmpty;
   }
 
   @override
   List<Object?> get props => [
     pairId,
+    pairingKey,
     sharedSecretBase64,
     createdAt,
     expiresAt,
-    code,
   ];
 }

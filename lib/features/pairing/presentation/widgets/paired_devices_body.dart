@@ -15,7 +15,7 @@ import '../bloc/paired_senders_bloc.dart';
 import '../bloc/paired_senders_event.dart';
 import '../bloc/paired_senders_state.dart';
 import '../pages/pairing_sender_page.dart';
-import '../pages/qr_scan_page.dart';
+import '../pages/pairing_qr_scan_page.dart';
 import 'paired_receiver_card.dart';
 import 'paired_sender_card.dart';
 
@@ -171,7 +171,7 @@ class PairedSendersBody extends StatelessWidget {
       emptyActionLabel: l10n.scanSenderQrAction,
       onEmptyAction: (context) async {
         await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const QrScanPage()),
+          MaterialPageRoute(builder: (_) => const PairingQrScanPage()),
         );
         if (context.mounted) {
           BlocProvider.of<PairedSendersBloc>(context).add(const PairedSendersLoadEvent());

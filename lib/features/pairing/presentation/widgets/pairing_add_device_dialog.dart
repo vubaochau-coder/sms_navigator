@@ -8,7 +8,7 @@ import '../bloc/paired_receivers_event.dart';
 import '../bloc/paired_senders_bloc.dart';
 import '../bloc/paired_senders_event.dart';
 import '../pages/pairing_sender_page.dart';
-import '../pages/qr_scan_page.dart';
+import '../pages/pairing_qr_scan_page.dart';
 
 /// Dialog chọn loại ghép đôi (Tạo mã QR cho máy nhận hoặc Quét QR cho máy gửi).
 class PairingAddDeviceDialog extends StatelessWidget {
@@ -43,7 +43,7 @@ class PairingAddDeviceDialog extends StatelessWidget {
     Navigator.of(context).pop();
     await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const QrScanPage()));
+    ).push(MaterialPageRoute(builder: (_) => const PairingQrScanPage()));
     if (context.mounted) {
       BlocProvider.of<PairedSendersBloc>(context).add(
         const PairedSendersLoadEvent(),

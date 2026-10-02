@@ -9,7 +9,7 @@ import '../../../device/presentation/bloc/device_setup_state.dart';
 import '../../../device/presentation/dialogs/sms_permission_prompt_dialog.dart';
 import '../../../otp_list/presentation/pages/otp_list_page.dart';
 import '../../../pairing/presentation/pages/pairing_hub_page.dart';
-import '../../../pairing/presentation/pages/qr_scan_page.dart';
+import '../../../pairing/presentation/pages/pairing_qr_scan_page.dart';
 
 class MainNavigationPage extends StatelessWidget {
   const MainNavigationPage({super.key});
@@ -56,7 +56,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
   void _openQrScanner() {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const QrScanPage()));
+    ).push(MaterialPageRoute(builder: (_) => const PairingQrScanPage()));
   }
 
   @override
