@@ -4,6 +4,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../data/repositories/pairing_repository.dart';
+import '../../data/services/qr_image_export_service.dart';
 import 'pairing_event.dart';
 import 'pairing_state.dart';
 
@@ -33,6 +34,7 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       _onCheckReceiverStatus,
       transformer: restartable(),
     );
+    on<PairingExportQrRequested>(_onExportQrRequested, transformer: droppable());
     on<PairingDisconnectReceiverEvent>(
       _onDisconnectReceiver,
       transformer: droppable(),
@@ -135,6 +137,51 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       );
     } catch (_) {
       emit(state.copyWith(isLoading: false));
+    }
+  }
+
+  Future<void> _onExportQrRequested(
+    PairingExportQrRequested event,
+    Emitter emit,
+  ) async {
+    final payload = state.pairingPayload;
+    if (payload == null) {
+      emit(
+        state.copyWith(
+          qrExportStatus: QrExportStatus.noQr,
+          qrExportToken: state.qrExportToken + 1,
+        ),
+      );
+      return;
+    }
+    emit(state.copyWith(isExportingQr: true, qrExportStatus: null));
+    try {
+      await repository.exportPairingQr(payload);
+      emit(
+        state.copyWith(
+          isExportingQr: false,
+          qrExportStatus: QrExportStatus.success,
+          qrExportToken: state.qrExportToken + 1,
+        ),
+      );
+    } on QrImageExportException catch (e) {
+      emit(
+        state.copyWith(
+          isExportingQr: false,
+          qrExportStatus: e.accessDenied
+              ? QrExportStatus.permissionDenied
+              : QrExportStatus.genericFailure,
+          qrExportToken: state.qrExportToken + 1,
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          isExportingQr: false,
+          qrExportStatus: QrExportStatus.genericFailure,
+          qrExportToken: state.qrExportToken + 1,
+        ),
+      );
     }
   }
 

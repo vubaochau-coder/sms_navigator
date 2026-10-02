@@ -155,18 +155,18 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String addWhitelistSuccess(String prefix) {
-    return 'Đã thêm đầu số $prefix vào bộ lọc';
+  String addWhitelistSuccess(String address) {
+    return 'Đã thêm địa chỉ $address vào bộ lọc';
   }
 
   @override
-  String removeWhitelistSuccess(String prefix) {
-    return 'Đã xóa đầu số $prefix';
+  String removeWhitelistSuccess(String address) {
+    return 'Đã xóa địa chỉ $address';
   }
 
   @override
   String get addWhitelistHint =>
-      'Nhập đầu số hoặc tên đơn vị gửi (VD: VCB, BIDV, 1555)';
+      'Nhập đầu số hoặc brandname gửi tin (VD: VCB, BIDV, 1555). Địa chỉ được so khớp chính xác toàn phần, phân biệt hoa thường.';
 
   @override
   String get otpListTitle => 'Lịch sử nhận OTP';
@@ -555,4 +555,27 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get whitelistRemoveAction => 'Xóa địa chỉ';
+
+  @override
+  String get saveQrImageAction => 'Lưu ảnh QR';
+
+  @override
+  String get qrImageExportSuccess => 'Đã lưu ảnh mã QR vào thư viện máy';
+
+  @override
+  String get qrImageExportFailed =>
+      'Không thể lưu ảnh mã QR. Vui lòng thử lại.';
+
+  @override
+  String get qrImageExportPermissionDenied =>
+      'Chưa được cấp quyền lưu ảnh vào thư viện';
+
+  @override
+  String get qrImageExportNoQr => 'Chưa có mã QR ghép đôi để lưu';
+
+  @override
+  String get scannerPickFromGallery => 'Chọn ảnh từ thư viện';
+
+  @override
+  String get scannerNoQrFound => 'Không tìm thấy mã QR trong ảnh đã chọn';
 }

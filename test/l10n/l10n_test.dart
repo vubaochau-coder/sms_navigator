@@ -38,7 +38,7 @@ void main() {
     );
     expect(
       localizations.addWhitelistSuccess('1555'),
-      equals('Đã thêm đầu số 1555 vào bộ lọc'),
+      equals('Đã thêm địa chỉ 1555 vào bộ lọc'),
     );
     expect(
       localizations.themeSwitchToLight,

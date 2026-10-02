@@ -43,27 +43,6 @@ class OtpPreferences(context: Context) {
         }
 
     /**
-     * Checks if the sender matches any whitelist entry or prefix.
-     * Supports phone number prefixes (+86, 1069, 090...), exact numbers, or Brandnames.
-     */
-    fun isSenderWhitelisted(sender: String): Boolean {
-        if (sender.isBlank()) return false
-        val cleanSender = sender.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
-        val list = senderWhitelist
-        if (list.isEmpty()) return false
-
-        return list.any { rawItem ->
-            val cleanItem = rawItem.replace(Regex("""[\s\-\(\)]"""), "").lowercase()
-            if (cleanItem.isBlank()) false
-            else {
-                cleanSender.startsWith(cleanItem) ||
-                cleanSender == cleanItem ||
-                cleanSender.contains(cleanItem)
-            }
-        }
-    }
-
-    /**
      * Đọc cấu hình white-list v2. Nếu chưa có (lần chạy đầu sau nâng cấp),
      * migrate từ cấu hình legacy (relay_mode + sender_whitelist) một lần duy nhất.
      */

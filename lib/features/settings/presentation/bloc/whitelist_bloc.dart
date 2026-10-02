@@ -51,7 +51,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     }
 
     final isDuplicate = state.config.entries.any(
-      (entry) => entry.address.toLowerCase() == address.toLowerCase(),
+      (entry) => entry.address == address,
     );
     if (isDuplicate) {
       ToastUtils.showError('Địa chỉ "$address" đã có trong danh sách');
@@ -74,7 +74,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     final updated = state.config.copyWith(
       entries: state.config.entries
           .map(
-            (entry) => entry.address.toLowerCase() == event.entry.address.toLowerCase()
+            (entry) => entry.address == event.entry.address
                 ? entry.copyWith(allowOtp: !entry.allowOtp)
                 : entry,
           )
@@ -90,7 +90,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     final updated = state.config.copyWith(
       entries: state.config.entries
           .where(
-            (entry) => entry.address.toLowerCase() != event.entry.address.toLowerCase(),
+            (entry) => entry.address != event.entry.address,
           )
           .toList(),
     );

@@ -361,19 +361,19 @@ abstract class AppLocalizations {
   /// No description provided for @addWhitelistSuccess.
   ///
   /// In vi, this message translates to:
-  /// **'Đã thêm đầu số {prefix} vào bộ lọc'**
-  String addWhitelistSuccess(String prefix);
+  /// **'Đã thêm địa chỉ {address} vào bộ lọc'**
+  String addWhitelistSuccess(String address);
 
   /// No description provided for @removeWhitelistSuccess.
   ///
   /// In vi, this message translates to:
-  /// **'Đã xóa đầu số {prefix}'**
-  String removeWhitelistSuccess(String prefix);
+  /// **'Đã xóa địa chỉ {address}'**
+  String removeWhitelistSuccess(String address);
 
   /// No description provided for @addWhitelistHint.
   ///
   /// In vi, this message translates to:
-  /// **'Nhập đầu số hoặc tên đơn vị gửi (VD: VCB, BIDV, 1555)'**
+  /// **'Nhập đầu số hoặc brandname gửi tin (VD: VCB, BIDV, 1555). Địa chỉ được so khớp chính xác toàn phần, phân biệt hoa thường.'**
   String get addWhitelistHint;
 
   /// No description provided for @otpListTitle.
@@ -1089,6 +1089,48 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Xóa địa chỉ'**
   String get whitelistRemoveAction;
+
+  /// No description provided for @saveQrImageAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu ảnh QR'**
+  String get saveQrImageAction;
+
+  /// No description provided for @qrImageExportSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã lưu ảnh mã QR vào thư viện máy'**
+  String get qrImageExportSuccess;
+
+  /// No description provided for @qrImageExportFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lưu ảnh mã QR. Vui lòng thử lại.'**
+  String get qrImageExportFailed;
+
+  /// No description provided for @qrImageExportPermissionDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa được cấp quyền lưu ảnh vào thư viện'**
+  String get qrImageExportPermissionDenied;
+
+  /// No description provided for @qrImageExportNoQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có mã QR ghép đôi để lưu'**
+  String get qrImageExportNoQr;
+
+  /// No description provided for @scannerPickFromGallery.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ảnh từ thư viện'**
+  String get scannerPickFromGallery;
+
+  /// No description provided for @scannerNoQrFound.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy mã QR trong ảnh đã chọn'**
+  String get scannerNoQrFound;
 }
 
 class _AppLocalizationsDelegate

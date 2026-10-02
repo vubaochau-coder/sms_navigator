@@ -33,6 +33,10 @@ class PairingCheckReceiverStatusEvent extends PairingEvent {
   const PairingCheckReceiverStatusEvent();
 }
 
+class PairingExportQrRequested extends PairingEvent {
+  const PairingExportQrRequested();
+}
+
 class PairingDisconnectReceiverEvent extends PairingEvent {
   const PairingDisconnectReceiverEvent();
 }

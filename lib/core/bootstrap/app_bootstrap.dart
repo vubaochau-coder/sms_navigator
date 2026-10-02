@@ -8,6 +8,7 @@ import '../../features/otp_list/data/repositories/otp_list_repository.dart';
 import '../../features/pairing/data/repositories/pairing_repository.dart';
 import '../../features/pairing/data/services/pair_management_service.dart';
 import '../../features/pairing/data/services/pairing_service.dart';
+import '../../features/pairing/data/services/qr_image_export_service.dart';
 import '../../features/receiver/data/services/receiver_storage_service.dart';
 import '../../features/sender/data/services/native_relay_service.dart';
 import '../../features/settings/data/repositories/whitelist_repository.dart';
@@ -100,9 +101,13 @@ class AppBootstrap extends StatelessWidget {
             deviceStorageService: context.read<DeviceStorageService>(),
           ),
         ),
+        RepositoryProvider<QrImageExportService>(
+          create: (_) => const QrImageExportServiceImpl(),
+        ),
         RepositoryProvider<PairingRepository>(
           create: (context) => PairingRepositoryImpl(
             pairingService: context.read<PairingService>(),
+            qrImageExportService: context.read<QrImageExportService>(),
           ),
         ),
         RepositoryProvider<PairManagementService>(

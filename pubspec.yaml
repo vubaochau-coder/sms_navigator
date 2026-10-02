@@ -55,6 +55,8 @@ dependencies:
   table_calendar: 3.2.1
   bloc_concurrency: 0.3.0
   shimmer: 4.0.0
+  gal: 2.3.3
+  image_picker: 1.2.3
 
 dev_dependencies:
   flutter_test:

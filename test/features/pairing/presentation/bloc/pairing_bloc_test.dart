@@ -4,14 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
 import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
 import 'package:sms_navigator/features/pairing/data/services/pairing_service.dart';
+import 'package:sms_navigator/features/pairing/data/services/qr_image_export_service.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_event.dart';
 import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_state.dart';
 
 class _FakePairingRepository implements PairingRepository {
-  _FakePairingRepository({required this.onSubmitQr});
+  _FakePairingRepository({required this.onSubmitQr, this.exportError});
 
   final bool Function(String qrData) onSubmitQr;
+
+  /// Lỗi ném ra khi export QR; null = export thành công.
+  final Object? exportError;
+
+  int exportCallCount = 0;
 
   @override
   Future<PairingPayloadModel> createSenderPairingSession() async {
@@ -40,6 +46,13 @@ class _FakePairingRepository implements PairingRepository {
 
   @override
   Future<bool> disconnectReceiver() async => true;
+
+  @override
+  Future<void> exportPairingQr(PairingPayloadModel payload) async {
+    exportCallCount++;
+    final error = exportError;
+    if (error != null) throw error;
+  }
 }
 
 Future<List<PairingState>> _collectUntil(
@@ -128,13 +141,137 @@ void main() {
     'repository submitReceiverPairingCode forwards to QR submission',
     () async {
       final probe = _ForwardingServiceProbe();
-      final repo = PairingRepositoryImpl(pairingService: probe);
+      final repo = PairingRepositoryImpl(
+        pairingService: probe,
+        qrImageExportService: const QrImageExportServiceImpl(),
+      );
 
       await repo.submitReceiverPairingCode('123456');
 
       expect(probe.received, ['123456']);
     },
   );
+
+  group('PairingExportQrRequested', () {
+    test('export success emits success status and bumps qrExportToken',
+        () async {
+      final bloc = PairingBloc(
+        repository: _FakePairingRepository(onSubmitQr: (_) => true),
+      );
+      bloc.add(const PairingGenerateSenderCodeEvent());
+      await Future<void>.delayed(Duration.zero);
+
+      final statesFuture = _collectUntil(
+        bloc,
+        (state) => state.qrExportToken == 1,
+      );
+      bloc.add(const PairingExportQrRequested());
+      final states = await statesFuture;
+      await bloc.close();
+
+      expect(states.last.isExportingQr, isFalse);
+      expect(states.last.qrExportStatus, QrExportStatus.success);
+      expect(states.last.qrExportToken, 1);
+    });
+
+    test(
+      'export access-denied failure emits permissionDenied status',
+      () async {
+        final bloc = PairingBloc(
+          repository: _FakePairingRepository(
+            onSubmitQr: (_) => true,
+            exportError: const QrImageExportException(
+              'Chưa được cấp quyền lưu ảnh vào thư viện.',
+              accessDenied: true,
+            ),
+          ),
+        );
+        bloc.add(const PairingGenerateSenderCodeEvent());
+        await Future<void>.delayed(Duration.zero);
+
+        final statesFuture = _collectUntil(
+          bloc,
+          (state) => state.qrExportToken == 1,
+        );
+        bloc.add(const PairingExportQrRequested());
+        final states = await statesFuture;
+        await bloc.close();
+
+        expect(states.last.isExportingQr, isFalse);
+        expect(states.last.qrExportStatus, QrExportStatus.permissionDenied);
+        expect(states.last.qrExportToken, 1);
+      },
+    );
+
+    test(
+      'export unexpected failure emits genericFailure status',
+      () async {
+        final bloc = PairingBloc(
+          repository: _FakePairingRepository(
+            onSubmitQr: (_) => true,
+            exportError: const QrImageExportException('Lỗi lưu ảnh'),
+          ),
+        );
+        bloc.add(const PairingGenerateSenderCodeEvent());
+        await Future<void>.delayed(Duration.zero);
+
+        final statesFuture = _collectUntil(
+          bloc,
+          (state) => state.qrExportToken == 1,
+        );
+        bloc.add(const PairingExportQrRequested());
+        final states = await statesFuture;
+        await bloc.close();
+
+        expect(states.last.qrExportStatus, QrExportStatus.genericFailure);
+        expect(states.last.qrExportToken, 1);
+      },
+    );
+
+    test(
+      'repeated identical export failures bump qrExportToken each time',
+      () async {
+        final bloc = PairingBloc(
+          repository: _FakePairingRepository(
+            onSubmitQr: (_) => true,
+            exportError: const QrImageExportException('Lỗi lưu ảnh'),
+          ),
+        );
+        bloc.add(const PairingGenerateSenderCodeEvent());
+        await Future<void>.delayed(Duration.zero);
+
+        bloc.add(const PairingExportQrRequested());
+        await _collectUntil(bloc, (state) => state.qrExportToken == 1);
+
+        bloc.add(const PairingExportQrRequested());
+        final states = await _collectUntil(
+          bloc,
+          (state) => state.qrExportToken == 2,
+        );
+        await bloc.close();
+
+        expect(states.last.qrExportStatus, QrExportStatus.genericFailure);
+        expect(states.last.qrExportToken, 2);
+      },
+    );
+
+    test('export without payload emits noQr status', () async {
+      final repository = _FakePairingRepository(onSubmitQr: (_) => true);
+      final bloc = PairingBloc(repository: repository);
+
+      final statesFuture = _collectUntil(
+        bloc,
+        (state) => state.qrExportToken == 1,
+      );
+      bloc.add(const PairingExportQrRequested());
+      final states = await statesFuture;
+      await bloc.close();
+
+      expect(repository.exportCallCount, 0);
+      expect(states.last.qrExportStatus, QrExportStatus.noQr);
+      expect(states.last.isExportingQr, isFalse);
+    });
+  });
 }
 
 class _ForwardingServiceProbe implements PairingService {

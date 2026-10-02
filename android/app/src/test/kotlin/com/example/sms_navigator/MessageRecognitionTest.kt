@@ -27,40 +27,48 @@ class MessageRecognitionTest {
     // ==========================================
 
     @Test
-    fun testRecognizeSenderByInternationalPrefix() {
-        // Whitelist cấu hình đầu số Trung Quốc (+86, 1069) và đầu số Việt Nam (+84, 090)
-        val whitelist = listOf("+86", "1069", "+84", "090")
+    fun testRecognizeSenderByExactAddress() {
+        // Whitelist cấu hình địa chỉ chính xác: số quốc tế, gateway, số nội địa
+        val whitelist = listOf("+8613800138000", "10690001888", "+84987654321", "0909123456")
 
-        // Đầu số Trung Quốc
-        assertTrue("Should recognize China international prefix +86",
-            PhoneNormalizer.matches("+8613800138000", "+86"))
+        // Đầu số Trung Quốc — khớp nguyên số sau chuẩn hóa định dạng
+        assertTrue("Should recognize China number in exact form",
+            PhoneNormalizer.matches("+8613800138000", "+8613800138000"))
+
+        // Gateway số ngắn — khớp nguyên số
         assertTrue("Should recognize China enterprise SMS gateway 1069",
-            PhoneNormalizer.matches("10690001888", "1069"))
+            PhoneNormalizer.matches("10690001888", "10690001888"))
 
-        // Đầu số Việt Nam
-        assertTrue("Should recognize Vietnam international prefix +84",
-            PhoneNormalizer.matches("+84987654321", "+84"))
-        assertTrue("Should recognize domestic prefix 090",
-            PhoneNormalizer.matches("0909123456", "090"))
+        // Đầu số Việt Nam — khớp qua chuẩn hóa +84/84/0
+        assertTrue("Should recognize Vietnam number in national form",
+            PhoneNormalizer.matches("+84987654321", "0987654321"))
+        assertTrue("Should recognize domestic number with separators",
+            PhoneNormalizer.matches("+84 90 912 3456", "0909123456"))
 
         // Đầu số không thuộc whitelist
         val usaSender = "+12025550199"
         assertFalse("Should reject non-whitelisted USA sender",
             whitelist.any { PhoneNormalizer.matches(usaSender, it) })
 
-        // Whitelist chỉ chứa "090" -> đầu số 091 bị từ chối
-        assertFalse("Should reject non-whitelisted prefix 091",
-            PhoneNormalizer.matches("0912345678", "090"))
+        // Số khác trong cùng dải (091...) -> từ chối vì không khớp nguyên số
+        assertFalse("Should reject non-whitelisted number 091",
+            PhoneNormalizer.matches("0912345678", "0909123456"))
 
-        // Ngược lại, whitelist "+84" phủ mọi số VN sau chuẩn hóa (kể cả 091...)
-        assertTrue("Entry +84 covers all Vietnamese numbers after normalization",
-            PhoneNormalizer.matches("0912345678", "+84"))
+        // KHÔNG còn chấp nhận prefix: entry ngắn hơn không khớp số dài hơn
+        assertFalse("Prefix matching is no longer accepted",
+            PhoneNormalizer.matches("+8613800138000", "+86"))
+        assertFalse("Prefix matching is no longer accepted",
+            PhoneNormalizer.matches("10690001888", "1069"))
+        assertFalse("Prefix matching is no longer accepted",
+            PhoneNormalizer.matches("+84987654321", "+84"))
+        assertFalse("Prefix matching is no longer accepted",
+            PhoneNormalizer.matches("0909123456", "090"))
     }
 
     @Test
     fun testRecognizeSenderByBrandname() {
         assertTrue("Should recognize brandname Viettel", PhoneNormalizer.matches("Viettel", "Viettel"))
-        assertTrue("Should recognize brandname TPBank case-insensitively", PhoneNormalizer.matches("tpbank", "TPBank"))
+        assertFalse("Brandname matching is case-sensitive now", PhoneNormalizer.matches("tpbank", "TPBank"))
         assertTrue("Should recognize brandname Alipay", PhoneNormalizer.matches("Alipay", "Alipay"))
         assertTrue("Should recognize brandname WeChat", PhoneNormalizer.matches("WeChat", "WeChat"))
         assertTrue("Should recognize Chinese brandname 招商银行", PhoneNormalizer.matches("招商银行", "招商银行"))
@@ -71,13 +79,15 @@ class MessageRecognitionTest {
 
     @Test
     fun testRecognizeSenderWithPunctuationAndSpacing() {
-        // Số điện thoại chứa dấu ngoặc đơn, gạch ngang, dấu cách
-        assertTrue("Should recognize normalized phone number with spaces",
-            PhoneNormalizer.matches("+84 90 123 4567", "+8490"))
-        assertTrue("Should recognize normalized phone number with dashes",
+        // Số điện thoại chứa dấu ngoặc đơn, gạch ngang, dấu cách — so nguyên số sau khi bỏ ký tự phân cách
+        assertTrue("Should recognize full phone number with spaces",
+            PhoneNormalizer.matches("+84 90 123 4567", "+84901234567"))
+        assertTrue("Should recognize full phone number with dashes",
             PhoneNormalizer.matches("090-123-4567", "0901234567"))
-        assertTrue("Should recognize normalized phone number with parentheses",
-            PhoneNormalizer.matches("+84 (90) 1234567", "+8490"))
+        assertTrue("Should recognize full phone number with parentheses",
+            PhoneNormalizer.matches("+84 (90) 1234567", "0901234567"))
+        assertTrue("Brandname with surrounding spaces still matches",
+            PhoneNormalizer.matches(" VCB ", "VCB"))
     }
 
     // ==========================================

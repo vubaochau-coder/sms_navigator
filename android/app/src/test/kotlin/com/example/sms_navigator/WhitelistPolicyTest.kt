@@ -92,18 +92,27 @@ class WhitelistPolicyTest {
     }
 
     @Test
+    fun `explicit case-sensitive entry does not match different case sender`() {
+        val entries = listOf(entry("VCB", allowOtp = true))
+        assertDrop(
+            WhitelistPolicy.evaluate(WhitelistMode.EXPLICIT, entries, "vcb", OtpConfidence.CONFIRMED),
+            WhitelistPolicy.REASON_NOT_WHITELISTED
+        )
+    }
+
+    @Test
     fun `explicit any-match-wins for otp permission`() {
         val entries = listOf(
-            entry("+8498", allowOtp = false),
-            entry("+84987654321", allowOtp = true)
+            entry("+84987654321", allowOtp = false),
+            entry("0987654321", allowOtp = true)
         )
         assertAllow(
             WhitelistPolicy.evaluate(WhitelistMode.EXPLICIT, entries, "+84987654321", OtpConfidence.CONFIRMED)
         )
 
         val reversed = listOf(
-            entry("+84987654321", allowOtp = true),
-            entry("+8498", allowOtp = false)
+            entry("0987654321", allowOtp = true),
+            entry("+84987654321", allowOtp = false)
         )
         assertAllow(
             WhitelistPolicy.evaluate(WhitelistMode.EXPLICIT, reversed, "+84987654321", OtpConfidence.CONFIRMED)
@@ -168,9 +177,18 @@ class WhitelistPolicyTest {
 
     @Test
     fun `all-addresses any-match-wins for otp permission`() {
-        val entries = listOf(entry("VCB", allowOtp = false), entry("vcb", allowOtp = true))
+        val entries = listOf(entry("VCB", allowOtp = false), entry(" VCB ", allowOtp = true))
         assertAllow(
             WhitelistPolicy.evaluate(WhitelistMode.ALL_ADDRESSES, entries, "VCB", OtpConfidence.CONFIRMED)
+        )
+    }
+
+    @Test
+    fun `all-addresses case-sensitive entry does not unlock otp`() {
+        val entries = listOf(entry("VCB", allowOtp = false), entry("vcb", allowOtp = true))
+        assertDrop(
+            WhitelistPolicy.evaluate(WhitelistMode.ALL_ADDRESSES, entries, "VCB", OtpConfidence.CONFIRMED),
+            WhitelistPolicy.REASON_OTP_NOT_ALLOWED
         )
     }
 }

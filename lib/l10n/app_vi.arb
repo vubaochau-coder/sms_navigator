@@ -65,19 +65,19 @@
       "mode": { "type": "String" }
     }
   },
-  "addWhitelistSuccess": "Đã thêm đầu số {prefix} vào bộ lọc",
+  "addWhitelistSuccess": "Đã thêm địa chỉ {address} vào bộ lọc",
   "@addWhitelistSuccess": {
     "placeholders": {
-      "prefix": { "type": "String" }
+      "address": { "type": "String" }
     }
   },
-  "removeWhitelistSuccess": "Đã xóa đầu số {prefix}",
+  "removeWhitelistSuccess": "Đã xóa địa chỉ {address}",
   "@removeWhitelistSuccess": {
     "placeholders": {
-      "prefix": { "type": "String" }
+      "address": { "type": "String" }
     }
   },
-  "addWhitelistHint": "Nhập đầu số hoặc tên đơn vị gửi (VD: VCB, BIDV, 1555)",
+  "addWhitelistHint": "Nhập đầu số hoặc brandname gửi tin (VD: VCB, BIDV, 1555). Địa chỉ được so khớp chính xác toàn phần, phân biệt hoa thường.",
   "otpListTitle": "Lịch sử nhận OTP",
   "otpListEmpty": "Chưa có mã OTP nào được ghi nhận",
   "otpDetailTitle": "Chi tiết tin nhắn OTP",
@@ -232,5 +232,12 @@
   "whitelistEmptyAddressError": "Địa chỉ không được để trống",
   "whitelistLoadFailed": "Không thể đọc cấu hình bộ lọc",
   "whitelistSaveFailed": "Không thể lưu cấu hình bộ lọc",
-  "whitelistRemoveAction": "Xóa địa chỉ"
+  "whitelistRemoveAction": "Xóa địa chỉ",
+  "saveQrImageAction": "Lưu ảnh QR",
+  "qrImageExportSuccess": "Đã lưu ảnh mã QR vào thư viện máy",
+  "qrImageExportFailed": "Không thể lưu ảnh mã QR. Vui lòng thử lại.",
+  "qrImageExportPermissionDenied": "Chưa được cấp quyền lưu ảnh vào thư viện",
+  "qrImageExportNoQr": "Chưa có mã QR ghép đôi để lưu",
+  "scannerPickFromGallery": "Chọn ảnh từ thư viện",
+  "scannerNoQrFound": "Không tìm thấy mã QR trong ảnh đã chọn"
 }

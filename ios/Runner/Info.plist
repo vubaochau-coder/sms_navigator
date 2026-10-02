@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Ứng dụng cần quyền Camera để quét mã QR ghép đôi thiết bị.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ứng dụng cần quyền lưu ảnh mã QR ghép đôi vào thư viện ảnh của bạn.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ứng dụng cần quyền truy cập thư viện ảnh để chọn ảnh mã QR ghép đôi.</string>
 </dict>
 </plist>

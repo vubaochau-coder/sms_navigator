@@ -1,6 +1,14 @@
 import 'package:equatable/equatable.dart';
 import '../../data/models/pairing_payload_model.dart';
 
+/// Kết quả lần xuất ảnh QR gần nhất — UI ánh xạ sang chuỗi l10n khi toast.
+enum QrExportStatus {
+  success,
+  genericFailure,
+  permissionDenied,
+  noQr,
+}
+
 class PairingState extends Equatable {
   static const int defaultCountdownSeconds = 600;
 
@@ -10,6 +18,9 @@ class PairingState extends Equatable {
   final PairingPayloadModel? pairingPayload;
   final bool isPaired;
   final int countdownSeconds;
+  final bool isExportingQr;
+  final QrExportStatus? qrExportStatus;
+  final int qrExportToken;
 
   const PairingState({
     this.isLoading = false,
@@ -18,6 +29,9 @@ class PairingState extends Equatable {
     this.pairingPayload,
     this.isPaired = false,
     this.countdownSeconds = defaultCountdownSeconds,
+    this.isExportingQr = false,
+    this.qrExportStatus,
+    this.qrExportToken = 0,
   });
 
   PairingState copyWith({
@@ -27,6 +41,9 @@ class PairingState extends Equatable {
     PairingPayloadModel? pairingPayload,
     bool? isPaired,
     int? countdownSeconds,
+    bool? isExportingQr,
+    QrExportStatus? qrExportStatus,
+    int? qrExportToken,
   }) {
     return PairingState(
       isLoading: isLoading ?? this.isLoading,
@@ -35,6 +52,9 @@ class PairingState extends Equatable {
       pairingPayload: pairingPayload ?? this.pairingPayload,
       isPaired: isPaired ?? this.isPaired,
       countdownSeconds: countdownSeconds ?? this.countdownSeconds,
+      isExportingQr: isExportingQr ?? this.isExportingQr,
+      qrExportStatus: qrExportStatus,
+      qrExportToken: qrExportToken ?? this.qrExportToken,
     );
   }
 
@@ -46,5 +66,8 @@ class PairingState extends Equatable {
     pairingPayload,
     isPaired,
     countdownSeconds,
+    isExportingQr,
+    qrExportStatus,
+    qrExportToken,
   ];
 }

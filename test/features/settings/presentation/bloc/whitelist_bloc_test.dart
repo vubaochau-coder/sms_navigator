@@ -96,7 +96,19 @@ void main() {
       expect(repository.saveCallCount, 0);
     });
 
-    test('rejects duplicate address case-insensitively', () async {
+    test('rejects exact duplicate address', () async {
+      bloc.add(const WhitelistStarted());
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const WhitelistEntryAdded(address: 'VCB'));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const WhitelistEntryAdded(address: 'VCB'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.config.entries.length, 1);
+      expect(repository.saveCallCount, 1);
+    });
+
+    test('different case address is a distinct entry (case-sensitive)', () async {
       bloc.add(const WhitelistStarted());
       await Future<void>.delayed(Duration.zero);
       bloc.add(const WhitelistEntryAdded(address: 'VCB'));
@@ -104,8 +116,12 @@ void main() {
       bloc.add(const WhitelistEntryAdded(address: 'vcb'));
       await Future<void>.delayed(Duration.zero);
 
-      expect(bloc.state.config.entries.length, 1);
-      expect(repository.saveCallCount, 1);
+      expect(bloc.state.config.entries.length, 2);
+      expect(repository.saveCallCount, 2);
+      expect(
+        bloc.state.config.entries.map((entry) => entry.address),
+        containsAll(['VCB', 'vcb']),
+      );
     });
   });
 

@@ -1,9 +1,9 @@
 package com.example.sms_navigator.policy
 
 /**
- * Chuẩn hóa và so khớp địa chỉ người gửi (đầu số / brandname).
- * - Đầu số: so khớp prefix sau khi chuẩn hóa +84 / 84 / 0084 / 0 về cùng hệ quy chiếu.
- * - Brandname (chứa chữ cái): exact match, không phân biệt hoa thường — chống giả mạo dạng "VCB_PROMO".
+ * Chuẩn hóa và so khớp địa chỉ người gửi (đầu số / brandname) — so khớp chính xác toàn phần.
+ * - Đầu số: chuẩn hóa +84 / 84 / 0084 / 0 về cùng hệ quy chiếu rồi so equals từng biến thể (KHÔNG còn prefix).
+ * - Brandname (chứa chữ cái): exact match, phân biệt hoa thường.
  */
 object PhoneNormalizer {
 
@@ -45,11 +45,11 @@ object PhoneNormalizer {
         if (cleanSender.isEmpty() || cleanEntry.isEmpty()) return false
 
         return if (isBrandname(cleanEntry)) {
-            cleanSender.equals(cleanEntry, ignoreCase = true)
+            cleanSender == cleanEntry
         } else {
             val senderVariants = numericVariants(sender)
             val entryVariants = numericVariants(entry)
-            senderVariants.any { s -> entryVariants.any { e -> s.startsWith(e) } }
+            senderVariants.any { entryVariants.contains(it) }
         }
     }
 }

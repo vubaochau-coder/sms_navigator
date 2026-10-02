@@ -1,27 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/utils/toast_utils.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
 
 class QrScanPage extends StatefulWidget {
-  const QrScanPage({super.key});
+  const QrScanPage({
+    super.key,
+    MobileScannerController? controller,
+    ImagePicker? imagePicker,
+  }) : _controllerOverride = controller,
+       _imagePickerOverride = imagePicker;
+
+  final MobileScannerController? _controllerOverride;
+  final ImagePicker? _imagePickerOverride;
 
   @override
   State<QrScanPage> createState() => _QrScanPageState();
 }
 
 class _QrScanPageState extends State<QrScanPage> {
-  final MobileScannerController _controller = MobileScannerController(
-    facing: CameraFacing.back,
-    detectionSpeed: DetectionSpeed.normal,
-  );
+  late final MobileScannerController _controller =
+      widget._controllerOverride ??
+      MobileScannerController(
+        facing: CameraFacing.back,
+        detectionSpeed: DetectionSpeed.normal,
+      );
+  late final ImagePicker _imagePicker =
+      widget._imagePickerOverride ?? ImagePicker();
 
   /// Cờ chống quét lặp lại nhiều lần trong khi đang xử lý một mã.
   bool _isProcessing = false;
+  bool _isPickingImage = false;
 
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
@@ -34,6 +49,45 @@ class _QrScanPageState extends State<QrScanPage> {
       }
       return;
     }
+  }
+
+  Future<void> _pickAndScanFromGallery() async {
+    if (_isProcessing || _isPickingImage) return;
+    _isPickingImage = true;
+    try {
+      await _stopCameraSafely();
+      final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+      final capture = await _controller.analyzeImage(picked.path);
+      final rawValue = capture?.barcodes.firstOrNull?.rawValue;
+      if (rawValue == null || rawValue.isEmpty) {
+        if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
+        return;
+      }
+      _isProcessing = true;
+      if (mounted) {
+        BlocProvider.of<PairingBloc>(context).add(
+          PairingSubmitReceiverQrEvent(rawValue),
+        );
+      }
+    } catch (_) {
+      if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
+    } finally {
+      _isPickingImage = false;
+      await _startCameraSafely();
+    }
+  }
+
+  Future<void> _stopCameraSafely() async {
+    try {
+      await _controller.stop();
+    } catch (_) {}
+  }
+
+  Future<void> _startCameraSafely() async {
+    try {
+      await _controller.start();
+    } catch (_) {}
   }
 
   void _onPairingStateChanged(BuildContext context, PairingState state) {
@@ -51,7 +105,9 @@ class _QrScanPageState extends State<QrScanPage> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget._controllerOverride == null) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -70,7 +126,10 @@ class _QrScanPageState extends State<QrScanPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _ScannerTopBar(onBack: () => Navigator.pop(context)),
-                _ScannerControls(controller: _controller),
+                _ScannerControls(
+                  controller: _controller,
+                  onPickFromGallery: _pickAndScanFromGallery,
+                ),
               ],
             ),
           ],
@@ -179,9 +238,13 @@ class _ScannerTopBar extends StatelessWidget {
 }
 
 class _ScannerControls extends StatelessWidget {
-  const _ScannerControls({required this.controller});
+  const _ScannerControls({
+    required this.controller,
+    required this.onPickFromGallery,
+  });
 
   final MobileScannerController controller;
+  final VoidCallback onPickFromGallery;
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +279,11 @@ class _ScannerControls extends StatelessWidget {
                       onTap: () => controller.toggleTorch(),
                     );
                   },
+                ),
+                const SizedBox(width: 40),
+                _ScannerControlButton(
+                  icon: Icons.photo_library_rounded,
+                  onTap: onPickFromGallery,
                 ),
                 const SizedBox(width: 40),
                 _ScannerControlButton(

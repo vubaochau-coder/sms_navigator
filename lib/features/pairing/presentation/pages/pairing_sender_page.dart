@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/constants/dimens.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/utils/toast_utils.dart';
 import '../../../device/data/repositories/device_setup_repository.dart';
 import '../../../device/presentation/bloc/device_setup_bloc.dart';
 import '../../../device/presentation/bloc/device_setup_event.dart';
@@ -53,7 +54,23 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.pairingTitle)),
-      body: BlocListener<DeviceSetupBloc, DeviceSetupState>(
+      body: BlocListener<PairingBloc, PairingState>(
+        listenWhen: (previous, current) =>
+            current.qrExportToken != previous.qrExportToken,
+        listener: (context, state) {
+          switch (state.qrExportStatus) {
+            case QrExportStatus.success:
+              ToastUtils.showSuccess(context.l10n.qrImageExportSuccess);
+            case QrExportStatus.permissionDenied:
+              ToastUtils.showError(context.l10n.qrImageExportPermissionDenied);
+            case QrExportStatus.noQr:
+              ToastUtils.showError(context.l10n.qrImageExportNoQr);
+            case QrExportStatus.genericFailure:
+            case null:
+              ToastUtils.showError(context.l10n.qrImageExportFailed);
+          }
+        },
+        child: BlocListener<DeviceSetupBloc, DeviceSetupState>(
         listener: (context, state) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _maybeShowSmsPermissionPrompt(state);
@@ -107,9 +124,15 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                   const _E2eeBadge(),
                   const SizedBox(height: 32),
                   _ActionButtons(
+                    isExportingQr: state.isExportingQr,
                     onRegenerate: () {
                       BlocProvider.of<PairingBloc>(context).add(
                         const PairingGenerateSenderCodeEvent(),
+                      );
+                    },
+                    onSaveQr: () {
+                      BlocProvider.of<PairingBloc>(context).add(
+                        const PairingExportQrRequested(),
                       );
                     },
                   ),
@@ -118,6 +141,7 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
               ),
             );
           },
+        ),
         ),
       ),
     );
@@ -250,23 +274,57 @@ class _E2eeBadge extends StatelessWidget {
 }
 
 class _ActionButtons extends StatelessWidget {
-  const _ActionButtons({required this.onRegenerate});
+  const _ActionButtons({
+    required this.onRegenerate,
+    required this.onSaveQr,
+    this.isExportingQr = false,
+  });
 
   final VoidCallback onRegenerate;
+  final VoidCallback onSaveQr;
+  final bool isExportingQr;
 
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(12);
+    const buttonPadding = EdgeInsets.symmetric(horizontal: 6);
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onRegenerate,
             style: OutlinedButton.styleFrom(
+              padding: buttonPadding,
               shape: RoundedRectangleBorder(borderRadius: borderRadius),
             ),
             icon: const Icon(Icons.refresh_rounded),
-            label: Text(context.l10n.refresh),
+            label: Text(
+              context.l10n.refresh,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: isExportingQr ? null : onSaveQr,
+            style: OutlinedButton.styleFrom(
+              padding: buttonPadding,
+              shape: RoundedRectangleBorder(borderRadius: borderRadius),
+            ),
+            icon: isExportingQr
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save_alt_rounded),
+            label: Text(
+              context.l10n.saveQrImageAction,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -274,9 +332,14 @@ class _ActionButtons extends StatelessWidget {
           child: FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
+              padding: buttonPadding,
               shape: RoundedRectangleBorder(borderRadius: borderRadius),
             ),
-            child: Text(context.l10n.done),
+            child: Text(
+              context.l10n.done,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ],
