@@ -118,21 +118,24 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
                     tag: 'pairing_qr_hero',
                     child: _QrCard(qrData: payload.toQrData()),
                   ),
+                  const SizedBox(height: 12),
+                  _SaveQrButton(
+                    isExportingQr: state.isExportingQr,
+                    onSaveQr: () {
+                      BlocProvider.of<PairingBloc>(context).add(
+                        const PairingExportQrRequested(),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 16),
                   _CountdownChip(seconds: state.countdownSeconds),
                   const SizedBox(height: 24),
                   const _E2eeBadge(),
                   const SizedBox(height: 32),
                   _ActionButtons(
-                    isExportingQr: state.isExportingQr,
                     onRegenerate: () {
                       BlocProvider.of<PairingBloc>(context).add(
                         const PairingGenerateSenderCodeEvent(),
-                      );
-                    },
-                    onSaveQr: () {
-                      BlocProvider.of<PairingBloc>(context).add(
-                        const PairingExportQrRequested(),
                       );
                     },
                   ),
@@ -273,16 +276,43 @@ class _E2eeBadge extends StatelessWidget {
   }
 }
 
-class _ActionButtons extends StatelessWidget {
-  const _ActionButtons({
-    required this.onRegenerate,
+class _SaveQrButton extends StatelessWidget {
+  const _SaveQrButton({
     required this.onSaveQr,
     this.isExportingQr = false,
   });
 
-  final VoidCallback onRegenerate;
   final VoidCallback onSaveQr;
   final bool isExportingQr;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return FilledButton.tonalIcon(
+      onPressed: isExportingQr ? null : onSaveQr,
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      icon: isExportingQr
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
+            )
+          : const Icon(Icons.save_alt_rounded, size: 18),
+      label: Text(
+        context.l10n.saveQrImageAction,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+class _ActionButtons extends StatelessWidget {
+  const _ActionButtons({required this.onRegenerate});
+
+  final VoidCallback onRegenerate;
 
   @override
   Widget build(BuildContext context) {
@@ -300,28 +330,6 @@ class _ActionButtons extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded),
             label: Text(
               context.l10n.refresh,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: isExportingQr ? null : onSaveQr,
-            style: OutlinedButton.styleFrom(
-              padding: buttonPadding,
-              shape: RoundedRectangleBorder(borderRadius: borderRadius),
-            ),
-            icon: isExportingQr
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_alt_rounded),
-            label: Text(
-              context.l10n.saveQrImageAction,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

@@ -58,6 +58,8 @@ class PairingRepositoryImpl implements PairingRepository {
     final bytes = await qrImageExportService.renderQrPng(
       data: payload.toQrData(),
       size: 512,
+      title: 'Mã QR ghép đôi SMS Navigator',
+      subtitle: 'Quét mã bằng SMS Navigator để ghép đôi thiết bị',
     );
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     await qrImageExportService.saveToGallery(
