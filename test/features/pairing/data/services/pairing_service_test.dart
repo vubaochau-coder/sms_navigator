@@ -217,9 +217,9 @@ void main() {
       expect(sentPubkey, isNotNull);
       expect(base64Decode(sentPubkey!).length, 32);
       expect(base64Decode(payload.senderPrivateKeyBase64).length, 32);
-      // QR v3: chỉ có k + a + e, KHÔNG còn secret
-      final qr = jsonDecode(payload.toQrData()) as Map<String, dynamic>;
-      expect(qr['v'], 3);
+      // QR v3: deep link URL chỉ có k + a + e, KHÔNG còn secret
+      final qr = Uri.parse(payload.toQrData()).queryParameters;
+      expect(qr['v'], '3');
       expect(qr['k'], 'init_pairing_key_value');
       expect(qr['a'], sentPubkey);
       expect(qr.containsKey('s'), isFalse);

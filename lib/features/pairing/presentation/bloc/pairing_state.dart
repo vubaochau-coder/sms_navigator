@@ -2,12 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../data/models/pairing_payload_model.dart';
 
 /// Kết quả lần xuất ảnh QR gần nhất — UI ánh xạ sang chuỗi l10n khi toast.
-enum QrExportStatus {
-  success,
-  genericFailure,
-  permissionDenied,
-  noQr,
-}
+enum QrExportStatus { success, genericFailure, permissionDenied, noQr }
 
 class PairingState extends Equatable {
   static const int defaultCountdownSeconds = 600;

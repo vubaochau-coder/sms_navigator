@@ -18,7 +18,9 @@ class PairingSenderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<PairingBloc>(context).add(const PairingGenerateSenderCodeEvent());
+    BlocProvider.of<PairingBloc>(
+      context,
+    ).add(const PairingGenerateSenderCodeEvent());
     return BlocProvider(
       create: (_) =>
           DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
@@ -71,82 +73,87 @@ class _PairingSenderViewState extends State<_PairingSenderView> {
           }
         },
         child: BlocListener<DeviceSetupBloc, DeviceSetupState>(
-        listener: (context, state) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _maybeShowSmsPermissionPrompt(state);
-          });
-        },
-        child: BlocBuilder<PairingBloc, PairingState>(
-          builder: (context, state) {
-            if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final payload = state.pairingPayload;
-            if (payload == null) {
-              return _ErrorView(
-                message: state.errorMessage ?? context.l10n.cannotGeneratePairingCode,
-                onRetry: () {
-                  BlocProvider.of<PairingBloc>(context).add(
-                    const PairingGenerateSenderCodeEvent(),
-                  );
-                },
-              );
-            }
-
-            return SingleChildScrollView(
-              padding: Dimens.screenPadding,
-              child: Column(
-                children: [
-                  const _SmsPermissionBanner(),
-                  const SizedBox(height: 8),
-                  const _HeaderIcon(),
-                  const SizedBox(height: 24),
-                  Text(context.l10n.qrPairingTitle, style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.l10n.qrPairingDesc,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Hero(
-                    tag: 'pairing_qr_hero',
-                    child: _QrCard(qrData: payload.toQrData()),
-                  ),
-                  const SizedBox(height: 12),
-                  _SaveQrButton(
-                    isExportingQr: state.isExportingQr,
-                    onSaveQr: () {
-                      BlocProvider.of<PairingBloc>(context).add(
-                        const PairingExportQrRequested(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  state.isReceiverLinked
-                      ? const _LinkedChip()
-                      : _CountdownChip(seconds: state.countdownSeconds),
-                  const SizedBox(height: 24),
-                  const _E2eeBadge(),
-                  const SizedBox(height: 32),
-                  _ActionButtons(
-                    onRegenerate: () {
-                      BlocProvider.of<PairingBloc>(context).add(
-                        const PairingGenerateSenderCodeEvent(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            );
+          listener: (context, state) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _maybeShowSmsPermissionPrompt(state);
+            });
           },
-        ),
+          child: BlocBuilder<PairingBloc, PairingState>(
+            builder: (context, state) {
+              if (state.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final payload = state.pairingPayload;
+              if (payload == null) {
+                return _ErrorView(
+                  message:
+                      state.errorMessage ??
+                      context.l10n.cannotGeneratePairingCode,
+                  onRetry: () {
+                    BlocProvider.of<PairingBloc>(
+                      context,
+                    ).add(const PairingGenerateSenderCodeEvent());
+                  },
+                );
+              }
+
+              return SingleChildScrollView(
+                padding: Dimens.screenPadding,
+                child: Column(
+                  children: [
+                    const _SmsPermissionBanner(),
+                    const SizedBox(height: 8),
+                    const _HeaderIcon(),
+                    const SizedBox(height: 24),
+                    Text(
+                      context.l10n.qrPairingTitle,
+                      style: theme.textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.l10n.qrPairingDesc,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Hero(
+                      tag: 'pairing_qr_hero',
+                      child: _QrCard(qrData: payload.toQrData()),
+                    ),
+                    const SizedBox(height: 12),
+                    _SaveQrButton(
+                      isExportingQr: state.isExportingQr,
+                      onSaveQr: () {
+                        BlocProvider.of<PairingBloc>(
+                          context,
+                        ).add(const PairingExportQrRequested());
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    state.isReceiverLinked
+                        ? const _LinkedChip()
+                        : _CountdownChip(seconds: state.countdownSeconds),
+                    const SizedBox(height: 24),
+                    const _E2eeBadge(),
+                    const SizedBox(height: 32),
+                    _ActionButtons(
+                      onRegenerate: () {
+                        BlocProvider.of<PairingBloc>(
+                          context,
+                        ).add(const PairingGenerateSenderCodeEvent());
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -315,10 +322,7 @@ class _E2eeBadge extends StatelessWidget {
 }
 
 class _SaveQrButton extends StatelessWidget {
-  const _SaveQrButton({
-    required this.onSaveQr,
-    this.isExportingQr = false,
-  });
+  const _SaveQrButton({required this.onSaveQr, this.isExportingQr = false});
 
   final VoidCallback onSaveQr;
   final bool isExportingQr;
@@ -336,7 +340,10 @@ class _SaveQrButton extends StatelessWidget {
           ? SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colorScheme.primary,
+              ),
             )
           : const Icon(Icons.save_alt_rounded, size: 18),
       label: Text(

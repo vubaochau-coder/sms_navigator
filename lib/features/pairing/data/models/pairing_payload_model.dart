@@ -1,20 +1,28 @@
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/utils/data_converter.dart';
 
-/// Phiên ghép đôi - giao thức QR v3 (ECDH).
+/// Phiên ghép đôi - giao thức QR v3 (ECDH, deep link).
 ///
-/// QR KHÔNG còn chứa shared secret. Nó chỉ mang:
+/// QR KHÔNG còn chứa shared secret. Nội dung QR là một deep link URL:
+/// `smsnavigator://pair?v=3&k=<pairingKey>&a=<senderPubkey>&e=<expMs>` gồm:
 /// - `k`: one-time pairing key do máy chủ cấp (bằng chứng sở hữu QR).
 /// - `a`: X25519 public key của Máy A (máy B dùng để derive key; đối chiếu
 ///   với `sender_pubkey` máy chủ trả về để phát hiện key-swap).
 /// - `e`: thời điểm hết hạn (epoch ms, cửa sổ 10 phút).
 ///
+/// Định dạng URL giúp camera hệ thống / app quét của bên thứ ba (Zalo,
+/// Telegram...) nhận diện và mở app mà không cần domain (GĐ3 - deep link).
+///
 /// Shared secret được hai máy tự derive bằng ECDH + HKDF sau khi confirm;
 /// máy chủ chỉ làm trung gian public key (blind relay).
 class PairingPayloadModel extends Equatable {
+  /// URL scheme của deep link ghép đôi — đăng ký trong AndroidManifest.
+  static const String deeplinkScheme = 'smsnavigator';
+
+  /// Host của deep link ghép đôi.
+  static const String deeplinkHost = 'pair';
+
   final String pairId;
   final String pairingKey;
 
@@ -91,60 +99,62 @@ class PairingPayloadModel extends Equatable {
     );
   }
 
-  /// Xuất dữ liệu JSON nhúng vào mã QR ghép đôi (giao thức v3 - ECDH).
+  /// Xuất deep link URL nhúng vào mã QR ghép đôi (giao thức v3 - ECDH).
   String toQrData() {
-    return jsonEncode({
-      'v': 3,
-      'k': pairingKey,
-      'a': senderPubkey,
-      'e': expiresAt,
-    });
+    final uri = Uri(
+      scheme: deeplinkScheme,
+      host: deeplinkHost,
+      queryParameters: {
+        'v': '3',
+        'k': pairingKey,
+        'a': senderPubkey,
+        'e': '$expiresAt',
+      },
+    );
+    return uri.toString();
   }
 
-  /// Parse dữ liệu JSON đọc được từ mã QR ghép đôi (chỉ nhận giao thức v3).
+  /// Parse dữ liệu đọc được từ mã QR ghép đôi (chỉ nhận giao thức v3).
   factory PairingPayloadModel.fromQrData(String rawData) {
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(rawData);
-    } on FormatException {
-      rethrow;
-    }
-    if (decoded is! Map<String, dynamic>) {
+    final params = _parseDeeplinkQuery(rawData);
+    if (params == null) {
       throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
     }
-    if (!_isPairingQrMap(decoded)) {
-      throw const FormatException('Mã QR không đúng định dạng ghép đôi.');
-    }
-    final map = decoded;
     return PairingPayloadModel(
       pairId: '',
-      pairingKey: map['k'] as String,
-      senderPubkey: map['a'] as String,
+      pairingKey: params.$1,
+      senderPubkey: params.$2,
       createdAt: DateTime.now().millisecondsSinceEpoch,
-      expiresAt: DataConverter.cvToInt(map['e'], 0)!,
+      expiresAt: params.$3,
     );
   }
 
   /// Kiểm tra nhanh payload thô (từ camera/ảnh/deep link) có phải QR ghép
   /// đôi giao thức v3 hay không - dùng bởi QrScanHandlerRegistry.
-  static bool looksLikePairingQr(String rawData) {
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(rawData);
-    } on FormatException {
-      return false;
-    }
-    return decoded is Map<String, dynamic> && _isPairingQrMap(decoded);
-  }
+  static bool looksLikePairingQr(String rawData) =>
+      _parseDeeplinkQuery(rawData) != null;
 
-  static bool _isPairingQrMap(Map<String, dynamic> map) {
-    if (map['v'] != 3) return false;
-    final key = map['k'];
-    final senderPubkey = map['a'];
-    return key is String &&
-        key.isNotEmpty &&
-        senderPubkey is String &&
-        senderPubkey.isNotEmpty;
+  /// Trả về (pairingKey, senderPubkey, expiresAt) nếu [rawData] là deep link
+  /// ghép đôi v3 hợp lệ, ngược lại trả về null.
+  static (String, String, int)? _parseDeeplinkQuery(String rawData) {
+    final Uri uri;
+    try {
+      uri = Uri.parse(rawData.trim());
+    } on FormatException {
+      return null;
+    }
+    if (uri.scheme != deeplinkScheme || uri.host != deeplinkHost) {
+      return null;
+    }
+    final query = uri.queryParameters;
+    if (query['v'] != '3') return null;
+    final pairingKey = query['k'] ?? '';
+    final senderPubkey = query['a'] ?? '';
+    final expiresAt = int.tryParse(query['e'] ?? '') ?? 0;
+    if (pairingKey.isEmpty || senderPubkey.isEmpty || expiresAt <= 0) {
+      return null;
+    }
+    return (pairingKey, senderPubkey, expiresAt);
   }
 
   @override

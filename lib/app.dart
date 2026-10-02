@@ -11,6 +11,7 @@ import 'core/utils/dialog_utils.dart';
 import 'features/home/presentation/pages/main_navigation_page.dart';
 import 'features/pairing/data/repositories/pairing_repository.dart';
 import 'features/pairing/presentation/bloc/pairing_bloc.dart';
+import 'features/pairing/presentation/deeplink/pairing_deep_link_listener.dart';
 import 'l10n/app_localizations.dart';
 
 class OtpRelayApp extends StatelessWidget {
@@ -48,7 +49,9 @@ class OtpRelayApp extends StatelessWidget {
               navigatorObservers: [
                 if (analytics.observer != null) analytics.observer!,
               ],
-              home: const MainNavigationPage(),
+              home: PairingDeepLinkListener(
+                child: const MainNavigationPage(),
+              ),
             );
           },
         ),

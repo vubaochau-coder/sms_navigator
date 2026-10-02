@@ -1143,6 +1143,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Đã kết nối — Máy B đã quét mã'**
   String get pairingLinkedChip;
+
+  /// No description provided for @deeplinkPairingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi từ mã QR'**
+  String get deeplinkPairingTitle;
+
+  /// No description provided for @deeplinkPairingInProgress.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang ghép nối...'**
+  String get deeplinkPairingInProgress;
+
+  /// No description provided for @deeplinkPairingSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã ghép nối thành công'**
+  String get deeplinkPairingSuccess;
+
+  /// No description provided for @deeplinkPairingFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép nối không thành công'**
+  String get deeplinkPairingFailed;
 }
 
 class _AppLocalizationsDelegate

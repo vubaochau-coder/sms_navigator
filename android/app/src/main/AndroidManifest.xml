@@ -38,6 +38,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Deep link ghép đôi (GĐ3): QR v3 là URL
+                 smsnavigator://pair?v=3&k=...&a=...&e=...
+                 Camera hệ thống / app quét của bên thứ ba mở thẳng app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="smsnavigator" android:host="pair"/>
+            </intent-filter>
         </activity>
 
         <!-- SMS BroadcastReceiver: Manifest-declared to wake up even if process is killed -->

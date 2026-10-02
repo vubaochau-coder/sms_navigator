@@ -580,8 +580,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get scannerNoQrFound => 'Không tìm thấy mã QR trong ảnh đã chọn';
 
   @override
-  String get scannerUnsupportedQr => 'Mã QR này không được SMS Navigator hỗ trợ';
+  String get scannerUnsupportedQr =>
+      'Mã QR này không được SMS Navigator hỗ trợ';
 
   @override
   String get pairingLinkedChip => 'Đã kết nối — Máy B đã quét mã';
+
+  @override
+  String get deeplinkPairingTitle => 'Ghép đôi từ mã QR';
+
+  @override
+  String get deeplinkPairingInProgress => 'Đang ghép nối...';
+
+  @override
+  String get deeplinkPairingSuccess => 'Đã ghép nối thành công';
+
+  @override
+  String get deeplinkPairingFailed => 'Ghép nối không thành công';
 }

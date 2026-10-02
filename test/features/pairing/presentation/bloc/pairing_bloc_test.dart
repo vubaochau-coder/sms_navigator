@@ -104,7 +104,7 @@ void main() {
     );
     bloc.add(
       const PairingSubmitReceiverQrEvent(
-        '{"v":3,"k":"pairkey1234567890","a":"c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM="}',
+        'smsnavigator://pair?v=3&k=pairkey1234567890&a=c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM%3D&e=9999999999999',
       ),
     );
 

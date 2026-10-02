@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
 
@@ -38,22 +36,34 @@ void main() {
       expect(decoded.sharedSecretBase64, isEmpty);
     });
 
-    test('toQrData emits versioned JSON v3 with compact keys and NO secret', () {
+    test('toQrData emits the smsnavigator deeplink URL v3 with NO secret', () {
       final payload = _samplePayload(
         senderPubkey: _sampleSenderPubkey,
       );
       final qrData = payload.toQrData();
 
-      expect(qrData, contains('"v":3'));
-      expect(qrData, contains('"k":"${payload.pairingKey}"'));
-      expect(qrData, contains('"a":"$_sampleSenderPubkey"'));
-      expect(qrData, contains('"e":${payload.expiresAt}'));
+      expect(qrData, startsWith('smsnavigator://pair?'));
+      final uri = Uri.parse(qrData);
+      expect(uri.scheme, 'smsnavigator');
+      expect(uri.host, 'pair');
+      expect(uri.queryParameters['v'], '3');
+      expect(uri.queryParameters['k'], payload.pairingKey);
+      expect(uri.queryParameters['a'], _sampleSenderPubkey);
+      expect(uri.queryParameters['e'], '${payload.expiresAt}');
       // Không còn secret, không còn pairId trong QR
       expect(qrData, isNot(contains('sharedSecretBase64')));
-      expect(qrData, isNot(contains('"s"')));
-      expect(qrData, isNot(contains('"pairId"')));
+      expect(uri.queryParameters.containsKey('s'), isFalse);
+      expect(uri.queryParameters.containsKey('pairId'), isFalse);
       // Private key không bao giờ xuất hiện trong QR
       expect(qrData, isNot(contains(_sampleSenderPrivkey)));
+    });
+
+    test('base64 pubkey with +/= survives URL encoding round-trip', () {
+      final payload = _samplePayload(
+        senderPubkey: 'A7+9/Ce5B1d8F4a6E3c7D0b9A5f2C8e1Q0x9Zw==',
+      );
+      final decoded = PairingPayloadModel.fromQrData(payload.toQrData());
+      expect(decoded.senderPubkey, 'A7+9/Ce5B1d8F4a6E3c7D0b9A5f2C8e1Q0x9Zw==');
     });
 
     test('fromQrData throws FormatException on malformed JSON', () {
@@ -71,17 +81,26 @@ void main() {
       expect(() => PairingPayloadModel.fromQrData(v2), throwsFormatException);
     });
 
-    test('fromQrData throws FormatException on missing fields', () {
+    test('fromQrData throws FormatException on missing or invalid fields', () {
       expect(
-        () => PairingPayloadModel.fromQrData('{"v":3,"a":"pub","e":1}'),
+        () => PairingPayloadModel.fromQrData('smsnavigator://pair?v=3&a=pub&e=1'),
         throwsFormatException,
       );
       expect(
-        () => PairingPayloadModel.fromQrData('{"v":3,"k":"key","e":1}'),
+        () => PairingPayloadModel.fromQrData('smsnavigator://pair?v=3&k=key&e=1'),
         throwsFormatException,
       );
       expect(
-        () => PairingPayloadModel.fromQrData('{"v":3,"k":"","a":"pub","e":1}'),
+        () => PairingPayloadModel.fromQrData('smsnavigator://pair?v=3&k=&a=pub&e=1'),
+        throwsFormatException,
+      );
+      expect(
+        () => PairingPayloadModel.fromQrData('smsnavigator://pair?v=3&k=key&a=pub'),
+        throwsFormatException,
+      );
+      expect(
+        () =>
+            PairingPayloadModel.fromQrData('smsnavigator://pair?v=3&k=key&a=pub&e=0'),
         throwsFormatException,
       );
     });
@@ -102,8 +121,8 @@ void main() {
       );
     });
 
-    test('rejects malformed JSON and foreign payloads', () {
-      expect(PairingPayloadModel.looksLikePairingQr('not json'), isFalse);
+    test('rejects malformed URLs and foreign payloads', () {
+      expect(PairingPayloadModel.looksLikePairingQr('not a url'), isFalse);
       expect(PairingPayloadModel.looksLikePairingQr('["array"]'), isFalse);
       expect(
         PairingPayloadModel.looksLikePairingQr(
@@ -111,9 +130,19 @@ void main() {
         ),
         isFalse,
       );
+      expect(
+        PairingPayloadModel.looksLikePairingQr('smsnavigator://other?v=3&k=key'),
+        isFalse,
+      );
+      expect(
+        PairingPayloadModel.looksLikePairingQr(
+          'https://pair.smsnavigator.com/qr?v=3&k=key',
+        ),
+        isFalse,
+      );
     });
 
-    test('rejects legacy v1/v2 payloads and v3 with missing fields', () {
+    test('rejects retired v1/v2 JSON payloads and v3 with missing fields', () {
       expect(
         PairingPayloadModel.looksLikePairingQr(
           '{"v":1,"pairId":"pair_legacy","secret":"abc","exp":1}',
@@ -127,11 +156,21 @@ void main() {
         isFalse,
       );
       expect(
-        PairingPayloadModel.looksLikePairingQr('{"v":3,"k":"key","e":1}'),
+        PairingPayloadModel.looksLikePairingQr(
+          '{"v":3,"k":"key","a":"pub","e":1}',
+        ),
         isFalse,
       );
       expect(
-        PairingPayloadModel.looksLikePairingQr('{"v":3,"a":"pub","e":1}'),
+        PairingPayloadModel.looksLikePairingQr('smsnavigator://pair?v=3&k=key'),
+        isFalse,
+      );
+      expect(
+        PairingPayloadModel.looksLikePairingQr('smsnavigator://pair?v=3&a=pub'),
+        isFalse,
+      );
+      expect(
+        PairingPayloadModel.looksLikePairingQr('smsnavigator://pair?v=2&k=key&a=pub&e=1'),
         isFalse,
       );
     });
@@ -165,12 +204,11 @@ void main() {
       expect(payload.pairId, 'pair_from_map');
     });
 
-    test('decoded QR payload json is valid utf8 base64 payload', () {
-      final decoded =
-          jsonDecode(_samplePayload().toQrData()) as Map<String, dynamic>;
-      expect(decoded['v'], 3);
-      expect(decoded.keys.toSet(), containsAll(['k', 'a', 'e']));
-      expect(decoded.keys.length, 4);
+    test('decoded QR payload is a v3 deeplink URL with exactly 4 params', () {
+      final uri = Uri.parse(_samplePayload().toQrData());
+      expect(uri.queryParameters['v'], '3');
+      expect(uri.queryParameters.keys.toSet(), {'v', 'k', 'a', 'e'});
+      expect(uri.queryParametersAll.length, 4);
     });
   });
 }

@@ -126,8 +126,11 @@ class PairedReceiversBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return PairedDevicesBody<PairedReceiversBloc, PairedReceiversEvent,
-        PairedReceiversState>(
+    return PairedDevicesBody<
+      PairedReceiversBloc,
+      PairedReceiversEvent,
+      PairedReceiversState
+    >(
       isLoading: (state) => state.isLoading,
       errorMessage: (state) => state.errorMessage,
       devices: (state) => state.devices,
@@ -158,8 +161,11 @@ class PairedSendersBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return PairedDevicesBody<PairedSendersBloc, PairedSendersEvent,
-        PairedSendersState>(
+    return PairedDevicesBody<
+      PairedSendersBloc,
+      PairedSendersEvent,
+      PairedSendersState
+    >(
       isLoading: (state) => state.isLoading,
       errorMessage: (state) => state.errorMessage,
       devices: (state) => state.devices,
@@ -170,11 +176,13 @@ class PairedSendersBody extends StatelessWidget {
       emptyMessage: l10n.emptySendersMessage,
       emptyActionLabel: l10n.scanSenderQrAction,
       onEmptyAction: (context) async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PairingQrScanPage()),
-        );
+        await Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const PairingQrScanPage()));
         if (context.mounted) {
-          BlocProvider.of<PairedSendersBloc>(context).add(const PairedSendersLoadEvent());
+          BlocProvider.of<PairedSendersBloc>(
+            context,
+          ).add(const PairedSendersLoadEvent());
         }
       },
     );

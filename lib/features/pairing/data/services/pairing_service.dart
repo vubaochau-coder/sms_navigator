@@ -72,9 +72,9 @@ class PairingServiceImpl implements PairingService {
     if (!success || pairId.isEmpty || pairingKey.isEmpty) {
       throw ApiException(
         DataConverter.cvToString(
-              map?['message'],
-              'Khởi tạo ghép đôi thất bại',
-            )!,
+          map?['message'],
+          'Khởi tạo ghép đôi thất bại',
+        )!,
       );
     }
     final expiresAt =
@@ -130,12 +130,17 @@ class PairingServiceImpl implements PairingService {
       return SenderLinkStatus.waiting;
     }
 
-    final response = await api.get('${ApiEndpoints.pairStatus}/${payload.pairId}');
+    final response = await api.get(
+      '${ApiEndpoints.pairStatus}/${payload.pairId}',
+    );
     final map = DataConverter.cvToMap<String, dynamic>(response);
     if (map == null) return SenderLinkStatus.waiting;
 
     final isPaired = DataConverter.cvToBool(map['is_paired']) == true;
-    final receiverPubkey = DataConverter.cvToString(map['receiver_pubkey'], '')!;
+    final receiverPubkey = DataConverter.cvToString(
+      map['receiver_pubkey'],
+      '',
+    )!;
     if (!isPaired || receiverPubkey.isEmpty) return SenderLinkStatus.waiting;
 
     // Máy B đã confirm: derive shared secret từ ECDH rồi kích hoạt relay.
@@ -203,24 +208,22 @@ class PairingServiceImpl implements PairingService {
       // Public key của Máy B cho handshake ECDH — server chỉ forward,
       // không thể derive shared secret từ nó.
       'receiver_pubkey': keys.publicKeyBase64,
-      if (deviceName != null && deviceName.isNotEmpty) 'device_name': deviceName,
+      if (deviceName != null && deviceName.isNotEmpty)
+        'device_name': deviceName,
       'platform': _platformAndroid,
     };
     if (fcmToken != null) {
       body['fcm_token'] = fcmToken;
     }
 
-    final response = await api.post(
-      ApiEndpoints.confirmPair,
-      body: body,
-    );
+    final response = await api.post(ApiEndpoints.confirmPair, body: body);
     final map = DataConverter.cvToMap<String, dynamic>(response);
     if (map == null || DataConverter.cvToBool(map['success']) != true) {
       throw ApiException(
         DataConverter.cvToString(
-              map?['message'],
-              'Server từ chối xác nhận ghép đôi',
-            )!,
+          map?['message'],
+          'Server từ chối xác nhận ghép đôi',
+        )!,
       );
     }
 
@@ -232,8 +235,10 @@ class PairingServiceImpl implements PairingService {
 
     // Chống server key-swap: public key của Máy A phải khớp đúng giá trị
     // đọc từ QR (kênh tin cậy vật lý), nếu không từ chối ghép đôi.
-    final serverSenderPubkey =
-        DataConverter.cvToString(map['sender_pubkey'], '')!;
+    final serverSenderPubkey = DataConverter.cvToString(
+      map['sender_pubkey'],
+      '',
+    )!;
     if (serverSenderPubkey.isNotEmpty &&
         serverSenderPubkey != payload.senderPubkey) {
       throw const ApiException(

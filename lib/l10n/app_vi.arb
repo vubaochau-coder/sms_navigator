@@ -241,5 +241,9 @@
   "scannerPickFromGallery": "Chọn ảnh từ thư viện",
   "scannerNoQrFound": "Không tìm thấy mã QR trong ảnh đã chọn",
   "scannerUnsupportedQr": "Mã QR này không được SMS Navigator hỗ trợ",
-  "pairingLinkedChip": "Đã kết nối — Máy B đã quét mã"
+  "pairingLinkedChip": "Đã kết nối — Máy B đã quét mã",
+  "deeplinkPairingTitle": "Ghép đôi từ mã QR",
+  "deeplinkPairingInProgress": "Đang ghép nối...",
+  "deeplinkPairingSuccess": "Đã ghép nối thành công",
+  "deeplinkPairingFailed": "Ghép nối không thành công"
 }

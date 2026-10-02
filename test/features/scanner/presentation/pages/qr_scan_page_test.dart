@@ -64,7 +64,7 @@ class _FakeScannerController extends MobileScannerController {
 }
 
 const _validPairingQr =
-    '{"v":3,"k":"pairkey1234567890","a":"c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM="}';
+    'smsnavigator://pair?v=3&k=pairkey1234567890&a=c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM%3D&e=9999999999999';
 
 void main() {
   const imagePickerChannel = MethodChannel('plugins.flutter.io/image_picker');

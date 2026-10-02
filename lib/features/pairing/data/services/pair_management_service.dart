@@ -27,7 +27,11 @@ class PairManagementServiceImpl implements PairManagementService {
         ApiEndpoints.pairedReceivers,
         cancelToken: cancelToken,
       );
-      return _mapDeviceList(response, 'receivers', PairedDeviceItem.fromReceiverJson);
+      return _mapDeviceList(
+        response,
+        'receivers',
+        PairedDeviceItem.fromReceiverJson,
+      );
     } catch (_) {
       return [];
     }
@@ -42,7 +46,11 @@ class PairManagementServiceImpl implements PairManagementService {
         ApiEndpoints.pairedSenders,
         cancelToken: cancelToken,
       );
-      return _mapDeviceList(response, 'senders', PairedDeviceItem.fromSenderJson);
+      return _mapDeviceList(
+        response,
+        'senders',
+        PairedDeviceItem.fromSenderJson,
+      );
     } catch (_) {
       return [];
     }

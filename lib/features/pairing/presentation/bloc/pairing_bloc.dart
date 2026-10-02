@@ -40,11 +40,11 @@ class PairingBloc extends Bloc<PairingEvent, PairingState> {
       _onCheckReceiverStatus,
       transformer: restartable(),
     );
-    on<PairingSenderLinkPolled>(
-      _onSenderLinkPolled,
+    on<PairingSenderLinkPolled>(_onSenderLinkPolled, transformer: droppable());
+    on<PairingExportQrRequested>(
+      _onExportQrRequested,
       transformer: droppable(),
     );
-    on<PairingExportQrRequested>(_onExportQrRequested, transformer: droppable());
     on<PairingDisconnectReceiverEvent>(
       _onDisconnectReceiver,
       transformer: droppable(),

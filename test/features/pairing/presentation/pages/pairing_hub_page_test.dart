@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/pairing/data/models/paired_device_item.dart';
+import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
 import 'package:sms_navigator/features/pairing/data/services/pair_management_service.dart';
+import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
 import 'package:sms_navigator/features/pairing/presentation/pages/pairing_hub_page.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
@@ -49,20 +53,31 @@ class _TrackingPairManagementService implements PairManagementService {
   }
 }
 
+/// PairingBloc chỉ cần tồn tại phía trên hub (BlocListener của hub đọc nó);
+/// các nghiệp vụ của nó không được hub test này chạm tới.
+class _StubPairingRepository implements PairingRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
+
 void main() {
   testWidgets(
     'PairingHubPage initializes tabs lazily, keeps state alive across tabs, and supports pull-to-refresh',
     (tester) async {
       final mock = _TrackingPairManagementService();
+      final pairingBloc = PairingBloc(repository: _StubPairingRepository());
 
       await tester.pumpWidget(
-        RepositoryProvider<PairManagementService>.value(
-          value: mock,
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: Locale('vi'),
-            home: PairingHubPage(),
+        BlocProvider<PairingBloc>.value(
+          value: pairingBloc,
+          child: RepositoryProvider<PairManagementService>.value(
+            value: mock,
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: Locale('vi'),
+              home: PairingHubPage(),
+            ),
           ),
         ),
       );
@@ -99,6 +114,8 @@ void main() {
       // Pull-to-refresh triggered explicit reload for Receivers
       expect(mock.getReceiversCallCount, equals(2));
       expect(mock.getSendersCallCount, equals(1));
+
+      unawaited(pairingBloc.close());
     },
   );
 }

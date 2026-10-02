@@ -72,13 +72,13 @@ class QrImageExportServiceImpl implements QrImageExportService {
       maxWidth: qrWidth.toDouble(),
     );
 
-    final headerTextHeight = (titlePainter?.height ?? 0) +
-        (titlePainter != null && subtitlePainter != null
-            ? _subtitleGap
-            : 0) +
+    final headerTextHeight =
+        (titlePainter?.height ?? 0) +
+        (titlePainter != null && subtitlePainter != null ? _subtitleGap : 0) +
         (subtitlePainter?.height ?? 0);
-    final headerHeight =
-        headerTextHeight > 0 ? _verticalPadding + headerTextHeight : 0.0;
+    final headerHeight = headerTextHeight > 0
+        ? _verticalPadding + headerTextHeight
+        : 0.0;
     final qrTop = headerHeight > 0 ? headerHeight + _qrGap : 0.0;
     final totalWidth = qrWidth;
     final totalHeight = qrTop + qrWidth + _verticalPadding;
@@ -109,8 +109,8 @@ class QrImageExportServiceImpl implements QrImageExportService {
       canvas,
       Offset((totalWidth - titlePainter.width) / 2, textTop),
     );
-    textTop += (titlePainter?.height ?? 0) +
-        (titlePainter == null ? 0 : _subtitleGap);
+    textTop +=
+        (titlePainter?.height ?? 0) + (titlePainter == null ? 0 : _subtitleGap);
     subtitlePainter?.paint(
       canvas,
       Offset((totalWidth - subtitlePainter.width) / 2, textTop),
@@ -161,7 +161,10 @@ class QrImageExportServiceImpl implements QrImageExportService {
   }
 
   @override
-  Future<void> saveToGallery(Uint8List bytes, {required String fileName}) async {
+  Future<void> saveToGallery(
+    Uint8List bytes, {
+    required String fileName,
+  }) async {
     try {
       await Gal.putImageBytes(bytes, name: fileName);
     } on GalException catch (e) {
@@ -172,9 +175,7 @@ class QrImageExportServiceImpl implements QrImageExportService {
             accessDenied: true,
           );
         case GalExceptionType.notEnoughSpace:
-          throw const QrImageExportException(
-            'Bộ nhớ máy không đủ để lưu ảnh.',
-          );
+          throw const QrImageExportException('Bộ nhớ máy không đủ để lưu ảnh.');
         case GalExceptionType.notSupportedFormat:
         case GalExceptionType.unexpected:
           throw const QrImageExportException('Không thể lưu ảnh vào thư viện.');

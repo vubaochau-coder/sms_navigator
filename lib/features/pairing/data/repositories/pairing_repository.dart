@@ -80,8 +80,9 @@ class PairingRepositoryImpl implements PairingRepository {
 
   /// Hậu tố pairId dùng trong tên file, chỉ giữ chữ/số/gạch dưới.
   String _safeFileToken(String pairId) {
-    final suffix =
-        pairId.length > 8 ? pairId.substring(pairId.length - 8) : pairId;
+    final suffix = pairId.length > 8
+        ? pairId.substring(pairId.length - 8)
+        : pairId;
     return suffix.replaceAll(RegExp(r'[^A-Za-z0-9_]'), '-');
   }
 }

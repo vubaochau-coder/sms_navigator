@@ -15,6 +15,7 @@ import '../../features/settings/data/repositories/whitelist_repository.dart';
 import '../network/api_client.dart';
 import '../services/analytics_service.dart';
 import '../services/crashlytics_service.dart';
+import '../services/deep_link_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
 import '../storage/local_storage_service.dart';
@@ -56,6 +57,9 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),
+        ),
+        RepositoryProvider<DeepLinkService>(
+          create: (_) => DeepLinkService(),
         ),
         RepositoryProvider<DeviceStorageService>(
           create: (context) =>

@@ -7,10 +7,7 @@ import '../../data/models/paired_device_item.dart';
 
 /// Thẻ hiển thị thiết bị gửi đã ghép đôi (Chỉ xem).
 class PairedSenderCard extends StatelessWidget {
-  const PairedSenderCard({
-    super.key,
-    required this.item,
-  });
+  const PairedSenderCard({super.key, required this.item});
 
   final PairedDeviceItem item;
 
@@ -68,14 +65,8 @@ class PairedSenderCard extends StatelessWidget {
             ],
           ),
           const Divider(height: 14),
-          PlainInfoRow(
-            label: 'Pair ID',
-            value: item.pairId,
-          ),
-          PlainInfoRow(
-            label: 'Sender ID',
-            value: item.deviceId,
-          ),
+          PlainInfoRow(label: 'Pair ID', value: item.pairId),
+          PlainInfoRow(label: 'Sender ID', value: item.deviceId),
           PlainInfoRow(
             label: context.l10n.pairedAt,
             value: item.formattedPairedAt,

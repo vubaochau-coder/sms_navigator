@@ -29,13 +29,13 @@ class PairingAddDeviceDialog extends StatelessWidget {
 
   Future<void> _openCreateQr(BuildContext context) async {
     Navigator.of(context).pop();
-    final changed = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const PairingSenderPage()),
-    );
+    final changed = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => const PairingSenderPage()));
     if (changed == true && context.mounted) {
-      BlocProvider.of<PairedReceiversBloc>(context).add(
-        const PairedReceiversLoadEvent(),
-      );
+      BlocProvider.of<PairedReceiversBloc>(
+        context,
+      ).add(const PairedReceiversLoadEvent());
     }
   }
 
@@ -45,9 +45,9 @@ class PairingAddDeviceDialog extends StatelessWidget {
       context,
     ).push(MaterialPageRoute(builder: (_) => const PairingQrScanPage()));
     if (context.mounted) {
-      BlocProvider.of<PairedSendersBloc>(context).add(
-        const PairedSendersLoadEvent(),
-      );
+      BlocProvider.of<PairedSendersBloc>(
+        context,
+      ).add(const PairedSendersLoadEvent());
     }
   }
 
@@ -69,9 +69,9 @@ class PairingAddDeviceDialog extends StatelessWidget {
           children: [
             Text(
               l10n.pairingHubAddNew,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
