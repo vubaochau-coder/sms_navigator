@@ -5,7 +5,7 @@ import 'package:sms_navigator/app.dart';
 import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
 
-import 'package:sms_navigator/features/home/pages/main_navigation_page.dart';
+import 'package:sms_navigator/features/home/main_navigation_page.dart';
 
 void main() {
   setUp(() {

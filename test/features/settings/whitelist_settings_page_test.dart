@@ -7,8 +7,8 @@ import 'package:sms_navigator/core/widgets/app_switch.dart';
 import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/repositories/whitelist_repository.dart';
 import 'package:sms_navigator/core/services/native_relay_service.dart';
-import 'package:sms_navigator/features/settings/pages/whitelist_settings_page.dart';
-import 'package:sms_navigator/features/settings/widgets/whitelist_blocked_banner.dart';
+import 'package:sms_navigator/features/settings/whitelist_settings_page.dart';
+import 'package:sms_navigator/features/settings/views/whitelist_blocked_banner.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
 class _FakeWhitelistRepository implements WhitelistRepository {

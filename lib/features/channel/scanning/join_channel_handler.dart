@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../scanner/scanning/qr_scan_handler.dart';
-import '../pages/join_confirm_page.dart';
+import '../join_confirm_page.dart';
 
 /// Handler cho invite QR v4 (`smsnavigator://pair?v=4&...`) — thêm handler
 /// này vào scanner trung tính, không sửa scanner (GĐ0/GĐ3).

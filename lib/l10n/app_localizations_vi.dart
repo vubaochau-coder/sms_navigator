@@ -645,4 +645,38 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get splashDefaultDeviceName => 'Thiết bị của tôi';
+
+  @override
+  String get smsPageTitle => 'Tin nhắn SMS theo ngày';
+
+  @override
+  String get smsRefreshTooltip => 'Làm mới';
+
+  @override
+  String smsEmptyInDate(String date) {
+    return 'Ngày $date chưa có tin nhắn SMS nào';
+  }
+
+  @override
+  String get smsDecryptError => 'Không giải mã được tin này';
+
+  @override
+  String smsChannelPrefix(String channelName, String time) {
+    return 'Kênh: $channelName · $time';
+  }
+
+  @override
+  String get smsCopyTooltip => 'Sao chép';
+
+  @override
+  String smsCopied(String otp) {
+    return 'Đã sao chép: $otp';
+  }
+
+  @override
+  String get smsLoadError =>
+      'Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.';
+
+  @override
+  String get smsLoadErrorTitle => 'Lỗi tải tin nhắn';
 }

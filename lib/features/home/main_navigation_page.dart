@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/repositories/device_setup_repository.dart';
-import '../../../core/services/startup_reconcile_service.dart';
-import '../../channel/pages/channel_list_page.dart';
-import '../../channel/pages/join_qr_scan_page.dart';
-import '../../sms/pages/sms_page.dart';
-import '../../device/bloc/device_setup_bloc.dart';
-import '../../device/bloc/device_setup_event.dart';
-import '../../device/bloc/device_setup_state.dart';
-import '../../device/dialogs/sms_permission_prompt_dialog.dart';
+import '../../core/repositories/device_setup_repository.dart';
+import '../../core/services/startup_reconcile_service.dart';
+import '../channel/channel_list_page.dart';
+import '../channel/join_qr_scan_page.dart';
+import '../sms/sms_page.dart';
+import '../device/bloc/device_setup_bloc.dart';
+import '../device/bloc/device_setup_event.dart';
+import '../device/bloc/device_setup_state.dart';
+import '../device/views/sms_permission_prompt_dialog.dart';
 
 /// Main navigation (kiến trúc mới):
 /// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);

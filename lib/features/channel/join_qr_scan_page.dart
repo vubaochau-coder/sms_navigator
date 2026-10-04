@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../scanner/pages/qr_scan_page.dart';
-import '../../scanner/scanning/qr_scan_handler_registry.dart';
-import '../scanning/join_channel_handler.dart';
+import '../scanner/qr_scan_page.dart';
+import '../scanner/scanning/qr_scan_handler_registry.dart';
+import 'scanning/join_channel_handler.dart';
 
 /// Màn quét QR chuyên cho luồng tham gia kênh: scanner trung tính + registry
 /// chỉ chứa [JoinChannelHandler] (GĐ0 — thêm handler mới không sửa scanner).

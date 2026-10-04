@@ -264,5 +264,30 @@
   },
   "splashRetry": "Thử lại",
   "splashSkipOffline": "Bỏ qua & Vào chế độ ngoại tuyến",
-  "splashDefaultDeviceName": "Thiết bị của tôi"
+  "splashDefaultDeviceName": "Thiết bị của tôi",
+  "smsPageTitle": "Tin nhắn SMS theo ngày",
+  "smsRefreshTooltip": "Làm mới",
+  "smsEmptyInDate": "Ngày {date} chưa có tin nhắn SMS nào",
+  "@smsEmptyInDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "smsDecryptError": "Không giải mã được tin này",
+  "smsChannelPrefix": "Kênh: {channelName} · {time}",
+  "@smsChannelPrefix": {
+    "placeholders": {
+      "channelName": { "type": "String" },
+      "time": { "type": "String" }
+    }
+  },
+  "smsCopyTooltip": "Sao chép",
+  "smsCopied": "Đã sao chép: {otp}",
+  "@smsCopied": {
+    "placeholders": {
+      "otp": { "type": "String" }
+    }
+  },
+  "smsLoadError": "Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.",
+  "smsLoadErrorTitle": "Lỗi tải tin nhắn"
 }

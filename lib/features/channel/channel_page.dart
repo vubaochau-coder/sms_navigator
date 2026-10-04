@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../../core/utils/dialog_utils.dart';
-import '../bloc/approval_bloc.dart';
-import '../../../core/models/channel_member_model.dart';
-import '../../../core/models/pairing_request_model.dart';
-import '../../../core/repositories/channel_repository.dart';
+import '../../core/utils/dialog_utils.dart';
+import 'bloc/approval_bloc.dart';
+import '../../core/models/channel_member_model.dart';
+import '../../core/models/pairing_request_model.dart';
+import '../../core/repositories/channel_repository.dart';
 
 /// Chi tiết kênh của bạn (Owner) — MOBILE_FEATURES 2.3 + 4.1–4.4:
 /// tên kênh, số thành viên + danh sách thành viên, hàng đợi duyệt (badge),

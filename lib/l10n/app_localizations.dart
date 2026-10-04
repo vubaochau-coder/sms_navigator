@@ -1251,6 +1251,60 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Thiết bị của tôi'**
   String get splashDefaultDeviceName;
+
+  /// No description provided for @smsPageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tin nhắn SMS theo ngày'**
+  String get smsPageTitle;
+
+  /// No description provided for @smsRefreshTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Làm mới'**
+  String get smsRefreshTooltip;
+
+  /// No description provided for @smsEmptyInDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngày {date} chưa có tin nhắn SMS nào'**
+  String smsEmptyInDate(String date);
+
+  /// No description provided for @smsDecryptError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không giải mã được tin này'**
+  String get smsDecryptError;
+
+  /// No description provided for @smsChannelPrefix.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh: {channelName} · {time}'**
+  String smsChannelPrefix(String channelName, String time);
+
+  /// No description provided for @smsCopyTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép'**
+  String get smsCopyTooltip;
+
+  /// No description provided for @smsCopied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép: {otp}'**
+  String smsCopied(String otp);
+
+  /// No description provided for @smsLoadError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.'**
+  String get smsLoadError;
+
+  /// No description provided for @smsLoadErrorTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi tải tin nhắn'**
+  String get smsLoadErrorTitle;
 }
 
 class _AppLocalizationsDelegate

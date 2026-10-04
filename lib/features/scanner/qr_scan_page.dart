@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../../core/constants/dimens.dart';
-import '../../../core/extensions/context_extensions.dart';
-import '../../../core/utils/toast_utils.dart';
-import '../scanning/qr_scan_handler.dart';
-import '../scanning/qr_scan_handler_registry.dart';
+import '../../core/constants/dimens.dart';
+import '../../core/extensions/context_extensions.dart';
+import '../../core/utils/toast_utils.dart';
+import 'scanning/qr_scan_handler.dart';
+import 'scanning/qr_scan_handler_registry.dart';
 
 /// Màn hình quét QR trung tính: chỉ lo camera, thư viện ảnh và điều phối
 /// payload qua [QrScanHandlerRegistry]. Nghiệp vụ cụ thể (ghép đôi...) được

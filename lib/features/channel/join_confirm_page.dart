@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/utils/dialog_utils.dart';
-import '../bloc/join_bloc.dart';
-import '../../../core/models/pairing_session_model.dart';
-import '../../../core/repositories/join_channel_repository.dart';
+import '../../core/utils/dialog_utils.dart';
+import 'bloc/join_bloc.dart';
+import '../../core/models/pairing_session_model.dart';
+import '../../core/repositories/join_channel_repository.dart';
 
 /// Đích đến của invite QR/deeplink v4 (3.1→3.6):
 /// 1. Parse invite → dialog xác nhận (tên kênh + tên máy chủ + tên thiết bị

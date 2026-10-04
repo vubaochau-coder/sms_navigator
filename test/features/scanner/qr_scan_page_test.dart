@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:toastification/toastification.dart';
-import 'package:sms_navigator/features/scanner/pages/qr_scan_page.dart';
+import 'package:sms_navigator/features/scanner/qr_scan_page.dart';
 import 'package:sms_navigator/features/scanner/scanning/qr_scan_handler.dart';
 import 'package:sms_navigator/features/scanner/scanning/qr_scan_handler_registry.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';

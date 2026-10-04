@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/utils/dialog_utils.dart';
-import '../bloc/channel_bloc.dart';
-import '../../../core/models/channel_model.dart';
-import '../../../core/repositories/channel_repository.dart';
+import '../../core/utils/dialog_utils.dart';
+import 'bloc/channel_bloc.dart';
+import '../../core/models/channel_model.dart';
+import '../../core/repositories/channel_repository.dart';
 import 'channel_page.dart';
 
 /// Màn quản lý kênh chia 2 nhóm (MOBILE_FEATURES 2.1):

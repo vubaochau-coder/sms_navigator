@@ -5,7 +5,7 @@ import '../../../core/extensions/context_extensions.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_event.dart';
-import '../pages/device_setup_checklist_page.dart';
+import '../device_setup_checklist_page.dart';
 
 Future<void> showSmsPermissionPromptDialog(
   BuildContext context, {

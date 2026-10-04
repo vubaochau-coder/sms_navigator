@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/deep_link_service.dart';
-import '../pages/join_confirm_page.dart';
+import '../join_confirm_page.dart';
 
 /// Lắng nghe deep link invite v4 (`smsnavigator://pair?v=4&...`): camera hệ
 /// thống / app quét của bên thứ ba mở thẳng app → JoinConfirmPage. URI khác

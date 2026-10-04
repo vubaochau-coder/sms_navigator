@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/constants/app_strings.dart';
-import '../../../core/enums/splash_status.dart';
-import '../../../core/extensions/context_extensions.dart';
-import '../../../core/services/analytics_service.dart';
-import '../../../core/services/channel_key_store.dart';
-import '../../../core/services/crashlytics_service.dart';
-import '../../../core/services/device_api_service.dart';
-import '../../../core/services/device_storage_service.dart';
-import '../../../core/services/fcm_notification_service.dart';
-import '../../../core/services/startup_reconcile_service.dart';
-import '../../home/pages/main_navigation_page.dart';
-import '../bloc/splash_bloc.dart';
-import '../bloc/splash_event.dart';
-import '../bloc/splash_state.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/enums/splash_status.dart';
+import '../../core/extensions/context_extensions.dart';
+import '../../core/services/analytics_service.dart';
+import '../../core/services/channel_key_store.dart';
+import '../../core/services/crashlytics_service.dart';
+import '../../core/services/device_api_service.dart';
+import '../../core/services/device_storage_service.dart';
+import '../../core/services/fcm_notification_service.dart';
+import '../../core/services/startup_reconcile_service.dart';
+import '../home/main_navigation_page.dart';
+import 'bloc/splash_bloc.dart';
+import 'bloc/splash_event.dart';
+import 'bloc/splash_state.dart';
 
 /// Màn hình Splash / Khởi tạo & Kiểm tra đăng ký thiết bị theo kiến trúc BLoC.
 class SplashPage extends StatelessWidget {

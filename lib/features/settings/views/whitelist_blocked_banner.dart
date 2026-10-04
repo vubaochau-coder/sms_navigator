@@ -9,7 +9,7 @@ import '../../../core/services/native_relay_service.dart';
 import '../bloc/whitelist_bloc.dart';
 import '../bloc/whitelist_event.dart';
 import '../bloc/whitelist_state.dart';
-import '../pages/whitelist_settings_page.dart';
+import '../whitelist_settings_page.dart';
 
 /// Banner cảnh báo cam hiển thị trên trang chính khi white-list trống
 /// (mọi SMS đang bị chặn). Chỉ áp dụng cho thiết bị gửi.

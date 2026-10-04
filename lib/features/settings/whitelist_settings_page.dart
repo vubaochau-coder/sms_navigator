@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/extensions/context_extensions.dart';
-import '../../../core/widgets/app_common_widgets.dart';
-import '../../../core/models/whitelist_config_model.dart';
-import '../../../core/repositories/whitelist_repository.dart';
-import '../bloc/whitelist_bloc.dart';
-import '../bloc/whitelist_event.dart';
-import '../bloc/whitelist_state.dart';
-import '../widgets/whitelist_add_entry_dialog.dart';
+import '../../core/extensions/context_extensions.dart';
+import '../../core/widgets/app_common_widgets.dart';
+import '../../core/models/whitelist_config_model.dart';
+import '../../core/repositories/whitelist_repository.dart';
+import 'bloc/whitelist_bloc.dart';
+import 'bloc/whitelist_event.dart';
+import 'bloc/whitelist_state.dart';
+import 'views/whitelist_add_entry_dialog.dart';
 
 /// Màn cấu hình Danh sách trắng SMS (deny-by-default).
 class WhitelistSettingsPage extends StatelessWidget {
