@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/dialog_utils.dart';
 import '../bloc/channel_bloc.dart';
-import '../../data/models/channel_model.dart';
-import '../../data/repositories/channel_repository.dart';
+import '../../../../core/models/channel_model.dart';
+import '../../../../core/repositories/channel_repository.dart';
 import 'channel_page.dart';
 
 /// Màn quản lý kênh chia 2 nhóm (MOBILE_FEATURES 2.1):
@@ -83,6 +83,7 @@ class _ChannelListView extends StatelessWidget {
                   ),
                 ),
           floatingActionButton: FloatingActionButton.extended(
+            heroTag: 'channel_list_create_channel_fab',
             onPressed: () => _createChannel(context),
             icon: const Icon(Icons.add),
             label: const Text('Tạo kênh'),
@@ -92,70 +93,36 @@ class _ChannelListView extends StatelessWidget {
     );
   }
 
-  void _createChannel(BuildContext context) {
-    final controller = TextEditingController();
-    DialogUtils.showCustomFormDialog<void>(
+  Future<void> _createChannel(BuildContext context) async {
+    final name = await DialogUtils.showInputDialog(
       context: context,
       title: 'Tạo kênh mới',
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLength: 100,
-        decoration: const InputDecoration(
-          labelText: 'Tên kênh',
-          hintText: 'Ví dụ: Kênh nhà',
-          border: OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
-        ),
-        FilledButton(
-          onPressed: () {
-            final name = controller.text.trim();
-            if (name.isEmpty) return;
-            Navigator.of(context).pop();
-            context.read<ChannelBloc>().add(ChannelCreated(name));
-          },
-          child: const Text('Tạo'),
-        ),
-      ],
+      labelText: 'Tên kênh',
+      hintText: 'Ví dụ: Kênh nhà',
+      maxLength: 100,
+      icon: Icons.add_circle_outline_rounded,
+      confirmText: 'Tạo',
+      cancelText: 'Hủy',
     );
+    if (name != null && name.isNotEmpty && context.mounted) {
+      context.read<ChannelBloc>().add(ChannelCreated(name));
+    }
   }
 
-  void _renameDevice(BuildContext context) {
-    final controller = TextEditingController();
-    DialogUtils.showCustomFormDialog<void>(
+  Future<void> _renameDevice(BuildContext context) async {
+    final name = await DialogUtils.showInputDialog(
       context: context,
       title: 'Đổi tên thiết bị',
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        maxLength: 128,
-        decoration: const InputDecoration(
-          labelText: 'Tên hiển thị',
-          hintText: 'Ví dụ: Pixel 8 của Minh',
-          border: OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
-        ),
-        FilledButton(
-          onPressed: () {
-            final name = controller.text.trim();
-            if (name.isEmpty) return;
-            Navigator.of(context).pop();
-            context.read<ChannelBloc>().add(DeviceRenamed(name));
-          },
-          child: const Text('Lưu'),
-        ),
-      ],
+      labelText: 'Tên hiển thị',
+      hintText: 'Ví dụ: Pixel 8 của Minh',
+      maxLength: 128,
+      icon: Icons.edit_rounded,
+      confirmText: 'Lưu',
+      cancelText: 'Hủy',
     );
+    if (name != null && name.isNotEmpty && context.mounted) {
+      context.read<ChannelBloc>().add(DeviceRenamed(name));
+    }
   }
 }
 

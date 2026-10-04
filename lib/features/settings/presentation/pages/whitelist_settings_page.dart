@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
-import '../../../sender/data/models/whitelist_config_model.dart';
-import '../../data/repositories/whitelist_repository.dart';
+import '../../../../core/models/whitelist_config_model.dart';
+import '../../../../core/repositories/whitelist_repository.dart';
 import '../bloc/whitelist_bloc.dart';
 import '../bloc/whitelist_event.dart';
 import '../bloc/whitelist_state.dart';
@@ -35,6 +35,7 @@ class _WhitelistSettingsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.whitelistSettingsTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'whitelist_settings_add_fab',
         onPressed: () {
           showDialog<void>(
             context: context,

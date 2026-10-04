@@ -2,24 +2,12 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/pairing_request_model.dart';
-import '../../data/models/pairing_session_model.dart';
-import '../../data/repositories/join_channel_repository.dart';
+import '../../../../core/enums/join_phase.dart';
+import '../../../../core/models/pairing_request_model.dart';
+import '../../../../core/models/pairing_session_model.dart';
+import '../../../../core/repositories/join_channel_repository.dart';
 
-/// Giai đoạn của luồng tham gia kênh (3.1–3.6).
-enum JoinPhase {
-  /// Đang hiển thị dialog xác nhận (3.2) — KHÔNG tự gọi API sau khi quét.
-  confirming,
-
-  /// Đã gửi request, đang chờ Owner duyệt (3.4) — không phụ thuộc TTL 10'.
-  waitingApproval,
-
-  /// Được duyệt — app sẽ provision key ngầm rồi quay về màn kênh.
-  approved,
-
-  /// Bị từ chối / hủy / mã lỗi (3.6).
-  failed,
-}
+export '../../../../core/enums/join_phase.dart';
 
 class JoinState extends Equatable {
   final JoinPhase phase;

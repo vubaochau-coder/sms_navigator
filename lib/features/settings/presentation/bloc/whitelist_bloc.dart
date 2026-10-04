@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/toast_utils.dart';
-import '../../../sender/data/models/whitelist_config_model.dart';
-import '../../data/repositories/whitelist_repository.dart';
+import '../../../../core/models/whitelist_config_model.dart';
+import '../../../../core/repositories/whitelist_repository.dart';
 import 'whitelist_event.dart';
 import 'whitelist_state.dart';
 

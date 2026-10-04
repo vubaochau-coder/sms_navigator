@@ -34,6 +34,9 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
     return AlertDialog(
       shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
       insetPadding: DialogUtils.insetPadding,
+      titlePadding: DialogUtils.defaultTitlePadding,
+      contentPadding: DialogUtils.defaultContentPadding,
+      actionsPadding: DialogUtils.defaultActionsPadding,
       title: Text(l10n.addWhitelistDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -59,10 +62,18 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
       ),
       actions: [
         TextButton(
+          style: TextButton.styleFrom(
+            maximumSize: const Size.fromHeight(48),
+            minimumSize: const Size(0, 40),
+          ),
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.cancel),
         ),
         FilledButton(
+          style: FilledButton.styleFrom(
+            maximumSize: const Size.fromHeight(48),
+            minimumSize: const Size(0, 40),
+          ),
           onPressed: _submit,
           child: Text(l10n.confirm),
         ),

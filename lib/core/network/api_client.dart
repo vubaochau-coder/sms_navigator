@@ -18,7 +18,7 @@ typedef ServerUrlProvider = Future<String?> Function();
 ///   `http://10.0.2.2:3000` của Android emulator hoặc `http://127.0.0.1:3000`).
 /// - Tự động đính kèm header `Authorization: Bearer <device_token>`.
 /// - Cung cấp các phương thức get/post/put/patch/delete động.
-/// - Timeout 10 giây cho mọi request.
+/// - Connect timeout 45 giây (đủ thời gian cho Render cold-start), receive/send timeout 30 giây.
 /// - Chuẩn hóa lỗi: [NetworkException], [UnauthorizedException], [ApiException].
 class ApiClient {
   ApiClient({
@@ -26,18 +26,24 @@ class ApiClient {
     Dio? dio,
     ServerUrlProvider? serverUrlProvider,
     DeviceTokenProvider? tokenProvider,
-    this.requestTimeout = const Duration(seconds: 10),
+    Duration connectTimeout = const Duration(seconds: 45),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    Duration sendTimeout = const Duration(seconds: 30),
+    Duration? requestTimeout,
   }) : _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
        _serverUrlProvider = serverUrlProvider,
-       _tokenProvider = tokenProvider {
+       _tokenProvider = tokenProvider,
+       connectTimeout = requestTimeout ?? connectTimeout,
+       receiveTimeout = requestTimeout ?? receiveTimeout,
+       sendTimeout = requestTimeout ?? sendTimeout {
     _dio =
         dio ??
         Dio(
           BaseOptions(
             baseUrl: _fallbackBaseUrl,
-            connectTimeout: requestTimeout,
-            receiveTimeout: requestTimeout,
-            sendTimeout: requestTimeout,
+            connectTimeout: this.connectTimeout,
+            receiveTimeout: this.receiveTimeout,
+            sendTimeout: this.sendTimeout,
             headers: <String, dynamic>{
               'Content-Type': 'application/json; charset=utf-8',
               'Accept': 'application/json',
@@ -101,7 +107,11 @@ class ApiClient {
   final String _fallbackBaseUrl;
   final ServerUrlProvider? _serverUrlProvider;
   final DeviceTokenProvider? _tokenProvider;
-  final Duration requestTimeout;
+  final Duration connectTimeout;
+  final Duration receiveTimeout;
+  final Duration sendTimeout;
+
+  Duration get requestTimeout => receiveTimeout;
 
   Dio get dio => _dio;
 
@@ -202,12 +212,23 @@ class ApiClient {
         e.message ?? 'Yêu cầu mạng đã bị hủy bỏ.',
       );
     }
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      AppLogger.w('ApiClient', 'Connection timed out on ${e.requestOptions.uri}');
+    if (e.type == DioExceptionType.connectionTimeout) {
+      AppLogger.w(
+        'ApiClient',
+        'Connection timed out (${connectTimeout.inSeconds}s) on ${e.requestOptions.uri}',
+      );
       return NetworkException(
-        'Kết nối tới máy chủ quá thời gian chờ (${requestTimeout.inSeconds}s).',
+        'Kết nối tới máy chủ quá thời gian chờ (${connectTimeout.inSeconds}s).',
+      );
+    }
+    if (e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      AppLogger.w(
+        'ApiClient',
+        'Request transfer timed out (${receiveTimeout.inSeconds}s) on ${e.requestOptions.uri}',
+      );
+      return NetworkException(
+        'Thời gian truyền dữ liệu với máy chủ quá hạn (${receiveTimeout.inSeconds}s).',
       );
     }
     final response = e.response;

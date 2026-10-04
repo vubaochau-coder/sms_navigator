@@ -6,8 +6,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/utils/dialog_utils.dart';
 import '../bloc/sms_by_date_bloc.dart';
-import '../../data/models/channel_message_model.dart';
-import '../../data/repositories/sms_by_date_repository.dart';
+import '../../../../core/models/channel_message_model.dart';
+import '../../../../core/repositories/sms_by_date_repository.dart';
 
 /// Màn SMS của ngày (MOBILE_FEATURES 6.1–6.4):
 /// - Chọn ngày trên calendar (6.1);
@@ -77,9 +77,9 @@ class _CalendarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      margin: const EdgeInsets.fromLTRB(12, 18, 12, 6),
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(8, 14, 8, 8),
         child: TableCalendar<DateTime>(
           firstDay: DateTime.now().subtract(const Duration(days: 29)),
           lastDay: DateTime.now(),

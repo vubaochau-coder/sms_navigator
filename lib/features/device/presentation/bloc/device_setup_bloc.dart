@@ -2,7 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/data_converter.dart';
-import '../../data/repositories/device_setup_repository.dart';
+import '../../../../core/repositories/device_setup_repository.dart';
 import 'device_setup_event.dart';
 import 'device_setup_state.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/features/channel/data/models/channel_message_model.dart';
-import 'package:sms_navigator/features/channel/data/repositories/sms_by_date_repository.dart';
+import 'package:sms_navigator/core/models/channel_message_model.dart';
+import 'package:sms_navigator/core/repositories/sms_by_date_repository.dart';
 import 'package:sms_navigator/features/channel/presentation/bloc/sms_by_date_bloc.dart';
 
 class _FakeSmsByDateRepository implements SmsByDateRepository {

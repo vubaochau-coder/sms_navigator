@@ -33,6 +33,15 @@ class DialogUtils {
     horizontal: 12.0,
     vertical: 24.0,
   );
+
+  /// Padding nội bộ chuẩn của AlertDialog: giảm bớt khoảng trống thừa giữa Title, Content và Actions
+  static const EdgeInsets defaultTitlePadding =
+      EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 6.0);
+  static const EdgeInsets defaultContentPadding =
+      EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 14.0);
+  static const EdgeInsets defaultActionsPadding =
+      EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0);
+
   static const String defaultConfirmText = 'Xác nhận';
   static const String defaultCancelText = 'Hủy bỏ';
   static const String defaultCloseText = 'Đóng';
@@ -53,8 +62,8 @@ class DialogUtils {
   /// [child]: Widget nội dung bên trong dialog (tham số bắt buộc).
   /// Cung cấp sẵn khung chuẩn: bo góc [borderRadius], insetPadding 12px trái phải,
   /// màu nền [ColorScheme.surface], clip antiAlias.
-  static Future<T?> showBaseForm<T>(
-    Widget child, {
+  static Future<T?> showBaseForm<T>({
+    required Widget child,
     BuildContext? context,
     bool barrierDismissible = true,
     Color? barrierColor,
@@ -62,19 +71,31 @@ class DialogUtils {
     bool useSafeArea = true,
   }) {
     final ctx = _resolveContext(context);
+    final padding = customInsetPadding ?? insetPadding;
     return showDialog<T>(
       context: ctx,
       barrierDismissible: barrierDismissible,
       barrierColor: barrierColor,
       useSafeArea: useSafeArea,
       builder: (dialogContext) {
+        final screenHeight = MediaQuery.sizeOf(dialogContext).height;
+        final maxHeight = screenHeight - padding.vertical;
         return Dialog(
           backgroundColor: Theme.of(dialogContext).colorScheme.surface,
           surfaceTintColor: Colors.transparent,
           shape: const RoundedRectangleBorder(borderRadius: borderRadius),
-          insetPadding: customInsetPadding ?? insetPadding,
+          insetPadding: padding,
           clipBehavior: Clip.antiAlias,
-          child: child,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: 280.0,
+              maxWidth: 560.0,
+              maxHeight: maxHeight,
+            ),
+            child: SingleChildScrollView(
+              child: child,
+            ),
+          ),
         );
       },
     );
@@ -90,6 +111,9 @@ class DialogUtils {
     IconData? icon,
     bool barrierDismissible = true,
     EdgeInsets? customInsetPadding,
+    EdgeInsets? titlePadding,
+    EdgeInsets? contentPadding,
+    EdgeInsets? actionsPadding,
   }) {
     final ctx = _resolveContext(context);
     return showDialog<T>(
@@ -99,6 +123,9 @@ class DialogUtils {
         return AlertDialog(
           shape: const RoundedRectangleBorder(borderRadius: borderRadius),
           insetPadding: customInsetPadding ?? insetPadding,
+          titlePadding: titlePadding ?? defaultTitlePadding,
+          contentPadding: contentPadding ?? defaultContentPadding,
+          actionsPadding: actionsPadding ?? defaultActionsPadding,
           title: Row(
             children: [
               if (icon != null) ...[
@@ -116,8 +143,124 @@ class DialogUtils {
               ),
             ],
           ),
-          content: content,
+          content: SingleChildScrollView(
+            child: content,
+          ),
           actions: actions,
+        );
+      },
+    );
+  }
+
+  /// Hiển thị Dialog nhập liệu văn bản (TextField) chuẩn form DialogUtils.
+  /// Áp dụng đầy đủ chuẩn form: 12px insetPadding, padding nội bộ compact, nút tối đa 48px.
+  static Future<String?> showInputDialog({
+    BuildContext? context,
+    required String title,
+    String? hintText,
+    String? labelText,
+    String? initialValue,
+    IconData? icon,
+    int? maxLength,
+    String confirmText = defaultConfirmText,
+    String cancelText = defaultCancelText,
+    EdgeInsets? customInsetPadding,
+  }) {
+    final ctx = _resolveContext(context);
+    final controller = TextEditingController(text: initialValue);
+
+    return showDialog<String>(
+      context: ctx,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: borderRadius),
+          insetPadding: customInsetPadding ?? insetPadding,
+          titlePadding: defaultTitlePadding,
+          contentPadding: defaultContentPadding,
+          actionsPadding: defaultActionsPadding,
+          title: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: AppColors.primary, size: iconSize),
+                const SizedBox(width: iconSpacing),
+              ],
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: maxLength,
+              decoration: InputDecoration(
+                labelText: labelText,
+                hintText: hintText,
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+              ),
+              onSubmitted: (value) {
+                final trimmed = value.trim();
+                if (trimmed.isNotEmpty) {
+                  Navigator.of(dialogContext).pop(trimmed);
+                }
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                maximumSize: const Size.fromHeight(48),
+                minimumSize: const Size(0, 40),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: buttonBorderRadius,
+                ),
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(null),
+              child: Text(
+                cancelText,
+                style: TextStyle(
+                  color: Theme.of(dialogContext)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                maximumSize: const Size.fromHeight(48),
+                minimumSize: const Size(0, 40),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: buttonBorderRadius,
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                final trimmed = controller.text.trim();
+                if (trimmed.isNotEmpty) {
+                  Navigator.of(dialogContext).pop(trimmed);
+                }
+              },
+              child: Text(
+                confirmText,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -147,6 +290,9 @@ class DialogUtils {
           child: AlertDialog(
             shape: const RoundedRectangleBorder(borderRadius: borderRadius),
             insetPadding: customInsetPadding ?? insetPadding,
+            titlePadding: defaultTitlePadding,
+            contentPadding: defaultContentPadding,
+            actionsPadding: defaultActionsPadding,
             title: Row(
               children: [
                 if (icon != null) ...[
@@ -164,14 +310,16 @@ class DialogUtils {
                 ),
               ],
             ),
-            content: Text(
-              message,
-              style: TextStyle(
-                fontSize: messageFontSize,
-                color: Theme.of(
-                  dialogContext,
-                ).colorScheme.onSurface.withValues(alpha: 0.8),
-                height: messageLineHeight,
+            content: SingleChildScrollView(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: messageFontSize,
+                  color: Theme.of(
+                    dialogContext,
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                  height: messageLineHeight,
+                ),
               ),
             ),
             actions: [
@@ -272,6 +420,9 @@ class DialogUtils {
           child: AlertDialog(
             shape: const RoundedRectangleBorder(borderRadius: borderRadius),
             insetPadding: customInsetPadding ?? insetPadding,
+            titlePadding: defaultTitlePadding,
+            contentPadding: defaultContentPadding,
+            actionsPadding: defaultActionsPadding,
             title: Row(
               children: [
                 if (icon != null) ...[
@@ -295,14 +446,16 @@ class DialogUtils {
                 ),
               ],
             ),
-            content: Text(
-              message,
-              style: TextStyle(
-                fontSize: messageFontSize,
-                color: Theme.of(
-                  dialogContext,
-                ).colorScheme.onSurface.withValues(alpha: 0.8),
-                height: messageLineHeight,
+            content: SingleChildScrollView(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: messageFontSize,
+                  color: Theme.of(
+                    dialogContext,
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                  height: messageLineHeight,
+                ),
               ),
             ),
             actions: actions,
@@ -317,8 +470,8 @@ class DialogUtils {
   /// Hộp thoại xác nhận hành động (VD: Hủy kết nối, Xóa dữ liệu).
   ///
   /// Giữ tương thích ngược với các caller hiện có, ủy quyền xử lý cho [showTwoOptionsDialog].
-  static Future<bool> showConfirmDialog(
-    BuildContext context, {
+  static Future<bool> showConfirmDialog({
+    BuildContext? context,
     required String title,
     required String message,
     String confirmText = defaultConfirmText,

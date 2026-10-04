@@ -2,8 +2,8 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/channel_model.dart';
-import '../../data/repositories/channel_repository.dart';
+import '../../../../core/models/channel_model.dart';
+import '../../../../core/repositories/channel_repository.dart';
 
 /// Trạng thái màn danh sách kênh: 2 nhóm "Kênh của bạn" (Owner) / "Kênh bạn
 /// tham gia" (Member) — nguồn `GET /channels`, nhóm theo `role` (2.1).

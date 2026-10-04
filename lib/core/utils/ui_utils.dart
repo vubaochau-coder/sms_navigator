@@ -62,15 +62,15 @@ class UiUtils {
   );
 
   /// Dialog
-  static Future<T?> showBaseForm<T>(
-    Widget child, {
+  static Future<T?> showBaseForm<T>({
+    required Widget child,
     BuildContext? context,
     bool barrierDismissible = true,
     Color? barrierColor,
     EdgeInsets? customInsetPadding,
     bool useSafeArea = true,
   }) => DialogUtils.showBaseForm<T>(
-    child,
+    child: child,
     context: context,
     barrierDismissible: barrierDismissible,
     barrierColor: barrierColor,
@@ -120,8 +120,8 @@ class UiUtils {
     customInsetPadding: customInsetPadding,
   );
 
-  static Future<bool> showConfirmDialog(
-    BuildContext context, {
+  static Future<bool> showConfirmDialog({
+    BuildContext? context,
     required String title,
     required String message,
     String confirmText = 'Xác nhận',
@@ -129,7 +129,7 @@ class UiUtils {
     bool isDestructive = false,
     IconData? icon,
   }) => DialogUtils.showConfirmDialog(
-    context,
+    context: context,
     title: title,
     message: message,
     confirmText: confirmText,
@@ -138,9 +138,31 @@ class UiUtils {
     icon: icon,
   );
 
+  static Future<String?> showInputDialog({
+    BuildContext? context,
+    required String title,
+    String? hintText,
+    String? labelText,
+    String? initialValue,
+    IconData? icon,
+    int? maxLength,
+    String confirmText = 'Xác nhận',
+    String cancelText = 'Hủy bỏ',
+  }) => DialogUtils.showInputDialog(
+    context: context,
+    title: title,
+    hintText: hintText,
+    labelText: labelText,
+    initialValue: initialValue,
+    icon: icon,
+    maxLength: maxLength,
+    confirmText: confirmText,
+    cancelText: cancelText,
+  );
+
   /// BottomSheet
-  static Future<T?> showBottomSheetBaseForm<T>(
-    Widget child, {
+  static Future<T?> showBottomSheetBaseForm<T>({
+    required Widget child,
     BuildContext? context,
     String? title,
     bool isDismissible = true,
@@ -148,7 +170,7 @@ class UiUtils {
     Color? backgroundColor,
     bool showDragHandle = true,
   }) => BottomSheetUtils.showBaseForm<T>(
-    child,
+    child: child,
     context: context,
     title: title,
     isDismissible: isDismissible,
@@ -157,15 +179,15 @@ class UiUtils {
     showDragHandle: showDragHandle,
   );
 
-  static Future<T?> showAppBottomSheet<T>(
-    BuildContext context, {
+  static Future<T?> showAppBottomSheet<T>({
     required Widget child,
+    BuildContext? context,
     String? title,
     bool isDismissible = true,
     bool enableDrag = true,
   }) => BottomSheetUtils.showAppBottomSheet<T>(
-    context,
     child: child,
+    context: context,
     title: title,
     isDismissible: isDismissible,
     enableDrag: enableDrag,

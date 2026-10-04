@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../features/channel/data/repositories/channel_repository.dart';
-import '../../features/channel/data/repositories/join_channel_repository.dart';
-import '../../features/channel/data/repositories/sms_by_date_repository.dart';
-import '../../features/channel/data/services/channel_api_client.dart';
-import '../../features/channel/data/services/channel_key_store.dart';
-import '../../features/channel/data/services/startup_reconcile_service.dart';
-import '../../features/device/data/repositories/device_setup_repository.dart';
-import '../../features/device/data/services/device_api_service.dart';
-import '../../features/device/data/services/device_setup_service.dart';
-import '../../features/sender/data/services/native_relay_service.dart';
-import '../../features/settings/data/repositories/whitelist_repository.dart';
 import '../network/api_client.dart';
+import '../repositories/channel_repository.dart';
+import '../repositories/device_setup_repository.dart';
+import '../repositories/impls/channel_repository_impl.dart';
+import '../repositories/impls/device_setup_repository_impl.dart';
+import '../repositories/impls/join_channel_repository_impl.dart';
+import '../repositories/impls/sms_by_date_repository_impl.dart';
+import '../repositories/impls/whitelist_repository_impl.dart';
+import '../repositories/join_channel_repository.dart';
+import '../repositories/sms_by_date_repository.dart';
+import '../repositories/whitelist_repository.dart';
 import '../services/analytics_service.dart';
+import '../services/channel_api_client.dart';
+import '../services/channel_key_store.dart';
 import '../services/crashlytics_service.dart';
 import '../services/deep_link_service.dart';
+import '../services/device_api_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
-import '../storage/local_storage_service.dart';
+import '../services/impls/channel_api_client_impl.dart';
+import '../services/impls/channel_key_store_impl.dart';
+import '../services/impls/device_api_service_impl.dart';
+import '../services/impls/device_setup_service_impl.dart';
+import '../services/impls/device_storage_service_impl.dart';
+import '../services/impls/fcm_notification_service_impl.dart';
+import '../services/impls/native_relay_service_impl.dart';
+import '../services/impls/startup_reconcile_service_impl.dart';
+import '../services/local_storage_service.dart';
+import '../services/native_relay_service.dart';
+import '../services/startup_reconcile_service.dart';
 import '../utils/channel_crypto_helper.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
@@ -109,7 +121,7 @@ class AppBootstrap extends StatelessWidget {
 
         // 6. FCM chuông (API spec §7)
         RepositoryProvider<FcmNotificationService>(
-          create: (context) => FcmNotificationService(
+          create: (context) => FcmNotificationServiceImpl(
             deviceStorageService: context.read<DeviceStorageService>(),
             deviceApiService: context.read<DeviceApiService>(),
           ),
@@ -118,10 +130,10 @@ class AppBootstrap extends StatelessWidget {
         // 7. Channel E2EE (API spec v1.5)
         RepositoryProvider<ChannelApiClient>(
           create: (context) =>
-              ChannelApiClient(apiClient: context.read<ApiClient>()),
+              ChannelApiClientImpl(apiClient: context.read<ApiClient>()),
         ),
         RepositoryProvider<ChannelRepository>(
-          create: (context) => ChannelRepository(
+          create: (context) => ChannelRepositoryImpl(
             apiClient: context.read<ChannelApiClient>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
@@ -129,7 +141,7 @@ class AppBootstrap extends StatelessWidget {
           ),
         ),
         RepositoryProvider<JoinChannelRepository>(
-          create: (context) => JoinChannelRepository(
+          create: (context) => JoinChannelRepositoryImpl(
             apiClient: context.read<ChannelApiClient>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
@@ -137,14 +149,14 @@ class AppBootstrap extends StatelessWidget {
           ),
         ),
         RepositoryProvider<SmsByDateRepository>(
-          create: (context) => SmsByDateRepository(
+          create: (context) => SmsByDateRepositoryImpl(
             apiClient: context.read<ChannelApiClient>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
           ),
         ),
         RepositoryProvider<StartupReconcileService>(
-          create: (context) => StartupReconcileService(
+          create: (context) => StartupReconcileServiceImpl(
             deviceApiService: context.read<DeviceApiService>(),
             deviceStorage: context.read<DeviceStorageService>(),
             keyStore: context.read<ChannelKeyStore>(),

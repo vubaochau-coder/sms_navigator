@@ -46,8 +46,8 @@ class BottomSheetUtils {
   /// [child]: Widget nội dung bên trong BottomSheet (tham số bắt buộc).
   /// Cung cấp sẵn khung chuẩn: bo góc trên 20dp, drag handle ở đỉnh,
   /// padding bàn phím [viewInsets.bottom], màu nền chuẩn theo theme.
-  static Future<T?> showBaseForm<T>(
-    Widget child, {
+  static Future<T?> showBaseForm<T>({
+    required Widget child,
     BuildContext? context,
     String? title,
     bool isDismissible = true,
@@ -126,10 +126,9 @@ class BottomSheetUtils {
     );
   }
 
-  /// Modal Bottom Sheet chuẩn hóa dạng Soft Modern (alias tương thích ngược)
-  static Future<T?> showAppBottomSheet<T>(
-    BuildContext context, {
+  static Future<T?> showAppBottomSheet<T>({
     required Widget child,
+    BuildContext? context,
     String? title,
     bool isDismissible = true,
     bool enableDrag = true,
@@ -137,7 +136,7 @@ class BottomSheetUtils {
     bool showDragHandle = true,
   }) {
     return showBaseForm<T>(
-      child,
+      child: child,
       context: context,
       title: title,
       isDismissible: isDismissible,

@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/dialog_utils.dart';
 import '../bloc/join_bloc.dart';
-import '../../data/models/pairing_session_model.dart';
-import '../../data/repositories/join_channel_repository.dart';
+import '../../../../core/models/pairing_session_model.dart';
+import '../../../../core/repositories/join_channel_repository.dart';
 
 /// Đích đến của invite QR/deeplink v4 (3.1→3.6):
 /// 1. Parse invite → dialog xác nhận (tên kênh + tên máy chủ + tên thiết bị
@@ -157,6 +157,9 @@ class _JoinConfirmDialogState extends State<_JoinConfirmDialog> {
     return AlertDialog(
       shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
       insetPadding: DialogUtils.insetPadding,
+      titlePadding: DialogUtils.defaultTitlePadding,
+      contentPadding: DialogUtils.defaultContentPadding,
+      actionsPadding: DialogUtils.defaultActionsPadding,
       title: const Text('Tham gia kênh'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -248,7 +251,7 @@ class _WaitingApprovalView extends StatelessWidget {
 
   void _confirmCancel(BuildContext context) async {
     final confirmed = await DialogUtils.showConfirmDialog(
-      context,
+      context: context,
       title: 'Hủy yêu cầu?',
       message: 'Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.',
       confirmText: 'Hủy yêu cầu',

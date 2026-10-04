@@ -230,6 +230,7 @@ class AppTheme {
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         shape: RoundedRectangleBorder(

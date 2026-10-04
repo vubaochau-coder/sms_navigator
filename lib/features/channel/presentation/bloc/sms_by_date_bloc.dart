@@ -2,8 +2,8 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/channel_message_model.dart';
-import '../../data/repositories/sms_by_date_repository.dart';
+import '../../../../core/models/channel_message_model.dart';
+import '../../../../core/repositories/sms_by_date_repository.dart';
 
 /// Trạng thái rỗng/lỗi có thông điệp rõ ràng (MOBILE_FEATURES 6.4):
 /// - ngày không có tin → empty

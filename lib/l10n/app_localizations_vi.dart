@@ -605,4 +605,44 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get pairingDeletePhotoReminder =>
       'Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi.';
+
+  @override
+  String get splashSubtitle => 'Ghép đôi và đồng bộ SMS an toàn';
+
+  @override
+  String get splashInitializingApp => 'Đang khởi tạo ứng dụng...';
+
+  @override
+  String get splashInitializingServices => 'Đang khởi tạo các dịch vụ...';
+
+  @override
+  String get splashCheckingIdentityKey =>
+      'Đang kiểm tra khóa định danh thiết bị...';
+
+  @override
+  String get splashAuthenticatingDevice =>
+      'Đang xác thực thiết bị với máy chủ...';
+
+  @override
+  String get splashRegisteringDevice => 'Đang đăng ký thiết bị mới...';
+
+  @override
+  String get splashSyncingChannels => 'Đang đồng bộ dữ liệu kênh...';
+
+  @override
+  String get splashReady => 'Sẵn sàng!';
+
+  @override
+  String splashConnectionError(String error) {
+    return 'Không thể kết nối hoặc xác thực thiết bị: $error';
+  }
+
+  @override
+  String get splashRetry => 'Thử lại';
+
+  @override
+  String get splashSkipOffline => 'Bỏ qua & Vào chế độ ngoại tuyến';
+
+  @override
+  String get splashDefaultDeviceName => 'Thiết bị của tôi';
 }

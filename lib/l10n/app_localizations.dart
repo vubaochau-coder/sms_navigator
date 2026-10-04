@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In vi, this message translates to:
-  /// **'OTP Relay'**
+  /// **'SMS Navigator'**
   String get appTitle;
 
   /// No description provided for @roleSelectionTitle.
@@ -1179,6 +1179,78 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi.'**
   String get pairingDeletePhotoReminder;
+
+  /// No description provided for @splashSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghép đôi và đồng bộ SMS an toàn'**
+  String get splashSubtitle;
+
+  /// No description provided for @splashInitializingApp.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang khởi tạo ứng dụng...'**
+  String get splashInitializingApp;
+
+  /// No description provided for @splashInitializingServices.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang khởi tạo các dịch vụ...'**
+  String get splashInitializingServices;
+
+  /// No description provided for @splashCheckingIdentityKey.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang kiểm tra khóa định danh thiết bị...'**
+  String get splashCheckingIdentityKey;
+
+  /// No description provided for @splashAuthenticatingDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang xác thực thiết bị với máy chủ...'**
+  String get splashAuthenticatingDevice;
+
+  /// No description provided for @splashRegisteringDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang đăng ký thiết bị mới...'**
+  String get splashRegisteringDevice;
+
+  /// No description provided for @splashSyncingChannels.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang đồng bộ dữ liệu kênh...'**
+  String get splashSyncingChannels;
+
+  /// No description provided for @splashReady.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sẵn sàng!'**
+  String get splashReady;
+
+  /// No description provided for @splashConnectionError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kết nối hoặc xác thực thiết bị: {error}'**
+  String splashConnectionError(String error);
+
+  /// No description provided for @splashRetry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get splashRetry;
+
+  /// No description provided for @splashSkipOffline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ qua & Vào chế độ ngoại tuyến'**
+  String get splashSkipOffline;
+
+  /// No description provided for @splashDefaultDeviceName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị của tôi'**
+  String get splashDefaultDeviceName;
 }
 
 class _AppLocalizationsDelegate

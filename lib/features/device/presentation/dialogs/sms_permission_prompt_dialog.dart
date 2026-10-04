@@ -13,39 +13,43 @@ Future<void> showSmsPermissionPromptDialog(
 }) {
   final l10n = context.l10n;
 
-  return DialogUtils.showBaseForm<void>(
+  return DialogUtils.showCustomFormDialog<void>(
     context: context,
     barrierDismissible: true,
-    AlertDialog(
-      shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
-      insetPadding: DialogUtils.insetPadding,
-      title: Text(l10n.permissionDialogTitle),
-      content: Text(
-        l10n.permissionDialogMessage,
-        style: const TextStyle(height: 1.4),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            BlocProvider.of<DeviceSetupBloc>(context).add(
-              const DeviceSetupDontPromptDismissed(),
-            );
-          },
-          child: Text(l10n.dontRemindAgain),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const DeviceSetupChecklistPage(),
-              ),
-            );
-          },
-          child: Text(l10n.goToSettings),
-        ),
-      ],
+    title: l10n.permissionDialogTitle,
+    content: Text(
+      l10n.permissionDialogMessage,
+      style: const TextStyle(height: 1.4),
     ),
+    actions: [
+      TextButton(
+        style: TextButton.styleFrom(
+          maximumSize: const Size.fromHeight(48),
+          minimumSize: const Size(0, 40),
+        ),
+        onPressed: () {
+          Navigator.of(context).pop();
+          BlocProvider.of<DeviceSetupBloc>(context).add(
+            const DeviceSetupDontPromptDismissed(),
+          );
+        },
+        child: Text(l10n.dontRemindAgain),
+      ),
+      FilledButton(
+        style: FilledButton.styleFrom(
+          maximumSize: const Size.fromHeight(48),
+          minimumSize: const Size(0, 40),
+        ),
+        onPressed: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const DeviceSetupChecklistPage(),
+            ),
+          );
+        },
+        child: Text(l10n.goToSettings),
+      ),
+    ],
   );
 }

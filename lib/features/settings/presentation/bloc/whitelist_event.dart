@@ -1,4 +1,4 @@
-import '../../../sender/data/models/whitelist_config_model.dart';
+import '../../../../core/models/whitelist_config_model.dart';
 
 abstract class WhitelistEvent {
   const WhitelistEvent();

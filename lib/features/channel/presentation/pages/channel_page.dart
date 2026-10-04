@@ -6,9 +6,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/utils/dialog_utils.dart';
 import '../bloc/approval_bloc.dart';
-import '../../data/models/channel_member_model.dart';
-import '../../data/models/pairing_request_model.dart';
-import '../../data/repositories/channel_repository.dart';
+import '../../../../core/models/channel_member_model.dart';
+import '../../../../core/models/pairing_request_model.dart';
+import '../../../../core/repositories/channel_repository.dart';
 
 /// Chi tiết kênh của bạn (Owner) — MOBILE_FEATURES 2.3 + 4.1–4.4:
 /// tên kênh, số thành viên + danh sách thành viên, hàng đợi duyệt (badge),
@@ -356,7 +356,7 @@ class _PendingRequestsSection extends StatelessWidget {
 
   void _approve(BuildContext context, PairingRequestModel request) {
     DialogUtils.showConfirmDialog(
-      context,
+      context: context,
       title: 'Duyệt thành viên?',
       message:
           'Duyệt "${request.requesterDeviceName}" sẽ tự động xoay khóa kênh và cấp khóa mới cho mọi thành viên.',
@@ -370,7 +370,7 @@ class _PendingRequestsSection extends StatelessWidget {
 
   void _reject(BuildContext context, PairingRequestModel request) {
     DialogUtils.showConfirmDialog(
-      context,
+      context: context,
       title: 'Từ chối yêu cầu?',
       message:
           'Từ chối "${request.requesterDeviceName}"? Mã QR đã dùng cho yêu cầu này sẽ không còn hiệu lực.',
@@ -450,7 +450,7 @@ class _MembersSection extends StatelessWidget {
 
   void _revoke(BuildContext context, ChannelMemberModel member) {
     DialogUtils.showConfirmDialog(
-      context,
+      context: context,
       title: 'Thu hồi thành viên?',
       message:
           'Thu hồi "${member.deviceName}" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.',

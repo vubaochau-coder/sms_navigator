@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/features/sender/data/models/whitelist_config_model.dart';
-import 'package:sms_navigator/features/settings/data/repositories/whitelist_repository.dart';
+import 'package:sms_navigator/core/models/whitelist_config_model.dart';
+import 'package:sms_navigator/core/repositories/whitelist_repository.dart';
 import 'package:sms_navigator/features/settings/presentation/bloc/whitelist_bloc.dart';
 import 'package:sms_navigator/features/settings/presentation/bloc/whitelist_event.dart';
 

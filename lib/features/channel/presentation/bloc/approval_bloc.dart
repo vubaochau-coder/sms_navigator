@@ -2,11 +2,11 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/channel_detail_model.dart';
-import '../../data/models/channel_member_model.dart';
-import '../../data/models/pairing_request_model.dart';
-import '../../data/models/pairing_session_model.dart';
-import '../../data/repositories/channel_repository.dart';
+import '../../../../core/models/channel_detail_model.dart';
+import '../../../../core/models/channel_member_model.dart';
+import '../../../../core/models/pairing_request_model.dart';
+import '../../../../core/models/pairing_session_model.dart';
+import '../../../../core/repositories/channel_repository.dart';
 
 /// Trạng thái màn chi tiết kênh của Owner: members + hàng đợi duyệt + QR
 /// invite đang hiệu lực (2.3, 4.1–4.4). Badge = pendingCount.

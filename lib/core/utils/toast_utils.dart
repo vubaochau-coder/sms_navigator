@@ -4,8 +4,9 @@ import 'package:toastification/toastification.dart';
 
 import '../constants/app_colors.dart';
 
-/// Kiểu thông báo Toast
-enum ToastType { success, error, warning, info }
+import '../enums/toast_type.dart';
+
+export '../enums/toast_type.dart';
 
 /// Tiện ích hiển thị thông báo Toast sử dụng package toastification.
 /// Cho phép gọi trực tiếp từ BLoC hoặc bất cứ đâu mà không cần BuildContext.

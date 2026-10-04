@@ -111,7 +111,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () {
                   DialogUtils.showBaseForm(
-                    const Padding(
+                    child: const Padding(
                       padding: EdgeInsets.all(20),
                       child: Text('Custom Content Inside Base Form'),
                     ),
@@ -231,7 +231,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () async {
                   confirmed = await DialogUtils.showConfirmDialog(
-                    context,
+                    context: context,
                     title: 'Xóa kết nối',
                     message: 'Bạn có chắc chắn muốn xóa?',
                     confirmText: 'Đồng ý',
@@ -262,6 +262,46 @@ void main() {
       expect(confirmed, isTrue);
       expect(find.text('Xóa kết nối'), findsNothing);
     });
+
+    testWidgets('DialogUtils shows input dialog and returns entered text', (
+      tester,
+    ) async {
+      String? enteredName;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  enteredName = await DialogUtils.showInputDialog(
+                    context: context,
+                    title: 'Tạo kênh mới',
+                    labelText: 'Tên kênh',
+                    hintText: 'Ví dụ: Kênh nhà',
+                    icon: Icons.add_circle_outline_rounded,
+                    confirmText: 'Tạo',
+                    cancelText: 'Hủy',
+                  );
+                },
+                child: const Text('Open Input Dialog'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Input Dialog'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tạo kênh mới'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'Kênh Gia Đình');
+      await tester.tap(find.text('Tạo'));
+      await tester.pumpAndSettle();
+
+      expect(enteredName, equals('Kênh Gia Đình'));
+    });
   });
 
   group('BottomSheetUtils Tests', () {
@@ -276,7 +316,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () {
                   BottomSheetUtils.showBaseForm(
-                    const Text('Base Form Content'),
+                    child: const Text('Base Form Content'),
                     context: context,
                     title: 'Tiêu đề Sheet Base',
                   );
@@ -310,7 +350,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () {
                   BottomSheetUtils.showAppBottomSheet(
-                    context,
+                    context: context,
                     title: 'Tiêu đề Sheet',
                     child: const Text('Nội dung BottomSheet'),
                   );

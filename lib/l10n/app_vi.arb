@@ -1,6 +1,6 @@
 {
   "@@locale": "vi",
-  "appTitle": "OTP Relay",
+  "appTitle": "SMS Navigator",
   "roleSelectionTitle": "Chọn Chế Độ Hoạt Động",
   "roleSelectionSubtitle": "Ghép đôi và tự động chuyển tiếp OTP giữa Việt Nam và Malaysia",
   "roleSenderTitle": "Máy Gửi (Việt Nam)",
@@ -247,5 +247,22 @@
   "deeplinkPairingSuccess": "Đã ghép nối thành công",
   "deeplinkPairingFailed": "Ghép nối không thành công",
   "pairingQrNoSecretHint": "Mã QR không chứa mật khẩu — nếu ảnh bị lộ, kẻ khác vẫn không đọc được tin nhắn của bạn.",
-  "pairingDeletePhotoReminder": "Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi."
+  "pairingDeletePhotoReminder": "Đã ghép nối thành công. Nhớ xóa ảnh QR trong thư viện và cuộc trò chuyện đã gửi.",
+  "splashSubtitle": "Ghép đôi và đồng bộ SMS an toàn",
+  "splashInitializingApp": "Đang khởi tạo ứng dụng...",
+  "splashInitializingServices": "Đang khởi tạo các dịch vụ...",
+  "splashCheckingIdentityKey": "Đang kiểm tra khóa định danh thiết bị...",
+  "splashAuthenticatingDevice": "Đang xác thực thiết bị với máy chủ...",
+  "splashRegisteringDevice": "Đang đăng ký thiết bị mới...",
+  "splashSyncingChannels": "Đang đồng bộ dữ liệu kênh...",
+  "splashReady": "Sẵn sàng!",
+  "splashConnectionError": "Không thể kết nối hoặc xác thực thiết bị: {error}",
+  "@splashConnectionError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "splashRetry": "Thử lại",
+  "splashSkipOffline": "Bỏ qua & Vào chế độ ngoại tuyến",
+  "splashDefaultDeviceName": "Thiết bị của tôi"
 }

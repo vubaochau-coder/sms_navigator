@@ -1,10 +1,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_navigator/core/services/fcm_notification_service.dart';
-import 'package:sms_navigator/core/services/device_storage_service.dart';
+import 'package:sms_navigator/core/services/device_api_service.dart';
+import 'package:sms_navigator/core/services/impls/device_storage_service_impl.dart';
+import 'package:sms_navigator/core/services/impls/fcm_notification_service_impl.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
-import 'package:sms_navigator/features/device/data/services/device_api_service.dart';
 
 class _MockDeviceApiService implements DeviceApiService {
   String? updatedToken;
@@ -43,7 +43,7 @@ void main() {
       final deviceStorage = DeviceStorageServiceImpl(localStorage);
       final deviceApi = _MockDeviceApiService();
 
-      final service = FcmNotificationService(
+      final service = FcmNotificationServiceImpl(
         deviceStorageService: deviceStorage,
         deviceApiService: deviceApi,
       );

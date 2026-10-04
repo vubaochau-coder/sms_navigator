@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/features/device/data/repositories/device_setup_repository.dart';
+import 'package:sms_navigator/core/repositories/device_setup_repository.dart';
 import 'package:sms_navigator/features/device/presentation/bloc/device_setup_bloc.dart';
 import 'package:sms_navigator/features/device/presentation/bloc/device_setup_event.dart';
 import 'package:sms_navigator/features/device/presentation/bloc/device_setup_state.dart';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../channel/data/services/startup_reconcile_service.dart';
+import '../../../../core/repositories/device_setup_repository.dart';
+import '../../../../core/services/startup_reconcile_service.dart';
 import '../../../channel/presentation/pages/channel_list_page.dart';
 import '../../../channel/presentation/pages/join_qr_scan_page.dart';
 import '../../../channel/presentation/pages/sms_by_date_page.dart';
-import '../../../device/data/repositories/device_setup_repository.dart';
 import '../../../device/presentation/bloc/device_setup_bloc.dart';
 import '../../../device/presentation/bloc/device_setup_event.dart';
 import '../../../device/presentation/bloc/device_setup_state.dart';
@@ -95,6 +95,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: 'main_navigation_qr_scan_fab',
           onPressed: _openQrScanner,
           tooltip: 'Quét mã mời',
           shape: const CircleBorder(),

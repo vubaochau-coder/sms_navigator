@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/features/sender/data/models/whitelist_config_model.dart';
-import 'package:sms_navigator/features/sender/data/services/native_relay_service.dart';
+import 'package:sms_navigator/core/models/whitelist_config_model.dart';
+import 'package:sms_navigator/core/services/impls/native_relay_service_impl.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
