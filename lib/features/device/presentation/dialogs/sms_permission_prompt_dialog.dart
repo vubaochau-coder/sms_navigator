@@ -17,6 +17,8 @@ Future<void> showSmsPermissionPromptDialog(
     context: context,
     barrierDismissible: true,
     AlertDialog(
+      shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
+      insetPadding: DialogUtils.insetPadding,
       title: Text(l10n.permissionDialogTitle),
       content: Text(
         l10n.permissionDialogMessage,

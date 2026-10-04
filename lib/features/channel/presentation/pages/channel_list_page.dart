@@ -94,71 +94,67 @@ class _ChannelListView extends StatelessWidget {
 
   void _createChannel(BuildContext context) {
     final controller = TextEditingController();
-    showDialog<void>(
+    DialogUtils.showCustomFormDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Tạo kênh mới'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 100,
-          decoration: const InputDecoration(
-            labelText: 'Tên kênh',
-            hintText: 'Ví dụ: Kênh nhà',
-            border: OutlineInputBorder(),
-          ),
+      title: 'Tạo kênh mới',
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        maxLength: 100,
+        decoration: const InputDecoration(
+          labelText: 'Tên kênh',
+          hintText: 'Ví dụ: Kênh nhà',
+          border: OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              Navigator.of(dialogContext).pop();
-              context.read<ChannelBloc>().add(ChannelCreated(name));
-            },
-            child: const Text('Tạo'),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Hủy'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = controller.text.trim();
+            if (name.isEmpty) return;
+            Navigator.of(context).pop();
+            context.read<ChannelBloc>().add(ChannelCreated(name));
+          },
+          child: const Text('Tạo'),
+        ),
+      ],
     );
   }
 
   void _renameDevice(BuildContext context) {
     final controller = TextEditingController();
-    showDialog<void>(
+    DialogUtils.showCustomFormDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Đổi tên thiết bị'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 128,
-          decoration: const InputDecoration(
-            labelText: 'Tên hiển thị',
-            hintText: 'Ví dụ: Pixel 8 của Minh',
-            border: OutlineInputBorder(),
-          ),
+      title: 'Đổi tên thiết bị',
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        maxLength: 128,
+        decoration: const InputDecoration(
+          labelText: 'Tên hiển thị',
+          hintText: 'Ví dụ: Pixel 8 của Minh',
+          border: OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              Navigator.of(dialogContext).pop();
-              context.read<ChannelBloc>().add(DeviceRenamed(name));
-            },
-            child: const Text('Lưu'),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Hủy'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = controller.text.trim();
+            if (name.isEmpty) return;
+            Navigator.of(context).pop();
+            context.read<ChannelBloc>().add(DeviceRenamed(name));
+          },
+          child: const Text('Lưu'),
+        ),
+      ],
     );
   }
 }

@@ -95,8 +95,9 @@ void main() {
   });
 
   group('DialogUtils Tests', () {
-    test('DialogUtils insetPadding is 12dp on all 4 sides', () {
-      expect(DialogUtils.insetPadding, const EdgeInsets.all(12.0));
+    test('DialogUtils insetPadding has 12dp horizontal margin', () {
+      expect(DialogUtils.insetPadding.left, 12.0);
+      expect(DialogUtils.insetPadding.right, 12.0);
     });
 
     testWidgets('DialogUtils.showBaseForm displays custom child inside dialog', (

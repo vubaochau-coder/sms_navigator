@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/utils/dialog_utils.dart';
 import '../../../../core/widgets/app_common_widgets.dart';
 import '../bloc/whitelist_bloc.dart';
 import '../bloc/whitelist_event.dart';
@@ -31,6 +32,8 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
     final l10n = context.l10n;
 
     return AlertDialog(
+      shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
+      insetPadding: DialogUtils.insetPadding,
       title: Text(l10n.addWhitelistDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,

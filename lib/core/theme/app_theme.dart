@@ -123,7 +123,29 @@ class AppTheme {
           disabledBackgroundColor: c.primary.withValues(alpha: 0.4),
           elevation: 3,
           shadowColor: c.shadow,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          minimumSize: const Size(0, 40),
+          maximumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusM),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+
+      // Filled Button
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: c.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: c.primary.withValues(alpha: 0.4),
+          minimumSize: const Size(0, 40),
+          maximumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusM),
           ),
@@ -140,7 +162,9 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: c.primary,
           side: BorderSide(color: c.primary.withValues(alpha: 0.5), width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          minimumSize: const Size(0, 40),
+          maximumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusM),
           ),
@@ -152,7 +176,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: c.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          minimumSize: const Size(0, 36),
+          maximumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -195,7 +221,7 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: c.surface,
         surfaceTintColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(12),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusL),
         ),

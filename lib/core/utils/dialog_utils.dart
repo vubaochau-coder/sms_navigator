@@ -28,8 +28,11 @@ class DialogUtils {
   static const double messageFontSize = 14.0;
   static const double messageLineHeight = 1.4;
 
-  /// Inset padding chuẩn: giảm khoảng cách tới 4 mép màn hình xuống 12dp
-  static const EdgeInsets insetPadding = EdgeInsets.all(12.0);
+  /// Inset padding chuẩn: khoảng cách tới các mép màn hình là 12px (trái phải)
+  static const EdgeInsets insetPadding = EdgeInsets.symmetric(
+    horizontal: 12.0,
+    vertical: 24.0,
+  );
   static const String defaultConfirmText = 'Xác nhận';
   static const String defaultCancelText = 'Hủy bỏ';
   static const String defaultCloseText = 'Đóng';
@@ -48,7 +51,7 @@ class DialogUtils {
   /// Hiển thị container Dialog chuẩn dự án cho nội dung tùy biến (custom content).
   ///
   /// [child]: Widget nội dung bên trong dialog (tham số bắt buộc).
-  /// Cung cấp sẵn khung chuẩn: bo góc [borderRadius], insetPadding 12dp ở 4 hướng,
+  /// Cung cấp sẵn khung chuẩn: bo góc [borderRadius], insetPadding 12px trái phải,
   /// màu nền [ColorScheme.surface], clip antiAlias.
   static Future<T?> showBaseForm<T>(
     Widget child, {
@@ -65,9 +68,6 @@ class DialogUtils {
       barrierColor: barrierColor,
       useSafeArea: useSafeArea,
       builder: (dialogContext) {
-        if (child is Dialog || child is AlertDialog) {
-          return child;
-        }
         return Dialog(
           backgroundColor: Theme.of(dialogContext).colorScheme.surface,
           surfaceTintColor: Colors.transparent,
@@ -75,6 +75,49 @@ class DialogUtils {
           insetPadding: customInsetPadding ?? insetPadding,
           clipBehavior: Clip.antiAlias,
           child: child,
+        );
+      },
+    );
+  }
+
+  /// Hiển thị Dialog tùy chỉnh chuẩn form DialogUtils với title, content widget, và danh sách actions.
+  /// Khoảng cách tới các mép màn hình trái phải chuẩn 12px.
+  static Future<T?> showCustomFormDialog<T>({
+    BuildContext? context,
+    required String title,
+    required Widget content,
+    List<Widget>? actions,
+    IconData? icon,
+    bool barrierDismissible = true,
+    EdgeInsets? customInsetPadding,
+  }) {
+    final ctx = _resolveContext(context);
+    return showDialog<T>(
+      context: ctx,
+      barrierDismissible: barrierDismissible,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: borderRadius),
+          insetPadding: customInsetPadding ?? insetPadding,
+          title: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, color: AppColors.primary, size: iconSize),
+                const SizedBox(width: iconSpacing),
+              ],
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: content,
+          actions: actions,
         );
       },
     );
@@ -136,6 +179,8 @@ class DialogUtils {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
+                  maximumSize: const Size.fromHeight(48),
+                  minimumSize: const Size(0, 40),
                   shape: const RoundedRectangleBorder(
                     borderRadius: buttonBorderRadius,
                   ),
@@ -182,6 +227,10 @@ class DialogUtils {
       barrierDismissible: !isMandatory,
       builder: (dialogContext) {
         final negativeButton = TextButton(
+          style: TextButton.styleFrom(
+            maximumSize: const Size.fromHeight(48),
+            minimumSize: const Size(0, 40),
+          ),
           onPressed: () => Navigator.of(dialogContext).pop(false),
           child: Text(
             negativeText,
@@ -200,6 +249,8 @@ class DialogUtils {
                 ? AppColors.error
                 : AppColors.primary,
             foregroundColor: Colors.white,
+            maximumSize: const Size.fromHeight(48),
+            minimumSize: const Size(0, 40),
             shape: const RoundedRectangleBorder(
               borderRadius: buttonBorderRadius,
             ),

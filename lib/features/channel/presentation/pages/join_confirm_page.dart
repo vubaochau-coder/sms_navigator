@@ -155,6 +155,8 @@ class _JoinConfirmDialogState extends State<_JoinConfirmDialog> {
   Widget build(BuildContext context) {
     final state = widget.state;
     return AlertDialog(
+      shape: const RoundedRectangleBorder(borderRadius: DialogUtils.borderRadius),
+      insetPadding: DialogUtils.insetPadding,
       title: const Text('Tham gia kênh'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -244,31 +246,18 @@ class _WaitingApprovalView extends StatelessWidget {
     );
   }
 
-  void _confirmCancel(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Hủy yêu cầu?'),
-        content: const Text(
-          'Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Tiếp tục chờ'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.read<JoinBloc>().add(const JoinCancelled());
-            },
-            child: const Text('Hủy yêu cầu'),
-          ),
-        ],
-      ),
+  void _confirmCancel(BuildContext context) async {
+    final confirmed = await DialogUtils.showConfirmDialog(
+      context,
+      title: 'Hủy yêu cầu?',
+      message: 'Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.',
+      confirmText: 'Hủy yêu cầu',
+      cancelText: 'Tiếp tục chờ',
+      isDestructive: true,
+      icon: Icons.cancel_outlined,
     );
+    if (confirmed && context.mounted) {
+      context.read<JoinBloc>().add(const JoinCancelled());
+    }
   }
 }
