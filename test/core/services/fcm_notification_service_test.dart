@@ -1,12 +1,22 @@
-import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
+import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
-import 'package:sms_navigator/core/storage/storage_keys.dart';
-import 'package:sms_navigator/core/utils/crypto_helper.dart';
-import 'package:sms_navigator/features/receiver/data/services/receiver_storage_service.dart';
+import 'package:sms_navigator/features/device/data/services/device_api_service.dart';
+
+class _MockDeviceApiService implements DeviceApiService {
+  String? updatedToken;
+
+  @override
+  Future<void> updateFcmToken(String fcmToken) async {
+    updatedToken = fcmToken;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -15,67 +25,31 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  group('FcmNotificationService.processIncomingRemoteMessage', () {
-    test('ignores messages with type other than OTP_RELAY', () async {
+  group('FcmNotificationService v2 (Bell Only)', () {
+    test('background message handler processes without exception', () async {
       const message = RemoteMessage(
-        data: {'type': 'PROMOTION', 'content': 'hello'},
+        data: {'kind': 'NEW_MESSAGE', 'channel_id': 'ch_123'},
       );
 
-      final result = await FcmNotificationService.processIncomingRemoteMessage(
-        message,
+      // Should complete without throwing
+      await expectLater(
+        firebaseMessagingBackgroundHandler(message),
+        completes,
       );
-      expect(result, isNull);
     });
 
-    test(
-      'decrypts OTP_RELAY payload using shared secret and saves to storage',
-      () async {
-        final secretKey = CryptoHelper.generateSecretKeyBase64();
-        const pairId = 'pair_test_123';
+    test('service instantiates and disposes cleanly', () async {
+      final localStorage = await LocalStorageService.create();
+      final deviceStorage = DeviceStorageServiceImpl(localStorage);
+      final deviceApi = _MockDeviceApiService();
 
-        final storage = await LocalStorageService.create();
-        await storage.setString(StorageKeys.receiverPairId, pairId);
-        await storage.setString(StorageKeys.receiverSharedSecret, secretKey);
+      final service = FcmNotificationService(
+        deviceStorageService: deviceStorage,
+        deviceApiService: deviceApi,
+      );
 
-        final payloadJson = jsonEncode({
-          'sender': 'VPBank',
-          'otp': '982103',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'message': 'Ma OTP cua ban la 982103. Khong chia se cho ai.',
-        });
-
-        final encrypted = await CryptoHelper.encryptAesGcm256(
-          plaintext: payloadJson,
-          secretKeyBase64: secretKey,
-        );
-
-        final message = RemoteMessage(
-          data: {
-            'type': 'OTP_RELAY',
-            'pair_id': pairId,
-            'encrypted_payload': encrypted['ciphertext']!,
-            'iv': encrypted['iv']!,
-            'sent_at': (DateTime.now().millisecondsSinceEpoch ~/ 1000)
-                .toString(),
-          },
-        );
-
-        // Note: _localNotifications.show may fail in pure test headless environment without platform channel,
-        // but processIncomingRemoteMessage handles gracefully and returns model.
-        final result =
-            await FcmNotificationService.processIncomingRemoteMessage(message);
-
-        if (result != null) {
-          expect(result.sender, 'VPBank');
-          expect(result.otp, '982103');
-
-          final receiverStorage = ReceiverStorageServiceImpl(
-            await LocalStorageService.create(),
-          );
-          final history = await receiverStorage.getReceivedOtps();
-          expect(history.any((item) => item.otp == '982103'), isTrue);
-        }
-      },
-    );
+      service.dispose();
+      expect(service, isNotNull);
+    });
   });
 }

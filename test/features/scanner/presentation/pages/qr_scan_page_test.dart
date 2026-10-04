@@ -1,53 +1,27 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:toastification/toastification.dart';
-import 'package:sms_navigator/features/pairing/data/models/pairing_payload_model.dart';
-import 'package:sms_navigator/features/pairing/data/models/sender_link_status.dart';
-import 'package:sms_navigator/features/pairing/data/repositories/pairing_repository.dart';
-import 'package:sms_navigator/features/pairing/presentation/bloc/pairing_bloc.dart';
-import 'package:sms_navigator/features/pairing/presentation/pages/pairing_qr_scan_page.dart';
 import 'package:sms_navigator/features/scanner/presentation/pages/qr_scan_page.dart';
+import 'package:sms_navigator/features/scanner/presentation/scanning/qr_scan_handler.dart';
+import 'package:sms_navigator/features/scanner/presentation/scanning/qr_scan_handler_registry.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
-class _RecordingPairingRepository implements PairingRepository {
-  final submittedQr = <String>[];
+class _RecordingScanHandler implements QrScanHandler {
+  final handledQr = <String>[];
 
   @override
-  Future<PairingPayloadModel> createSenderPairingSession() {
-    throw UnimplementedError();
+  bool canHandle(String raw) => raw.startsWith('smsnavigator://');
+
+  @override
+  void handleScan(BuildContext context, QrScanFlow flow, String raw) {
+    handledQr.add(raw);
+    flow.complete();
   }
 
   @override
-  Future<bool> applySenderPairing(PairingPayloadModel payload) async => true;
-
-  @override
-  Future<SenderLinkStatus> checkSenderPairingLink(
-    PairingPayloadModel payload,
-  ) async => SenderLinkStatus.waiting;
-
-  @override
-  Future<bool> submitReceiverPairingQr(String qrData) async {
-    submittedQr.add(qrData);
-    return true;
-  }
-
-  @override
-  Future<bool> submitReceiverPairingCode(String code) =>
-      submitReceiverPairingQr(code);
-
-  @override
-  Future<PairingPayloadModel?> checkReceiverPairingStatus() async => null;
-
-  @override
-  Future<bool> disconnectReceiver() async => true;
-
-  @override
-  Future<void> exportPairingQr(PairingPayloadModel payload) async {}
+  void dispose() {}
 }
 
 class _FakeScannerController extends MobileScannerController {
@@ -63,29 +37,25 @@ class _FakeScannerController extends MobileScannerController {
       analyzeResult;
 }
 
-const _validPairingQr =
-    'smsnavigator://pair?v=3&k=pairkey1234567890&a=c2VuZGVyX3B1Yl9iYXNlNjRfMzJfYnl0ZXM%3D&e=9999999999999';
+const String _validPairingQr =
+    'smsnavigator://pair?v=4&s=session_123&t=token_abc&u=aHR0cHM6Ly9hcGkuaW8%3D&e=1790999999999';
 
 void main() {
-  const imagePickerChannel = MethodChannel('plugins.flutter.io/image_picker');
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-  void mockImagePicker(String? resultPath) {
+  void mockImagePicker(String? imagePath) {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(imagePickerChannel, (call) async {
-      if (call.method == 'pickImage') return resultPath;
-      return null;
-    });
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/image_picker'),
+      (call) async {
+        if (call.method == 'pickImage') {
+          return imagePath;
+        }
+        return null;
+      },
+    );
   }
 
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(imagePickerChannel, null);
-  });
-
-  /// Camera với autoStart=false không bao giờ khởi động nên spinner của
-  /// MobileScanner chạy vô hạn — dùng pump cố định thay vì pumpAndSettle.
-  /// bloc.close() cũng không được await: Future của close với transformer
-  /// droppable không hoàn thành trong môi trường FakeAsync của widget test.
   Future<void> pumpFrames(WidgetTester tester) async {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -94,28 +64,31 @@ void main() {
 
   Future<void> pumpScannerPage(
     WidgetTester tester, {
-    required PairingBloc bloc,
+    required _RecordingScanHandler handler,
     required MobileScannerController controller,
   }) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       ToastificationWrapper(
-        child: BlocProvider<PairingBloc>.value(
-          value: bloc,
-          child: MaterialApp(
-            locale: const Locale('vi'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Builder(
-              builder: (context) => Center(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          PairingQrScanPage(controller: controller),
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Center(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => QrScanPage(
+                      registry: QrScanHandlerRegistry(handlers: [handler]),
+                      controller: controller,
                     ),
                   ),
-                  child: const Text('open'),
                 ),
+                child: const Text('open'),
               ),
             ),
           ),
@@ -127,10 +100,9 @@ void main() {
   }
 
   testWidgets(
-    'gallery image containing a pairing QR submits the pairing event',
+    'gallery image containing a supported QR dispatches to the handler',
     (tester) async {
-      final repository = _RecordingPairingRepository();
-      final bloc = PairingBloc(repository: repository);
+      final handler = _RecordingScanHandler();
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(
           barcodes: [Barcode(rawValue: _validPairingQr)],
@@ -138,23 +110,19 @@ void main() {
       );
       mockImagePicker('/tmp/fake_qr.png');
 
-      await pumpScannerPage(tester, bloc: bloc, controller: controller);
+      await pumpScannerPage(tester, handler: handler, controller: controller);
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(repository.submittedQr, [_validPairingQr]);
-      // Toast thành công của Bloc có timer tự hủy 3s - cho nó chạy hết
-      // để không còn pending timer khi test kết thúc.
+      expect(handler.handledQr, [_validPairingQr]);
       await tester.pump(const Duration(seconds: 4));
-      unawaited(bloc.close());
     },
   );
 
   testWidgets(
     'unrecognized QR payload shows a toast and is not dispatched',
     (tester) async {
-      final repository = _RecordingPairingRepository();
-      final bloc = PairingBloc(repository: repository);
+      final handler = _RecordingScanHandler();
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(
           barcodes: [
@@ -164,54 +132,51 @@ void main() {
       );
       mockImagePicker('/tmp/foreign_qr.png');
 
-      await pumpScannerPage(tester, bloc: bloc, controller: controller);
+      await pumpScannerPage(tester, handler: handler, controller: controller);
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(repository.submittedQr, isEmpty);
-      expect(find.text('Mã QR này không được SMS Navigator hỗ trợ'),
-          findsOneWidget);
+      expect(handler.handledQr, isEmpty);
+      expect(
+        find.text('Mã QR này không được SMS Navigator hỗ trợ'),
+        findsOneWidget,
+      );
       await tester.pump(const Duration(seconds: 4));
-      unawaited(bloc.close());
     },
   );
 
   testWidgets(
     'gallery image without a QR code shows an error and does not submit',
     (tester) async {
-      final repository = _RecordingPairingRepository();
-      final bloc = PairingBloc(repository: repository);
+      final handler = _RecordingScanHandler();
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(),
       );
       mockImagePicker('/tmp/no_qr.png');
 
-      await pumpScannerPage(tester, bloc: bloc, controller: controller);
+      await pumpScannerPage(tester, handler: handler, controller: controller);
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(repository.submittedQr, isEmpty);
+      expect(handler.handledQr, isEmpty);
       expect(find.byType(QrScanPage), findsOneWidget);
       await tester.pump(const Duration(seconds: 4));
-      unawaited(bloc.close());
     },
   );
 
   testWidgets(
     'cancelling the gallery picker does not submit any event',
     (tester) async {
-      final repository = _RecordingPairingRepository();
-      final bloc = PairingBloc(repository: repository);
+      final handler = _RecordingScanHandler();
       final controller = _FakeScannerController();
       mockImagePicker(null);
 
-      await pumpScannerPage(tester, bloc: bloc, controller: controller);
+      await pumpScannerPage(tester, handler: handler, controller: controller);
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(repository.submittedQr, isEmpty);
+      expect(handler.handledQr, isEmpty);
       expect(find.byType(QrScanPage), findsOneWidget);
-      unawaited(bloc.close());
     },
   );
 }

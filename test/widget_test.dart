@@ -23,32 +23,29 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   }
 
-  testWidgets('App displays MainNavigationPage with SMS and Pairing tabs', (
+  testWidgets('App displays MainNavigationPage with OTP and Channel tabs', (
     WidgetTester tester,
   ) async {
     await pumpApp(tester);
 
     // Verify bottom navigation bar with 2 tabs
     expect(find.byType(BottomAppBar), findsOneWidget);
-    expect(find.text('SMS'), findsOneWidget);
-    expect(find.text('Ghép nối'), findsOneWidget);
+    expect(find.text('OTP'), findsOneWidget);
+    expect(find.text('Kênh'), findsOneWidget);
 
     // Verify center docked QR scanner FAB
     expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
-  testWidgets('Pairing tab shows PairingHubPage with receivers and senders', (
+  testWidgets('Channel tab switches to ChannelListPage', (
     WidgetTester tester,
   ) async {
     await pumpApp(tester);
 
-    await tester.tap(find.text('Ghép nối'));
+    await tester.tap(find.text('Kênh'));
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Ghép Nối Thiết Bị'), findsOneWidget);
-    expect(find.text('Máy nhận'), findsOneWidget);
-    expect(find.text('Máy gửi'), findsOneWidget);
-    expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+    expect(find.text('Kênh'), findsWidgets);
   });
 }

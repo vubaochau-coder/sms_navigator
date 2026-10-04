@@ -8,10 +8,8 @@ import 'core/storage/local_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/dialog_utils.dart';
+import 'features/channel/presentation/deeplink/channel_deep_link_listener.dart';
 import 'features/home/presentation/pages/main_navigation_page.dart';
-import 'features/pairing/data/repositories/pairing_repository.dart';
-import 'features/pairing/presentation/bloc/pairing_bloc.dart';
-import 'features/pairing/presentation/deeplink/pairing_deep_link_listener.dart';
 import 'l10n/app_localizations.dart';
 
 class OtpRelayApp extends StatelessWidget {
@@ -27,11 +25,6 @@ class OtpRelayApp extends StatelessWidget {
           BlocProvider<ThemeCubit>(
             create: (ctx) =>
                 ThemeCubit(localStorage: ctx.read<LocalStorageService>()),
-          ),
-          BlocProvider<PairingBloc>(
-            create: (ctx) => PairingBloc(
-              repository: ctx.read<PairingRepository>(),
-            ),
           ),
         ],
         child: BlocBuilder<ThemeCubit, ThemeMode>(
@@ -49,7 +42,7 @@ class OtpRelayApp extends StatelessWidget {
               navigatorObservers: [
                 if (analytics.observer != null) analytics.observer!,
               ],
-              home: PairingDeepLinkListener(
+              home: ChannelDeepLinkListener(
                 child: const MainNavigationPage(),
               ),
             );

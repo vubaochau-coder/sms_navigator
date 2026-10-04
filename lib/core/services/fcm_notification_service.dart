@@ -1,472 +1,133 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../features/device/data/services/device_api_service.dart';
-import '../../features/receiver/data/models/received_otp_model.dart';
-import '../../features/receiver/data/services/receiver_storage_service.dart';
-import '../storage/local_storage_service.dart';
-import '../storage/storage_keys.dart';
-import '../utils/crypto_helper.dart';
-import '../utils/data_converter.dart';
-import 'device_storage_service.dart';
+import '../services/device_storage_service.dart';
 
-/// Top-level background message handler cho Firebase Messaging.
-/// Được gọi khi app ở chế độ Background hoặc Terminated.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  try {
-    await Firebase.initializeApp();
-  } catch (_) {}
-  // Khi message có khối notification, Android đã tự hiển thị thông báo hệ
-  // thống ở background -> chỉ bắn local notification khi đó là data-only.
-  await FcmNotificationService.processIncomingRemoteMessage(
-    message,
-    showLocalNotification: message.notification == null,
-  );
+  // FCM chỉ là chuông, app sẽ reconcile khi người dùng mở app
+  debugPrint('Received background FCM message: ${message.messageId}');
 }
 
-/// Dịch vụ quản lý FCM Notifications & High-priority Local Notifications.
+/// FCM chỉ là chuông (API spec §7, I5/N8):
+/// - Data message KHÔNG chứa ciphertext/key — mất FCM vô hại vì app luôn
+///   reconcile khi mở;
+/// - Tap chuông → mở app → người dùng tự vào màn OTP hôm nay / màn kênh.
 class FcmNotificationService {
   FcmNotificationService({
-    required this.deviceStorageService,
-    required this.deviceApiService,
-    required this.receiverStorageService,
-  });
+    required DeviceStorageService deviceStorageService,
+    required DeviceApiService deviceApiService,
+  }) : _deviceStorage = deviceStorageService,
+       _deviceApi = deviceApiService;
 
-  final DeviceStorageService deviceStorageService;
-  final DeviceApiService deviceApiService;
-  final ReceiverStorageService receiverStorageService;
+  final DeviceStorageService _deviceStorage;
+  final DeviceApiService _deviceApi;
 
-  static final FlutterLocalNotificationsPlugin _localNotifications =
+  final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  StreamSubscription<String>? _tokenRefreshSubscription;
 
-  static final StreamController<ReceivedOtpModel> _otpStreamController =
-      StreamController<ReceivedOtpModel>.broadcast();
+  bool _initialized = false;
 
-  /// Stream thông báo OTP đã giải mã thành công theo thời gian thực tới UI.
-  static Stream<ReceivedOtpModel> get onOtpReceived =>
-      _otpStreamController.stream;
-
-  static const String channelId = 'sms_navigator_otp_channel';
-  static const String channelName = 'Thông Báo Mã OTP';
-  static const String channelDesc =
-      'Nhận và hiển thị tức thì mã OTP xác thực được chuyển tiếp qua E2EE';
-
-  static bool _notificationsInitialized = false;
-
-  /// Khởi tạo plugin local notifications (idempotent).
-  /// Phải gọi trong cả main isolate lẫn background isolate (FCM handler)
-  /// vì static state không dùng chung giữa hai isolate.
-  static Future<void> _ensureLocalNotificationsInitialized() async {
-    if (_notificationsInitialized) return;
-
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings = InitializationSettings(android: androidInit);
-
-    await _localNotifications.initialize(
-      settings: initSettings,
-      onDidReceiveNotificationResponse: (details) {
-        debugPrint('Notification tapped: ${details.payload}');
-      },
-    );
-
-    final androidChannel = AndroidNotificationChannel(
-      channelId,
-      channelName,
-      description: channelDesc,
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    await androidPlugin?.createNotificationChannel(androidChannel);
-
-    _notificationsInitialized = true;
-  }
-
-  /// Khởi tạo Firebase Messaging, Local Notifications và đăng ký Token.
   Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
     try {
-      // 1. Cấu hình plugin + Notification Channel (Heads-up notification)
-      await _ensureLocalNotificationsInitialized();
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const initSettings = InitializationSettings(android: androidSettings);
+      await _localNotifications.initialize(settings: initSettings);
 
-      // 2. Yêu cầu quyền thông báo (Android 13+ POST_NOTIFICATIONS)
-      await _requestPermissions();
-
-      // 3. Lấy và đồng bộ FCM token (chỉ gọi API khi token thay đổi)
-      await _syncFcmToken();
-
-      // 4. Lắng nghe cập nhật token định kỳ (Firebase xoay vòng token)
-      FirebaseMessaging.instance.onTokenRefresh.listen(_syncTokenToServer);
-
-      // 5. Lắng nghe người dùng chạm notification hệ thống mở app lần đầu
-      // (app bị Terminated: data chỉ có qua getInitialMessage)
-      final initialMessage = await FirebaseMessaging.instance
-          .getInitialMessage();
-      if (initialMessage != null) {
-        final otp = await processIncomingRemoteMessage(
-          initialMessage,
-          showLocalNotification: initialMessage.notification == null,
-        );
-        if (otp != null) {
-          _otpStreamController.add(otp);
-        }
-      }
-
-      // 6. Lắng nghe tin nhắn khi App đang ở Foreground
-      // (foreground: hệ điều hành KHÔNG tự hiển thị notification block,
-      // luôn phải bắn local notification)
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        final otp = await processIncomingRemoteMessage(message);
-        if (otp != null) {
-          _otpStreamController.add(otp);
-        }
-      });
-
-      // 7. Lắng nghe người dùng bấm vào notification mở app
-      FirebaseMessaging.onMessageOpenedApp.listen((
-        RemoteMessage message,
-      ) async {
-        final otp = await processIncomingRemoteMessage(
-          message,
-          showLocalNotification: message.notification == null,
-        );
-        if (otp != null) {
-          _otpStreamController.add(otp);
-        }
-      });
-    } catch (e) {
-      debugPrint('FcmNotificationService init error (running in fallback): $e');
-    }
-  }
-
-  Future<void> _requestPermissions() async {
-    try {
-      final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission(
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
-        provisional: false,
       );
+      FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed);
 
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      await androidPlugin?.requestNotificationsPermission();
-    } catch (e) {
-      debugPrint('Error requesting notification permissions: $e');
+      FirebaseMessaging.onMessage.listen(_showBellNotification);
+    } catch (error) {
+      debugPrint('FcmNotificationService initialize failed: $error');
     }
   }
 
-  Future<void> _syncFcmToken() async {
+  /// Đăng ký / làm mới FCM token lên server (best-effort).
+  Future<void> syncToken() async {
     try {
       final token = await FirebaseMessaging.instance.getToken();
-      await _syncTokenToServer(token);
-    } catch (e) {
-      debugPrint('Could not retrieve FCM token: $e');
+      if (token == null || token.isEmpty) return;
+      await _deviceStorage.saveFcmToken(token);
+
+      // Chỉ upload khi đã có device token (đã register).
+      final deviceToken = await _deviceStorage.getDeviceToken();
+      if (deviceToken == null || deviceToken.isEmpty) return;
+      await _deviceApi.updateFcmToken(token);
+    } catch (error) {
+      debugPrint('FcmNotificationService syncToken failed: $error');
     }
   }
 
-  /// Đồng bộ token lên server, chỉ gọi API khi token thực sự thay đổi
-  /// so với bản cache trong Local Storage. Cache chỉ được ghi sau khi
-  /// API thành công để lần mở app tiếp theo được retry khi thất bại.
-  Future<void> _syncTokenToServer(String? token) async {
-    if (token == null || token.isEmpty) return;
-
+  Future<void> _onTokenRefreshed(String token) async {
+    await _deviceStorage.saveFcmToken(token);
     try {
-      final cachedToken = await deviceStorageService.getFcmToken();
-      if (cachedToken != null && cachedToken == token) {
-        debugPrint('FCM token unchanged, skipping server sync');
-        return;
-      }
-
-      await deviceApiService.updateFcmToken(token);
-      await deviceStorageService.saveFcmToken(token);
-      debugPrint('FCM token synced successfully: ${token.substring(0, 15)}...');
-    } catch (e) {
-      debugPrint('Failed to sync FCM token with server: $e');
+      final deviceToken = await _deviceStorage.getDeviceToken();
+      if (deviceToken == null || deviceToken.isEmpty) return;
+      await _deviceApi.updateFcmToken(token);
+    } catch (_) {
+      // Reconcile lúc mở app sẽ đồng bộ lại
     }
   }
 
-  /// Xử lý giải mã và hiển thị thông báo cho một tin nhắn FCM đến.
-  ///
-  /// [showLocalNotification] = false khi hệ điều hành đã tự hiển thị
-  /// notification block của FCM (app background/killed), tránh thông báo kép.
-  static Future<ReceivedOtpModel?> processIncomingRemoteMessage(
-    RemoteMessage message, {
-    bool showLocalNotification = true,
-  }) async {
-    final data = message.data;
-    if (data.isEmpty) return null;
-
-    final type = DataConverter.cvToString(data['type']);
-
-    // ACK từ server: Máy B đã nhận OTP thành công (hoặc OTP được xếp hàng chờ)
-    if (type == 'OTP_RELAY_ACK') {
-      if (showLocalNotification) {
-        await _showSenderAckNotification(data);
-      }
-      return null;
-    }
-
-    if (type != 'OTP_RELAY') return null;
-
-    final pairId = DataConverter.cvToString(data['pair_id'], '')!;
-    final encryptedPayload = DataConverter.cvToString(
-      data['encrypted_payload'],
-      '',
-    )!;
-    final iv = DataConverter.cvToString(data['iv'], '')!;
-
-    if (encryptedPayload.isEmpty || iv.isEmpty) return null;
-
-    try {
-      // Đọc secret key ghép đôi từ Local Storage (an toàn cho background isolate)
-      final localStorage = await LocalStorageService.create();
-      final storedPairId = localStorage.getString(StorageKeys.receiverPairId);
-      final sharedSecret = localStorage.getString(
-        StorageKeys.receiverSharedSecret,
-      );
-
-      if (sharedSecret == null || sharedSecret.isEmpty) {
-        debugPrint(
-          'Cannot decrypt OTP relay: No shared secret found on receiver',
-        );
-        return null;
-      }
-
-      // Xác minh pairId nếu có
-      if (storedPairId != null &&
-          storedPairId.isNotEmpty &&
-          pairId.isNotEmpty) {
-        if (storedPairId != pairId) {
-          debugPrint('Pair ID mismatch ($storedPairId vs $pairId), skipping');
-          return null;
-        }
-      }
-
-      // Giải mã AES-256-GCM
-      final decryptedJson = await CryptoHelper.decryptAesGcm256(
-        ciphertextWithTagBase64: encryptedPayload,
-        ivBase64: iv,
-        secretKeyBase64: sharedSecret,
-      );
-
-      final Map<String, dynamic> payload = jsonDecode(decryptedJson);
-      final sender = DataConverter.cvToString(payload['sender'], 'OTP Service')!;
-      final otp = DataConverter.cvToString(payload['otp'], '')!;
-      final rawMessage = DataConverter.cvToString(
-        payload['message'] ?? payload['rawMessage'],
-        '',
-      )!;
-
-      if (otp.isEmpty) return null;
-
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final model = ReceivedOtpModel(
-        id: 'otp_${now}_${otp.hashCode}',
-        sender: sender,
-        otp: otp,
-        receivedAt: now,
-        expiresAt: now + (5 * 60 * 1000), // 5 phút hiệu lực
-        rawMessage: rawMessage,
-      );
-
-      // Lưu vào lịch sử nhận OTP
-      final storage = ReceiverStorageServiceImpl(await LocalStorageService.create());
-      await storage.saveReceivedOtp(model);
-
-      // Hiển thị thông báo nổi (Heads-up notification) nếu được phép
-      // (bỏ qua khi hệ điều hành đã hiển thị notification block của FCM)
-      if (showLocalNotification) {
-        try {
-          await _showLocalOtpNotification(model);
-        } catch (e) {
-          debugPrint('Could not show local notification: $e');
-        }
-      }
-
-      return model;
-    } catch (e, s) {
-      debugPrint('Error processing OTP relay message: $e\n$s');
-      return null;
-    }
-  }
-
-  static Future<void> _showLocalOtpNotification(ReceivedOtpModel otp) async {
-    await _ensureLocalNotificationsInitialized();
-
+  /// Chuông foreground: text generic, không hiển thị dữ liệu OTP/khóa.
+  Future<void> _showBellNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'Mã OTP mới',
-      styleInformation: BigTextStyleInformation(''),
-      playSound: true,
-      enableVibration: true,
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.message,
-    );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toInt();
-
-    await _localNotifications.show(
-      id: notificationId,
-      title: '🔐 OTP từ ${otp.sender}: ${otp.otp}',
-      body: 'Mã OTP: ${otp.otp} • Chạm để mở ứng dụng',
-      notificationDetails: notificationDetails,
-      payload: otp.otp,
-    );
-  }
-
-  /// Thông báo xác nhận chuyển tiếp OTP thành công về thiết bị gửi (Máy A),
-  /// kích hoạt bởi data message `type: OTP_RELAY_ACK` từ server.
-  static Future<void> _showSenderAckNotification(
-    Map<String, dynamic> data,
-  ) async {
-    await _ensureLocalNotificationsInitialized();
-
-    final receiverName =
-        DataConverter.cvToString(data['receiver_name'], '')!.trim();
-    final status =
-        DataConverter.cvToString(data['status'], 'DELIVERED')!.toUpperCase();
-
-    final target = receiverName.isEmpty
-        ? 'Máy Nhận'
-        : receiverName;
-    final body = status == 'QUEUED'
-        ? 'OTP đã được xếp hàng chờ cho $target (máy nhận sẽ lấy qua polling).'
-        : 'Đã gửi thành công OTP tới $target qua kênh E2EE.';
-
-    final androidDetails = AndroidNotificationDetails(
-      'sms_navigator_sender_channel',
-      'Thông Báo Chuyển Tiếp',
-      channelDescription: 'Thông báo trạng thái chuyển tiếp OTP thành công',
+      'channel_events',
+      'Sự kiện kênh',
+      channelDescription: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
       importance: Importance.high,
       priority: Priority.high,
-      ticker: 'Chuyển tiếp OTP',
-      styleInformation: BigTextStyleInformation(''),
-      playSound: true,
-      enableVibration: true,
     );
+    const details = NotificationDetails(android: androidDetails);
 
-    final notificationDetails = NotificationDetails(android: androidDetails);
-    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toInt();
+    String title = 'SMS Navigator';
+    String body = 'Có sự kiện mới trong kênh. Mở app để xem.';
+    final kind = message.data['kind'];
+    switch (kind) {
+      case 'JOIN_REQUEST':
+        title = 'Yêu cầu tham gia kênh';
+        body = 'Có thiết bị mới xin tham gia. Mở app để duyệt.';
+        break;
+      case 'APPROVED':
+        title = 'Yêu cầu đã được duyệt';
+        body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận OTP.';
+        break;
+      case 'REVOKED':
+        title = 'Quyền truy cập đã bị thu hồi';
+        body = 'Bạn không còn quyền truy cập một kênh.';
+        break;
+      case 'NEW_MESSAGE':
+        title = 'OTP mới';
+        body = 'Có mã OTP mới vừa được chia sẻ. Chạm để xem.';
+        break;
+    }
 
     try {
       await _localNotifications.show(
-        id: notificationId,
-        title: status == 'QUEUED'
-            ? '⏳ OTP Đã Được Xếp Hàng'
-            : '✅ Đã Chuyển Tiếp OTP Thành Công',
+        id: DateTime.now().millisecondsSinceEpoch % 0x7fffffff,
+        title: title,
         body: body,
-        notificationDetails: notificationDetails,
-        payload: DataConverter.cvToString(data['relay_message_id'], '')!,
+        notificationDetails: details,
       );
-    } catch (e) {
-      debugPrint('Could not show sender ACK notification: $e');
+    } catch (error) {
+      debugPrint('Show bell notification failed: $error');
     }
   }
 
-  /// Bắn thông báo demo cho tình huống: Máy B nhận được OTP từ Máy A.
-  static Future<void> showDemoReceiverOtpNotification({
-    String sender = 'Vietcombank',
-    String otp = '849201',
-    String rawMessage =
-        'GD 849201 tai VCB DIGIBANK luc 22:30. Khong chia se ma OTP cho bat ky ai.',
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'Mã OTP nhận được',
-      styleInformation: BigTextStyleInformation(''),
-      playSound: true,
-      enableVibration: true,
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.message,
-    );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toInt();
-
-    try {
-      await _localNotifications.show(
-        id: notificationId,
-        title: '🔐 Mã OTP từ $sender: $otp',
-        body: 'Nội dung: $rawMessage\nChạm để sao chép mã $otp',
-        notificationDetails: notificationDetails,
-        payload: otp,
-      );
-    } catch (e) {
-      debugPrint('Could not trigger native local notification: $e');
-    }
-
-    final now = DateTime.now().millisecondsSinceEpoch;
-    _otpStreamController.add(
-      ReceivedOtpModel(
-        id: 'demo_$notificationId',
-        sender: sender,
-        otp: otp,
-        receivedAt: now,
-        expiresAt: now + (5 * 60 * 1000),
-        rawMessage: rawMessage,
-      ),
-    );
-  }
-
-  /// Bắn thông báo demo cho tình huống: Máy A gửi OTP tới Máy B thành công.
-  static Future<void> showDemoSenderSuccessNotification({
-    String sender = 'Vietcombank',
-    String otp = '849201',
-    String targetDevice = 'Máy Nhận (Malaysia)',
-  }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'sms_navigator_sender_channel',
-      'Thông Báo Chuyển Tiếp',
-      channelDescription: 'Thông báo trạng thái chuyển tiếp OTP thành công',
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'Chuyển tiếp OTP thành công',
-      styleInformation: BigTextStyleInformation(''),
-      playSound: true,
-      enableVibration: true,
-    );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-    final notificationId = (DateTime.now().millisecondsSinceEpoch % 100000)
-        .toInt();
-
-    try {
-      await _localNotifications.show(
-        id: notificationId,
-        title: '✅ Đã Chuyển Tiếp OTP Thành Công',
-        body: 'Đã gửi mã $otp (từ $sender) tới $targetDevice qua kênh E2EE',
-        notificationDetails: notificationDetails,
-        payload: otp,
-      );
-    } catch (e) {
-      debugPrint('Could not trigger native local notification: $e');
-    }
+  void dispose() {
+    _tokenRefreshSubscription?.cancel();
   }
 }
