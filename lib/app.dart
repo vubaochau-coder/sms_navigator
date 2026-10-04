@@ -8,8 +8,8 @@ import 'core/storage/local_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/dialog_utils.dart';
-import 'features/channel/presentation/deeplink/channel_deep_link_listener.dart';
-import 'features/splash/presentation/pages/splash_page.dart';
+import 'features/channel/deeplink/channel_deep_link_listener.dart';
+import 'features/splash/pages/splash_page.dart';
 import 'l10n/app_localizations.dart';
 
 class OtpRelayApp extends StatelessWidget {

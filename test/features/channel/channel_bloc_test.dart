@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
-import 'package:sms_navigator/features/channel/presentation/bloc/channel_bloc.dart';
+import 'package:sms_navigator/features/channel/bloc/channel_bloc.dart';
 
 class _FakeChannelRepository implements ChannelRepository {
   List<ChannelModel> channels = [];

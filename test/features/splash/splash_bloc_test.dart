@@ -9,8 +9,8 @@ import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
 import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
 import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
-import 'package:sms_navigator/features/splash/presentation/bloc/splash_bloc.dart';
-import 'package:sms_navigator/features/splash/presentation/bloc/splash_event.dart';
+import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
+import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
 
 class _FakeCrashlyticsService implements CrashlyticsService {
   bool initialized = false;
