@@ -1,7 +1,7 @@
 class AppStrings {
   AppStrings._();
 
-  static const String appTitle = 'OTP Relay';
+  static const String appTitle = 'SMS Navigator';
   static const String roleSelectionTitle = 'Chọn Chế Độ Hoạt Động';
   static const String roleSelectionSubtitle =
       'Ghép đôi và tự động chuyển tiếp OTP giữa Việt Nam và Malaysia';

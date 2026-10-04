@@ -22,7 +22,7 @@ void main() {
       ),
     );
 
-    expect(localizations.appTitle, equals('OTP Relay'));
+    expect(localizations.appTitle, equals('SMS Navigator'));
     expect(localizations.roleSelectionTitle, equals('Chọn Chế Độ Hoạt Động'));
     expect(localizations.roleSenderTitle, equals('Máy Gửi (Việt Nam)'));
     expect(localizations.roleReceiverTitle, equals('Máy Nhận (Malaysia)'));

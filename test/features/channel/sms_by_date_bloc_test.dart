@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/features/channel/data/models/channel_message_model.dart';
-import 'package:sms_navigator/features/channel/data/repositories/otp_by_date_repository.dart';
-import 'package:sms_navigator/features/channel/presentation/bloc/otp_by_date_bloc.dart';
+import 'package:sms_navigator/features/channel/data/repositories/sms_by_date_repository.dart';
+import 'package:sms_navigator/features/channel/presentation/bloc/sms_by_date_bloc.dart';
 
-class _FakeOtpByDateRepository implements OtpByDateRepository {
+class _FakeSmsByDateRepository implements SmsByDateRepository {
   List<ChannelMessageModel> returnMessages = [];
   bool returnTruncated = false;
   bool shouldFail = false;
@@ -26,19 +26,19 @@ class _FakeOtpByDateRepository implements OtpByDateRepository {
 }
 
 void main() {
-  late _FakeOtpByDateRepository repository;
-  late OtpByDateBloc bloc;
+  late _FakeSmsByDateRepository repository;
+  late SmsByDateBloc bloc;
 
   setUp(() {
-    repository = _FakeOtpByDateRepository();
-    bloc = OtpByDateBloc(repository: repository);
+    repository = _FakeSmsByDateRepository();
+    bloc = SmsByDateBloc(repository: repository);
   });
 
   tearDown(() {
     bloc.close();
   });
 
-  group('OtpByDateBloc', () {
+  group('SmsByDateBloc', () {
     test('fetches messages for selected date', () async {
       final targetDate = DateTime(2026, 10, 4);
       repository.returnMessages = [
@@ -54,7 +54,7 @@ void main() {
         ),
       ];
 
-      bloc.add(OtpByDateSelected(targetDate));
+      bloc.add(SmsByDateSelected(targetDate));
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isLoading, isFalse);
@@ -65,7 +65,7 @@ void main() {
       expect(repository.lastFetchedDate, targetDate);
     });
 
-    test('refreshes current date messages on OtpByDateRefreshed', () async {
+    test('refreshes current date messages on SmsByDateRefreshed', () async {
       repository.returnMessages = [
         const ChannelMessageModel(
           messageId: 'msg-1',
@@ -79,7 +79,7 @@ void main() {
         ),
       ];
 
-      bloc.add(const OtpByDateRefreshed());
+      bloc.add(const SmsByDateRefreshed());
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isLoading, isFalse);
@@ -90,7 +90,7 @@ void main() {
     test('handles error gracefully with error message', () async {
       repository.shouldFail = true;
 
-      bloc.add(const OtpByDateRefreshed());
+      bloc.add(const SmsByDateRefreshed());
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isLoading, isFalse);

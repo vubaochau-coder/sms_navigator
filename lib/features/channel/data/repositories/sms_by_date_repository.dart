@@ -3,15 +3,15 @@ import '../models/channel_message_model.dart';
 import '../services/channel_api_client.dart';
 import '../services/channel_key_store.dart';
 
-/// Kết quả decrypt 1 dòng OTP.
-enum OtpDecryptStatus { ok, missingKey, failed }
+/// Kết quả decrypt 1 dòng tin nhắn SMS / OTP.
+enum SmsDecryptStatus { ok, missingKey, failed }
 
-/// Repository đọc OTP theo ngày (MOBILE_FEATURES 6.1–6.4):
-/// `GET /messages?date&tz_offset` — gộp OTP của TẤT CẢ kênh caller đang
+/// Repository đọc SMS theo ngày (MOBILE_FEATURES 6.1–6.4):
+/// `GET /messages?date&tz_offset` — gộp SMS của TẤT CẢ kênh caller đang
 /// ACTIVE, điều kiện duy nhất là ngày (không chọn kênh). Mỗi lần mở là một
 /// lần fetch — không có local message store (SRD 8.4).
-class OtpByDateRepository {
-  OtpByDateRepository({
+class SmsByDateRepository {
+  SmsByDateRepository({
     required ChannelApiClient apiClient,
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
@@ -54,7 +54,7 @@ class OtpByDateRepository {
       return message.copyWithDecryptFailed();
     }
     try {
-      final otp = await _crypto.decryptMessage(
+      final decryptedText = await _crypto.decryptMessage(
         ciphertextBase64: message.ciphertext,
         nonceBase64: message.nonce,
         channelKeyBase64: key,
@@ -64,7 +64,7 @@ class OtpByDateRepository {
         // khi nhận ciphertext (API spec §11).
         sequenceHint: 0,
       );
-      return message.copyWithDecrypted(otp);
+      return message.copyWithDecrypted(decryptedText);
     } on ChannelCryptoException {
       return message.copyWithDecryptFailed();
     }
@@ -76,3 +76,6 @@ class OtpByDateRepository {
     return '${date.year}-$month-$day';
   }
 }
+
+/// Backward compatibility typedef
+typedef OtpByDateRepository = SmsByDateRepository;

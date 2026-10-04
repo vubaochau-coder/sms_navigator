@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../channel/data/services/startup_reconcile_service.dart';
 import '../../../channel/presentation/pages/channel_list_page.dart';
 import '../../../channel/presentation/pages/join_qr_scan_page.dart';
-import '../../../channel/presentation/pages/otp_by_date_page.dart';
+import '../../../channel/presentation/pages/sms_by_date_page.dart';
 import '../../../device/data/repositories/device_setup_repository.dart';
 import '../../../device/presentation/bloc/device_setup_bloc.dart';
 import '../../../device/presentation/bloc/device_setup_event.dart';
@@ -12,7 +12,7 @@ import '../../../device/presentation/bloc/device_setup_state.dart';
 import '../../../device/presentation/dialogs/sms_permission_prompt_dialog.dart';
 
 /// Main navigation (kiến trúc mới):
-/// - Tab 0: OTP theo ngày (gộp mọi kênh, 6.1–6.4);
+/// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);
 /// - Tab 1: Kênh (2 nhóm "Kênh của bạn" / "Kênh bạn tham gia", 2.1);
 /// - FAB: quét QR mời (3.1);
 /// - Khi mở app: startup reconcile ngầm (SRD 7.3) + gate SMS permission.
@@ -90,7 +90,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
         body: IndexedStack(
           index: _selectedIndex,
           children: const [
-            OtpByDatePage(),
+            SmsByDatePage(),
             ChannelListPage(),
           ],
         ),
@@ -124,8 +124,8 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
               children: [
                 Expanded(
                   child: _MainNavTab(
-                    icon: Icons.password_rounded,
-                    label: 'OTP',
+                    icon: Icons.sms_outlined,
+                    label: 'SMS',
                     selected: _selectedIndex == 0,
                     onTap: () => _selectTab(0),
                   ),

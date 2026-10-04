@@ -3,13 +3,13 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/channel_message_model.dart';
-import '../../data/repositories/otp_by_date_repository.dart';
+import '../../data/repositories/sms_by_date_repository.dart';
 
 /// Trạng thái rỗng/lỗi có thông điệp rõ ràng (MOBILE_FEATURES 6.4):
 /// - ngày không có tin → empty
 /// - mất mạng → error với retry
 /// - tin chưa decrypt được (thiếu key) → dòng lỗi riêng, không chết im
-class OtpByDateState extends Equatable {
+class SmsByDateState extends Equatable {
   final DateTime selectedDate;
   final bool isLoading;
   final List<ChannelMessageModel> messages;
@@ -17,7 +17,7 @@ class OtpByDateState extends Equatable {
   final String? errorMessage;
   final bool hasFetchedOnce;
 
-  const OtpByDateState({
+  const SmsByDateState({
     required this.selectedDate,
     this.isLoading = false,
     this.messages = const [],
@@ -28,7 +28,7 @@ class OtpByDateState extends Equatable {
 
   bool get isEmpty => !isLoading && errorMessage == null && messages.isEmpty;
 
-  OtpByDateState copyWith({
+  SmsByDateState copyWith({
     DateTime? selectedDate,
     bool? isLoading,
     List<ChannelMessageModel>? messages,
@@ -37,7 +37,7 @@ class OtpByDateState extends Equatable {
     bool? hasFetchedOnce,
     bool clearError = false,
   }) {
-    return OtpByDateState(
+    return SmsByDateState(
       selectedDate: selectedDate ?? this.selectedDate,
       isLoading: isLoading ?? this.isLoading,
       messages: messages ?? this.messages,
@@ -58,54 +58,54 @@ class OtpByDateState extends Equatable {
   ];
 }
 
-abstract class OtpByDateEvent extends Equatable {
-  const OtpByDateEvent();
+abstract class SmsByDateEvent extends Equatable {
+  const SmsByDateEvent();
 
   @override
   List<Object?> get props => [];
 }
 
 /// User chọn ngày trên calendar (6.1) hoặc cần load lại hôm nay lúc mở app.
-class OtpByDateSelected extends OtpByDateEvent {
+class SmsByDateSelected extends SmsByDateEvent {
   final DateTime date;
 
-  const OtpByDateSelected(this.date);
+  const SmsByDateSelected(this.date);
 
   @override
   List<Object?> get props => [date];
 }
 
 /// Pull-to-refresh / retry sau lỗi.
-class OtpByDateRefreshed extends OtpByDateEvent {
-  const OtpByDateRefreshed();
+class SmsByDateRefreshed extends SmsByDateEvent {
+  const SmsByDateRefreshed();
 }
 
-/// Bloc màn OTP hôm nay: mỗi lần mở là một lần fetch (không local store).
-class OtpByDateBloc extends Bloc<OtpByDateEvent, OtpByDateState> {
-  OtpByDateBloc({required OtpByDateRepository repository})
+/// Bloc màn SMS theo ngày: mỗi lần mở là một lần fetch (không local store).
+class SmsByDateBloc extends Bloc<SmsByDateEvent, SmsByDateState> {
+  SmsByDateBloc({required SmsByDateRepository repository})
     : _repository = repository,
-      super(OtpByDateState(selectedDate: DateTime.now())) {
-    on<OtpByDateSelected>(_onDateSelected, transformer: droppable());
-    on<OtpByDateRefreshed>(_onRefreshed, transformer: droppable());
+      super(SmsByDateState(selectedDate: DateTime.now())) {
+    on<SmsByDateSelected>(_onDateSelected, transformer: droppable());
+    on<SmsByDateRefreshed>(_onRefreshed, transformer: droppable());
   }
 
-  final OtpByDateRepository _repository;
+  final SmsByDateRepository _repository;
 
   Future<void> _onDateSelected(
-    OtpByDateSelected event,
-    Emitter<OtpByDateState> emit,
+    SmsByDateSelected event,
+    Emitter<SmsByDateState> emit,
   ) async {
     await _load(event.date, emit);
   }
 
   Future<void> _onRefreshed(
-    OtpByDateRefreshed event,
-    Emitter<OtpByDateState> emit,
+    SmsByDateRefreshed event,
+    Emitter<SmsByDateState> emit,
   ) async {
     await _load(state.selectedDate, emit);
   }
 
-  Future<void> _load(DateTime date, Emitter<OtpByDateState> emit) async {
+  Future<void> _load(DateTime date, Emitter<SmsByDateState> emit) async {
     emit(
       state.copyWith(
         selectedDate: date,
@@ -132,9 +132,16 @@ class OtpByDateBloc extends Bloc<OtpByDateEvent, OtpByDateState> {
       emit(
         state.copyWith(
           isLoading: false,
-          errorMessage: 'Không tải được OTP của ngày này. Kiểm tra kết nối và thử lại.',
+          errorMessage: 'Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.',
         ),
       );
     }
   }
 }
+
+// Typedefs for compatibility
+typedef OtpByDateBloc = SmsByDateBloc;
+typedef OtpByDateEvent = SmsByDateEvent;
+typedef OtpByDateState = SmsByDateState;
+typedef OtpByDateSelected = SmsByDateSelected;
+typedef OtpByDateRefreshed = SmsByDateRefreshed;

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/channel/data/repositories/channel_repository.dart';
 import '../../features/channel/data/repositories/join_channel_repository.dart';
-import '../../features/channel/data/repositories/otp_by_date_repository.dart';
+import '../../features/channel/data/repositories/sms_by_date_repository.dart';
 import '../../features/channel/data/services/channel_api_client.dart';
 import '../../features/channel/data/services/channel_key_store.dart';
 import '../../features/channel/data/services/startup_reconcile_service.dart';
@@ -33,7 +33,7 @@ class AppBootstrap extends StatelessWidget {
     super.key,
     required this.child,
     required this.localStorageService,
-    this.initializeAsyncServices = true,
+    this.initializeAsyncServices = false,
   });
 
   @override
@@ -166,8 +166,8 @@ class AppBootstrap extends StatelessWidget {
             deviceStorage: context.read<DeviceStorageService>(),
           ),
         ),
-        RepositoryProvider<OtpByDateRepository>(
-          create: (context) => OtpByDateRepository(
+        RepositoryProvider<SmsByDateRepository>(
+          create: (context) => SmsByDateRepository(
             apiClient: context.read<ChannelApiClient>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),

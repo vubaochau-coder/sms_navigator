@@ -5,6 +5,8 @@ import 'package:sms_navigator/app.dart';
 import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
 import 'package:sms_navigator/core/storage/local_storage_service.dart';
 
+import 'package:sms_navigator/features/home/presentation/pages/main_navigation_page.dart';
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
@@ -16,21 +18,21 @@ void main() {
       AppBootstrap(
         localStorageService: localStorage,
         initializeAsyncServices: false,
-        child: const OtpRelayApp(),
+        child: const OtpRelayApp(home: MainNavigationPage()),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
   }
 
-  testWidgets('App displays MainNavigationPage with OTP and Channel tabs', (
+  testWidgets('App displays MainNavigationPage with SMS and Channel tabs', (
     WidgetTester tester,
   ) async {
     await pumpApp(tester);
 
     // Verify bottom navigation bar with 2 tabs
     expect(find.byType(BottomAppBar), findsOneWidget);
-    expect(find.text('OTP'), findsOneWidget);
+    expect(find.text('SMS'), findsOneWidget);
     expect(find.text('Kênh'), findsOneWidget);
 
     // Verify center docked QR scanner FAB

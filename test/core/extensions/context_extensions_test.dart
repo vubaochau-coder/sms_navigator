@@ -28,7 +28,7 @@ void main() {
       ),
     );
 
-    expect(l10n.appTitle, equals('OTP Relay'));
+    expect(l10n.appTitle, equals('SMS Navigator'));
     expect(theme.brightness, equals(Brightness.light));
     expect(colorScheme.brightness, equals(Brightness.light));
   });
