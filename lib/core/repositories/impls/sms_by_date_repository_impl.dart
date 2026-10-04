@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../models/channel_message_model.dart';
 import '../../services/channel_api_client.dart';
 import '../../services/channel_key_store.dart';
@@ -21,11 +23,13 @@ class SmsByDateRepositoryImpl implements SmsByDateRepository {
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchByDate({
     required DateTime date,
     int tzOffsetMinutes = 0,
+    CancelToken? cancelToken,
   }) async {
     final dateStr = _formatDate(date);
     final fetched = await _api.fetchMessagesByDate(
       date: dateStr,
       tzOffset: tzOffsetMinutes,
+      cancelToken: cancelToken,
     );
 
     final decrypted = <ChannelMessageModel>[];

@@ -289,5 +289,33 @@
     }
   },
   "smsLoadError": "Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.",
-  "smsLoadErrorTitle": "Lỗi tải tin nhắn"
+  "smsLoadErrorTitle": "Lỗi tải tin nhắn",
+  "channelPageTitle": "Kênh",
+  "channelRenameDeviceTooltip": "Đổi tên thiết bị",
+  "channelEmptyMessage": "Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.",
+  "channelOwnedSectionTitle": "Kênh của bạn",
+  "channelJoinedSectionTitle": "Kênh bạn tham gia",
+  "channelCreateAction": "Tạo kênh",
+  "channelCreateDialogTitle": "Tạo kênh mới",
+  "channelNameLabel": "Tên kênh",
+  "channelNameHint": "Ví dụ: Kênh nhà",
+  "channelCreateConfirm": "Tạo",
+  "channelRenameDialogTitle": "Đổi tên thiết bị",
+  "channelDeviceNameLabel": "Tên hiển thị",
+  "channelDeviceNameHint": "Ví dụ: Pixel 8 của Minh",
+  "channelSaveConfirm": "Lưu",
+  "channelOwnerSubtitle": "{count} thành viên · epoch {epoch}",
+  "@channelOwnerSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "epoch": { "type": "int" }
+    }
+  },
+  "channelMemberSubtitle": "Máy chủ: {ownerName} · {count} thành viên",
+  "@channelMemberSubtitle": {
+    "placeholders": {
+      "ownerName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  }
 }

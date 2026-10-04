@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
-import '../channel/channel_list_page.dart';
+import '../channel/channel_page.dart';
 import '../channel/join_qr_scan_page.dart';
 import '../sms/sms_page.dart';
 import '../device/bloc/device_setup_bloc.dart';
@@ -22,9 +22,10 @@ class MainNavigationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
-            ..add(const DeviceSetupStarted()),
+      create: (_) {
+        return DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
+            ..add(const DeviceSetupStarted());
+      },
       child: const _MainNavigationView(),
     );
   }
@@ -91,7 +92,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
           index: _selectedIndex,
           children: const [
             SmsPage(),
-            ChannelListPage(),
+            ChannelPage(),
           ],
         ),
         floatingActionButton: FloatingActionButton(

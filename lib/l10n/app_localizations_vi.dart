@@ -679,4 +679,57 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get smsLoadErrorTitle => 'Lỗi tải tin nhắn';
+
+  @override
+  String get channelPageTitle => 'Kênh';
+
+  @override
+  String get channelRenameDeviceTooltip => 'Đổi tên thiết bị';
+
+  @override
+  String get channelEmptyMessage =>
+      'Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.';
+
+  @override
+  String get channelOwnedSectionTitle => 'Kênh của bạn';
+
+  @override
+  String get channelJoinedSectionTitle => 'Kênh bạn tham gia';
+
+  @override
+  String get channelCreateAction => 'Tạo kênh';
+
+  @override
+  String get channelCreateDialogTitle => 'Tạo kênh mới';
+
+  @override
+  String get channelNameLabel => 'Tên kênh';
+
+  @override
+  String get channelNameHint => 'Ví dụ: Kênh nhà';
+
+  @override
+  String get channelCreateConfirm => 'Tạo';
+
+  @override
+  String get channelRenameDialogTitle => 'Đổi tên thiết bị';
+
+  @override
+  String get channelDeviceNameLabel => 'Tên hiển thị';
+
+  @override
+  String get channelDeviceNameHint => 'Ví dụ: Pixel 8 của Minh';
+
+  @override
+  String get channelSaveConfirm => 'Lưu';
+
+  @override
+  String channelOwnerSubtitle(int count, int epoch) {
+    return '$count thành viên · epoch $epoch';
+  }
+
+  @override
+  String channelMemberSubtitle(String ownerName, int count) {
+    return 'Máy chủ: $ownerName · $count thành viên';
+  }
 }

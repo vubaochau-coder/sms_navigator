@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../constants/api_endpoints.dart';
 import '../../models/channel_message_model.dart';
 import '../../network/api_client.dart';
@@ -39,6 +41,7 @@ class MessageApiServiceImpl implements MessageApiService {
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchMessagesByDate({
     required String date,
     int tzOffset = 0,
+    CancelToken? cancelToken,
   }) async {
     final res = await apiClient.get(
       ApiEndpoints.messagesByDateV2,
@@ -46,6 +49,7 @@ class MessageApiServiceImpl implements MessageApiService {
         'date': date,
         'tz_offset': tzOffset.toString(),
       },
+      cancelToken: cancelToken,
     );
     final map = _asMap(res);
     final list = _asListOfMaps(map['messages']);

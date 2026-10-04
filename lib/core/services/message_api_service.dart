@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../models/channel_message_model.dart';
 
 /// Service API Tin nhắn (BE: Messages endpoints, API spec §6).
@@ -12,5 +14,6 @@ abstract class MessageApiService {
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchMessagesByDate({
     required String date,
     int tzOffset = 0,
+    CancelToken? cancelToken,
   });
 }

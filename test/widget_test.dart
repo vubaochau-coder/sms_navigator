@@ -40,7 +40,7 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
-  testWidgets('Channel tab switches to ChannelListPage', (
+  testWidgets('Channel tab switches to ChannelPage', (
     WidgetTester tester,
   ) async {
     await pumpApp(tester);

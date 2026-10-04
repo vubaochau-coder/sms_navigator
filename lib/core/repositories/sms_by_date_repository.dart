@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../models/channel_message_model.dart';
 
 abstract class SmsByDateRepository {
@@ -5,6 +7,7 @@ abstract class SmsByDateRepository {
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchByDate({
     required DateTime date,
     int tzOffsetMinutes = 0,
+    CancelToken? cancelToken,
   });
 }
 

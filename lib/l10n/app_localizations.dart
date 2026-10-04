@@ -1305,6 +1305,102 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Lỗi tải tin nhắn'**
   String get smsLoadErrorTitle;
+
+  /// No description provided for @channelPageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh'**
+  String get channelPageTitle;
+
+  /// No description provided for @channelRenameDeviceTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên thiết bị'**
+  String get channelRenameDeviceTooltip;
+
+  /// No description provided for @channelEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.'**
+  String get channelEmptyMessage;
+
+  /// No description provided for @channelOwnedSectionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh của bạn'**
+  String get channelOwnedSectionTitle;
+
+  /// No description provided for @channelJoinedSectionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh bạn tham gia'**
+  String get channelJoinedSectionTitle;
+
+  /// No description provided for @channelCreateAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo kênh'**
+  String get channelCreateAction;
+
+  /// No description provided for @channelCreateDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo kênh mới'**
+  String get channelCreateDialogTitle;
+
+  /// No description provided for @channelNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên kênh'**
+  String get channelNameLabel;
+
+  /// No description provided for @channelNameHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ví dụ: Kênh nhà'**
+  String get channelNameHint;
+
+  /// No description provided for @channelCreateConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo'**
+  String get channelCreateConfirm;
+
+  /// No description provided for @channelRenameDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên thiết bị'**
+  String get channelRenameDialogTitle;
+
+  /// No description provided for @channelDeviceNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên hiển thị'**
+  String get channelDeviceNameLabel;
+
+  /// No description provided for @channelDeviceNameHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ví dụ: Pixel 8 của Minh'**
+  String get channelDeviceNameHint;
+
+  /// No description provided for @channelSaveConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get channelSaveConfirm;
+
+  /// No description provided for @channelOwnerSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} thành viên · epoch {epoch}'**
+  String channelOwnerSubtitle(int count, int epoch);
+
+  /// No description provided for @channelMemberSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ: {ownerName} · {count} thành viên'**
+  String channelMemberSubtitle(String ownerName, int count);
 }
 
 class _AppLocalizationsDelegate

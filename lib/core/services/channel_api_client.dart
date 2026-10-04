@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../models/channel_detail_model.dart';
 import '../models/channel_member_model.dart';
 import '../models/channel_message_model.dart';
@@ -79,5 +81,9 @@ abstract class ChannelApiClient {
   });
 
   Future<({List<ChannelMessageModel> messages, bool truncated})>
-  fetchMessagesByDate({required String date, int tzOffset = 0});
+  fetchMessagesByDate({
+    required String date,
+    int tzOffset = 0,
+    CancelToken? cancelToken,
+  });
 }

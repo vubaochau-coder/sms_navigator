@@ -7,7 +7,8 @@ abstract class SmsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// User chọn ngày trên calendar (6.1) hoặc cần load lại hôm nay lúc mở app.
+/// User chọn ngày trên calendar (6.1).
+/// Nghiệp vụ: BLoC sẽ kiểm tra date có khác không, emit selectedDate mới và tự add [SmsLoadDataEvent].
 class SmsDateSelected extends SmsEvent {
   final DateTime date;
 
@@ -17,15 +18,18 @@ class SmsDateSelected extends SmsEvent {
   List<Object?> get props => [date];
 }
 
-/// Pull-to-refresh / retry sau lỗi.
-class SmsRefreshed extends SmsEvent {
-  const SmsRefreshed();
+/// Event thuần túy chịu trách nhiệm load dữ liệu SMS theo trạng thái state hiện tại.
+/// Áp dụng bloc concurrency (restartable) và hỗ trợ CancelToken để hủy request cũ.
+class SmsLoadDataEvent extends SmsEvent {
+  const SmsLoadDataEvent();
 }
 
 // Backward compatibility typedefs
+typedef LoadDataEvent = SmsLoadDataEvent;
+typedef SmsRefreshed = SmsLoadDataEvent;
 typedef SmsByDateEvent = SmsEvent;
 typedef SmsByDateSelected = SmsDateSelected;
-typedef SmsByDateRefreshed = SmsRefreshed;
+typedef SmsByDateRefreshed = SmsLoadDataEvent;
 typedef OtpByDateEvent = SmsEvent;
 typedef OtpByDateSelected = SmsDateSelected;
-typedef OtpByDateRefreshed = SmsRefreshed;
+typedef OtpByDateRefreshed = SmsLoadDataEvent;

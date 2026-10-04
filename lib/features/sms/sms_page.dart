@@ -20,7 +20,7 @@ class SmsPage extends StatelessWidget {
     return BlocProvider(
       create: (_) {
         return SmsBloc(repository: context.read<SmsByDateRepository>())
-          ..add(SmsDateSelected(DateTime.now()));
+          ..add(const SmsLoadDataEvent());
       },
       child: const _SmsView(),
     );
@@ -32,34 +32,33 @@ class _SmsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SmsBloc, SmsState>(
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(context.l10n.smsPageTitle),
-            actions: [
-              if (state.hasFetchedOnce)
-                IconButton(
-                  tooltip: context.l10n.smsRefreshTooltip,
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    context.read<SmsBloc>().add(const SmsRefreshed());
-                  },
-                ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(context.l10n.smsPageTitle),
+        actions: [
+          BlocSelector<SmsBloc, SmsState, bool>(
+            selector: (state) => state.hasFetchedOnce,
+            builder: (context, hasFetchedOnce) {
+              if (!hasFetchedOnce) return const SizedBox.shrink();
+              return IconButton(
+                tooltip: context.l10n.smsRefreshTooltip,
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  context.read<SmsBloc>().add(const SmsLoadDataEvent());
+                },
+              );
+            },
           ),
-          body: Column(
-            children: [
-              CalendarCardView(selectedDate: state.selectedDate),
-              Expanded(child: MessageListView(state: state)),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
+      body: Column(
+        children: const [
+          SizedBox(height: 4),
+          CalendarCardView(),
+          SizedBox(height: 12),
+          Expanded(child: MessageListView()),
+        ],
+      ),
     );
   }
 }
-
-// Backward compatibility typedefs
-typedef SmsByDatePage = SmsPage;
-typedef OtpByDatePage = SmsPage;
