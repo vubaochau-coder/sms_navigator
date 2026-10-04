@@ -5,12 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../features/device/data/services/device_api_service.dart';
+import '../services/crashlytics_service.dart';
 import '../services/device_storage_service.dart';
+import '../utils/app_logger.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // FCM chỉ là chuông, app sẽ reconcile khi người dùng mở app
-  debugPrint('Received background FCM message: ${message.messageId}');
+  try {
+    debugPrint('Received background FCM message: ${message.messageId}');
+  } catch (error, stack) {
+    CrashlyticsService.instance.recordError(
+      error,
+      stack,
+      reason: 'FCM background handler failed for message ${message.messageId}',
+    );
+  }
 }
 
 /// FCM chỉ là chuông (API spec §7, I5/N8):
@@ -50,8 +59,8 @@ class FcmNotificationService {
       FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed);
 
       FirebaseMessaging.onMessage.listen(_showBellNotification);
-    } catch (error) {
-      debugPrint('FcmNotificationService initialize failed: $error');
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'Initialize failed', error, stack);
     }
   }
 
@@ -66,8 +75,8 @@ class FcmNotificationService {
       final deviceToken = await _deviceStorage.getDeviceToken();
       if (deviceToken == null || deviceToken.isEmpty) return;
       await _deviceApi.updateFcmToken(token);
-    } catch (error) {
-      debugPrint('FcmNotificationService syncToken failed: $error');
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'syncToken failed', error, stack);
     }
   }
 
@@ -77,8 +86,8 @@ class FcmNotificationService {
       final deviceToken = await _deviceStorage.getDeviceToken();
       if (deviceToken == null || deviceToken.isEmpty) return;
       await _deviceApi.updateFcmToken(token);
-    } catch (_) {
-      // Reconcile lúc mở app sẽ đồng bộ lại
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'updateFcmToken on refresh failed', error, stack);
     }
   }
 
@@ -122,8 +131,8 @@ class FcmNotificationService {
         body: body,
         notificationDetails: details,
       );
-    } catch (error) {
-      debugPrint('Show bell notification failed: $error');
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'Show bell notification failed', error, stack);
     }
   }
 

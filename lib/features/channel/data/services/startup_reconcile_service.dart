@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/services/device_storage_service.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../device/data/services/device_api_service.dart';
 import 'channel_key_store.dart';
 import '../../data/models/pairing_request_model.dart';
@@ -44,10 +45,10 @@ class StartupReconcileService {
       await _ensureIdentityAndRegistration();
       await _syncJoinRequests();
       await _provisionChannelKeys();
-    } catch (error) {
+    } catch (error, stack) {
       // Reconcile là hành vi ngầm — lỗi không phá UI (FCM/network tạm lỗi
-      // sẽ được retry ở lần mở app kế tiếp).
-      debugPrint('StartupReconcile skipped: $error');
+      // sẽ được retry ở lần mở app kế tiếp), nhưng ghi nhận vào Crashlytics.
+      AppLogger.w('StartupReconcile', 'Startup reconcile skipped or encountered error', error, stack);
     } finally {
       _running = false;
     }

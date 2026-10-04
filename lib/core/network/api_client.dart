@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../errors/app_exceptions.dart';
+import '../utils/app_logger.dart';
 
 /// Cung cấp device token để đính kèm vào header Authorization.
 typedef DeviceTokenProvider = Future<String?> Function();
@@ -173,6 +174,7 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {
+      AppLogger.w('ApiClient', 'Connection timed out on ${e.requestOptions.uri}');
       return NetworkException(
         'Kết nối tới máy chủ quá thời gian chờ (${requestTimeout.inSeconds}s).',
       );
@@ -184,11 +186,19 @@ class ApiClient {
           'Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).',
         );
       }
+      if ((response.statusCode ?? 0) >= 500) {
+        AppLogger.e(
+          'ApiClient',
+          'Server responded with HTTP ${response.statusCode} on ${e.requestOptions.uri}',
+          e,
+        );
+      }
       return ApiException(
         'Máy chủ trả về lỗi (HTTP ${response.statusCode}).',
         statusCode: response.statusCode,
       );
     }
+    AppLogger.w('ApiClient', 'Network error on ${e.requestOptions.uri}: ${e.message}');
     return NetworkException('Không thể kết nối tới máy chủ: ${e.message}');
   }
 
