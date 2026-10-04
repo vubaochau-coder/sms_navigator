@@ -15,9 +15,10 @@ class DeviceSetupChecklistPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
-            ..add(const DeviceSetupStarted()),
+      create: (_) {
+        return DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
+            ..add(const DeviceSetupStarted());
+      },
       child: const _DeviceSetupView(),
     );
   }

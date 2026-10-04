@@ -31,6 +31,7 @@ import '../services/impls/startup_reconcile_service_impl.dart';
 import '../services/local_storage_service.dart';
 import '../services/native_relay_service.dart';
 import '../services/startup_reconcile_service.dart';
+import '../theme/theme_cubit.dart';
 import '../utils/channel_crypto_helper.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
@@ -173,7 +174,12 @@ class AppBootstrap extends StatelessWidget {
           ),
         ),
       ],
-      child: content,
+      child: BlocProvider<ThemeCubit>(
+        create: (context) => ThemeCubit(
+          localStorage: context.read<LocalStorageService>(),
+        ),
+        child: content,
+      ),
     );
   }
 }

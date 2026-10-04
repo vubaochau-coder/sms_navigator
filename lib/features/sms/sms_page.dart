@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/sms_by_date_repository.dart';
+import '../../core/widgets/theme_toggle_button.dart';
+import '../device/device_setup_checklist_page.dart';
 import 'bloc/sms_bloc.dart';
 import 'views/calendar_card_view.dart';
 import 'views/message_list_view.dart';
@@ -36,16 +38,15 @@ class _SmsView extends StatelessWidget {
       appBar: AppBar(
         title: Text(context.l10n.smsPageTitle),
         actions: [
-          BlocSelector<SmsBloc, SmsState, bool>(
-            selector: (state) => state.hasFetchedOnce,
-            builder: (context, hasFetchedOnce) {
-              if (!hasFetchedOnce) return const SizedBox.shrink();
-              return IconButton(
-                tooltip: context.l10n.smsRefreshTooltip,
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  context.read<SmsBloc>().add(const SmsLoadDataEvent());
-                },
+          const ThemeToggleButton(),
+          IconButton(
+            tooltip: context.l10n.deviceSetupTitle,
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const DeviceSetupChecklistPage(),
+                ),
               );
             },
           ),

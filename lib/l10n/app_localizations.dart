@@ -1255,7 +1255,7 @@ abstract class AppLocalizations {
   /// No description provided for @smsPageTitle.
   ///
   /// In vi, this message translates to:
-  /// **'Tin nhắn SMS theo ngày'**
+  /// **'SMS'**
   String get smsPageTitle;
 
   /// No description provided for @smsRefreshTooltip.
@@ -1269,6 +1269,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Ngày {date} chưa có tin nhắn SMS nào'**
   String smsEmptyInDate(String date);
+
+  /// No description provided for @smsDailyMessageCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'Danh sách tin nhắn trong ngày ({count})'**
+  String smsDailyMessageCount(int count);
 
   /// No description provided for @smsDecryptError.
   ///

@@ -265,12 +265,18 @@
   "splashRetry": "Thử lại",
   "splashSkipOffline": "Bỏ qua & Vào chế độ ngoại tuyến",
   "splashDefaultDeviceName": "Thiết bị của tôi",
-  "smsPageTitle": "Tin nhắn SMS theo ngày",
+  "smsPageTitle": "SMS",
   "smsRefreshTooltip": "Làm mới",
   "smsEmptyInDate": "Ngày {date} chưa có tin nhắn SMS nào",
   "@smsEmptyInDate": {
     "placeholders": {
       "date": { "type": "String" }
+    }
+  },
+  "smsDailyMessageCount": "Danh sách tin nhắn trong ngày ({count})",
+  "@smsDailyMessageCount": {
+    "placeholders": {
+      "count": { "type": "int" }
     }
   },
   "smsDecryptError": "Không giải mã được tin này",

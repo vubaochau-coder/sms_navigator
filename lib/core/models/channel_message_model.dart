@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
 import '../utils/data_converter.dart';
@@ -17,6 +19,9 @@ class ChannelMessageModel extends Equatable {
   final String sentAt;
   final String serverReceivedAt;
 
+  /// Đầu số / Brandname gửi tin gốc (ví dụ: "VCB", "Techcombank", "+8491...").
+  final String? sender;
+
   /// Kết quả decrypt (không thuộc payload server).
   final String? decryptedOtp;
   final bool decryptFailed;
@@ -32,6 +37,7 @@ class ChannelMessageModel extends Equatable {
     this.senderDeviceId = '',
     this.sentAt = '',
     this.serverReceivedAt = '',
+    this.sender,
     this.decryptedOtp,
     this.decryptFailed = false,
   });
@@ -48,22 +54,40 @@ class ChannelMessageModel extends Equatable {
       senderDeviceId: DataConverter.cvToString(map['sender_device_id'], '')!,
       sentAt: DataConverter.cvToString(map['sent_at'], '')!,
       serverReceivedAt: DataConverter.cvToString(map['server_received_at'], '')!,
+      sender: DataConverter.cvToString(map['sender']),
     );
   }
 
-  ChannelMessageModel copyWithDecrypted(String otp) => ChannelMessageModel(
-    messageId: messageId,
-    channelId: channelId,
-    channelName: channelName,
-    sequenceNumber: sequenceNumber,
-    keyEpoch: keyEpoch,
-    ciphertext: ciphertext,
-    nonce: nonce,
-    senderDeviceId: senderDeviceId,
-    sentAt: sentAt,
-    serverReceivedAt: serverReceivedAt,
-    decryptedOtp: otp,
-  );
+  ChannelMessageModel copyWithDecrypted(String otp) {
+    String? extractedSender;
+    String cleanOtp = otp;
+    final trimmed = otp.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        final parsed = jsonDecode(trimmed) as Map<String, dynamic>;
+        extractedSender = DataConverter.cvToString(parsed['sender']);
+        cleanOtp = DataConverter.cvToString(
+              parsed['fullMessage'] ?? parsed['otp'],
+            ) ??
+            cleanOtp;
+      } catch (_) {}
+    }
+
+    return ChannelMessageModel(
+      messageId: messageId,
+      channelId: channelId,
+      channelName: channelName,
+      sequenceNumber: sequenceNumber,
+      keyEpoch: keyEpoch,
+      ciphertext: ciphertext,
+      nonce: nonce,
+      senderDeviceId: senderDeviceId,
+      sentAt: sentAt,
+      serverReceivedAt: serverReceivedAt,
+      sender: extractedSender ?? sender,
+      decryptedOtp: cleanOtp,
+    );
+  }
 
   ChannelMessageModel copyWithDecryptFailed() => ChannelMessageModel(
     messageId: messageId,
@@ -76,6 +100,7 @@ class ChannelMessageModel extends Equatable {
     senderDeviceId: senderDeviceId,
     sentAt: sentAt,
     serverReceivedAt: serverReceivedAt,
+    sender: sender,
     decryptFailed: true,
   );
 
@@ -91,6 +116,7 @@ class ChannelMessageModel extends Equatable {
     senderDeviceId,
     sentAt,
     serverReceivedAt,
+    sender,
     decryptedOtp,
     decryptFailed,
   ];

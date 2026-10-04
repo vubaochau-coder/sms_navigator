@@ -32,8 +32,20 @@ void main() {
 
     // Verify bottom navigation bar with 2 tabs
     expect(find.byType(BottomAppBar), findsOneWidget);
-    expect(find.text('SMS'), findsOneWidget);
-    expect(find.text('Kênh'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(BottomAppBar),
+        matching: find.text('SMS'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(BottomAppBar),
+        matching: find.text('Kênh'),
+      ),
+      findsOneWidget,
+    );
 
     // Verify center docked QR scanner FAB
     expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);

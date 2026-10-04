@@ -9,9 +9,21 @@ class ThemeToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ThemeCubit? cubit;
+    try {
+      cubit = BlocProvider.of<ThemeCubit>(context);
+    } catch (_) {
+      cubit = null;
+    }
+
+    if (cubit == null) {
+      return const SizedBox.shrink();
+    }
+
     final l10n = context.l10n;
 
     return BlocBuilder<ThemeCubit, ThemeMode>(
+      bloc: cubit,
       builder: (context, themeMode) {
         final isDark = themeMode == ThemeMode.dark ||
             (themeMode == ThemeMode.system &&
@@ -31,7 +43,7 @@ class ThemeToggleButton extends StatelessWidget {
             ),
           ),
           onPressed: () {
-            BlocProvider.of<ThemeCubit>(context).toggleTheme();
+            cubit?.toggleTheme();
           },
         );
       },

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/features/channel/channel_page.dart';
-import 'package:sms_navigator/features/channel/views/channel_card_view.dart';
 import 'package:sms_navigator/features/channel/views/channel_list_view.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 

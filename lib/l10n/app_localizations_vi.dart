@@ -647,7 +647,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get splashDefaultDeviceName => 'Thiết bị của tôi';
 
   @override
-  String get smsPageTitle => 'Tin nhắn SMS theo ngày';
+  String get smsPageTitle => 'SMS';
 
   @override
   String get smsRefreshTooltip => 'Làm mới';
@@ -655,6 +655,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String smsEmptyInDate(String date) {
     return 'Ngày $date chưa có tin nhắn SMS nào';
+  }
+
+  @override
+  String smsDailyMessageCount(int count) {
+    return 'Danh sách tin nhắn trong ngày ($count)';
   }
 
   @override

@@ -77,7 +77,7 @@ class _BlockedBanner extends StatelessWidget {
     final l10n = context.l10n;
     final colorScheme = context.colorScheme;
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colorScheme.tertiaryContainer,

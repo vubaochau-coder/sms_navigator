@@ -93,4 +93,15 @@ class DateTimeUtils {
       return null;
     }
   }
+
+  /// Parse chuỗi thời gian ISO-8601 an toàn, trả về null nếu chuỗi rỗng hoặc không đúng định dạng.
+  static DateTime? tryParse(String? isoString) {
+    if (isoString == null || isoString.trim().isEmpty) return null;
+    return DateTime.tryParse(isoString.trim());
+  }
+
+  /// Parse chuỗi thời gian ISO-8601, nếu lỗi hoặc rỗng trả về mốc mặc định (fallback hoặc epoch 0).
+  static DateTime parseOrDefault(String? isoString, {DateTime? fallback}) {
+    return tryParse(isoString) ?? fallback ?? DateTime.fromMillisecondsSinceEpoch(0);
+  }
 }
