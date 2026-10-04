@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../errors/app_exceptions.dart';
 import '../utils/app_logger.dart';
@@ -53,7 +54,33 @@ class ApiClient {
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+
+          if (kDebugMode) {
+            options.extra['request_start_time'] = DateTime.now().millisecondsSinceEpoch;
+            final queryInfo = options.queryParameters.isNotEmpty ? ' | Query: ${options.queryParameters}' : '';
+            final bodyInfo = options.data != null ? ' | Payload: ${_sanitizeLogPayload(options.data)}' : '';
+            debugPrint('🌐 [API REQ] [${options.method}] ${options.uri}$queryInfo$bodyInfo');
+          }
+
           return handler.next(options);
+        },
+        onResponse: (response, handler) {
+          if (kDebugMode) {
+            final startTime = response.requestOptions.extra['request_start_time'] as int?;
+            final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
+            debugPrint('✅ [API RES] [${response.requestOptions.method}] ${response.requestOptions.uri}$durationStr [HTTP ${response.statusCode}] -> Data: ${response.data}');
+          }
+          return handler.next(response);
+        },
+        onError: (DioException error, handler) {
+          if (kDebugMode) {
+            final startTime = error.requestOptions.extra['request_start_time'] as int?;
+            final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
+            final statusCode = error.response?.statusCode != null ? ' [HTTP ${error.response?.statusCode}]' : '';
+            final responseData = error.response?.data != null ? ' -> Data: ${error.response?.data}' : '';
+            debugPrint('❌ [API ERR] [${error.requestOptions.method}] ${error.requestOptions.uri}$durationStr$statusCode: ${error.message}$responseData');
+          }
+          return handler.next(error);
         },
       ),
     );
@@ -200,6 +227,28 @@ class ApiClient {
     }
     AppLogger.w('ApiClient', 'Network error on ${e.requestOptions.uri}: ${e.message}');
     return NetworkException('Không thể kết nối tới máy chủ: ${e.message}');
+  }
+
+  static dynamic _sanitizeLogPayload(dynamic data) {
+    if (data is Map) {
+      final sanitized = <String, dynamic>{};
+      for (final entry in data.entries) {
+        final key = entry.key.toString();
+        final value = entry.value;
+        if (key.toLowerCase().contains('token') ||
+            key.toLowerCase().contains('secret') ||
+            key.toLowerCase().contains('password') ||
+            key.toLowerCase().contains('private_key')) {
+          sanitized[key] = (value is String && value.length > 8)
+              ? '${value.substring(0, 4)}...***'
+              : '***';
+        } else {
+          sanitized[key] = _sanitizeLogPayload(value);
+        }
+      }
+      return sanitized;
+    }
+    return data;
   }
 
   void close() {
