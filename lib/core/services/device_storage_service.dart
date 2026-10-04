@@ -9,6 +9,7 @@ abstract class DeviceStorageService {
   Future<void> saveDeviceId(String deviceId);
   Future<String?> getDeviceToken();
   Future<void> saveDeviceToken(String deviceToken);
+  Future<void> clearDeviceToken();
   Future<String?> getServerUrl();
   Future<void> saveServerUrl(String serverUrl);
   Future<String?> getFcmToken();
@@ -51,6 +52,12 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
   @override
   Future<void> saveDeviceToken(String deviceToken) async {
     await _secure.write(StorageKeys.deviceToken, deviceToken);
+    await localStorage.remove(StorageKeys.deviceToken);
+  }
+
+  @override
+  Future<void> clearDeviceToken() async {
+    await _secure.delete(StorageKeys.deviceToken);
     await localStorage.remove(StorageKeys.deviceToken);
   }
 

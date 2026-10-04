@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/errors/app_exceptions.dart';
 import '../../../../core/services/device_storage_service.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../device/data/services/device_api_service.dart';
@@ -45,6 +46,16 @@ class StartupReconcileService {
       await _ensureIdentityAndRegistration();
       await _syncJoinRequests();
       await _provisionChannelKeys();
+    } on UnauthorizedException catch (error, stack) {
+      AppLogger.w('StartupReconcile', 'Unauthorized during reconcile, re-registering and retrying', error, stack);
+      try {
+        await _deviceStorage.clearDeviceToken();
+        await _ensureIdentityAndRegistration();
+        await _syncJoinRequests();
+        await _provisionChannelKeys();
+      } catch (retryError, retryStack) {
+        AppLogger.w('StartupReconcile', 'Re-registration reconcile failed', retryError, retryStack);
+      }
     } catch (error, stack) {
       // Reconcile là hành vi ngầm — lỗi không phá UI (FCM/network tạm lỗi
       // sẽ được retry ở lần mở app kế tiếp), nhưng ghi nhận vào Crashlytics.

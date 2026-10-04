@@ -12,11 +12,16 @@ typedef DeviceTokenProvider = Future<String?> Function();
 /// Cung cấp server URL động (đọc từ DeviceStorageService).
 typedef ServerUrlProvider = Future<String?> Function();
 
+/// Callback khi gặp lỗi 401 Unauthorized để thực hiện re-authenticate / re-register.
+/// Trả về `true` nếu tái đăng ký thành công, `false` nếu thất bại.
+typedef UnauthorizedHandler = Future<bool> Function();
+
 /// HTTP client đa năng sử dụng Dio cho toàn bộ API.
 ///
 /// - Quản lý baseUrl động qua [ServerUrlProvider] (mặc định trỏ tới
 ///   `http://10.0.2.2:3000` của Android emulator hoặc `http://127.0.0.1:3000`).
 /// - Tự động đính kèm header `Authorization: Bearer <device_token>`.
+/// - Tự động tái đăng ký và thử lại request khi gặp lỗi 401 Unauthorized (SERVER_API_SPEC.md §3.1).
 /// - Cung cấp các phương thức get/post/put/patch/delete động.
 /// - Timeout 10 giây cho mọi request.
 /// - Chuẩn hóa lỗi: [NetworkException], [UnauthorizedException], [ApiException].
@@ -27,6 +32,7 @@ class ApiClient {
     ServerUrlProvider? serverUrlProvider,
     DeviceTokenProvider? tokenProvider,
     this.requestTimeout = const Duration(seconds: 10),
+    this.onUnauthorized,
   }) : _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
        _serverUrlProvider = serverUrlProvider,
        _tokenProvider = tokenProvider {
@@ -50,9 +56,14 @@ class ApiClient {
         onRequest: (options, handler) async {
           final resolvedUrl = await _resolveBaseUrl();
           options.baseUrl = resolvedUrl;
-          final token = await _tokenProvider?.call();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+
+          // Không gửi Authorization header cho endpoint đăng ký thiết bị
+          final isRegister = options.path.contains('/devices/register');
+          if (!isRegister) {
+            final token = await _tokenProvider?.call();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
 
           if (kDebugMode) {
@@ -72,7 +83,7 @@ class ApiClient {
           }
           return handler.next(response);
         },
-        onError: (DioException error, handler) {
+        onError: (DioException error, handler) async {
           if (kDebugMode) {
             final startTime = error.requestOptions.extra['request_start_time'] as int?;
             final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
@@ -80,6 +91,47 @@ class ApiClient {
             final responseData = error.response?.data != null ? ' -> Data: ${error.response?.data}' : '';
             debugPrint('❌ [API ERR] [${error.requestOptions.method}] ${error.requestOptions.uri}$durationStr$statusCode: ${error.message}$responseData');
           }
+
+          // Tự động tái đăng ký và retry khi gặp lỗi 401 UNAUTHORIZED (SERVER_API_SPEC.md §3.1)
+          final statusCode = error.response?.statusCode;
+          final isRegister = error.requestOptions.path.contains('/devices/register');
+          final alreadyRetried = error.requestOptions.extra['is_retried_401'] == true;
+
+          if (statusCode == 401 && !isRegister && !alreadyRetried && onUnauthorized != null) {
+            try {
+              final oldAuthHeader = error.requestOptions.headers['Authorization'] as String?;
+              final currentToken = await _tokenProvider?.call();
+              final currentBearer = (currentToken != null && currentToken.isNotEmpty) ? 'Bearer $currentToken' : null;
+
+              bool reAuthSuccess = false;
+              if (currentBearer != null && currentBearer != oldAuthHeader) {
+                // Một request chạy trước đó đã vừa hoàn tất tái đăng ký và có token mới
+                reAuthSuccess = true;
+              } else {
+                reAuthSuccess = await _handleReAuth();
+              }
+
+              if (reAuthSuccess) {
+                final newToken = await _tokenProvider?.call();
+                if (newToken != null && newToken.isNotEmpty) {
+                  error.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+                }
+                error.requestOptions.extra['is_retried_401'] = true;
+
+                if (kDebugMode) {
+                  debugPrint('🔄 [API RETRY] Retrying [${error.requestOptions.method}] ${error.requestOptions.uri} with refreshed token');
+                }
+
+                final retryResponse = await _dio.fetch<dynamic>(error.requestOptions);
+                return handler.resolve(retryResponse);
+              }
+            } catch (retryError) {
+              if (retryError is DioException) {
+                return handler.next(retryError);
+              }
+            }
+          }
+
           return handler.next(error);
         },
       ),
@@ -98,6 +150,32 @@ class ApiClient {
   final ServerUrlProvider? _serverUrlProvider;
   final DeviceTokenProvider? _tokenProvider;
   final Duration requestTimeout;
+
+  /// Callback xử lý tái đăng ký thiết bị khi token bị 401.
+  UnauthorizedHandler? onUnauthorized;
+
+  /// Mutex đơn luồng (single-flight) tránh gọi đăng ký nhiều lần song song
+  /// khi nhiều request đồng thời gặp 401 lúc mở app.
+  Completer<bool>? _reAuthCompleter;
+
+  Future<bool> _handleReAuth() async {
+    if (_reAuthCompleter != null) {
+      return _reAuthCompleter!.future;
+    }
+    final completer = Completer<bool>();
+    _reAuthCompleter = completer;
+
+    try {
+      final success = await onUnauthorized?.call() ?? false;
+      completer.complete(success);
+      return success;
+    } catch (e) {
+      completer.complete(false);
+      return false;
+    } finally {
+      _reAuthCompleter = null;
+    }
+  }
 
   Dio get dio => _dio;
 

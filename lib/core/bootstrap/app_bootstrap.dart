@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -90,13 +91,42 @@ class AppBootstrap extends StatelessWidget {
 
         // 5. Device (register v2 + setup checklist)
         RepositoryProvider<DeviceApiService>(
-          create: (context) => DeviceApiServiceImpl(
-            apiClient: context.read<ApiClient>(),
-            storageService: context.read<DeviceStorageService>(),
-            publicKeyProvider: () async =>
-                (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
-                    .publicKeyBase64,
-          ),
+          lazy: false,
+          create: (context) {
+            final apiClient = context.read<ApiClient>();
+            final storage = context.read<DeviceStorageService>();
+            final keyStore = context.read<ChannelKeyStore>();
+            final deviceApi = DeviceApiServiceImpl(
+              apiClient: apiClient,
+              storageService: storage,
+              publicKeyProvider: () async =>
+                  (await keyStore.getOrCreateIdentityKeyPair())
+                      .publicKeyBase64,
+            );
+
+            // Tự động tái đăng ký khi token 401 (SERVER_API_SPEC.md §3.1)
+            apiClient.onUnauthorized = () async {
+              try {
+                debugPrint('🔄 [ApiClient] 401 Unauthorized encountered. Re-registering device...');
+                await storage.clearDeviceToken();
+                await deviceApi.registerDevice(
+                  deviceName: 'Thiết bị của tôi',
+                  platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+                );
+                final newToken = await storage.getDeviceToken();
+                final success = newToken != null && newToken.isNotEmpty;
+                if (success) {
+                  debugPrint('✅ [ApiClient] Re-registration successful with fresh device token');
+                }
+                return success;
+              } catch (e) {
+                debugPrint('❌ [ApiClient] Re-registering device failed: $e');
+                return false;
+              }
+            };
+
+            return deviceApi;
+          },
         ),
         RepositoryProvider<DeviceSetupRepository>(
           create: (context) => DeviceSetupRepositoryImpl(
