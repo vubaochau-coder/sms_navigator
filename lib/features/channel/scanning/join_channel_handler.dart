@@ -26,6 +26,3 @@ class JoinChannelHandler implements QrScanHandler {
   @override
   void dispose() {}
 }
-
-/// Alias dùng khi dựng registry cho scanner.
-typedef QrScanFlowController = QrScanFlow;

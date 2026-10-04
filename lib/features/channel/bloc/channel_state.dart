@@ -42,6 +42,3 @@ class ChannelState extends Equatable {
   List<Object?> get props =>
       [isLoading, ownedChannels, joinedChannels, errorMessage];
 }
-
-// Backward compatibility typedef
-typedef ChannelListState = ChannelState;

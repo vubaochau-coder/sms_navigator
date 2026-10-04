@@ -161,26 +161,29 @@ class _JoinConfirmDialogState extends State<_JoinConfirmDialog> {
       contentPadding: DialogUtils.defaultContentPadding,
       actionsPadding: DialogUtils.defaultActionsPadding,
       title: const Text('Tham gia kênh'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Kênh: ${state.channelName.isEmpty ? "—" : state.channelName}'),
-          const SizedBox(height: 4),
-          Text(
-            'Máy chủ: ${state.ownerDeviceName.isEmpty ? "—" : state.ownerDeviceName}',
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _deviceNameController,
-            decoration: const InputDecoration(
-              labelText: 'Tên thiết bị của bạn',
-              border: OutlineInputBorder(),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Kênh: ${state.channelName.isEmpty ? "—" : state.channelName}'),
+            const SizedBox(height: 4),
+            Text(
+              'Máy chủ: ${state.ownerDeviceName.isEmpty ? "—" : state.ownerDeviceName}',
             ),
-            maxLength: 128,
-            enabled: !state.isSubmitting,
-          ),
-        ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _deviceNameController,
+              decoration: const InputDecoration(
+                labelText: 'Tên thiết bị của bạn',
+                border: OutlineInputBorder(),
+              ),
+              maxLength: 128,
+              enabled: !state.isSubmitting,
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

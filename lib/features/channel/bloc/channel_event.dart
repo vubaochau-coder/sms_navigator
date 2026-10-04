@@ -31,7 +31,3 @@ class DeviceRenamed extends ChannelEvent {
   @override
   List<Object?> get props => [deviceName];
 }
-
-// Backward compatibility typedefs
-typedef ChannelListLoaded = ChannelLoadDataEvent;
-typedef ChannelLoaded = ChannelLoadDataEvent;

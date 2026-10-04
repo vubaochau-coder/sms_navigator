@@ -5,7 +5,7 @@ import '../models/pairing_request_model.dart';
 import '../models/pairing_session_model.dart';
 
 abstract class ChannelRepository {
-  /// `GET /channels` — nguồn cho ChannelListPage 2 nhóm theo `role` (2.1).
+  /// `GET /channels` — nguồn cho ChannelPage 2 nhóm theo `role` (2.1).
   Future<List<ChannelModel>> listChannels();
 
   /// `GET /channels/detail` — chi tiết kênh + trạng thái caller (2.3/2.4).

@@ -23,13 +23,3 @@ class SmsDateSelected extends SmsEvent {
 class SmsLoadDataEvent extends SmsEvent {
   const SmsLoadDataEvent();
 }
-
-// Backward compatibility typedefs
-typedef LoadDataEvent = SmsLoadDataEvent;
-typedef SmsRefreshed = SmsLoadDataEvent;
-typedef SmsByDateEvent = SmsEvent;
-typedef SmsByDateSelected = SmsDateSelected;
-typedef SmsByDateRefreshed = SmsLoadDataEvent;
-typedef OtpByDateEvent = SmsEvent;
-typedef OtpByDateSelected = SmsDateSelected;
-typedef OtpByDateRefreshed = SmsLoadDataEvent;

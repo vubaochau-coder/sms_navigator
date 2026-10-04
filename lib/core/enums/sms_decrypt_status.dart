@@ -3,5 +3,3 @@ enum SmsDecryptStatus {
   missingKey,
   failed,
 }
-
-typedef OtpDecryptStatus = SmsDecryptStatus;

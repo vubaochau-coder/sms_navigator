@@ -10,6 +10,3 @@ abstract class SmsByDateRepository {
     CancelToken? cancelToken,
   });
 }
-
-/// Backward compatibility typedef
-typedef OtpByDateRepository = SmsByDateRepository;

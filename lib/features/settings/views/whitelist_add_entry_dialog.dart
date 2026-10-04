@@ -38,27 +38,30 @@ class _WhitelistAddEntryDialogState extends State<WhitelistAddEntryDialog> {
       contentPadding: DialogUtils.defaultContentPadding,
       actionsPadding: DialogUtils.defaultActionsPadding,
       title: Text(l10n.addWhitelistDialogTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _addressController,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: l10n.addWhitelistHint,
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _addressController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l10n.addWhitelistHint,
+              ),
+              onSubmitted: (_) => _submit(),
             ),
-            onSubmitted: (_) => _submit(),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.allowSendingOtp),
-            trailing: AppSwitch(
-              value: _allowOtp,
-              onChanged: (value) => setState(() => _allowOtp = value),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.allowSendingOtp),
+              trailing: AppSwitch(
+                value: _allowOtp,
+                onChanged: (value) => setState(() => _allowOtp = value),
+              ),
+              onTap: () => setState(() => _allowOtp = !_allowOtp),
             ),
-            onTap: () => setState(() => _allowOtp = !_allowOtp),
-          ),
-        ],
+          ],
+        ),
       ),
       actions: [
         TextButton(

@@ -68,6 +68,3 @@ class SmsByDateRepositoryImpl implements SmsByDateRepository {
     return '${date.year}-$month-$day';
   }
 }
-
-/// Backward compatibility typedef
-typedef OtpByDateRepositoryImpl = SmsByDateRepositoryImpl;

@@ -2,6 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/repositories/channel_repository.dart';
+import '../../../core/utils/toast_utils.dart';
 import 'channel_event.dart';
 import 'channel_state.dart';
 
@@ -35,6 +36,9 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
         ),
       );
     } catch (error) {
+      ToastUtils.showError(
+        'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.',
+      );
       emit(
         state.copyWith(
           isLoading: false,
@@ -61,6 +65,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
         ),
       );
     } catch (error) {
+      ToastUtils.showError('Không tạo được kênh. Thử lại sau.');
       emit(
         state.copyWith(
           isLoading: false,
@@ -79,6 +84,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
       await _repository.renameDevice(event.deviceName);
       emit(state.copyWith(isLoading: false));
     } catch (error) {
+      ToastUtils.showError('Không đổi được tên thiết bị. Thử lại sau.');
       emit(
         state.copyWith(
           isLoading: false,

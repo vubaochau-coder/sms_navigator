@@ -302,6 +302,45 @@ void main() {
 
       expect(enteredName, equals('Kênh Gia Đình'));
     });
+
+    testWidgets('DialogUtils.showInputDialog maintains 12dp distance to screen edge', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  DialogUtils.showInputDialog(
+                    context: context,
+                    title: 'Đổi tên thiết bị',
+                  );
+                },
+                child: const Text('Open Dialog'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      final dialogFinder = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(Material),
+      );
+      final dialogRect = tester.getRect(dialogFinder.first);
+      expect(dialogRect.left, 12.0);
+      expect(dialogRect.right, 388.0);
+      expect(dialogRect.width, 376.0);
+    });
   });
 
   group('BottomSheetUtils Tests', () {

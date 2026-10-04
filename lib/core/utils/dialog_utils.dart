@@ -92,8 +92,11 @@ class DialogUtils {
               maxWidth: 560.0,
               maxHeight: maxHeight,
             ),
-            child: SingleChildScrollView(
-              child: child,
+            child: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: child,
+              ),
             ),
           ),
         );
@@ -143,8 +146,11 @@ class DialogUtils {
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: content,
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: content,
+            ),
           ),
           actions: actions,
         );
@@ -195,26 +201,29 @@ class DialogUtils {
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: TextField(
-              controller: controller,
-              autofocus: true,
-              maxLength: maxLength,
-              decoration: InputDecoration(
-                labelText: labelText,
-                hintText: hintText,
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: TextField(
+                controller: controller,
+                autofocus: true,
+                maxLength: maxLength,
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  hintText: hintText,
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
+                onSubmitted: (value) {
+                  final trimmed = value.trim();
+                  if (trimmed.isNotEmpty) {
+                    Navigator.of(dialogContext).pop(trimmed);
+                  }
+                },
               ),
-              onSubmitted: (value) {
-                final trimmed = value.trim();
-                if (trimmed.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(trimmed);
-                }
-              },
             ),
           ),
           actions: [
@@ -310,15 +319,18 @@ class DialogUtils {
                 ),
               ],
             ),
-            content: SingleChildScrollView(
-              child: Text(
-                message,
-                style: TextStyle(
-                  fontSize: messageFontSize,
-                  color: Theme.of(
-                    dialogContext,
-                  ).colorScheme.onSurface.withValues(alpha: 0.8),
-                  height: messageLineHeight,
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: messageFontSize,
+                    color: Theme.of(
+                      dialogContext,
+                    ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    height: messageLineHeight,
+                  ),
                 ),
               ),
             ),
@@ -446,15 +458,18 @@ class DialogUtils {
                 ),
               ],
             ),
-            content: SingleChildScrollView(
-              child: Text(
-                message,
-                style: TextStyle(
-                  fontSize: messageFontSize,
-                  color: Theme.of(
-                    dialogContext,
-                  ).colorScheme.onSurface.withValues(alpha: 0.8),
-                  height: messageLineHeight,
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: messageFontSize,
+                    color: Theme.of(
+                      dialogContext,
+                    ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    height: messageLineHeight,
+                  ),
                 ),
               ),
             ),

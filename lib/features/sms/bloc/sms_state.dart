@@ -48,7 +48,3 @@ class SmsState extends Equatable {
     hasFetchedOnce,
   ];
 }
-
-// Backward compatibility typedefs
-typedef SmsByDateState = SmsState;
-typedef OtpByDateState = SmsState;

@@ -54,7 +54,7 @@ void main() {
     bloc.close();
   });
 
-  group('ChannelBloc - ChannelListLoaded', () {
+  group('ChannelBloc - ChannelLoadDataEvent', () {
     test('loads owned and joined channels correctly', () async {
       repository.channels = [
         const ChannelModel(
@@ -71,7 +71,7 @@ void main() {
         ),
       ];
 
-      bloc.add(const ChannelListLoaded());
+      bloc.add(const ChannelLoadDataEvent());
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isLoading, isFalse);
@@ -86,7 +86,7 @@ void main() {
     test('emits error message when loading fails', () async {
       repository.failList = true;
 
-      bloc.add(const ChannelListLoaded());
+      bloc.add(const ChannelLoadDataEvent());
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isLoading, isFalse);

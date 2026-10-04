@@ -5,8 +5,7 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/utils/dialog_utils.dart';
 import 'bloc/channel_bloc.dart';
-import 'views/channel_card_view.dart';
-import 'views/channel_section_header_view.dart';
+import 'views/channel_list_view.dart';
 
 /// Màn quản lý kênh chia 2 nhóm (MOBILE_FEATURES 2.1):
 /// - "Kênh của bạn" (bạn là Owner) → ChannelDetailPage
@@ -33,73 +32,24 @@ class _ChannelPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return BlocConsumer<ChannelBloc, ChannelState>(
-      listener: (context, state) {
-        if (state.errorMessage != null) {
-          DialogUtils.showInfoDialog(
-            context: context,
-            title: l10n.errorOccurred,
-            message: state.errorMessage!,
-          );
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(l10n.channelPageTitle),
-            actions: [
-              IconButton(
-                tooltip: l10n.channelRenameDeviceTooltip,
-                icon: const Icon(Icons.badge_outlined),
-                onPressed: () => _renameDevice(context),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.channelPageTitle),
+        actions: [
+          IconButton(
+            tooltip: l10n.channelRenameDeviceTooltip,
+            icon: const Icon(Icons.badge_outlined),
+            onPressed: () => _renameDevice(context),
           ),
-          body: state.isLoading && state.isEmpty
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
-                  },
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(bottom: 96),
-                    children: [
-                      if (state.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 120),
-                          child: Center(
-                            child: Text(
-                              l10n.channelEmptyMessage,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      else ...[
-                        ChannelSectionHeaderView(
-                          title: l10n.channelOwnedSectionTitle,
-                          count: state.ownedChannels.length,
-                        ),
-                        for (final channel in state.ownedChannels)
-                          ChannelCardView(channel: channel),
-                        ChannelSectionHeaderView(
-                          title: l10n.channelJoinedSectionTitle,
-                          count: state.joinedChannels.length,
-                        ),
-                        for (final channel in state.joinedChannels)
-                          ChannelCardView(channel: channel),
-                      ],
-                    ],
-                  ),
-                ),
-          floatingActionButton: FloatingActionButton.extended(
-            heroTag: 'channel_list_create_channel_fab',
-            onPressed: () => _createChannel(context),
-            icon: const Icon(Icons.add),
-            label: Text(l10n.channelCreateAction),
-          ),
-        );
-      },
+        ],
+      ),
+      body: const ChannelListView(),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'channel_list_create_channel_fab',
+        onPressed: () => _createChannel(context),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.channelCreateAction),
+      ),
     );
   }
 
@@ -137,6 +87,3 @@ class _ChannelPageView extends StatelessWidget {
     }
   }
 }
-
-// Backward compatibility typedef
-typedef ChannelListPage = ChannelPage;

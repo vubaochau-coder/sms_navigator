@@ -93,7 +93,3 @@ class SmsBloc extends Bloc<SmsEvent, SmsState> {
     return super.close();
   }
 }
-
-// Backward compatibility typedefs
-typedef SmsByDateBloc = SmsBloc;
-typedef OtpByDateBloc = SmsBloc;

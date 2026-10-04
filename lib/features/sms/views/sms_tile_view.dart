@@ -61,6 +61,3 @@ class SmsTileView extends StatelessWidget {
     );
   }
 }
-
-// Backward compatibility typedef
-typedef SmsTile = SmsTileView;
