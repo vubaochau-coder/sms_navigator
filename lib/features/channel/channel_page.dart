@@ -32,23 +32,40 @@ class _ChannelPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.channelPageTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.channelRenameDeviceTooltip,
-            icon: const Icon(Icons.badge_outlined),
-            onPressed: () => _renameDevice(context),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.channelPageTitle),
+          actions: [
+            IconButton(
+              tooltip: l10n.channelRenameDeviceTooltip,
+              icon: const Icon(Icons.badge_outlined),
+              onPressed: () => _renameDevice(context),
+            ),
+          ],
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.channelOwnedSectionTitle),
+              Tab(text: l10n.channelJoinedSectionTitle),
+            ],
           ),
-        ],
-      ),
-      body: const ChannelListView(),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'channel_list_create_channel_fab',
-        onPressed: () => _createChannel(context),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.channelCreateAction),
+        ),
+        body: const TabBarView(
+          children: [
+            OwnedChannelListView(),
+            JoinedChannelListView(),
+          ],
+        ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: FloatingActionButton.extended(
+            heroTag: 'channel_list_create_channel_fab',
+            onPressed: () => _createChannel(context),
+            icon: const Icon(Icons.add),
+            label: Text(l10n.channelCreateAction),
+          ),
+        ),
       ),
     );
   }

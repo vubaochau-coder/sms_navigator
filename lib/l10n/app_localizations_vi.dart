@@ -691,6 +691,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.';
 
   @override
+  String get channelOwnedEmptyMessage =>
+      'Bạn chưa tạo kênh nào.\nNhấn nút \"Tạo kênh\" bên dưới.';
+
+  @override
+  String get channelJoinedEmptyMessage =>
+      'Bạn chưa tham gia kênh nào.\nQuét mã QR mời để tham gia kênh.';
+
+  @override
   String get channelOwnedSectionTitle => 'Kênh của bạn';
 
   @override

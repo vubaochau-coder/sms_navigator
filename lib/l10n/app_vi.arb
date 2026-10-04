@@ -293,6 +293,8 @@
   "channelPageTitle": "Kênh",
   "channelRenameDeviceTooltip": "Đổi tên thiết bị",
   "channelEmptyMessage": "Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.",
+  "channelOwnedEmptyMessage": "Bạn chưa tạo kênh nào.\nNhấn nút \"Tạo kênh\" bên dưới.",
+  "channelJoinedEmptyMessage": "Bạn chưa tham gia kênh nào.\nQuét mã QR mời để tham gia kênh.",
   "channelOwnedSectionTitle": "Kênh của bạn",
   "channelJoinedSectionTitle": "Kênh bạn tham gia",
   "channelCreateAction": "Tạo kênh",

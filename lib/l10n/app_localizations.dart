@@ -1324,6 +1324,18 @@ abstract class AppLocalizations {
   /// **'Bạn chưa tham gia kênh nào.\nTạo kênh mới hoặc quét mã mời.'**
   String get channelEmptyMessage;
 
+  /// No description provided for @channelOwnedEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa tạo kênh nào.\nNhấn nút \"Tạo kênh\" bên dưới.'**
+  String get channelOwnedEmptyMessage;
+
+  /// No description provided for @channelJoinedEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa tham gia kênh nào.\nQuét mã QR mời để tham gia kênh.'**
+  String get channelJoinedEmptyMessage;
+
   /// No description provided for @channelOwnedSectionTitle.
   ///
   /// In vi, this message translates to:

@@ -4,47 +4,51 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../bloc/channel_bloc.dart';
 import 'channel_card_view.dart';
-import 'channel_section_header_view.dart';
 
-/// View hiển thị danh sách kênh gồm 2 nhóm (Owned & Joined) và trạng thái rỗng.
-class ChannelListView extends StatelessWidget {
-  const ChannelListView({super.key});
+/// Danh sách các kênh do người dùng làm Chủ kênh (Owner).
+class OwnedChannelListView extends StatelessWidget {
+  const OwnedChannelListView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChannelBloc, ChannelState>(
+      buildWhen: (prev, current) =>
+          prev.isLoading != current.isLoading ||
+          prev.ownedChannels != current.ownedChannels,
       builder: (context, state) {
-        if (state.isLoading && state.isEmpty) {
+        if (state.isLoading && state.ownedChannels.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final l10n = context.l10n;
+        if (state.ownedChannels.isEmpty) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ChannelEmptyPane(
+                    message: context.l10n.channelOwnedEmptyMessage,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return RefreshIndicator(
           onRefresh: () async {
             context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
           },
-          child: ListView(
+          child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 96),
-            children: [
-              if (state.isEmpty)
-                const ChannelEmptyPane()
-              else ...[
-                ChannelSectionHeaderView(
-                  title: l10n.channelOwnedSectionTitle,
-                  count: state.ownedChannels.length,
-                ),
-                for (final channel in state.ownedChannels)
-                  ChannelCardView(channel: channel),
-                ChannelSectionHeaderView(
-                  title: l10n.channelJoinedSectionTitle,
-                  count: state.joinedChannels.length,
-                ),
-                for (final channel in state.joinedChannels)
-                  ChannelCardView(channel: channel),
-              ],
-            ],
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 96),
+            itemCount: state.ownedChannels.length,
+            itemBuilder: (context, index) =>
+                ChannelCardView(channel: state.ownedChannels[index]),
           ),
         );
       },
@@ -52,18 +56,81 @@ class ChannelListView extends StatelessWidget {
   }
 }
 
-class ChannelEmptyPane extends StatelessWidget {
-  const ChannelEmptyPane({super.key});
+/// Danh sách các kênh mà người dùng là Thành viên (Member).
+class JoinedChannelListView extends StatelessWidget {
+  const JoinedChannelListView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 120),
-      child: Center(
-        child: Text(
-          context.l10n.channelEmptyMessage,
-          textAlign: TextAlign.center,
-        ),
+    return BlocBuilder<ChannelBloc, ChannelState>(
+      buildWhen: (prev, current) =>
+          prev.isLoading != current.isLoading ||
+          prev.joinedChannels != current.joinedChannels,
+      builder: (context, state) {
+        if (state.isLoading && state.joinedChannels.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state.joinedChannels.isEmpty) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ChannelEmptyPane(
+                    message: context.l10n.channelJoinedEmptyMessage,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
+          },
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 96),
+            itemCount: state.joinedChannels.length,
+            itemBuilder: (context, index) =>
+                ChannelCardView(channel: state.joinedChannels[index]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Màn hình rỗng có cùng cấu trúc với [SmsEmptyPane] ở `sms_page`.
+class ChannelEmptyPane extends StatelessWidget {
+  const ChannelEmptyPane({
+    super.key,
+    required this.message,
+    this.icon = Icons.hub_outlined,
+  });
+
+  final String message;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 56, color: Colors.grey),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
