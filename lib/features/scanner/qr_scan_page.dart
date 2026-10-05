@@ -3,15 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
 
-import '../../core/constants/dimens.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/models/pairing_session_model.dart';
 import '../../core/utils/toast_utils.dart';
 import 'models/scan_qr_result.dart';
+import 'views/scanner_controls.dart';
+import 'views/scanner_error_view.dart';
+import 'views/scanner_top_bar.dart';
+import 'views/scanner_viewfinder_overlay.dart';
 
 export 'models/scan_qr_result.dart';
+export 'views/scanner_controls.dart';
+export 'views/scanner_error_view.dart';
+export 'views/scanner_top_bar.dart';
+export 'views/scanner_viewfinder_overlay.dart';
 
 /// Màn hình quét QR dùng chung dạng Picker:
 /// - Mở camera, xử lý quyền máy ảnh và mở cài đặt khi bị từ chối;
@@ -152,50 +158,14 @@ class _QrScanPageState extends State<QrScanPage> {
           MobileScanner(
             controller: _controller,
             onDetect: _onDetect,
-            errorBuilder: (context, error) {
-              final isPermissionDenied =
-                  error.errorCode == MobileScannerErrorCode.permissionDenied;
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.videocam_off_rounded,
-                        size: 64,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        isPermissionDenied
-                            ? 'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR'
-                            : 'Không thể khởi động máy ảnh: ${error.errorDetails?.message ?? error.errorCode.name}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      if (isPermissionDenied)
-                        FilledButton.icon(
-                          onPressed: () => openAppSettings(),
-                          icon: const Icon(Icons.settings),
-                          label: Text(context.l10n.openAppSettingsAction),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
+            errorBuilder: (context, error) => ScannerErrorView(error: error),
           ),
-          const _ViewfinderOverlay(),
+          const ScannerViewfinderOverlay(),
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _ScannerTopBar(onBack: () => Navigator.pop(context)),
-              _ScannerControls(
+              ScannerTopBar(onBack: () => Navigator.pop(context)),
+              ScannerControls(
                 controller: _controller,
                 onPickFromGallery: _pickAndScanFromGallery,
               ),
@@ -207,186 +177,3 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 }
 
-/// Lớp phủ tối mờ với lỗ cắt vuông ở giữa và viền bo góc phát sáng.
-class _ViewfinderOverlay extends StatelessWidget {
-  const _ViewfinderOverlay();
-
-  static const double _cutoutSize = 260;
-  static const double _cutoutRadius = 24;
-
-  @override
-  Widget build(BuildContext context) {
-    final borderColor = Theme.of(context).colorScheme.primary;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cutout = RRect.fromRectAndRadius(
-          Rect.fromCenter(
-            center: Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
-            width: _cutoutSize,
-            height: _cutoutSize,
-          ),
-          const Radius.circular(_cutoutRadius),
-        );
-        return CustomPaint(
-          painter: _ViewfinderPainter(rrect: cutout, borderColor: borderColor),
-          child: const SizedBox.expand(),
-        );
-      },
-    );
-  }
-}
-
-class _ViewfinderPainter extends CustomPainter {
-  const _ViewfinderPainter({required this.rrect, required this.borderColor});
-
-  final RRect rrect;
-  final Color borderColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final screen = Offset.zero & size;
-    final mask = Path()..addRect(screen);
-    final hole = Path()..addRRect(rrect);
-    final combined = Path.combine(PathOperation.difference, mask, hole);
-    canvas.drawPath(combined, Paint()..color = Colors.black54);
-
-    final glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..color = borderColor.withValues(alpha: 0.35);
-    canvas.drawRRect(rrect.deflate(3), glowPaint);
-
-    final borderPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round
-      ..color = borderColor;
-    canvas.drawRRect(rrect.deflate(3), borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ViewfinderPainter oldDelegate) {
-    return oldDelegate.rrect != rrect || oldDelegate.borderColor != borderColor;
-  }
-}
-
-class _ScannerTopBar extends StatelessWidget {
-  const _ScannerTopBar({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: Dimens.screenPadding,
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                context.l10n.scannerTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScannerControls extends StatelessWidget {
-  const _ScannerControls({
-    required this.controller,
-    required this.onPickFromGallery,
-  });
-
-  final MobileScannerController controller;
-  final VoidCallback onPickFromGallery;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          context.l10n.scannerAlignGuide,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
-            fontSize: 13,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 20),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ValueListenableBuilder<MobileScannerState>(
-                  valueListenable: controller,
-                  builder: (context, state, _) {
-                    final isTorchOn = state.torchState == TorchState.on;
-                    return _ScannerControlButton(
-                      icon: isTorchOn
-                          ? Icons.flash_on_rounded
-                          : Icons.flash_off_rounded,
-                      onTap: () => controller.toggleTorch(),
-                    );
-                  },
-                ),
-                const SizedBox(width: 40),
-                _ScannerControlButton(
-                  icon: Icons.photo_library_rounded,
-                  onTap: onPickFromGallery,
-                ),
-                const SizedBox(width: 40),
-                _ScannerControlButton(
-                  icon: Icons.cameraswitch_rounded,
-                  onTap: () => controller.switchCamera(),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ScannerControlButton extends StatelessWidget {
-  const _ScannerControlButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: colorScheme.primary.withValues(alpha: 0.9),
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Icon(icon, color: colorScheme.onPrimary, size: 26),
-        ),
-      ),
-    );
-  }
-}
