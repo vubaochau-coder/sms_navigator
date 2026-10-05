@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_member_model.dart';
-import '../../../core/utils/dialog_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
+import 'member_item.dart';
+
+export 'member_item.dart';
 
 /// Danh sách thành viên hiện tại trong kênh.
 class MembersView extends StatelessWidget {
@@ -16,7 +18,6 @@ class MembersView extends StatelessWidget {
       selector: (state) => state.members,
       builder: (context, members) {
         final l10n = context.l10n;
-        final colorScheme = Theme.of(context).colorScheme;
         final textTheme = Theme.of(context).textTheme;
 
         return Card(
@@ -38,47 +39,9 @@ class MembersView extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   itemCount: members.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final member = members[index];
-                    return ListTile(
-                      dense: true,
-                      visualDensity: const VisualDensity(vertical: -4),
-                      minVerticalPadding: 0,
-                      minTileHeight: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        member.isActive ? Icons.smartphone_rounded : Icons.block,
-                        color: member.isActive ? null : colorScheme.error,
-                      ),
-                      title: Text(
-                        member.deviceName,
-                        style: TextStyle(
-                          decoration: member.isActive
-                              ? null
-                              : TextDecoration.lineThrough,
-                        ),
-                      ),
-                      subtitle: Text(
-                        member.isActive
-                            ? l10n.channelDetailMemberJoinedEpoch(member.joinedEpoch)
-                            : l10n.channelDetailMemberRevokedStatus,
-                      ),
-                      trailing: member.isActive
-                          ? IconButton(
-                              tooltip: l10n.channelDetailRevokeTooltip,
-                              iconSize: 20,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              visualDensity: VisualDensity.compact,
-                              icon: Icon(
-                                Icons.person_remove_rounded,
-                                color: colorScheme.error,
-                              ),
-                              onPressed: () => _revoke(context, member),
-                            )
-                          : null,
-                    );
-                  },
+                  itemBuilder: (context, index) => MemberItem(
+                    member: members[index],
+                  ),
                 ),
               ],
             ),
@@ -86,21 +49,5 @@ class MembersView extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _revoke(BuildContext context, ChannelMemberModel member) {
-    final l10n = context.l10n;
-    DialogUtils.showConfirmDialog(
-      context: context,
-      title: l10n.channelDetailRevokeDialogTitle,
-      message: l10n.channelDetailRevokeDialogMessage(member.deviceName),
-      confirmText: l10n.channelDetailRevokeConfirm,
-      isDestructive: true,
-    ).then((confirmed) {
-      if (confirmed && context.mounted) {
-        BlocProvider.of<ChannelDetailBloc>(context)
-            .add(ChannelDetailMemberRevoked(member.deviceId));
-      }
-    });
   }
 }

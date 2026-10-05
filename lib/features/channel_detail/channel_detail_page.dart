@@ -13,6 +13,7 @@ import 'views/pending_requests_view.dart';
 export 'views/channel_detail_shimmer_view.dart';
 export 'views/channel_summary_view.dart';
 export 'views/invite_bottom_sheet.dart';
+export 'views/member_item.dart';
 export 'views/members_view.dart';
 export 'views/pending_requests_view.dart';
 
