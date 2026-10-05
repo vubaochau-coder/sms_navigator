@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/utils/toast_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
 
@@ -96,6 +97,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
         _startCountdown();
       },
       builder: (context, state) {
+        final l10n = context.l10n;
         final session = state.activeSession;
         final isMutating = state.isMutating;
 
@@ -114,13 +116,13 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Mời thành viên',
+                l10n.channelDetailInviteSheetTitle,
                 style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               if (session != null && !session.isExpired && _remaining > Duration.zero)
                 Text(
-                  'Mã QR hết hạn sau: $_countdownText',
+                  l10n.channelDetailInviteQrExpiresIn(_countdownText),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w600,
@@ -128,12 +130,12 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                 )
               else if (session != null && (session.isExpired || _remaining <= Duration.zero))
                 Text(
-                  'Mã QR đã hết hạn. Hãy nhấn tạo lại mã bên dưới.',
+                  l10n.channelDetailInviteQrExpired,
                   style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
                 )
               else
                 Text(
-                  'Đang tạo mã mời...',
+                  l10n.channelDetailInviteCreatingQr,
                   style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               const SizedBox(height: 20),
@@ -169,11 +171,9 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                     color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    '• Người tham gia dùng ứng dụng quét mã QR này để gửi yêu cầu.\n'
-                    '• Mỗi mã QR chỉ có hiệu lực 1 lần trong vòng 10 phút.\n'
-                    '• Mã không chứa mật khẩu hay dữ liệu nhạy cảm.',
-                    style: TextStyle(fontSize: 12, height: 1.4),
+                  child: Text(
+                    l10n.channelDetailInviteHint,
+                    style: const TextStyle(fontSize: 12, height: 1.4),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -188,7 +188,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                                   ChannelDetailSessionCreated(state.channelId),
                                 ),
                         icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Tạo lại mã'),
+                        label: Text(l10n.channelDetailInviteRegenerate),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -197,10 +197,10 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                         onPressed: () => ToastUtils.copyToClipboard(
                           session.inviteUrl,
                           context: context,
-                          successMessage: 'Đã sao chép liên kết mời',
+                          successMessage: l10n.channelDetailInviteCopySuccess,
                         ),
                         icon: const Icon(Icons.copy_rounded),
-                        label: const Text('Sao chép link'),
+                        label: Text(l10n.channelDetailInviteCopyLink),
                       ),
                     ),
                   ],
@@ -213,7 +213,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                             ChannelDetailSessionCreated(state.channelId),
                           ),
                   icon: const Icon(Icons.qr_code_rounded),
-                  label: const Text('Tạo mã mời QR'),
+                  label: Text(l10n.channelDetailInviteCreateAction),
                 ),
             ],
           ),

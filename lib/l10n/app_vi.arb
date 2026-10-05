@@ -359,5 +359,85 @@
   "joinCancelRequestAction": "Hủy yêu cầu",
   "joinCancelConfirmTitle": "Hủy yêu cầu?",
   "joinCancelConfirmMessage": "Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.",
-  "joinContinueWaitingAction": "Tiếp tục chờ"
+  "joinContinueWaitingAction": "Tiếp tục chờ",
+  "channelDetailTitle": "Chi tiết kênh",
+  "channelDetailInviteTooltip": "Mời thành viên",
+  "channelDetailOwnerServer": "Máy chủ (Owner): {ownerName}",
+  "@channelDetailOwnerServer": {
+    "placeholders": {
+      "ownerName": { "type": "String" }
+    }
+  },
+  "channelDetailMemberCount": "{count} thành viên",
+  "@channelDetailMemberCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "channelDetailCurrentEpoch": "Epoch hiện tại: {epoch}",
+  "@channelDetailCurrentEpoch": {
+    "placeholders": {
+      "epoch": { "type": "int" }
+    }
+  },
+  "channelDetailPendingRequestsTitle": "Yêu cầu chờ duyệt ({count})",
+  "@channelDetailPendingRequestsTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "channelDetailApproveTooltip": "Duyệt",
+  "channelDetailRejectTooltip": "Từ chối",
+  "channelDetailApproveDialogTitle": "Duyệt thành viên?",
+  "channelDetailApproveDialogMessage": "Duyệt \"{deviceName}\" sẽ tự động xoay khóa kênh và cấp khóa mới cho mọi thành viên.",
+  "@channelDetailApproveDialogMessage": {
+    "placeholders": {
+      "deviceName": { "type": "String" }
+    }
+  },
+  "channelDetailApproveConfirm": "Duyệt",
+  "channelDetailRejectDialogTitle": "Từ chối yêu cầu?",
+  "channelDetailRejectDialogMessage": "Từ chối \"{deviceName}\"? Mã QR đã dùng cho yêu cầu này sẽ không còn hiệu lực.",
+  "@channelDetailRejectDialogMessage": {
+    "placeholders": {
+      "deviceName": { "type": "String" }
+    }
+  },
+  "channelDetailRejectConfirm": "Từ chối",
+  "channelDetailMembersTitle": "Thành viên ({count})",
+  "@channelDetailMembersTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "channelDetailMemberJoinedEpoch": "Tham gia epoch {epoch}",
+  "@channelDetailMemberJoinedEpoch": {
+    "placeholders": {
+      "epoch": { "type": "int" }
+    }
+  },
+  "channelDetailMemberRevokedStatus": "Đã thu hồi",
+  "channelDetailRevokeTooltip": "Thu hồi",
+  "channelDetailRevokeDialogTitle": "Thu hồi thành viên?",
+  "channelDetailRevokeDialogMessage": "Thu hồi \"{deviceName}\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.",
+  "@channelDetailRevokeDialogMessage": {
+    "placeholders": {
+      "deviceName": { "type": "String" }
+    }
+  },
+  "channelDetailRevokeConfirm": "Thu hồi",
+  "channelDetailInviteSheetTitle": "Mời thành viên",
+  "channelDetailInviteQrExpiresIn": "Mã QR hết hạn sau: {time}",
+  "@channelDetailInviteQrExpiresIn": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "channelDetailInviteQrExpired": "Mã QR đã hết hạn. Hãy nhấn tạo lại mã bên dưới.",
+  "channelDetailInviteCreatingQr": "Đang tạo mã mời...",
+  "channelDetailInviteHint": "• Người tham gia dùng ứng dụng quét mã QR này để gửi yêu cầu.\n• Mỗi mã QR chỉ có hiệu lực 1 lần trong vòng 10 phút.\n• Mã không chứa mật khẩu hay dữ liệu nhạy cảm.",
+  "channelDetailInviteRegenerate": "Tạo lại mã",
+  "channelDetailInviteCopySuccess": "Đã sao chép liên kết mời",
+  "channelDetailInviteCopyLink": "Sao chép link",
+  "channelDetailInviteCreateAction": "Tạo mã mời QR"
 }

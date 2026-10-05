@@ -811,4 +811,116 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get joinContinueWaitingAction => 'Tiếp tục chờ';
+
+  @override
+  String get channelDetailTitle => 'Chi tiết kênh';
+
+  @override
+  String get channelDetailInviteTooltip => 'Mời thành viên';
+
+  @override
+  String channelDetailOwnerServer(String ownerName) {
+    return 'Máy chủ (Owner): $ownerName';
+  }
+
+  @override
+  String channelDetailMemberCount(int count) {
+    return '$count thành viên';
+  }
+
+  @override
+  String channelDetailCurrentEpoch(int epoch) {
+    return 'Epoch hiện tại: $epoch';
+  }
+
+  @override
+  String channelDetailPendingRequestsTitle(int count) {
+    return 'Yêu cầu chờ duyệt ($count)';
+  }
+
+  @override
+  String get channelDetailApproveTooltip => 'Duyệt';
+
+  @override
+  String get channelDetailRejectTooltip => 'Từ chối';
+
+  @override
+  String get channelDetailApproveDialogTitle => 'Duyệt thành viên?';
+
+  @override
+  String channelDetailApproveDialogMessage(String deviceName) {
+    return 'Duyệt \"$deviceName\" sẽ tự động xoay khóa kênh và cấp khóa mới cho mọi thành viên.';
+  }
+
+  @override
+  String get channelDetailApproveConfirm => 'Duyệt';
+
+  @override
+  String get channelDetailRejectDialogTitle => 'Từ chối yêu cầu?';
+
+  @override
+  String channelDetailRejectDialogMessage(String deviceName) {
+    return 'Từ chối \"$deviceName\"? Mã QR đã dùng cho yêu cầu này sẽ không còn hiệu lực.';
+  }
+
+  @override
+  String get channelDetailRejectConfirm => 'Từ chối';
+
+  @override
+  String channelDetailMembersTitle(int count) {
+    return 'Thành viên ($count)';
+  }
+
+  @override
+  String channelDetailMemberJoinedEpoch(int epoch) {
+    return 'Tham gia epoch $epoch';
+  }
+
+  @override
+  String get channelDetailMemberRevokedStatus => 'Đã thu hồi';
+
+  @override
+  String get channelDetailRevokeTooltip => 'Thu hồi';
+
+  @override
+  String get channelDetailRevokeDialogTitle => 'Thu hồi thành viên?';
+
+  @override
+  String channelDetailRevokeDialogMessage(String deviceName) {
+    return 'Thu hồi \"$deviceName\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.';
+  }
+
+  @override
+  String get channelDetailRevokeConfirm => 'Thu hồi';
+
+  @override
+  String get channelDetailInviteSheetTitle => 'Mời thành viên';
+
+  @override
+  String channelDetailInviteQrExpiresIn(String time) {
+    return 'Mã QR hết hạn sau: $time';
+  }
+
+  @override
+  String get channelDetailInviteQrExpired =>
+      'Mã QR đã hết hạn. Hãy nhấn tạo lại mã bên dưới.';
+
+  @override
+  String get channelDetailInviteCreatingQr => 'Đang tạo mã mời...';
+
+  @override
+  String get channelDetailInviteHint =>
+      '• Người tham gia dùng ứng dụng quét mã QR này để gửi yêu cầu.\n• Mỗi mã QR chỉ có hiệu lực 1 lần trong vòng 10 phút.\n• Mã không chứa mật khẩu hay dữ liệu nhạy cảm.';
+
+  @override
+  String get channelDetailInviteRegenerate => 'Tạo lại mã';
+
+  @override
+  String get channelDetailInviteCopySuccess => 'Đã sao chép liên kết mời';
+
+  @override
+  String get channelDetailInviteCopyLink => 'Sao chép link';
+
+  @override
+  String get channelDetailInviteCreateAction => 'Tạo mã mời QR';
 }

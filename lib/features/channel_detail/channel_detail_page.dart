@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import 'bloc/channel_detail_bloc.dart';
 import 'views/channel_detail_shimmer_view.dart';
@@ -40,11 +41,13 @@ class _ChannelDetailPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
         title: BlocSelector<ChannelDetailBloc, ChannelDetailState, String?>(
           selector: (state) => state.detail?.name,
-          builder: (context, name) => Text(name ?? 'Chi tiết kênh'),
+          builder: (context, name) => Text(name ?? l10n.channelDetailTitle),
         ),
         actions: [
           BlocSelector<ChannelDetailBloc, ChannelDetailState, bool>(
@@ -53,7 +56,7 @@ class _ChannelDetailPageView extends StatelessWidget {
               if (!isOwner) return const SizedBox.shrink();
               return IconButton(
                 icon: const Icon(Icons.add),
-                tooltip: 'Mời thành viên',
+                tooltip: l10n.channelDetailInviteTooltip,
                 onPressed: () => InviteBottomSheet.show(context),
               );
             },
@@ -79,10 +82,10 @@ class _ChannelDetailPageView extends StatelessWidget {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
               children: const [
                 ChannelSummaryView(),
-                SizedBox(height: 16),
+                SizedBox(height: 12),
                 PendingRequestsView(),
                 MembersView(),
               ],

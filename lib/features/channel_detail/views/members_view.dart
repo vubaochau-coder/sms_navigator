@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
@@ -14,53 +15,71 @@ class MembersView extends StatelessWidget {
     return BlocSelector<ChannelDetailBloc, ChannelDetailState, List<ChannelMemberModel>>(
       selector: (state) => state.members,
       builder: (context, members) {
+        final l10n = context.l10n;
         final colorScheme = Theme.of(context).colorScheme;
         final textTheme = Theme.of(context).textTheme;
 
         return Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Thành viên (${members.length})',
+                  l10n.channelDetailMembersTitle(members.length),
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 8),
-                for (final member in members)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      member.isActive ? Icons.smartphone_rounded : Icons.block,
-                      color: member.isActive ? null : colorScheme.error,
-                    ),
-                    title: Text(
-                      member.deviceName,
-                      style: TextStyle(
-                        decoration: member.isActive
-                            ? null
-                            : TextDecoration.lineThrough,
+                const SizedBox(height: 12),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: members.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final member = members[index];
+                    return ListTile(
+                      dense: true,
+                      visualDensity: const VisualDensity(vertical: -4),
+                      minVerticalPadding: 0,
+                      minTileHeight: 0,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        member.isActive ? Icons.smartphone_rounded : Icons.block,
+                        color: member.isActive ? null : colorScheme.error,
                       ),
-                    ),
-                    subtitle: Text(
-                      member.isActive
-                          ? 'Tham gia epoch ${member.joinedEpoch}'
-                          : 'Đã thu hồi',
-                    ),
-                    trailing: member.isActive
-                        ? IconButton(
-                            tooltip: 'Thu hồi',
-                            icon: Icon(
-                              Icons.person_remove_rounded,
-                              color: colorScheme.error,
-                            ),
-                            onPressed: () => _revoke(context, member),
-                          )
-                        : null,
-                  ),
+                      title: Text(
+                        member.deviceName,
+                        style: TextStyle(
+                          decoration: member.isActive
+                              ? null
+                              : TextDecoration.lineThrough,
+                        ),
+                      ),
+                      subtitle: Text(
+                        member.isActive
+                            ? l10n.channelDetailMemberJoinedEpoch(member.joinedEpoch)
+                            : l10n.channelDetailMemberRevokedStatus,
+                      ),
+                      trailing: member.isActive
+                          ? IconButton(
+                              tooltip: l10n.channelDetailRevokeTooltip,
+                              iconSize: 20,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                Icons.person_remove_rounded,
+                                color: colorScheme.error,
+                              ),
+                              onPressed: () => _revoke(context, member),
+                            )
+                          : null,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -70,12 +89,12 @@ class MembersView extends StatelessWidget {
   }
 
   void _revoke(BuildContext context, ChannelMemberModel member) {
+    final l10n = context.l10n;
     DialogUtils.showConfirmDialog(
       context: context,
-      title: 'Thu hồi thành viên?',
-      message:
-          'Thu hồi "${member.deviceName}" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.',
-      confirmText: 'Thu hồi',
+      title: l10n.channelDetailRevokeDialogTitle,
+      message: l10n.channelDetailRevokeDialogMessage(member.deviceName),
+      confirmText: l10n.channelDetailRevokeConfirm,
       isDestructive: true,
     ).then((confirmed) {
       if (confirmed && context.mounted) {

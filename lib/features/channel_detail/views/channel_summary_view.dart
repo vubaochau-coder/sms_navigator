@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_detail_model.dart';
 import '../bloc/channel_detail_bloc.dart';
 
@@ -15,38 +16,27 @@ class ChannelSummaryView extends StatelessWidget {
       builder: (context, detail) {
         if (detail == null) return const SizedBox.shrink();
 
-        final colorScheme = Theme.of(context).colorScheme;
+        final l10n = context.l10n;
         final textTheme = Theme.of(context).textTheme;
 
         return Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.dns_rounded,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        detail.name,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  detail.name,
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text('Máy chủ (Owner): ${detail.ownerDeviceName}'),
+                const SizedBox(height: 12),
+                Text(l10n.channelDetailOwnerServer(detail.ownerDeviceName)),
                 const SizedBox(height: 4),
-                Text('${detail.memberCount} thành viên'),
+                Text(l10n.channelDetailMemberCount(detail.memberCount)),
                 const SizedBox(height: 4),
-                Text('Epoch hiện tại: ${detail.currentEpoch}'),
+                Text(l10n.channelDetailCurrentEpoch(detail.currentEpoch)),
               ],
             ),
           ),

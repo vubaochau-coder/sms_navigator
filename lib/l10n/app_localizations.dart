@@ -1533,6 +1533,186 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tiếp tục chờ'**
   String get joinContinueWaitingAction;
+
+  /// No description provided for @channelDetailTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết kênh'**
+  String get channelDetailTitle;
+
+  /// No description provided for @channelDetailInviteTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mời thành viên'**
+  String get channelDetailInviteTooltip;
+
+  /// No description provided for @channelDetailOwnerServer.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ (Owner): {ownerName}'**
+  String channelDetailOwnerServer(String ownerName);
+
+  /// No description provided for @channelDetailMemberCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} thành viên'**
+  String channelDetailMemberCount(int count);
+
+  /// No description provided for @channelDetailCurrentEpoch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Epoch hiện tại: {epoch}'**
+  String channelDetailCurrentEpoch(int epoch);
+
+  /// No description provided for @channelDetailPendingRequestsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu chờ duyệt ({count})'**
+  String channelDetailPendingRequestsTitle(int count);
+
+  /// No description provided for @channelDetailApproveTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Duyệt'**
+  String get channelDetailApproveTooltip;
+
+  /// No description provided for @channelDetailRejectTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối'**
+  String get channelDetailRejectTooltip;
+
+  /// No description provided for @channelDetailApproveDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Duyệt thành viên?'**
+  String get channelDetailApproveDialogTitle;
+
+  /// No description provided for @channelDetailApproveDialogMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Duyệt \"{deviceName}\" sẽ tự động xoay khóa kênh và cấp khóa mới cho mọi thành viên.'**
+  String channelDetailApproveDialogMessage(String deviceName);
+
+  /// No description provided for @channelDetailApproveConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Duyệt'**
+  String get channelDetailApproveConfirm;
+
+  /// No description provided for @channelDetailRejectDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối yêu cầu?'**
+  String get channelDetailRejectDialogTitle;
+
+  /// No description provided for @channelDetailRejectDialogMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối \"{deviceName}\"? Mã QR đã dùng cho yêu cầu này sẽ không còn hiệu lực.'**
+  String channelDetailRejectDialogMessage(String deviceName);
+
+  /// No description provided for @channelDetailRejectConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối'**
+  String get channelDetailRejectConfirm;
+
+  /// No description provided for @channelDetailMembersTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thành viên ({count})'**
+  String channelDetailMembersTitle(int count);
+
+  /// No description provided for @channelDetailMemberJoinedEpoch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tham gia epoch {epoch}'**
+  String channelDetailMemberJoinedEpoch(int epoch);
+
+  /// No description provided for @channelDetailMemberRevokedStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thu hồi'**
+  String get channelDetailMemberRevokedStatus;
+
+  /// No description provided for @channelDetailRevokeTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thu hồi'**
+  String get channelDetailRevokeTooltip;
+
+  /// No description provided for @channelDetailRevokeDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thu hồi thành viên?'**
+  String get channelDetailRevokeDialogTitle;
+
+  /// No description provided for @channelDetailRevokeDialogMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thu hồi \"{deviceName}\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.'**
+  String channelDetailRevokeDialogMessage(String deviceName);
+
+  /// No description provided for @channelDetailRevokeConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thu hồi'**
+  String get channelDetailRevokeConfirm;
+
+  /// No description provided for @channelDetailInviteSheetTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mời thành viên'**
+  String get channelDetailInviteSheetTitle;
+
+  /// No description provided for @channelDetailInviteQrExpiresIn.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR hết hạn sau: {time}'**
+  String channelDetailInviteQrExpiresIn(String time);
+
+  /// No description provided for @channelDetailInviteQrExpired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR đã hết hạn. Hãy nhấn tạo lại mã bên dưới.'**
+  String get channelDetailInviteQrExpired;
+
+  /// No description provided for @channelDetailInviteCreatingQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tạo mã mời...'**
+  String get channelDetailInviteCreatingQr;
+
+  /// No description provided for @channelDetailInviteHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'• Người tham gia dùng ứng dụng quét mã QR này để gửi yêu cầu.\n• Mỗi mã QR chỉ có hiệu lực 1 lần trong vòng 10 phút.\n• Mã không chứa mật khẩu hay dữ liệu nhạy cảm.'**
+  String get channelDetailInviteHint;
+
+  /// No description provided for @channelDetailInviteRegenerate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo lại mã'**
+  String get channelDetailInviteRegenerate;
+
+  /// No description provided for @channelDetailInviteCopySuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép liên kết mời'**
+  String get channelDetailInviteCopySuccess;
+
+  /// No description provided for @channelDetailInviteCopyLink.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép link'**
+  String get channelDetailInviteCopyLink;
+
+  /// No description provided for @channelDetailInviteCreateAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo mã mời QR'**
+  String get channelDetailInviteCreateAction;
 }
 
 class _AppLocalizationsDelegate
