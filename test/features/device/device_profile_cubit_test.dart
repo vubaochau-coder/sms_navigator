@@ -1,0 +1,98 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/repositories/channel_repository.dart';
+import 'package:sms_navigator/core/services/device_storage_service.dart';
+import 'package:sms_navigator/features/device/bloc/device_profile_cubit.dart';
+import 'package:sms_navigator/features/device/bloc/device_profile_state.dart';
+
+class _FakeDeviceStorageService implements DeviceStorageService {
+  String? deviceId;
+  String? deviceName;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<String?> getDeviceId() async => deviceId;
+
+  @override
+  Future<String?> getDeviceName() async => deviceName;
+
+  @override
+  Future<void> saveDeviceName(String name) async {
+    deviceName = name;
+  }
+}
+
+class _FakeChannelRepository implements ChannelRepository {
+  String? lastRenamedDevice;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<void> renameDevice(String name) async {
+    lastRenamedDevice = name;
+  }
+}
+
+void main() {
+  late _FakeDeviceStorageService storage;
+  late _FakeChannelRepository repository;
+  late DeviceProfileCubit cubit;
+
+  setUp(() {
+    storage = _FakeDeviceStorageService();
+    repository = _FakeChannelRepository();
+    cubit = DeviceProfileCubit(
+      deviceStorage: storage,
+      channelRepository: repository,
+    );
+  });
+
+  tearDown(() {
+    cubit.close();
+  });
+
+  group('DeviceProfileCubit', () {
+    test('initial state has default deviceName and empty deviceId', () {
+      expect(cubit.state, const DeviceProfileState());
+    });
+
+    test('loadDeviceProfile loads deviceId and deviceName from storage', () async {
+      storage.deviceId = 'dev_123456';
+      storage.deviceName = 'Pixel 8 Pro';
+
+      await cubit.loadDeviceProfile();
+
+      expect(cubit.state.deviceId, 'dev_123456');
+      expect(cubit.state.deviceName, 'Pixel 8 Pro');
+      expect(cubit.state.isLoading, isFalse);
+    });
+
+    test('loadDeviceProfile falls back to default name when null or empty', () async {
+      storage.deviceId = 'dev_123';
+      storage.deviceName = null;
+
+      await cubit.loadDeviceProfile();
+
+      expect(cubit.state.deviceName, 'Thiết bị của tôi');
+    });
+
+    test('renameDevice updates repository and storage and emits updated name', () async {
+      final success = await cubit.renameDevice('Samsung S24');
+
+      expect(success, isTrue);
+      expect(repository.lastRenamedDevice, 'Samsung S24');
+      expect(storage.deviceName, 'Samsung S24');
+      expect(cubit.state.deviceName, 'Samsung S24');
+      expect(cubit.state.isRenaming, isFalse);
+    });
+
+    test('renameDevice ignores empty name', () async {
+      final success = await cubit.renameDevice('   ');
+
+      expect(success, isFalse);
+      expect(repository.lastRenamedDevice, isNull);
+    });
+  });
+}

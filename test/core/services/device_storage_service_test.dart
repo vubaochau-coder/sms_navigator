@@ -55,8 +55,14 @@ void main() {
       expect(await service.getDeviceToken(), isNull);
     });
 
+    test('saveDeviceName and getDeviceName round-trip', () async {
+      await service.saveDeviceName('Pixel 9 Pro');
+      expect(await service.getDeviceName(), 'Pixel 9 Pro');
+    });
+
     test('clearAll removes all device credentials and configuration', () async {
       await service.saveDeviceId('dev_1');
+      await service.saveDeviceName('Pixel 9 Pro');
       await service.saveDeviceToken('tok_1');
       await service.saveServerUrl('https://example.com');
       await service.saveFcmToken('fcm_1');
@@ -64,6 +70,7 @@ void main() {
       await service.clearAll();
 
       expect(await service.getDeviceId(), isNull);
+      expect(await service.getDeviceName(), isNull);
       expect(await service.getDeviceToken(), isNull);
       expect(await service.getServerUrl(), isNull);
       expect(await service.getFcmToken(), isNull);

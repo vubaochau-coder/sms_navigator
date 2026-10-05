@@ -19,6 +19,14 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
       localStorage.setString(StorageKeys.deviceId, deviceId);
 
   @override
+  Future<String?> getDeviceName() async =>
+      localStorage.getString(StorageKeys.deviceName);
+
+  @override
+  Future<void> saveDeviceName(String deviceName) =>
+      localStorage.setString(StorageKeys.deviceName, deviceName);
+
+  @override
   Future<String?> getDeviceToken() async {
     final secureToken = await _secure.read(StorageKeys.deviceToken);
     if (secureToken != null && secureToken.isNotEmpty) return secureToken;
@@ -63,6 +71,7 @@ class DeviceStorageServiceImpl implements DeviceStorageService {
   @override
   Future<void> clearAll() async {
     await localStorage.remove(StorageKeys.deviceId);
+    await localStorage.remove(StorageKeys.deviceName);
     await localStorage.remove(StorageKeys.deviceToken);
     await localStorage.remove(StorageKeys.serverUrl);
     await localStorage.remove(StorageKeys.fcmToken);

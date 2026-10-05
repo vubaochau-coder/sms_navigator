@@ -23,6 +23,13 @@ class ThemeCubit extends Cubit<ThemeMode> {
     await localStorage.setString(StorageKeys.themeMode, _stringFromMode(next));
   }
 
+  /// Đặt trực tiếp chế độ giao diện
+  Future<void> setThemeMode(ThemeMode mode) async {
+    if (state == mode) return;
+    emit(mode);
+    await localStorage.setString(StorageKeys.themeMode, _stringFromMode(mode));
+  }
+
   ThemeMode _nextThemeMode() {
     switch (state) {
       case ThemeMode.light:

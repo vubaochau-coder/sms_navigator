@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/utils/dialog_utils.dart';
+import '../device/views/device_profile_button.dart';
 import 'bloc/channel_bloc.dart';
 import 'views/channel_list_view.dart';
 
@@ -37,12 +38,8 @@ class _ChannelPageView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.channelPageTitle),
-          actions: [
-            IconButton(
-              tooltip: l10n.channelRenameDeviceTooltip,
-              icon: const Icon(Icons.badge_outlined),
-              onPressed: () => _renameDevice(context),
-            ),
+          actions: const [
+            DeviceProfileButton(),
           ],
           bottom: TabBar(
             tabs: [
@@ -84,23 +81,6 @@ class _ChannelPageView extends StatelessWidget {
     );
     if (name != null && name.isNotEmpty && context.mounted) {
       context.read<ChannelBloc>().add(ChannelCreated(name));
-    }
-  }
-
-  Future<void> _renameDevice(BuildContext context) async {
-    final l10n = context.l10n;
-    final name = await DialogUtils.showInputDialog(
-      context: context,
-      title: l10n.channelRenameDialogTitle,
-      labelText: l10n.channelDeviceNameLabel,
-      hintText: l10n.channelDeviceNameHint,
-      maxLength: 128,
-      icon: Icons.edit_rounded,
-      confirmText: l10n.channelSaveConfirm,
-      cancelText: l10n.cancel,
-    );
-    if (name != null && name.isNotEmpty && context.mounted) {
-      context.read<ChannelBloc>().add(DeviceRenamed(name));
     }
   }
 }

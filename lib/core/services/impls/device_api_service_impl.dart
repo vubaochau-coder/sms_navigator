@@ -48,6 +48,7 @@ class DeviceApiServiceImpl implements DeviceApiService {
     final serverDeviceId =
         DataConverter.cvToString(payload['device_id'], deviceId)!;
     await storageService.saveDeviceId(serverDeviceId);
+    await storageService.saveDeviceName(deviceName);
 
     final deviceToken = DataConverter.cvToString(payload['device_token']);
     if (deviceToken != null && deviceToken.isNotEmpty) {
@@ -74,6 +75,7 @@ class DeviceApiServiceImpl implements DeviceApiService {
       _updateNamePath,
       body: <String, dynamic>{'device_name': deviceName},
     );
+    await storageService.saveDeviceName(deviceName);
   }
 
   String _generateUuidV4() {

@@ -5,6 +5,7 @@
 abstract final class StorageKeys {
   // --- Device & Auth ---
   static const String deviceId = 'device_id';
+  static const String deviceName = 'device_name';
   static const String deviceToken = 'device_token';
   static const String serverUrl = 'server_url';
   static const String fcmToken = 'fcm_token';
