@@ -15,6 +15,7 @@ export 'views/channel_summary_view.dart';
 export 'views/invite_bottom_sheet.dart';
 export 'views/member_item.dart';
 export 'views/members_view.dart';
+export 'views/pending_request_item.dart';
 export 'views/pending_requests_view.dart';
 
 /// Chi tiết kênh của bạn (Owner) — MOBILE_FEATURES 2.3 + 4.1–4.4:
