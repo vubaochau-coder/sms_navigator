@@ -148,6 +148,8 @@ class UiUtils {
     int? maxLength,
     String confirmText = 'Xác nhận',
     String cancelText = 'Hủy bỏ',
+    EdgeInsets? customInsetPadding,
+    EdgeInsets? contentPadding,
   }) => DialogUtils.showInputDialog(
     context: context,
     title: title,
@@ -158,6 +160,8 @@ class UiUtils {
     maxLength: maxLength,
     confirmText: confirmText,
     cancelText: cancelText,
+    customInsetPadding: customInsetPadding,
+    contentPadding: contentPadding,
   );
 
   /// BottomSheet

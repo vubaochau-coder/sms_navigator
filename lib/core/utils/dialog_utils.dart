@@ -39,6 +39,9 @@ class DialogUtils {
       EdgeInsets.fromLTRB(20.0, 18.0, 20.0, 6.0);
   static const EdgeInsets defaultContentPadding =
       EdgeInsets.fromLTRB(20.0, 6.0, 20.0, 14.0);
+  /// Padding nội bộ cho dialog nhập liệu (tăng khoảng cách giữa title và input, input và actions)
+  static const EdgeInsets defaultInputContentPadding =
+      EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 24.0);
   static const EdgeInsets defaultActionsPadding =
       EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0);
 
@@ -260,7 +263,7 @@ class DialogUtils {
   }
 
   /// Hiển thị Dialog nhập liệu văn bản (TextField) chuẩn form DialogUtils.
-  /// Áp dụng đầy đủ chuẩn form: 12px insetPadding, padding nội bộ compact, nút tối đa 48px.
+  /// Áp dụng đầy đủ chuẩn form: 12px insetPadding, khoảng cách rộng rãi giữa title, input và buttons, nút tối đa 48px.
   static Future<String?> showInputDialog({
     BuildContext? context,
     required String title,
@@ -272,6 +275,7 @@ class DialogUtils {
     String confirmText = defaultConfirmText,
     String cancelText = defaultCancelText,
     EdgeInsets? customInsetPadding,
+    EdgeInsets? contentPadding,
   }) {
     final ctx = _resolveContext(context);
     final controller = TextEditingController(text: initialValue);
@@ -283,7 +287,7 @@ class DialogUtils {
           shape: const RoundedRectangleBorder(borderRadius: borderRadius),
           insetPadding: customInsetPadding ?? insetPadding,
           titlePadding: defaultTitlePadding,
-          contentPadding: defaultContentPadding,
+          contentPadding: contentPadding ?? defaultInputContentPadding,
           actionsPadding: defaultActionsPadding,
           title: Row(
             children: [

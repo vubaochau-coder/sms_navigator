@@ -341,6 +341,9 @@ void main() {
       expect(dialogRect.left, 12.0);
       expect(dialogRect.right, 388.0);
       expect(dialogRect.width, 376.0);
+
+      final alertDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
+      expect(alertDialog.contentPadding, DialogUtils.defaultInputContentPadding);
     });
   });
 
