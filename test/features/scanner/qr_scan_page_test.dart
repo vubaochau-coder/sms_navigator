@@ -4,25 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:toastification/toastification.dart';
 import 'package:sms_navigator/features/scanner/qr_scan_page.dart';
-import 'package:sms_navigator/features/scanner/scanning/qr_scan_handler.dart';
-import 'package:sms_navigator/features/scanner/scanning/qr_scan_handler_registry.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
-
-class _RecordingScanHandler implements QrScanHandler {
-  final handledQr = <String>[];
-
-  @override
-  bool canHandle(String raw) => raw.startsWith('smsnavigator://');
-
-  @override
-  void handleScan(BuildContext context, QrScanFlow flow, String raw) {
-    handledQr.add(raw);
-    flow.complete();
-  }
-
-  @override
-  void dispose() {}
-}
 
 class _FakeScannerController extends MobileScannerController {
   _FakeScannerController({this.analyzeResult}) : super(autoStart: false);
@@ -64,8 +46,9 @@ void main() {
 
   Future<void> pumpScannerPage(
     WidgetTester tester, {
-    required _RecordingScanHandler handler,
     required MobileScannerController controller,
+    required void Function(ScanQrResult? result) onResult,
+    bool Function(String raw)? validator,
   }) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
@@ -80,14 +63,17 @@ void main() {
           home: Builder(
             builder: (context) => Center(
               child: TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => QrScanPage(
-                      registry: QrScanHandlerRegistry(handlers: [handler]),
-                      controller: controller,
+                onPressed: () async {
+                  final result = await Navigator.of(context).push<ScanQrResult>(
+                    MaterialPageRoute(
+                      builder: (_) => QrScanPage(
+                        controller: controller,
+                        validator: validator,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                  onResult(result);
+                },
                 child: const Text('open'),
               ),
             ),
@@ -100,9 +86,9 @@ void main() {
   }
 
   testWidgets(
-    'gallery image containing a supported QR dispatches to the handler',
+    'gallery image containing a supported QR pops and returns ScanQrResult',
     (tester) async {
-      final handler = _RecordingScanHandler();
+      ScanQrResult? returnedResult;
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(
           barcodes: [Barcode(rawValue: _validPairingQr)],
@@ -110,19 +96,23 @@ void main() {
       );
       mockImagePicker('/tmp/fake_qr.png');
 
-      await pumpScannerPage(tester, handler: handler, controller: controller);
+      await pumpScannerPage(
+        tester,
+        controller: controller,
+        onResult: (result) => returnedResult = result,
+      );
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(handler.handledQr, [_validPairingQr]);
-      await tester.pump(const Duration(seconds: 4));
+      expect(returnedResult, const ScanQrResult(rawValue: _validPairingQr));
+      expect(find.byType(QrScanPage), findsNothing);
     },
   );
 
   testWidgets(
-    'unrecognized QR payload shows a toast and is not dispatched',
+    'unrecognized QR payload shows a toast and does not pop',
     (tester) async {
-      final handler = _RecordingScanHandler();
+      ScanQrResult? returnedResult;
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(
           barcodes: [
@@ -132,15 +122,20 @@ void main() {
       );
       mockImagePicker('/tmp/foreign_qr.png');
 
-      await pumpScannerPage(tester, handler: handler, controller: controller);
+      await pumpScannerPage(
+        tester,
+        controller: controller,
+        onResult: (result) => returnedResult = result,
+      );
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(handler.handledQr, isEmpty);
+      expect(returnedResult, isNull);
       expect(
         find.text('Mã QR này không được SMS Navigator hỗ trợ'),
         findsOneWidget,
       );
+      expect(find.byType(QrScanPage), findsOneWidget);
       await tester.pump(const Duration(seconds: 4));
     },
   );
@@ -148,17 +143,21 @@ void main() {
   testWidgets(
     'gallery image without a QR code shows an error and does not submit',
     (tester) async {
-      final handler = _RecordingScanHandler();
+      ScanQrResult? returnedResult;
       final controller = _FakeScannerController(
         analyzeResult: const BarcodeCapture(),
       );
       mockImagePicker('/tmp/no_qr.png');
 
-      await pumpScannerPage(tester, handler: handler, controller: controller);
+      await pumpScannerPage(
+        tester,
+        controller: controller,
+        onResult: (result) => returnedResult = result,
+      );
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(handler.handledQr, isEmpty);
+      expect(returnedResult, isNull);
       expect(find.byType(QrScanPage), findsOneWidget);
       await tester.pump(const Duration(seconds: 4));
     },
@@ -167,15 +166,19 @@ void main() {
   testWidgets(
     'cancelling the gallery picker does not submit any event',
     (tester) async {
-      final handler = _RecordingScanHandler();
+      ScanQrResult? returnedResult;
       final controller = _FakeScannerController();
       mockImagePicker(null);
 
-      await pumpScannerPage(tester, handler: handler, controller: controller);
+      await pumpScannerPage(
+        tester,
+        controller: controller,
+        onResult: (result) => returnedResult = result,
+      );
       await tester.tap(find.byIcon(Icons.photo_library_rounded));
       await pumpFrames(tester);
 
-      expect(handler.handledQr, isEmpty);
+      expect(returnedResult, isNull);
       expect(find.byType(QrScanPage), findsOneWidget);
     },
   );

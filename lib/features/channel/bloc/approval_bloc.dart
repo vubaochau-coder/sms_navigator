@@ -7,6 +7,7 @@ import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/models/pairing_session_model.dart';
 import '../../../core/repositories/channel_repository.dart';
+import '../../../core/utils/toast_utils.dart';
 
 /// Trạng thái màn chi tiết kênh của Owner: members + hàng đợi duyệt + QR
 /// invite đang hiệu lực (2.3, 4.1–4.4). Badge = pendingCount.
@@ -18,8 +19,6 @@ class ApprovalState extends Equatable {
   final PairingSessionModel? activeSession;
   final bool isLoading;
   final bool isMutating;
-  final String? errorMessage;
-  final String? successMessage;
 
   const ApprovalState({
     required this.channelId,
@@ -29,8 +28,6 @@ class ApprovalState extends Equatable {
     this.activeSession,
     this.isLoading = false,
     this.isMutating = false,
-    this.errorMessage,
-    this.successMessage,
   });
 
   int get pendingCount => pendingRequests.length;
@@ -45,10 +42,6 @@ class ApprovalState extends Equatable {
     bool clearSession = false,
     bool? isLoading,
     bool? isMutating,
-    String? errorMessage,
-    String? successMessage,
-    bool clearError = false,
-    bool clearSuccess = false,
   }) {
     return ApprovalState(
       channelId: channelId ?? this.channelId,
@@ -58,8 +51,6 @@ class ApprovalState extends Equatable {
       activeSession: clearSession ? null : (activeSession ?? this.activeSession),
       isLoading: isLoading ?? this.isLoading,
       isMutating: isMutating ?? this.isMutating,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage: clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
@@ -72,8 +63,6 @@ class ApprovalState extends Equatable {
     activeSession,
     isLoading,
     isMutating,
-    errorMessage,
-    successMessage,
   ];
 }
 
@@ -160,7 +149,6 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
         members: results[1] as List<ChannelMemberModel>,
         pendingRequests: results[2] as List<PairingRequestModel>,
         isLoading: false,
-        clearError: true,
       ),
     );
   }
@@ -170,12 +158,10 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     try {
       await _refresh(emit);
     } catch (error) {
-      emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: 'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.',
-        ),
+      ToastUtils.showError(
+        'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.',
       );
+      emit(state.copyWith(isLoading: false));
     }
   }
 
@@ -183,17 +169,13 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     ApprovalSessionCreated event,
     Emitter<ApprovalState> emit,
   ) async {
-    emit(state.copyWith(isMutating: true, clearError: true));
+    emit(state.copyWith(isMutating: true));
     try {
       final session = await _repository.createPairingSession(state.channelId);
       emit(state.copyWith(isMutating: false, activeSession: session));
     } catch (error) {
-      emit(
-        state.copyWith(
-          isMutating: false,
-          errorMessage: 'Không tạo được mã mời. Thử lại sau.',
-        ),
-      );
+      ToastUtils.showError('Không tạo được mã mời. Thử lại sau.');
+      emit(state.copyWith(isMutating: false));
     }
   }
 
@@ -201,28 +183,21 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     ApprovalConfirmed event,
     Emitter<ApprovalState> emit,
   ) async {
-    emit(state.copyWith(isMutating: true, clearError: true, clearSuccess: true));
+    emit(state.copyWith(isMutating: true));
     try {
       await _repository.approveRequest(channelId: state.channelId, request: event.request);
       await _refresh(emit);
-      emit(
-        state.copyWith(
-          isMutating: false,
-          successMessage: 'Đã duyệt ${event.request.requesterDeviceName}.',
-        ),
-      );
+      ToastUtils.showSuccess('Đã duyệt ${event.request.requesterDeviceName}.');
+      emit(state.copyWith(isMutating: false));
     } catch (error) {
       // 409 MEMBERSHIP_CHANGED: state đã đổi → reload để Owner retry 1 chạm
       try {
         await _refresh(emit);
       } catch (_) {}
-      emit(
-        state.copyWith(
-          isMutating: false,
-          errorMessage:
-              'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.',
-        ),
+      ToastUtils.showError(
+        'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.',
       );
+      emit(state.copyWith(isMutating: false));
     }
   }
 
@@ -230,26 +205,18 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     ApprovalRejected event,
     Emitter<ApprovalState> emit,
   ) async {
-    emit(state.copyWith(isMutating: true, clearError: true, clearSuccess: true));
+    emit(state.copyWith(isMutating: true));
     try {
       await _repository.rejectRequest(event.request.requestId);
       await _refresh(emit);
-      emit(
-        state.copyWith(
-          isMutating: false,
-          successMessage: 'Đã từ chối ${event.request.requesterDeviceName}.',
-        ),
-      );
+      ToastUtils.showSuccess('Đã từ chối ${event.request.requesterDeviceName}.');
+      emit(state.copyWith(isMutating: false));
     } catch (error) {
       try {
         await _refresh(emit);
       } catch (_) {}
-      emit(
-        state.copyWith(
-          isMutating: false,
-          errorMessage: 'Không từ chối được: yêu cầu có thể đã được xử lý.',
-        ),
-      );
+      ToastUtils.showError('Không từ chối được: yêu cầu có thể đã được xử lý.');
+      emit(state.copyWith(isMutating: false));
     }
   }
 
@@ -257,26 +224,18 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     ApprovalMemberRevoked event,
     Emitter<ApprovalState> emit,
   ) async {
-    emit(state.copyWith(isMutating: true, clearError: true, clearSuccess: true));
+    emit(state.copyWith(isMutating: true));
     try {
       await _repository.revokeMembers(channelId: state.channelId, revokeDeviceIds: [event.deviceId]);
       await _refresh(emit);
-      emit(
-        state.copyWith(
-          isMutating: false,
-          successMessage: 'Đã thu hồi thành viên và xoay khóa kênh.',
-        ),
-      );
+      ToastUtils.showSuccess('Đã thu hồi thành viên và xoay khóa kênh.');
+      emit(state.copyWith(isMutating: false));
     } catch (error) {
       try {
         await _refresh(emit);
       } catch (_) {}
-      emit(
-        state.copyWith(
-          isMutating: false,
-          errorMessage: 'Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.',
-        ),
-      );
+      ToastUtils.showError('Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.');
+      emit(state.copyWith(isMutating: false));
     }
   }
 }

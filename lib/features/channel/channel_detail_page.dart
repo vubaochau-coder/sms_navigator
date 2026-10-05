@@ -35,76 +35,75 @@ class _ChannelDetailPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<ApprovalBloc, ApprovalState>(
-      listener: (context, state) {
-        if (state.errorMessage != null) {
-          DialogUtils.showInfoDialog(
-            context: context,
-            title: 'Có lỗi xảy ra',
-            message: state.errorMessage!,
-          );
-        }
-        if (state.successMessage != null) {
-          DialogUtils.showInfoDialog(
-            context: context,
-            title: 'Thành công',
-            message: state.successMessage!,
-          );
-        }
-      },
-      builder: (context, state) {
-        final detail = state.detail;
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(detail?.name ?? 'Chi tiết kênh'),
-            actions: [
-              _PendingApprovalBadge(count: state.pendingCount),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: BlocSelector<ApprovalBloc, ApprovalState, String?>(
+          selector: (state) => state.detail?.name,
+          builder: (context, name) => Text(name ?? 'Chi tiết kênh'),
+        ),
+        actions: const [
+          _PendingApprovalBadge(),
+        ],
+      ),
+      body: const _ChannelDetailBody(),
+    );
+  }
+}
+
+class _PendingApprovalBadge extends StatelessWidget {
+  const _PendingApprovalBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<ApprovalBloc, ApprovalState, int>(
+      selector: (state) => state.pendingCount,
+      builder: (context, count) {
+        return Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Badge(
+            isLabelVisible: count > 0,
+            label: Text('$count'),
+            child: const Icon(Icons.pending_actions_outlined),
           ),
-          body: state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    context
-                        .read<ApprovalBloc>()
-                        .add(ApprovalLoaded(state.channelId));
-                  },
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _ChannelSummary(state: state),
-                      const SizedBox(height: 16),
-                      _InviteSection(state: state),
-                      const SizedBox(height: 16),
-                      if (state.pendingRequests.isNotEmpty) ...[
-                        _PendingRequestsSection(requests: state.pendingRequests),
-                        const SizedBox(height: 16),
-                      ],
-                      _MembersSection(state: state),
-                    ],
-                  ),
-                ),
         );
       },
     );
   }
 }
 
-class _PendingApprovalBadge extends StatelessWidget {
-  const _PendingApprovalBadge({required this.count});
-
-  final int count;
+class _ChannelDetailBody extends StatelessWidget {
+  const _ChannelDetailBody();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Badge(
-        isLabelVisible: count > 0,
-        label: Text('$count'),
-        child: const Icon(Icons.pending_actions_outlined),
-      ),
+    return BlocBuilder<ApprovalBloc, ApprovalState>(
+      builder: (context, state) {
+        if (state.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return RefreshIndicator(
+          onRefresh: () async {
+            context
+                .read<ApprovalBloc>()
+                .add(ApprovalLoaded(state.channelId));
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [
+              _ChannelSummary(state: state),
+              const SizedBox(height: 16),
+              _InviteSection(state: state),
+              const SizedBox(height: 16),
+              if (state.pendingRequests.isNotEmpty) ...[
+                _PendingRequestsSection(requests: state.pendingRequests),
+                const SizedBox(height: 16),
+              ],
+              _MembersSection(state: state),
+            ],
+          ),
+        );
+      },
     );
   }
 }

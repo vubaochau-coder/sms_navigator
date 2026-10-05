@@ -21,6 +21,9 @@ typedef ServerUrlProvider = Future<String?> Function();
 /// - Connect timeout 45 giây (đủ thời gian cho Render cold-start), receive/send timeout 30 giây.
 /// - Chuẩn hóa lỗi: [NetworkException], [UnauthorizedException], [ApiException].
 class ApiClient {
+  static const String _ansiYellow = '\x1B[33m';
+  static const String _ansiReset = '\x1B[0m';
+
   ApiClient({
     String? fallbackBaseUrl,
     Dio? dio,
@@ -69,7 +72,7 @@ class ApiClient {
             options.extra['request_start_time'] = DateTime.now().millisecondsSinceEpoch;
             final queryInfo = options.queryParameters.isNotEmpty ? ' | Query: ${options.queryParameters}' : '';
             final bodyInfo = options.data != null ? ' | Payload: ${_sanitizeLogPayload(options.data)}' : '';
-            debugPrint('🌐 [API REQ] [${options.method}] ${options.uri}$queryInfo$bodyInfo');
+            debugPrint('$_ansiYellow🌐 [API REQ] [${options.method}] ${options.uri}$queryInfo$bodyInfo$_ansiReset');
           }
 
           return handler.next(options);
@@ -78,7 +81,7 @@ class ApiClient {
           if (kDebugMode) {
             final startTime = response.requestOptions.extra['request_start_time'] as int?;
             final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
-            debugPrint('✅ [API RES] [${response.requestOptions.method}] ${response.requestOptions.uri}$durationStr [HTTP ${response.statusCode}] -> Data: ${response.data}');
+            debugPrint('$_ansiYellow✅ [API RES] [${response.requestOptions.method}] ${response.requestOptions.uri}$durationStr [HTTP ${response.statusCode}] -> Data: ${response.data}$_ansiReset');
           }
           return handler.next(response);
         },
@@ -88,7 +91,7 @@ class ApiClient {
             final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
             final statusCode = error.response?.statusCode != null ? ' [HTTP ${error.response?.statusCode}]' : '';
             final responseData = error.response?.data != null ? ' -> Data: ${error.response?.data}' : '';
-            debugPrint('❌ [API ERR] [${error.requestOptions.method}] ${error.requestOptions.uri}$durationStr$statusCode: ${error.message}$responseData');
+            debugPrint('$_ansiYellow❌ [API ERR] [${error.requestOptions.method}] ${error.requestOptions.uri}$durationStr$statusCode: ${error.message}$responseData$_ansiReset');
           }
           return handler.next(error);
         },

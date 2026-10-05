@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../channel/channel_page.dart';
-import '../channel/join_qr_scan_page.dart';
+import '../channel/join_confirm_page.dart';
+import '../scanner/qr_scan_page.dart';
 import '../sms/sms_page.dart';
 import '../device/bloc/device_setup_bloc.dart';
 import '../device/bloc/device_setup_event.dart';
@@ -71,9 +72,14 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
     setState(() => _selectedIndex = index);
   }
 
-  void _openQrScanner() {
+  Future<void> _openQrScanner() async {
+    final result = await QrScanPage.scan(context);
+    if (!mounted || result == null) return;
+
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const JoinQrScanPage()),
+      MaterialPageRoute<void>(
+        builder: (_) => JoinConfirmPage(inviteRaw: result.rawValue),
+      ),
     );
   }
 

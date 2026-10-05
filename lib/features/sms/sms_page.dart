@@ -56,7 +56,7 @@ class _SmsView extends StatelessWidget {
         children: const [
           SizedBox(height: 4),
           CalendarCardView(),
-          SizedBox(height: 12),
+          SizedBox(height: 16),
           Expanded(child: MessageListView()),
         ],
       ),

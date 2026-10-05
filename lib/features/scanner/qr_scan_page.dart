@@ -3,27 +3,50 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 import '../../core/constants/dimens.dart';
 import '../../core/extensions/context_extensions.dart';
+import '../../core/models/pairing_session_model.dart';
 import '../../core/utils/toast_utils.dart';
-import 'scanning/qr_scan_handler.dart';
-import 'scanning/qr_scan_handler_registry.dart';
+import 'models/scan_qr_result.dart';
 
-/// Màn hình quét QR trung tính: chỉ lo camera, thư viện ảnh và điều phối
-/// payload qua [QrScanHandlerRegistry]. Nghiệp vụ cụ thể (ghép đôi...) được
-/// inject từ bên ngoài qua registry.
+export 'models/scan_qr_result.dart';
+
+/// Màn hình quét QR dùng chung dạng Picker:
+/// - Mở camera, xử lý quyền máy ảnh và mở cài đặt khi bị từ chối;
+/// - Quét qua camera hoặc chọn ảnh từ thư viện;
+/// - Tự động validate định dạng QR của app (hoặc theo custom validator);
+/// - Trả về `Future<ScanQrResult?>` để nơi gọi tự xử lý kết quả.
 class QrScanPage extends StatefulWidget {
   const QrScanPage({
     super.key,
-    required this.registry,
+    this.validator,
     MobileScannerController? controller,
     ImagePicker? imagePicker,
   }) : _controllerOverride = controller,
        _imagePickerOverride = imagePicker;
 
-  final QrScanHandlerRegistry registry;
+  final bool Function(String raw)? validator;
   final MobileScannerController? _controllerOverride;
   final ImagePicker? _imagePickerOverride;
+
+  /// Hàm Future tiện ích để mở màn hình quét QR và nhận kết quả trả về.
+  static Future<ScanQrResult?> scan(
+    BuildContext context, {
+    bool Function(String raw)? validator,
+  }) {
+    return Navigator.of(context).push<ScanQrResult>(
+      MaterialPageRoute(
+        builder: (_) => QrScanPage(validator: validator),
+      ),
+    );
+  }
+
+  /// Validator mặc định cho định dạng QR của ứng dụng (lời mời tham gia kênh).
+  static bool defaultValidator(String raw) {
+    return InvitePayload.tryParse(raw) != null;
+  }
 
   @override
   State<QrScanPage> createState() => _QrScanPageState();
@@ -49,7 +72,7 @@ class _QrScanPageState extends State<QrScanPage> {
     for (final barcode in capture.barcodes) {
       final rawValue = barcode.rawValue;
       if (rawValue == null || rawValue.isEmpty) continue;
-      _dispatch(rawValue);
+      _handleRaw(rawValue);
       return;
     }
   }
@@ -67,7 +90,7 @@ class _QrScanPageState extends State<QrScanPage> {
         if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
         return;
       }
-      _dispatch(rawValue);
+      _handleRaw(rawValue);
     } catch (_) {
       if (mounted) ToastUtils.showError(context.l10n.scannerNoQrFound);
     } finally {
@@ -76,12 +99,16 @@ class _QrScanPageState extends State<QrScanPage> {
     }
   }
 
-  void _dispatch(String rawValue) {
+  void _handleRaw(String rawValue) {
     _isProcessing = true;
-    final handled = widget.registry.route(context, _QrScanFlow(this), rawValue);
-    if (!handled) {
+    final isValid = (widget.validator ?? QrScanPage.defaultValidator)(rawValue);
+    if (!isValid) {
       ToastUtils.showError(context.l10n.scannerUnsupportedQr);
       _scheduleResume();
+      return;
+    }
+    if (mounted) {
+      Navigator.of(context).pop(ScanQrResult(rawValue: rawValue));
     }
   }
 
@@ -109,7 +136,6 @@ class _QrScanPageState extends State<QrScanPage> {
   @override
   void dispose() {
     _resumeTimer?.cancel();
-    widget.registry.dispose();
     if (widget._controllerOverride == null) {
       _controller.dispose();
     }
@@ -123,7 +149,47 @@ class _QrScanPageState extends State<QrScanPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
+          MobileScanner(
+            controller: _controller,
+            onDetect: _onDetect,
+            errorBuilder: (context, error) {
+              final isPermissionDenied =
+                  error.errorCode == MobileScannerErrorCode.permissionDenied;
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.videocam_off_rounded,
+                        size: 64,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        isPermissionDenied
+                            ? 'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR'
+                            : 'Không thể khởi động máy ảnh: ${error.errorDetails?.message ?? error.errorCode.name}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      if (isPermissionDenied)
+                        FilledButton.icon(
+                          onPressed: () => openAppSettings(),
+                          icon: const Icon(Icons.settings),
+                          label: Text(context.l10n.openAppSettingsAction),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
           const _ViewfinderOverlay(),
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,23 +205,6 @@ class _QrScanPageState extends State<QrScanPage> {
       ),
     );
   }
-}
-
-/// Kết nối nghiệp vụ với vòng đời phiên quét của [_QrScanPageState].
-class _QrScanFlow implements QrScanFlow {
-  const _QrScanFlow(this._state);
-
-  final _QrScanPageState _state;
-
-  @override
-  void complete() {
-    if (_state.mounted) {
-      Navigator.of(_state.context).pop(true);
-    }
-  }
-
-  @override
-  void fail() => _state._scheduleResume();
 }
 
 /// Lớp phủ tối mờ với lỗ cắt vuông ở giữa và viền bo góc phát sáng.
