@@ -1419,6 +1419,120 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Máy chủ: {ownerName} · {count} thành viên'**
   String channelMemberSubtitle(String ownerName, int count);
+
+  /// No description provided for @joinPageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tham gia kênh'**
+  String get joinPageTitle;
+
+  /// No description provided for @joinInvalidInviteTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã mời không hợp lệ'**
+  String get joinInvalidInviteTitle;
+
+  /// No description provided for @joinInvalidInviteMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR này không đúng định dạng. Hãy xin Owner một mã mời mới.'**
+  String get joinInvalidInviteMessage;
+
+  /// No description provided for @joinExpiredInviteTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã mời đã hết hạn'**
+  String get joinExpiredInviteTitle;
+
+  /// No description provided for @joinExpiredInviteMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã mời chỉ có hiệu lực 10 phút. Hãy xin Owner một mã mời mới.'**
+  String get joinExpiredInviteMessage;
+
+  /// No description provided for @joinIdleEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa gửi yêu cầu tham gia nào'**
+  String get joinIdleEmptyMessage;
+
+  /// No description provided for @joinReenterInviteAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập lại mã mời'**
+  String get joinReenterInviteAction;
+
+  /// No description provided for @joinChannelLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh: {channelName}'**
+  String joinChannelLabel(String channelName);
+
+  /// No description provided for @joinOwnerLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ: {ownerName}'**
+  String joinOwnerLabel(String ownerName);
+
+  /// No description provided for @joinDeviceNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên thiết bị của bạn'**
+  String get joinDeviceNameLabel;
+
+  /// No description provided for @joinDismissAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get joinDismissAction;
+
+  /// No description provided for @joinSendRequestAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi yêu cầu kết nối'**
+  String get joinSendRequestAction;
+
+  /// No description provided for @joinWaitingApprovalTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ duyệt'**
+  String get joinWaitingApprovalTitle;
+
+  /// No description provided for @joinWaitingApprovalMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu đã được gửi tới máy chủ.'**
+  String get joinWaitingApprovalMessage;
+
+  /// No description provided for @joinWaitingApprovalChannelMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi yêu cầu tham gia \"{channelName}\". Chờ máy chủ (Owner) duyệt.'**
+  String joinWaitingApprovalChannelMessage(String channelName);
+
+  /// No description provided for @joinCancelRequestAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy yêu cầu'**
+  String get joinCancelRequestAction;
+
+  /// No description provided for @joinCancelConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy yêu cầu?'**
+  String get joinCancelConfirmTitle;
+
+  /// No description provided for @joinCancelConfirmMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.'**
+  String get joinCancelConfirmMessage;
+
+  /// No description provided for @joinContinueWaitingAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục chờ'**
+  String get joinContinueWaitingAction;
 }
 
 class _AppLocalizationsDelegate

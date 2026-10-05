@@ -325,5 +325,39 @@
       "ownerName": { "type": "String" },
       "count": { "type": "int" }
     }
-  }
+  },
+  "joinPageTitle": "Tham gia kênh",
+  "joinInvalidInviteTitle": "Mã mời không hợp lệ",
+  "joinInvalidInviteMessage": "Mã QR này không đúng định dạng. Hãy xin Owner một mã mời mới.",
+  "joinExpiredInviteTitle": "Mã mời đã hết hạn",
+  "joinExpiredInviteMessage": "Mã mời chỉ có hiệu lực 10 phút. Hãy xin Owner một mã mời mới.",
+  "joinIdleEmptyMessage": "Chưa gửi yêu cầu tham gia nào",
+  "joinReenterInviteAction": "Nhập lại mã mời",
+  "joinChannelLabel": "Kênh: {channelName}",
+  "@joinChannelLabel": {
+    "placeholders": {
+      "channelName": { "type": "String" }
+    }
+  },
+  "joinOwnerLabel": "Máy chủ: {ownerName}",
+  "@joinOwnerLabel": {
+    "placeholders": {
+      "ownerName": { "type": "String" }
+    }
+  },
+  "joinDeviceNameLabel": "Tên thiết bị của bạn",
+  "joinDismissAction": "Để sau",
+  "joinSendRequestAction": "Gửi yêu cầu kết nối",
+  "joinWaitingApprovalTitle": "Đang chờ duyệt",
+  "joinWaitingApprovalMessage": "Yêu cầu đã được gửi tới máy chủ.",
+  "joinWaitingApprovalChannelMessage": "Đã gửi yêu cầu tham gia \"{channelName}\". Chờ máy chủ (Owner) duyệt.",
+  "@joinWaitingApprovalChannelMessage": {
+    "placeholders": {
+      "channelName": { "type": "String" }
+    }
+  },
+  "joinCancelRequestAction": "Hủy yêu cầu",
+  "joinCancelConfirmTitle": "Hủy yêu cầu?",
+  "joinCancelConfirmMessage": "Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.",
+  "joinContinueWaitingAction": "Tiếp tục chờ"
 }

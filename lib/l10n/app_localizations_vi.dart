@@ -745,4 +745,70 @@ class AppLocalizationsVi extends AppLocalizations {
   String channelMemberSubtitle(String ownerName, int count) {
     return 'Máy chủ: $ownerName · $count thành viên';
   }
+
+  @override
+  String get joinPageTitle => 'Tham gia kênh';
+
+  @override
+  String get joinInvalidInviteTitle => 'Mã mời không hợp lệ';
+
+  @override
+  String get joinInvalidInviteMessage =>
+      'Mã QR này không đúng định dạng. Hãy xin Owner một mã mời mới.';
+
+  @override
+  String get joinExpiredInviteTitle => 'Mã mời đã hết hạn';
+
+  @override
+  String get joinExpiredInviteMessage =>
+      'Mã mời chỉ có hiệu lực 10 phút. Hãy xin Owner một mã mời mới.';
+
+  @override
+  String get joinIdleEmptyMessage => 'Chưa gửi yêu cầu tham gia nào';
+
+  @override
+  String get joinReenterInviteAction => 'Nhập lại mã mời';
+
+  @override
+  String joinChannelLabel(String channelName) {
+    return 'Kênh: $channelName';
+  }
+
+  @override
+  String joinOwnerLabel(String ownerName) {
+    return 'Máy chủ: $ownerName';
+  }
+
+  @override
+  String get joinDeviceNameLabel => 'Tên thiết bị của bạn';
+
+  @override
+  String get joinDismissAction => 'Để sau';
+
+  @override
+  String get joinSendRequestAction => 'Gửi yêu cầu kết nối';
+
+  @override
+  String get joinWaitingApprovalTitle => 'Đang chờ duyệt';
+
+  @override
+  String get joinWaitingApprovalMessage => 'Yêu cầu đã được gửi tới máy chủ.';
+
+  @override
+  String joinWaitingApprovalChannelMessage(String channelName) {
+    return 'Đã gửi yêu cầu tham gia \"$channelName\". Chờ máy chủ (Owner) duyệt.';
+  }
+
+  @override
+  String get joinCancelRequestAction => 'Hủy yêu cầu';
+
+  @override
+  String get joinCancelConfirmTitle => 'Hủy yêu cầu?';
+
+  @override
+  String get joinCancelConfirmMessage =>
+      'Yêu cầu tham gia kênh sẽ bị hủy. Owner sẽ không thấy yêu cầu này nữa.';
+
+  @override
+  String get joinContinueWaitingAction => 'Tiếp tục chờ';
 }
