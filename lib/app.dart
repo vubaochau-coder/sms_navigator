@@ -7,7 +7,6 @@ import 'core/services/analytics_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/dialog_utils.dart';
-import 'features/channel_join/deeplink/channel_deep_link_listener.dart';
 import 'features/splash/splash_page.dart';
 import 'l10n/app_localizations.dart';
 
@@ -36,9 +35,7 @@ class OtpRelayApp extends StatelessWidget {
               navigatorObservers: [
                 if (analytics.observer != null) analytics.observer!,
               ],
-              home: ChannelDeepLinkListener(
-                child: home ?? const SplashPage(),
-              ),
+              home: home ?? const SplashPage(),
             );
           },
         ),

@@ -3,7 +3,6 @@ export 'channel_api_client.dart';
 export 'channel_api_service.dart';
 export 'channel_key_store.dart';
 export 'crashlytics_service.dart';
-export 'deep_link_service.dart';
 export 'device_api_service.dart';
 export 'device_setup_service.dart';
 export 'device_storage_service.dart';
