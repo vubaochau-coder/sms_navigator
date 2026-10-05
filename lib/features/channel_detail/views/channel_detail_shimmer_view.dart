@@ -132,7 +132,7 @@ class ChannelDetailShimmerView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (i < 2) const Divider(height: 1),
+                    if (i < 2) const SizedBox(height: 16),
                   ],
                 ],
               ),

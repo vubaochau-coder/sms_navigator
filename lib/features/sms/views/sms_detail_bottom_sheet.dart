@@ -170,7 +170,7 @@ class SmsDetailBottomSheet extends StatelessWidget {
             ),
           ),
           if (hasContent) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               height: 48,

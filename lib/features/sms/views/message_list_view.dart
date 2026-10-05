@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-
 import '../../../core/extensions/context_extensions.dart';
+import '../../../core/utils/date_time_utils.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../bloc/sms_bloc.dart';
 import 'sms_tile_view.dart';
@@ -87,7 +86,7 @@ class SmsEmptyPane extends StatelessWidget {
           const Icon(Icons.sms_outlined, size: 56, color: Colors.grey),
           const SizedBox(height: 12),
           Text(
-            context.l10n.smsEmptyInDate(DateFormat('dd/MM/yyyy').format(date)),
+            context.l10n.smsEmptyInDate(DateTimeUtils.formatDate(date)),
             textAlign: TextAlign.center,
           ),
         ],

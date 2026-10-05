@@ -19,16 +19,6 @@ class ChannelDetailLoaded extends ChannelDetailEvent {
   List<Object?> get props => [channelId];
 }
 
-/// Tạo/làm mới QR invitation (2.3) — countdown 10'.
-class ChannelDetailSessionCreated extends ChannelDetailEvent {
-  final String channelId;
-
-  const ChannelDetailSessionCreated(this.channelId);
-
-  @override
-  List<Object?> get props => [channelId];
-}
-
 /// Approve member (4.2) — dialog xác nhận rồi mới gọi; bên trong tự rotate.
 class ChannelDetailConfirmed extends ChannelDetailEvent {
   final PairingRequestModel request;
@@ -62,7 +52,6 @@ class ChannelDetailMemberRevoked extends ChannelDetailEvent {
 // Backward-compatibility aliases
 typedef ApprovalEvent = ChannelDetailEvent;
 typedef ApprovalLoaded = ChannelDetailLoaded;
-typedef ApprovalSessionCreated = ChannelDetailSessionCreated;
 typedef ApprovalConfirmed = ChannelDetailConfirmed;
 typedef ApprovalRejected = ChannelDetailRejected;
 typedef ApprovalMemberRevoked = ChannelDetailMemberRevoked;

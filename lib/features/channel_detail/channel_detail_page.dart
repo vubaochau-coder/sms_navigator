@@ -75,6 +75,9 @@ class _ChannelDetailPageView extends StatelessWidget {
           final channelId = context.select<ChannelDetailBloc, String>(
             (bloc) => bloc.state.channelId,
           );
+          final hasPendingRequests = context.select<ChannelDetailBloc, bool>(
+            (bloc) => bloc.state.pendingRequests.isNotEmpty,
+          );
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -85,11 +88,14 @@ class _ChannelDetailPageView extends StatelessWidget {
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              children: const [
-                ChannelSummaryView(),
-                SizedBox(height: 12),
-                PendingRequestsView(),
-                MembersView(),
+              children: [
+                const ChannelSummaryView(),
+                const SizedBox(height: 12),
+                if (hasPendingRequests) ...[
+                  const PendingRequestsView(),
+                  const SizedBox(height: 12),
+                ],
+                const MembersView(),
               ],
             ),
           );

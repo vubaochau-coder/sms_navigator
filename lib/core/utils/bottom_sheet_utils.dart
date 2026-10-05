@@ -62,6 +62,7 @@ class BottomSheetUtils {
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
         padding: EdgeInsets.only(

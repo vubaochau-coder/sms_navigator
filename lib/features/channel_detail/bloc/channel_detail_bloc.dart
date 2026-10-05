@@ -11,6 +11,7 @@ import 'channel_detail_state.dart';
 
 export 'channel_detail_event.dart';
 export 'channel_detail_state.dart';
+export 'channel_invite_bloc.dart';
 
 /// Bloc chi tiết kênh: hàng đợi duyệt + quản lý thành viên của Owner.
 class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
@@ -18,7 +19,6 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     : _repository = repository,
       super(ChannelDetailState(channelId: channelId)) {
     on<ChannelDetailLoaded>(_onLoaded, transformer: restartable());
-    on<ChannelDetailSessionCreated>(_onSessionCreated, transformer: droppable());
     on<ChannelDetailConfirmed>(_onConfirmed, transformer: droppable());
     on<ChannelDetailRejected>(_onRejected, transformer: droppable());
     on<ChannelDetailMemberRevoked>(_onRevoked, transformer: droppable());
@@ -51,20 +51,6 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
         'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.',
       );
       emit(state.copyWith(isLoading: false));
-    }
-  }
-
-  Future<void> _onSessionCreated(
-    ChannelDetailSessionCreated event,
-    Emitter<ChannelDetailState> emit,
-  ) async {
-    emit(state.copyWith(isMutating: true));
-    try {
-      final session = await _repository.createPairingSession(state.channelId);
-      emit(state.copyWith(isMutating: false, activeSession: session));
-    } catch (error) {
-      ToastUtils.showError('Không tạo được mã mời. Thử lại sau.');
-      emit(state.copyWith(isMutating: false));
     }
   }
 
