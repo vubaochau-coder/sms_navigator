@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/services/device_storage_service.dart';
+import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'device_profile_state.dart';
 
@@ -37,6 +38,7 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
     final trimmed = newName.trim();
     if (trimmed.isEmpty) return false;
     emit(state.copyWith(isRenaming: true));
+    DialogUtils.showLoading(message: 'Đang cập nhật tên thiết bị...');
     try {
       await _channelRepository.renameDevice(trimmed);
       await _deviceStorage.saveDeviceName(trimmed);
@@ -47,6 +49,8 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
       emit(state.copyWith(isRenaming: false));
       ToastUtils.showError('Không đổi được tên thiết bị. Thử lại sau.');
       return false;
+    } finally {
+      DialogUtils.closeLoading();
     }
   }
 }

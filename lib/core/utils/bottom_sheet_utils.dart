@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'dialog_utils.dart';
+import '../navigation/app_navigator.dart';
 
 /// Tiện ích hiển thị Modal BottomSheet chuẩn hóa cho toàn bộ dự án
 class BottomSheetUtils {
@@ -30,9 +30,9 @@ class BottomSheetUtils {
     BoxShadow(color: Color(0x26000000), blurRadius: 16, offset: Offset(0, -4)),
   ];
 
-  /// Helper lấy BuildContext an toàn từ tham số hoặc [DialogUtils.navigatorKey]
+  /// Helper lấy BuildContext an toàn từ tham số hoặc [AppNavigator.currentContext]
   static BuildContext _resolveContext(BuildContext? context) {
-    final ctx = context ?? DialogUtils.navigatorKey.currentContext;
+    final ctx = context ?? AppNavigator.currentContext;
     if (ctx == null) {
       throw StateError(
         'Không tìm thấy BuildContext để hiển thị BottomSheet. Hãy truyền context hoặc cài đặt navigatorKey trong MaterialApp.',

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
+import '../navigation/app_navigator.dart';
 
 /// Tiện ích hiển thị Dialog / Alert thống nhất cho toàn bộ dự án
 class DialogUtils {
   DialogUtils._();
 
-  /// Navigator key toàn cục dùng cho các trường hợp gọi dialog không truyền context
-  static final GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey<NavigatorState>();
+  /// Navigator key toàn cục lấy từ Single Source of Truth [AppNavigator.key].
+  static GlobalKey<NavigatorState> get navigatorKey => AppNavigator.key;
 
   // ==========================================
   // HẰNG SỐ GIAO DIỆN CHUẨN (UI TOKENS)
@@ -46,15 +46,116 @@ class DialogUtils {
   static const String defaultCancelText = 'Hủy bỏ';
   static const String defaultCloseText = 'Đóng';
 
-  /// Helper lấy BuildContext an toàn từ tham số hoặc [navigatorKey]
+  /// Helper lấy BuildContext an toàn từ tham số hoặc [AppNavigator.currentContext]
   static BuildContext _resolveContext(BuildContext? context) {
-    final ctx = context ?? navigatorKey.currentContext;
+    final ctx = context ?? AppNavigator.currentContext;
     if (ctx == null) {
       throw StateError(
         'Không tìm thấy BuildContext để hiển thị Dialog. Hãy truyền context hoặc cài đặt navigatorKey trong MaterialApp.',
       );
     }
     return ctx;
+  }
+
+  static OverlayEntry? _loadingOverlayEntry;
+
+  /// Kiểm tra xem lớp phủ loading toàn màn hình có đang hiển thị hay không
+  static bool get isLoading => _loadingOverlayEntry != null;
+
+  /// Hiển thị lớp phủ loading toàn màn hình (không bắt buộc context).
+  ///
+  /// - Sử dụng [OverlayEntry] gắn trực tiếp lên root Overlay của ứng dụng qua [AppNavigator.overlay].
+  /// - Tự động chặn mọi thao tác chạm/vuốt (ModalBarrier).
+  /// - An toàn khi gọi từ BLoC, Cubit hoặc các tác vụ background.
+  /// - Nếu không tìm thấy Overlay (VD: trong unit test không mount UI), hàm sẽ thoát an toàn.
+  static void showLoading({
+    BuildContext? context,
+    String? message,
+  }) {
+    if (_loadingOverlayEntry != null) return;
+
+    final overlayState = context != null
+        ? Overlay.maybeOf(context) ?? AppNavigator.overlay
+        : AppNavigator.overlay;
+
+    if (overlayState == null) {
+      debugPrint('DialogUtils.showLoading: Không tìm thấy Overlay để hiển thị loading.');
+      return;
+    }
+
+    final entry = OverlayEntry(
+      builder: (entryContext) {
+        final theme = Theme.of(entryContext);
+        final colorScheme = theme.colorScheme;
+
+        return PopScope(
+          canPop: false,
+          child: Material(
+            type: MaterialType.transparency,
+            child: Stack(
+              children: [
+                // Lớp phủ mờ chặn mọi tương tác
+                ModalBarrier(
+                  dismissible: false,
+                  color: Colors.black.withValues(alpha: 0.35),
+                ),
+                // Hộp hiển thị Spinner & Message ở trung tâm
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: borderRadius,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 16,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          strokeWidth: 3.5,
+                          color: colorScheme.primary,
+                        ),
+                        if (message != null && message.trim().isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            message.trim(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    _loadingOverlayEntry = entry;
+    overlayState.insert(entry);
+  }
+
+  /// Đóng lớp phủ loading toàn màn hình (không cần context).
+  static void closeLoading() {
+    _loadingOverlayEntry?.remove();
+    _loadingOverlayEntry = null;
   }
 
   /// Hiển thị container Dialog chuẩn dự án cho nội dung tùy biến (custom content).

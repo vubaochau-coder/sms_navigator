@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/navigation/app_navigator.dart';
 import 'package:sms_navigator/core/utils/ui_utils.dart';
 import 'package:toastification/toastification.dart';
 
@@ -443,6 +444,66 @@ void main() {
 
       toastification.dismissAll();
       await tester.pumpAndSettle();
+    });
+  });
+
+  group('DialogUtils Loading Overlay Tests', () {
+    testWidgets('showLoading and closeLoading display and dismiss overlay without context', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: DialogUtils.navigatorKey,
+          home: const Scaffold(
+            body: Text('Trang chủ'),
+          ),
+        ),
+      );
+
+      expect(DialogUtils.isLoading, isFalse);
+
+      // 1. Show loading without context
+      DialogUtils.showLoading(message: 'Đang xử lý...');
+      await tester.pump();
+
+      expect(DialogUtils.isLoading, isTrue);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Đang xử lý...'), findsOneWidget);
+
+      // 2. Close loading without context
+      DialogUtils.closeLoading();
+      await tester.pump();
+
+      expect(DialogUtils.isLoading, isFalse);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Đang xử lý...'), findsNothing);
+    });
+
+    test('closeLoading is safe to call even when not loading', () {
+      expect(DialogUtils.isLoading, isFalse);
+      expect(() => DialogUtils.closeLoading(), returnsNormally);
+      expect(DialogUtils.isLoading, isFalse);
+    });
+  });
+
+  group('AppNavigator Single Source of Truth Tests', () {
+    test('AppNavigator.key is identical to DialogUtils.navigatorKey', () {
+      expect(AppNavigator.key, same(DialogUtils.navigatorKey));
+    });
+
+    testWidgets('AppNavigator provides currentContext and state when mounted', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: AppNavigator.key,
+          home: const Scaffold(body: Text('Test')),
+        ),
+      );
+
+      expect(AppNavigator.currentContext, isNotNull);
+      expect(AppNavigator.state, isNotNull);
+      expect(AppNavigator.overlay, isNotNull);
     });
   });
 }
