@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../channel/channel_page.dart';
-import '../channel/join_confirm_page.dart';
+import '../channel_join/join_confirm_page.dart';
 import '../scanner/qr_scan_page.dart';
 import '../sms/sms_page.dart';
 import '../device/bloc/device_setup_bloc.dart';

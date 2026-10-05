@@ -11,7 +11,7 @@ import '../../../core/utils/toast_utils.dart';
 
 /// Trạng thái màn chi tiết kênh của Owner: members + hàng đợi duyệt + QR
 /// invite đang hiệu lực (2.3, 4.1–4.4). Badge = pendingCount.
-class ApprovalState extends Equatable {
+class ChannelDetailState extends Equatable {
   final String channelId;
   final ChannelDetailModel? detail;
   final List<ChannelMemberModel> members;
@@ -20,7 +20,7 @@ class ApprovalState extends Equatable {
   final bool isLoading;
   final bool isMutating;
 
-  const ApprovalState({
+  const ChannelDetailState({
     required this.channelId,
     this.detail,
     this.members = const [],
@@ -33,7 +33,7 @@ class ApprovalState extends Equatable {
   int get pendingCount => pendingRequests.length;
   bool get isOwner => detail?.isOwner ?? false;
 
-  ApprovalState copyWith({
+  ChannelDetailState copyWith({
     String? channelId,
     ChannelDetailModel? detail,
     List<ChannelMemberModel>? members,
@@ -43,7 +43,7 @@ class ApprovalState extends Equatable {
     bool? isLoading,
     bool? isMutating,
   }) {
-    return ApprovalState(
+    return ChannelDetailState(
       channelId: channelId ?? this.channelId,
       detail: detail ?? this.detail,
       members: members ?? this.members,
@@ -66,78 +66,78 @@ class ApprovalState extends Equatable {
   ];
 }
 
-abstract class ApprovalEvent extends Equatable {
-  const ApprovalEvent();
+abstract class ChannelDetailEvent extends Equatable {
+  const ChannelDetailEvent();
 
   @override
   List<Object?> get props => [];
 }
 
 /// Mở màn chi tiết / refresh khi mở app (4.1).
-class ApprovalLoaded extends ApprovalEvent {
+class ChannelDetailLoaded extends ChannelDetailEvent {
   final String channelId;
 
-  const ApprovalLoaded(this.channelId);
+  const ChannelDetailLoaded(this.channelId);
 
   @override
   List<Object?> get props => [channelId];
 }
 
 /// Tạo/làm mới QR invitation (2.3) — countdown 10'.
-class ApprovalSessionCreated extends ApprovalEvent {
+class ChannelDetailSessionCreated extends ChannelDetailEvent {
   final String channelId;
 
-  const ApprovalSessionCreated(this.channelId);
+  const ChannelDetailSessionCreated(this.channelId);
 
   @override
   List<Object?> get props => [channelId];
 }
 
 /// Approve member (4.2) — dialog xác nhận rồi mới gọi; bên trong tự rotate.
-class ApprovalConfirmed extends ApprovalEvent {
+class ChannelDetailConfirmed extends ChannelDetailEvent {
   final PairingRequestModel request;
 
-  const ApprovalConfirmed(this.request);
+  const ChannelDetailConfirmed(this.request);
 
   @override
   List<Object?> get props => [request];
 }
 
 /// Reject request (4.3) — dialog xác nhận màu đỏ; mã QR đã cháy.
-class ApprovalRejected extends ApprovalEvent {
+class ChannelDetailRejected extends ChannelDetailEvent {
   final PairingRequestModel request;
 
-  const ApprovalRejected(this.request);
+  const ChannelDetailRejected(this.request);
 
   @override
   List<Object?> get props => [request];
 }
 
 /// Revoke member (4.4) — dialog cảnh báo mức cao; tự rotate key.
-class ApprovalMemberRevoked extends ApprovalEvent {
+class ChannelDetailMemberRevoked extends ChannelDetailEvent {
   final String deviceId;
 
-  const ApprovalMemberRevoked(this.deviceId);
+  const ChannelDetailMemberRevoked(this.deviceId);
 
   @override
   List<Object?> get props => [deviceId];
 }
 
-/// Bloc hàng đợi duyệt + quản lý thành viên của Owner.
-class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
-  ApprovalBloc({required ChannelRepository repository, required String channelId})
+/// Bloc chi tiết kênh: hàng đợi duyệt + quản lý thành viên của Owner.
+class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
+  ChannelDetailBloc({required ChannelRepository repository, required String channelId})
     : _repository = repository,
-      super(ApprovalState(channelId: channelId)) {
-    on<ApprovalLoaded>(_onLoaded, transformer: restartable());
-    on<ApprovalSessionCreated>(_onSessionCreated, transformer: droppable());
-    on<ApprovalConfirmed>(_onConfirmed, transformer: droppable());
-    on<ApprovalRejected>(_onRejected, transformer: droppable());
-    on<ApprovalMemberRevoked>(_onRevoked, transformer: droppable());
+      super(ChannelDetailState(channelId: channelId)) {
+    on<ChannelDetailLoaded>(_onLoaded, transformer: restartable());
+    on<ChannelDetailSessionCreated>(_onSessionCreated, transformer: droppable());
+    on<ChannelDetailConfirmed>(_onConfirmed, transformer: droppable());
+    on<ChannelDetailRejected>(_onRejected, transformer: droppable());
+    on<ChannelDetailMemberRevoked>(_onRevoked, transformer: droppable());
   }
 
   final ChannelRepository _repository;
 
-  Future<void> _refresh(Emitter<ApprovalState> emit) async {
+  Future<void> _refresh(Emitter<ChannelDetailState> emit) async {
     final results = await Future.wait([
       _repository.getChannelDetail(state.channelId),
       _repository.getMembers(state.channelId),
@@ -153,7 +153,7 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     );
   }
 
-  Future<void> _onLoaded(ApprovalLoaded event, Emitter<ApprovalState> emit) async {
+  Future<void> _onLoaded(ChannelDetailLoaded event, Emitter<ChannelDetailState> emit) async {
     emit(state.copyWith(channelId: event.channelId, isLoading: true));
     try {
       await _refresh(emit);
@@ -166,8 +166,8 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
   }
 
   Future<void> _onSessionCreated(
-    ApprovalSessionCreated event,
-    Emitter<ApprovalState> emit,
+    ChannelDetailSessionCreated event,
+    Emitter<ChannelDetailState> emit,
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
@@ -180,8 +180,8 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
   }
 
   Future<void> _onConfirmed(
-    ApprovalConfirmed event,
-    Emitter<ApprovalState> emit,
+    ChannelDetailConfirmed event,
+    Emitter<ChannelDetailState> emit,
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
@@ -202,8 +202,8 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
   }
 
   Future<void> _onRejected(
-    ApprovalRejected event,
-    Emitter<ApprovalState> emit,
+    ChannelDetailRejected event,
+    Emitter<ChannelDetailState> emit,
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
@@ -221,8 +221,8 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
   }
 
   Future<void> _onRevoked(
-    ApprovalMemberRevoked event,
-    Emitter<ApprovalState> emit,
+    ChannelDetailMemberRevoked event,
+    Emitter<ChannelDetailState> emit,
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
@@ -239,3 +239,13 @@ class ApprovalBloc extends Bloc<ApprovalEvent, ApprovalState> {
     }
   }
 }
+
+// Backward-compatibility aliases
+typedef ApprovalBloc = ChannelDetailBloc;
+typedef ApprovalState = ChannelDetailState;
+typedef ApprovalEvent = ChannelDetailEvent;
+typedef ApprovalLoaded = ChannelDetailLoaded;
+typedef ApprovalSessionCreated = ChannelDetailSessionCreated;
+typedef ApprovalConfirmed = ChannelDetailConfirmed;
+typedef ApprovalRejected = ChannelDetailRejected;
+typedef ApprovalMemberRevoked = ChannelDetailMemberRevoked;

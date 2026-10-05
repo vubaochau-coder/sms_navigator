@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/utils/dialog_utils.dart';
-import 'bloc/approval_bloc.dart';
+import 'bloc/channel_detail_bloc.dart';
 import '../../core/models/channel_member_model.dart';
 import '../../core/models/pairing_request_model.dart';
 import '../../core/repositories/channel_repository.dart';
@@ -21,10 +21,10 @@ class ChannelDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ApprovalBloc(
+      create: (_) => ChannelDetailBloc(
         repository: context.read<ChannelRepository>(),
         channelId: channelId,
-      )..add(ApprovalLoaded(channelId)),
+      )..add(ChannelDetailLoaded(channelId)),
       child: const _ChannelDetailPageView(),
     );
   }
@@ -37,7 +37,7 @@ class _ChannelDetailPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: BlocSelector<ApprovalBloc, ApprovalState, String?>(
+        title: BlocSelector<ChannelDetailBloc, ChannelDetailState, String?>(
           selector: (state) => state.detail?.name,
           builder: (context, name) => Text(name ?? 'Chi tiết kênh'),
         ),
@@ -55,7 +55,7 @@ class _PendingApprovalBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ApprovalBloc, ApprovalState, int>(
+    return BlocSelector<ChannelDetailBloc, ChannelDetailState, int>(
       selector: (state) => state.pendingCount,
       builder: (context, count) {
         return Padding(
@@ -76,7 +76,7 @@ class _ChannelDetailBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ApprovalBloc, ApprovalState>(
+    return BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
       builder: (context, state) {
         if (state.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -84,8 +84,8 @@ class _ChannelDetailBody extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: () async {
             context
-                .read<ApprovalBloc>()
-                .add(ApprovalLoaded(state.channelId));
+                .read<ChannelDetailBloc>()
+                .add(ChannelDetailLoaded(state.channelId));
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -111,7 +111,7 @@ class _ChannelDetailBody extends StatelessWidget {
 class _ChannelSummary extends StatelessWidget {
   const _ChannelSummary({required this.state});
 
-  final ApprovalState state;
+  final ChannelDetailState state;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +157,7 @@ class _ChannelSummary extends StatelessWidget {
 class _InviteSection extends StatefulWidget {
   const _InviteSection({required this.state});
 
-  final ApprovalState state;
+  final ChannelDetailState state;
 
   @override
   State<_InviteSection> createState() => _InviteSectionState();
@@ -247,8 +247,8 @@ class _InviteSectionState extends State<_InviteSection> {
                   onPressed: widget.state.isMutating
                       ? null
                       : () => context
-                          .read<ApprovalBloc>()
-                          .add(ApprovalSessionCreated(widget.state.channelId)),
+                          .read<ChannelDetailBloc>()
+                          .add(ChannelDetailSessionCreated(widget.state.channelId)),
                   icon: const Icon(Icons.qr_code_rounded),
                   label: const Text('Tạo mã mời QR'),
                 ),
@@ -282,8 +282,8 @@ class _InviteSectionState extends State<_InviteSection> {
                   OutlinedButton.icon(
                     onPressed: widget.state.isMutating
                         ? null
-                        : () => context.read<ApprovalBloc>().add(
-                            ApprovalSessionCreated(widget.state.channelId),
+                        : () => context.read<ChannelDetailBloc>().add(
+                            ChannelDetailSessionCreated(widget.state.channelId),
                           ),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Tạo lại mã'),
@@ -362,7 +362,7 @@ class _PendingRequestsSection extends StatelessWidget {
       confirmText: 'Duyệt',
     ).then((confirmed) {
       if (confirmed && context.mounted) {
-        context.read<ApprovalBloc>().add(ApprovalConfirmed(request));
+        context.read<ChannelDetailBloc>().add(ChannelDetailConfirmed(request));
       }
     });
   }
@@ -377,7 +377,7 @@ class _PendingRequestsSection extends StatelessWidget {
       isDestructive: true,
     ).then((confirmed) {
       if (confirmed && context.mounted) {
-        context.read<ApprovalBloc>().add(ApprovalRejected(request));
+        context.read<ChannelDetailBloc>().add(ChannelDetailRejected(request));
       }
     });
   }
@@ -392,7 +392,7 @@ class _PendingRequestsSection extends StatelessWidget {
 class _MembersSection extends StatelessWidget {
   const _MembersSection({required this.state});
 
-  final ApprovalState state;
+  final ChannelDetailState state;
 
   @override
   Widget build(BuildContext context) {
@@ -458,8 +458,8 @@ class _MembersSection extends StatelessWidget {
     ).then((confirmed) {
       if (confirmed && context.mounted) {
         context
-            .read<ApprovalBloc>()
-            .add(ApprovalMemberRevoked(member.deviceId));
+            .read<ChannelDetailBloc>()
+            .add(ChannelDetailMemberRevoked(member.deviceId));
       }
     });
   }

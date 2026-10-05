@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_model.dart';
-import '../channel_detail_page.dart';
+import '../../channel_detail/channel_detail_page.dart';
 
 class ChannelCardView extends StatelessWidget {
   const ChannelCardView({super.key, required this.channel});
