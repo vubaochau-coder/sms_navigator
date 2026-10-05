@@ -1,127 +1,16 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/channel_detail_model.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
-import '../../../core/models/pairing_session_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/utils/toast_utils.dart';
+import 'channel_detail_event.dart';
+import 'channel_detail_state.dart';
 
-/// Trạng thái màn chi tiết kênh của Owner: members + hàng đợi duyệt + QR
-/// invite đang hiệu lực (2.3, 4.1–4.4). Badge = pendingCount.
-class ChannelDetailState extends Equatable {
-  final String channelId;
-  final ChannelDetailModel? detail;
-  final List<ChannelMemberModel> members;
-  final List<PairingRequestModel> pendingRequests;
-  final PairingSessionModel? activeSession;
-  final bool isLoading;
-  final bool isMutating;
-
-  const ChannelDetailState({
-    required this.channelId,
-    this.detail,
-    this.members = const [],
-    this.pendingRequests = const [],
-    this.activeSession,
-    this.isLoading = false,
-    this.isMutating = false,
-  });
-
-  int get pendingCount => pendingRequests.length;
-  bool get isOwner => detail?.isOwner ?? false;
-
-  ChannelDetailState copyWith({
-    String? channelId,
-    ChannelDetailModel? detail,
-    List<ChannelMemberModel>? members,
-    List<PairingRequestModel>? pendingRequests,
-    PairingSessionModel? activeSession,
-    bool clearSession = false,
-    bool? isLoading,
-    bool? isMutating,
-  }) {
-    return ChannelDetailState(
-      channelId: channelId ?? this.channelId,
-      detail: detail ?? this.detail,
-      members: members ?? this.members,
-      pendingRequests: pendingRequests ?? this.pendingRequests,
-      activeSession: clearSession ? null : (activeSession ?? this.activeSession),
-      isLoading: isLoading ?? this.isLoading,
-      isMutating: isMutating ?? this.isMutating,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-    channelId,
-    detail,
-    members,
-    pendingRequests,
-    activeSession,
-    isLoading,
-    isMutating,
-  ];
-}
-
-abstract class ChannelDetailEvent extends Equatable {
-  const ChannelDetailEvent();
-
-  @override
-  List<Object?> get props => [];
-}
-
-/// Mở màn chi tiết / refresh khi mở app (4.1).
-class ChannelDetailLoaded extends ChannelDetailEvent {
-  final String channelId;
-
-  const ChannelDetailLoaded(this.channelId);
-
-  @override
-  List<Object?> get props => [channelId];
-}
-
-/// Tạo/làm mới QR invitation (2.3) — countdown 10'.
-class ChannelDetailSessionCreated extends ChannelDetailEvent {
-  final String channelId;
-
-  const ChannelDetailSessionCreated(this.channelId);
-
-  @override
-  List<Object?> get props => [channelId];
-}
-
-/// Approve member (4.2) — dialog xác nhận rồi mới gọi; bên trong tự rotate.
-class ChannelDetailConfirmed extends ChannelDetailEvent {
-  final PairingRequestModel request;
-
-  const ChannelDetailConfirmed(this.request);
-
-  @override
-  List<Object?> get props => [request];
-}
-
-/// Reject request (4.3) — dialog xác nhận màu đỏ; mã QR đã cháy.
-class ChannelDetailRejected extends ChannelDetailEvent {
-  final PairingRequestModel request;
-
-  const ChannelDetailRejected(this.request);
-
-  @override
-  List<Object?> get props => [request];
-}
-
-/// Revoke member (4.4) — dialog cảnh báo mức cao; tự rotate key.
-class ChannelDetailMemberRevoked extends ChannelDetailEvent {
-  final String deviceId;
-
-  const ChannelDetailMemberRevoked(this.deviceId);
-
-  @override
-  List<Object?> get props => [deviceId];
-}
+export 'channel_detail_event.dart';
+export 'channel_detail_state.dart';
 
 /// Bloc chi tiết kênh: hàng đợi duyệt + quản lý thành viên của Owner.
 class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
@@ -242,10 +131,3 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
 
 // Backward-compatibility aliases
 typedef ApprovalBloc = ChannelDetailBloc;
-typedef ApprovalState = ChannelDetailState;
-typedef ApprovalEvent = ChannelDetailEvent;
-typedef ApprovalLoaded = ChannelDetailLoaded;
-typedef ApprovalSessionCreated = ChannelDetailSessionCreated;
-typedef ApprovalConfirmed = ChannelDetailConfirmed;
-typedef ApprovalRejected = ChannelDetailRejected;
-typedef ApprovalMemberRevoked = ChannelDetailMemberRevoked;

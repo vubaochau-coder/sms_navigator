@@ -19,6 +19,12 @@ class PairingSessionModel extends Equatable {
     required this.inviteUrl,
   });
 
+  bool get isExpired {
+    final deadline = DateTime.tryParse(expiresAt);
+    if (deadline == null) return false;
+    return DateTime.now().isAfter(deadline);
+  }
+
   factory PairingSessionModel.fromMap(Map<String, dynamic> map) {
     return PairingSessionModel(
       sessionId: DataConverter.cvToString(map['session_id'], '')!,
