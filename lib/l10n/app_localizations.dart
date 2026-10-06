@@ -1258,12 +1258,6 @@ abstract class AppLocalizations {
   /// **'SMS'**
   String get smsPageTitle;
 
-  /// No description provided for @smsDetailTitle.
-  ///
-  /// In vi, this message translates to:
-  /// **'Chi tiết tin nhắn'**
-  String get smsDetailTitle;
-
   /// No description provided for @smsRefreshTooltip.
   ///
   /// In vi, this message translates to:

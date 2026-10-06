@@ -266,7 +266,6 @@
   "splashSkipOffline": "Bỏ qua & Vào chế độ ngoại tuyến",
   "splashDefaultDeviceName": "Thiết bị của tôi",
   "smsPageTitle": "SMS",
-  "smsDetailTitle": "Chi tiết tin nhắn",
   "smsRefreshTooltip": "Làm mới",
   "smsEmptyInDate": "Ngày {date} chưa có tin nhắn SMS nào",
   "@smsEmptyInDate": {
