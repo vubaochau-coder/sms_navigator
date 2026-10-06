@@ -941,4 +941,19 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get channelDetailInviteCreateAction => 'Tạo mã mời QR';
+
+  @override
+  String channelPendingRequestsHeader(int count) {
+    return 'Yêu cầu đang chờ duyệt ($count)';
+  }
+
+  @override
+  String get channelPendingBadge => 'Đang chờ duyệt';
+
+  @override
+  String get channelCancelRequestSuccess => 'Đã hủy yêu cầu tham gia kênh';
+
+  @override
+  String get channelCancelRequestFailed =>
+      'Không hủy được yêu cầu. Thử lại sau.';
 }

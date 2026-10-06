@@ -31,3 +31,13 @@ class DeviceRenamed extends ChannelEvent {
   @override
   List<Object?> get props => [deviceName];
 }
+
+/// Hủy yêu cầu tham gia kênh đang chờ duyệt.
+class ChannelPendingJoinCancelled extends ChannelEvent {
+  final String requestId;
+
+  const ChannelPendingJoinCancelled(this.requestId);
+
+  @override
+  List<Object?> get props => [requestId];
+}

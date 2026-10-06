@@ -1743,6 +1743,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tạo mã mời QR'**
   String get channelDetailInviteCreateAction;
+
+  /// No description provided for @channelPendingRequestsHeader.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu đang chờ duyệt ({count})'**
+  String channelPendingRequestsHeader(int count);
+
+  /// No description provided for @channelPendingBadge.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ duyệt'**
+  String get channelPendingBadge;
+
+  /// No description provided for @channelCancelRequestSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hủy yêu cầu tham gia kênh'**
+  String get channelCancelRequestSuccess;
+
+  /// No description provided for @channelCancelRequestFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không hủy được yêu cầu. Thử lại sau.'**
+  String get channelCancelRequestFailed;
 }
 
 class _AppLocalizationsDelegate

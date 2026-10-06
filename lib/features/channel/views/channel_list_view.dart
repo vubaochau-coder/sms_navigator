@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../bloc/channel_bloc.dart';
 import 'channel_card_view.dart';
+import 'pending_join_request_card.dart';
+
+export 'pending_join_request_card.dart';
 
 /// Danh sách các kênh do người dùng làm Chủ kênh (Owner).
 class OwnedChannelListView extends StatelessWidget {
@@ -65,13 +68,16 @@ class JoinedChannelListView extends StatelessWidget {
     return BlocBuilder<ChannelBloc, ChannelState>(
       buildWhen: (prev, current) =>
           prev.isLoading != current.isLoading ||
-          prev.joinedChannels != current.joinedChannels,
+          prev.joinedChannels != current.joinedChannels ||
+          prev.pendingJoinRequests != current.pendingJoinRequests,
       builder: (context, state) {
-        if (state.isLoading && state.joinedChannels.isEmpty) {
+        if (state.isLoading &&
+            state.joinedChannels.isEmpty &&
+            state.pendingJoinRequests.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state.joinedChannels.isEmpty) {
+        if (state.joinedChannels.isEmpty && state.pendingJoinRequests.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async {
               context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
@@ -90,16 +96,51 @@ class JoinedChannelListView extends StatelessWidget {
           );
         }
 
+        final l10n = context.l10n;
+        final hasPending = state.pendingJoinRequests.isNotEmpty;
+        final hasJoined = state.joinedChannels.isNotEmpty;
+
         return RefreshIndicator(
           onRefresh: () async {
             context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
           },
-          child: ListView.builder(
+          child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 96),
-            itemCount: state.joinedChannels.length,
-            itemBuilder: (context, index) =>
-                ChannelCardView(channel: state.joinedChannels[index]),
+            children: [
+              if (hasPending) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Text(
+                    l10n.channelPendingRequestsHeader(
+                      state.pendingJoinRequests.length,
+                    ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                ...state.pendingJoinRequests.map(
+                  (req) => PendingJoinRequestCard(request: req),
+                ),
+              ],
+              if (hasJoined) ...[
+                if (hasPending)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      l10n.channelJoinedSectionTitle,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ...state.joinedChannels.map(
+                  (ch) => ChannelCardView(channel: ch),
+                ),
+              ],
+            ],
           ),
         );
       },

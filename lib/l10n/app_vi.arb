@@ -444,5 +444,14 @@
   "channelDetailInviteSaveQrSuccess": "Đã lưu mã QR vào thư viện ảnh",
   "channelDetailInviteSaveQrFailed": "Không thể lưu mã QR. Vui lòng thử lại sau.",
   "channelDetailInviteSaveQrPermissionDenied": "Ứng dụng cần quyền truy cập ảnh để lưu mã QR",
-  "channelDetailInviteCreateAction": "Tạo mã mời QR"
+  "channelDetailInviteCreateAction": "Tạo mã mời QR",
+  "channelPendingRequestsHeader": "Yêu cầu đang chờ duyệt ({count})",
+  "@channelPendingRequestsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "channelPendingBadge": "Đang chờ duyệt",
+  "channelCancelRequestSuccess": "Đã hủy yêu cầu tham gia kênh",
+  "channelCancelRequestFailed": "Không hủy được yêu cầu. Thử lại sau."
 }
