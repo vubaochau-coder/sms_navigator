@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/errors/app_exceptions.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/repositories/join_channel_repository.dart';
 import 'join_event.dart';
@@ -73,7 +74,23 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
 
   /// Map mã lỗi server → thông điệp tiếng Việt + hướng dẫn (3.6, spec §2).
   String _mapClaimError(Object error) {
+    final String? code = error is ApiException ? error.errorCode : null;
+    if (code == 'ALREADY_MEMBER') {
+      return 'Thiết bị của bạn đã tham gia channel này.';
+    }
+    if (code == 'REQUEST_ALREADY_PENDING') {
+      return 'Bạn đã gửi yêu cầu tham gia channel này và đang chờ chủ kênh duyệt.';
+    }
+    if (code == 'CHANNEL_NOT_ACTIVE') {
+      return 'Channel này đã bị lưu trữ, không thể tham gia.';
+    }
     final raw = error.toString();
+    if (raw.contains('ALREADY_MEMBER')) {
+      return 'Thiết bị của bạn đã tham gia channel này.';
+    }
+    if (raw.contains('REQUEST_ALREADY_PENDING')) {
+      return 'Bạn đã gửi yêu cầu tham gia channel này và đang chờ chủ kênh duyệt.';
+    }
     if (raw.contains('QR_EXPIRED') || raw.contains('410')) {
       return 'Mã mời đã hết hạn. Hãy xin Owner một mã mời mới.';
     }

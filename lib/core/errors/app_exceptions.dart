@@ -17,7 +17,11 @@ class NetworkException extends AppException {
 class ApiException extends AppException {
   final int? statusCode;
 
-  const ApiException(super.message, {this.statusCode});
+  /// Mã lỗi nghiệp vụ từ body server (vd `ALREADY_MEMBER`,
+  /// `REQUEST_ALREADY_PENDING`) — dùng để map thông điệp tiếng Việt.
+  final String? errorCode;
+
+  const ApiException(super.message, {this.statusCode, this.errorCode});
 }
 
 /// Lỗi xác thực: thiếu hoặc sai device token (HTTP 401).

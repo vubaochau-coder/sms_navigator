@@ -248,9 +248,16 @@ class ApiClient {
           e,
         );
       }
+      String? errorCode;
+      final dynamic data = response.data;
+      if (data is Map) {
+        final dynamic err = data['error'];
+        if (err is String && err.isNotEmpty) errorCode = err;
+      }
       return ApiException(
         'Máy chủ trả về lỗi (HTTP ${response.statusCode}).',
         statusCode: response.statusCode,
+        errorCode: errorCode,
       );
     }
     AppLogger.w('ApiClient', 'Network error on ${e.requestOptions.uri}: ${e.message}');
