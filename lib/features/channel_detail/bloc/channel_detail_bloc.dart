@@ -8,6 +8,7 @@ import '../../../core/repositories/channel_repository.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_detail_event.dart';
 import 'channel_detail_state.dart';
+import 'channel_invite_bloc.dart';
 
 export 'channel_detail_event.dart';
 export 'channel_detail_state.dart';
@@ -32,11 +33,13 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       _repository.getMembers(state.channelId),
       _repository.listPendingRequests(state.channelId),
     ]);
+    final pending = results[2] as List<PairingRequestModel>;
+    ChannelInviteBloc.invalidateIfConsumed(state.channelId, pending);
     emit(
       state.copyWith(
         detail: results[0] as ChannelDetailModel,
         members: results[1] as List<ChannelMemberModel>,
-        pendingRequests: results[2] as List<PairingRequestModel>,
+        pendingRequests: pending,
         isLoading: false,
       ),
     );

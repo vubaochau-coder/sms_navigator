@@ -11,13 +11,20 @@ class PairingSessionModel extends Equatable {
   final String pairingToken;
   final String expiresAt;
   final String inviteUrl;
+  final DateTime? createdAt;
 
   const PairingSessionModel({
     required this.sessionId,
     required this.pairingToken,
     required this.expiresAt,
     required this.inviteUrl,
+    this.createdAt,
   });
+
+  DateTime get effectiveCreatedAt =>
+      createdAt ??
+      (DateTime.tryParse(expiresAt)?.subtract(const Duration(minutes: 10)) ??
+          DateTime.now());
 
   bool get isExpired {
     final deadline = DateTime.tryParse(expiresAt);
@@ -31,11 +38,12 @@ class PairingSessionModel extends Equatable {
       pairingToken: DataConverter.cvToString(map['pairing_token'], '')!,
       expiresAt: DataConverter.cvToString(map['expires_at'], '')!,
       inviteUrl: DataConverter.cvToString(map['invite_url'], '')!,
+      createdAt: DateTime.now(),
     );
   }
 
   @override
-  List<Object?> get props => [sessionId, pairingToken, expiresAt, inviteUrl];
+  List<Object?> get props => [sessionId, pairingToken, expiresAt, inviteUrl, createdAt];
 }
 
 /// Invite URL v4 sau khi parse (SRD 3.4 — không chứa key/credential dài hạn):

@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/pairing_request_model.dart';
 import '../../../core/models/pairing_session_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/utils/toast_utils.dart';
@@ -41,8 +42,33 @@ class ChannelInviteBloc extends Bloc<ChannelInviteEvent, ChannelInviteState> {
     return null;
   }
 
+  static PairingSessionModel? activeSession(String channelId) =>
+      _activeSession(channelId);
+
   static void invalidateCache(String channelId) {
     _activeSessions.remove(channelId);
+  }
+
+  /// Hủy cache nếu có bất kỳ pending request nào được gửi tại/sau thời điểm tạo cached session.
+  /// (QR code đã được quét và gửi yêu cầu, không còn UNUSED trên server).
+  static void invalidateIfConsumed(
+    String channelId,
+    List<PairingRequestModel> pendingRequests,
+  ) {
+    final session = _activeSessions[channelId];
+    if (session == null) return;
+    final sessionCreated = session.effectiveCreatedAt;
+    final hasConsumedRequest = pendingRequests.any((req) {
+      final reqCreated = DateTime.tryParse(req.createdAt);
+      if (reqCreated == null) return false;
+      // Trừ 5 giây đệm cho sai lệch đồng hồ client/server
+      return reqCreated.isAfter(
+        sessionCreated.subtract(const Duration(seconds: 5)),
+      );
+    });
+    if (hasConsumedRequest) {
+      _activeSessions.remove(channelId);
+    }
   }
 
   Future<void> _createSession(Emitter<ChannelInviteState> emit) async {
