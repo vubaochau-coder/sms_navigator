@@ -185,6 +185,26 @@ void main() {
       expect(storage.deviceToken, 'new_token_123');
       expect(apiClient.lastPostPath, ApiEndpoints.registerDeviceV2);
     });
+
+    test('generates new UUID v4 if existing storage deviceId is not a valid UUID', () async {
+      storage.deviceId = 'legacy_non_uuid_123';
+      apiClient.postResponse = {
+        'success': true,
+        'device_id': '00000000-0000-4000-8000-000000000000',
+        'device_token': 'new_token_123',
+      };
+
+      await service.registerDevice(
+        deviceName: 'Pixel 8',
+        platform: 'android',
+      );
+
+      final postedBody = apiClient.lastPostBody as Map<String, dynamic>;
+      final sentDeviceId = postedBody['device_id'] as String;
+      expect(sentDeviceId, isNot('legacy_non_uuid_123'));
+      expect(sentDeviceId.length, 36);
+      expect(sentDeviceId[14], '4');
+    });
   });
 
   group('DeviceApiServiceImpl - updateDeviceName & updateFcmToken', () {

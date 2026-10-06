@@ -37,7 +37,7 @@ class DeviceApiServiceImpl implements DeviceApiService {
     }
 
     final existingId = await storageService.getDeviceId();
-    final deviceId = existingId ?? _generateUuidV4();
+    final deviceId = (_isValidUuid(existingId) ? existingId : null) ?? _generateUuidV4();
 
     final body = <String, dynamic>{
       'device_id': deviceId,
@@ -114,6 +114,20 @@ class DeviceApiServiceImpl implements DeviceApiService {
     } on UnauthorizedException {
       return false;
     }
+  }
+
+  bool _isValidUuid(String? id) {
+    if (id == null || id.length != 36) return false;
+    if (id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-') return false;
+    for (var i = 0; i < 36; i++) {
+      if (i == 8 || i == 13 || i == 18 || i == 23) continue;
+      final code = id.codeUnitAt(i);
+      final isHex = (code >= 48 && code <= 57) ||
+          (code >= 65 && code <= 70) ||
+          (code >= 97 && code <= 102);
+      if (!isHex) return false;
+    }
+    return true;
   }
 
   String _generateUuidV4() {
