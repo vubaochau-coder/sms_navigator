@@ -23,10 +23,6 @@ class SmsDetailPage extends StatelessWidget {
     );
   }
 
-  /// Tương thích ngược với các lời gọi cũ qua bottom sheet.
-  static Future<void> show(BuildContext context, ChannelMessageModel message) =>
-      navigate(context, message);
-
   void _copy(BuildContext context, String content) {
     ToastUtils.copyToClipboard(
       content,
