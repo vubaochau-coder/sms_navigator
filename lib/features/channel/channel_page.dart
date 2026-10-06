@@ -18,14 +18,10 @@ class ChannelPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (ctx) {
-        JoinChannelRepository? joinRepo;
-        try {
-          joinRepo = ctx.read<JoinChannelRepository>();
-        } catch (_) {}
+      create: (context) {
         return ChannelBloc(
-          repository: ctx.read<ChannelRepository>(),
-          joinRepository: joinRepo,
+          repository: context.read<ChannelRepository>(),
+          joinRepository: context.read<JoinChannelRepository>(),
         )..add(const ChannelLoadDataEvent());
       },
       child: const _ChannelPageView(),

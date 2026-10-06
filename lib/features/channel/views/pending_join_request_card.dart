@@ -108,7 +108,11 @@ class PendingJoinRequestCard extends StatelessWidget {
     );
     if (confirmed && context.mounted) {
       context.read<ChannelBloc>().add(
-        ChannelPendingJoinCancelled(request.requestId),
+        ChannelPendingJoinCancelled(
+          request.requestId,
+          successMessage: l10n.channelCancelRequestSuccess,
+          errorMessage: l10n.channelCancelRequestFailed,
+        ),
       );
     }
   }

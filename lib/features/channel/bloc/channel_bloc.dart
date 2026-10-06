@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/channel_model.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/repositories/join_channel_repository.dart';
@@ -37,16 +38,22 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
   ) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
-      final channels = await _repository.listChannels();
-      List<PairingRequestModel> pendingRequests = [];
-      if (_joinRepository != null) {
-        try {
-          final requests = await _joinRepository.listMyRequests();
-          pendingRequests = requests.where((r) => r.isPending).toList();
-        } catch (_) {
-          pendingRequests = state.pendingJoinRequests;
-        }
-      }
+      final channelsFuture = _repository.listChannels();
+      bool requestsFailed = false;
+      final requestsFuture = _joinRepository != null
+          ? _joinRepository.listMyRequests().catchError((_) {
+              requestsFailed = true;
+              return <PairingRequestModel>[];
+            })
+          : Future.value(<PairingRequestModel>[]);
+
+      final results = await Future.wait([channelsFuture, requestsFuture]);
+      final channels = results[0] as List<ChannelModel>;
+      final requests = results[1] as List<PairingRequestModel>;
+      final pendingRequests = requestsFailed
+          ? state.pendingJoinRequests
+          : requests.where((r) => r.isPending).toList();
+
       emit(
         state.copyWith(
           isLoading: false,
@@ -125,9 +132,13 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
           .where((r) => r.requestId != event.requestId)
           .toList();
       emit(state.copyWith(pendingJoinRequests: updatedPending));
-      ToastUtils.showSuccess('Đã hủy yêu cầu tham gia');
+      ToastUtils.showSuccess(
+        event.successMessage ?? 'Đã hủy yêu cầu tham gia kênh',
+      );
     } catch (error) {
-      ToastUtils.showError('Không hủy được yêu cầu. Thử lại sau.');
+      ToastUtils.showError(
+        event.errorMessage ?? 'Không hủy được yêu cầu. Thử lại sau.',
+      );
     }
   }
 }

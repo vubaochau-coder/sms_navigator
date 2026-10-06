@@ -104,42 +104,53 @@ class JoinedChannelListView extends StatelessWidget {
           onRefresh: () async {
             context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
           },
-          child: ListView(
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 96),
-            children: [
+            slivers: [
+              const SliverPadding(padding: EdgeInsets.only(top: 8)),
               if (hasPending) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text(
-                    l10n.channelPendingRequestsHeader(
-                      state.pendingJoinRequests.length,
-                    ),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.primary,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                    child: Text(
+                      l10n.channelPendingRequestsHeader(
+                        state.pendingJoinRequests.length,
+                      ),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),
-                ...state.pendingJoinRequests.map(
-                  (req) => PendingJoinRequestCard(request: req),
+                SliverList.builder(
+                  itemCount: state.pendingJoinRequests.length,
+                  itemBuilder: (context, index) => PendingJoinRequestCard(
+                    request: state.pendingJoinRequests[index],
+                  ),
                 ),
               ],
               if (hasJoined) ...[
                 if (hasPending)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: Text(
-                      l10n.channelJoinedSectionTitle,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                      child: Text(
+                        l10n.channelJoinedSectionTitle,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ...state.joinedChannels.map(
-                  (ch) => ChannelCardView(channel: ch),
+                SliverList.builder(
+                  itemCount: state.joinedChannels.length,
+                  itemBuilder: (context, index) => ChannelCardView(
+                    channel: state.joinedChannels[index],
+                  ),
                 ),
               ],
+              const SliverPadding(padding: EdgeInsets.only(bottom: 96)),
             ],
           ),
         );

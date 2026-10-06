@@ -35,9 +35,15 @@ class DeviceRenamed extends ChannelEvent {
 /// Hủy yêu cầu tham gia kênh đang chờ duyệt.
 class ChannelPendingJoinCancelled extends ChannelEvent {
   final String requestId;
+  final String? successMessage;
+  final String? errorMessage;
 
-  const ChannelPendingJoinCancelled(this.requestId);
+  const ChannelPendingJoinCancelled(
+    this.requestId, {
+    this.successMessage,
+    this.errorMessage,
+  });
 
   @override
-  List<Object?> get props => [requestId];
+  List<Object?> get props => [requestId, successMessage, errorMessage];
 }
