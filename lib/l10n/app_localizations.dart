@@ -1714,6 +1714,30 @@ abstract class AppLocalizations {
   /// **'Sao chép link'**
   String get channelDetailInviteCopyLink;
 
+  /// No description provided for @channelDetailInviteSaveQr.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu mã QR'**
+  String get channelDetailInviteSaveQr;
+
+  /// No description provided for @channelDetailInviteSaveQrSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã lưu mã QR vào thư viện ảnh'**
+  String get channelDetailInviteSaveQrSuccess;
+
+  /// No description provided for @channelDetailInviteSaveQrFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lưu mã QR. Vui lòng thử lại sau.'**
+  String get channelDetailInviteSaveQrFailed;
+
+  /// No description provided for @channelDetailInviteSaveQrPermissionDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ứng dụng cần quyền truy cập ảnh để lưu mã QR'**
+  String get channelDetailInviteSaveQrPermissionDenied;
+
   /// No description provided for @channelDetailInviteCreateAction.
   ///
   /// In vi, this message translates to:

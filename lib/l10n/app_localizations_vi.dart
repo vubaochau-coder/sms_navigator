@@ -925,5 +925,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get channelDetailInviteCopyLink => 'Sao chép link';
 
   @override
+  String get channelDetailInviteSaveQr => 'Lưu mã QR';
+
+  @override
+  String get channelDetailInviteSaveQrSuccess =>
+      'Đã lưu mã QR vào thư viện ảnh';
+
+  @override
+  String get channelDetailInviteSaveQrFailed =>
+      'Không thể lưu mã QR. Vui lòng thử lại sau.';
+
+  @override
+  String get channelDetailInviteSaveQrPermissionDenied =>
+      'Ứng dụng cần quyền truy cập ảnh để lưu mã QR';
+
+  @override
   String get channelDetailInviteCreateAction => 'Tạo mã mời QR';
 }

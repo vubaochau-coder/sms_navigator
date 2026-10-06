@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/extensions/context_extensions.dart';
@@ -40,6 +42,86 @@ class InviteBottomSheet extends StatefulWidget {
 class _InviteBottomSheetState extends State<InviteBottomSheet> {
   Timer? _ticker;
   Duration _remaining = Duration.zero;
+  bool _isSaving = false;
+
+  Future<void> _saveQr(String inviteUrl) async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    final l10n = context.l10n;
+    try {
+      final hasAccess = await Gal.hasAccess();
+      if (!hasAccess) {
+        final granted = await Gal.requestAccess();
+        if (!granted) {
+          if (mounted) {
+            ToastUtils.showError(
+              l10n.channelDetailInviteSaveQrPermissionDenied,
+              context: context,
+            );
+          }
+          return;
+        }
+      }
+
+      final qrPainter = QrPainter(
+        data: inviteUrl,
+        version: QrVersions.auto,
+        gapless: true,
+        eyeStyle: const QrEyeStyle(
+          eyeShape: QrEyeShape.square,
+          color: Color(0xFF000000),
+        ),
+        dataModuleStyle: const QrDataModuleStyle(
+          dataModuleShape: QrDataModuleShape.square,
+          color: Color(0xFF000000),
+        ),
+      );
+
+      const totalSize = 600.0;
+      const margin = 32.0;
+      const qrSize = totalSize - margin * 2;
+
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      canvas.drawRect(
+        const Rect.fromLTWH(0, 0, totalSize, totalSize),
+        Paint()..color = const Color(0xFFFFFFFF),
+      );
+      canvas.save();
+      canvas.translate(margin, margin);
+      qrPainter.paint(canvas, const Size(qrSize, qrSize));
+      canvas.restore();
+
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(totalSize.toInt(), totalSize.toInt());
+      final picData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (picData == null) {
+        throw Exception('Failed to generate QR image');
+      }
+      final bytes = picData.buffer.asUint8List();
+      await Gal.putImageBytes(
+        bytes,
+        name: 'sms_navigator_qr_${DateTime.now().millisecondsSinceEpoch}',
+      );
+      if (mounted) {
+        ToastUtils.showSuccess(
+          l10n.channelDetailInviteSaveQrSuccess,
+          context: context,
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ToastUtils.showError(
+          l10n.channelDetailInviteSaveQrFailed,
+          context: context,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -270,15 +352,21 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                       child: SizedBox(
                         height: 48,
                         child: FilledButton.icon(
-                          onPressed: () => ToastUtils.copyToClipboard(
-                            session.inviteUrl,
-                            context: context,
-                            successMessage:
-                                l10n.channelDetailInviteCopySuccess,
-                          ),
-                          icon: const Icon(Icons.copy_rounded, size: 18),
+                          onPressed: _isSaving
+                              ? null
+                              : () => _saveQr(session.inviteUrl),
+                          icon: _isSaving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.download_rounded, size: 18),
                           label: Text(
-                            l10n.channelDetailInviteCopyLink,
+                            l10n.channelDetailInviteSaveQr,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

@@ -440,5 +440,9 @@
   "channelDetailInviteRegenerate": "Tạo lại mã",
   "channelDetailInviteCopySuccess": "Đã sao chép liên kết mời",
   "channelDetailInviteCopyLink": "Sao chép link",
+  "channelDetailInviteSaveQr": "Lưu mã QR",
+  "channelDetailInviteSaveQrSuccess": "Đã lưu mã QR vào thư viện ảnh",
+  "channelDetailInviteSaveQrFailed": "Không thể lưu mã QR. Vui lòng thử lại sau.",
+  "channelDetailInviteSaveQrPermissionDenied": "Ứng dụng cần quyền truy cập ảnh để lưu mã QR",
   "channelDetailInviteCreateAction": "Tạo mã mời QR"
 }
