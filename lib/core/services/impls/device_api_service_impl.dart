@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:dio/dio.dart';
+
 import '../../constants/api_endpoints.dart';
+import '../../errors/app_exceptions.dart';
 import '../../network/api_client.dart';
 import '../../utils/data_converter.dart';
 import '../device_api_service.dart';
@@ -20,11 +23,13 @@ class DeviceApiServiceImpl implements DeviceApiService {
   static const String _registerPath = ApiEndpoints.registerDeviceV2;
   static const String _fcmTokenPath = ApiEndpoints.updateFcmTokenV2;
   static const String _updateNamePath = ApiEndpoints.updateDeviceNameV2;
+  static const String _getDeviceMePath = ApiEndpoints.getDeviceMeV2;
 
   @override
   Future<Map<String, dynamic>> registerDevice({
     required String deviceName,
     required String platform,
+    CancelToken? cancelToken,
   }) async {
     final publicKey = await publicKeyProvider();
     if (publicKey.isEmpty) {
@@ -42,7 +47,11 @@ class DeviceApiServiceImpl implements DeviceApiService {
       'fcm_token': await storageService.getFcmToken(),
     }..removeWhere((_, v) => v == null);
 
-    final data = await apiClient.post(_registerPath, body: body);
+    final data = await apiClient.post(
+      _registerPath,
+      body: body,
+      cancelToken: cancelToken,
+    );
     final payload = DataConverter.cvToMap<String, dynamic>(data) ?? {};
 
     final serverDeviceId =
@@ -76,6 +85,35 @@ class DeviceApiServiceImpl implements DeviceApiService {
       body: <String, dynamic>{'device_name': deviceName},
     );
     await storageService.saveDeviceName(deviceName);
+  }
+
+  @override
+  Future<bool> verifyDeviceToken({CancelToken? cancelToken}) async {
+    final token = await storageService.getDeviceToken();
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    try {
+      final data = await apiClient.get(
+        _getDeviceMePath,
+        cancelToken: cancelToken,
+      );
+      final payload = DataConverter.cvToMap<String, dynamic>(data);
+      if (payload != null && payload['success'] == true) {
+        final serverName = DataConverter.cvToString(payload['device_name']);
+        if (serverName != null && serverName.isNotEmpty) {
+          await storageService.saveDeviceName(serverName);
+        }
+        return true;
+      }
+      throw ApiException(
+        'Phản hồi từ máy chủ không hợp lệ khi kiểm tra thiết bị.',
+        statusCode: 200,
+      );
+    } on UnauthorizedException {
+      return false;
+    }
   }
 
   String _generateUuidV4() {

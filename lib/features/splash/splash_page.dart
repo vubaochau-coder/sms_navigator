@@ -133,11 +133,7 @@ class _SplashViewState extends State<_SplashView>
     return BlocConsumer<SplashBloc, SplashState>(
       listener: (context, state) {
         if (state.isReady) {
-          Future<void>.delayed(const Duration(milliseconds: 300), () {
-            if (context.mounted) {
-              _navigateToMain(context);
-            }
-          });
+          _navigateToMain(context);
         }
       },
       builder: (context, state) {
@@ -226,56 +222,62 @@ class _SplashViewState extends State<_SplashView>
                         textAlign: TextAlign.center,
                       ),
                     ] else ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: colorScheme.errorContainer.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: colorScheme.error.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.wifi_off_rounded,
-                              color: colorScheme.error,
-                              size: 36,
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              l10n.splashConnectionError(
-                                state.errorMessage ?? '',
-                              ),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onErrorContainer,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: FilledButton.icon(
-                                onPressed: () {
-                                  context.read<SplashBloc>().add(
-                                    SplashRetried(
-                                      defaultDeviceName:
-                                          l10n.splashDefaultDeviceName,
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: Text(l10n.splashRetry),
+                      Builder(
+                        builder: (context) {
+                          final msg = state.errorMessage ?? '';
+                          final isNetwork = msg.toLowerCase().contains('kết nối') ||
+                              msg.toLowerCase().contains('mạng') ||
+                              msg.toLowerCase().contains('timeout');
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colorScheme.errorContainer.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: colorScheme.error.withValues(alpha: 0.3),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () => _navigateToMain(context),
-                              child: Text(l10n.splashSkipOffline),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  isNetwork
+                                      ? Icons.wifi_off_rounded
+                                      : Icons.cloud_off_rounded,
+                                  color: colorScheme.error,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  msg.isNotEmpty
+                                      ? msg
+                                      : l10n.splashConnectionError(''),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: FilledButton.icon(
+                                    onPressed: () {
+                                      context.read<SplashBloc>().add(
+                                        SplashRetried(
+                                          defaultDeviceName:
+                                              l10n.splashDefaultDeviceName,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.refresh_rounded),
+                                    label: Text(l10n.splashRetry),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ],
 

@@ -21,10 +21,11 @@ class SplashState extends Equatable {
   SplashState copyWith({
     SplashStatus? status,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return SplashState(
       status: status ?? this.status,
-      errorMessage: errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 

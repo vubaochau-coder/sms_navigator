@@ -22,6 +22,7 @@ class ApiEndpoints {
   static const String registerDeviceV2 = '/api/v2/devices/register';
   static const String updateDeviceNameV2 = '/api/v2/devices/name';
   static const String updateFcmTokenV2 = '/api/v2/devices/fcm-token';
+  static const String getDeviceMeV2 = '/api/v2/devices/me';
 
   // --- Channels v2 ---
   static const String createChannelV2 = '/api/v2/channels';
