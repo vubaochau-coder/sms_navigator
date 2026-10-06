@@ -880,6 +880,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get channelDetailMemberRevokedStatus => 'Đã thu hồi';
 
   @override
+  String get channelDetailMemberOwner => 'Owner';
+
+  @override
   String get channelDetailRevokeTooltip => 'Thu hồi';
 
   @override

@@ -8,9 +8,14 @@ import '../bloc/channel_detail_bloc.dart';
 
 /// Widget hiển thị thông tin và hành động của một thành viên kênh.
 class MemberItem extends StatelessWidget {
-  const MemberItem({super.key, required this.member});
+  const MemberItem({
+    super.key,
+    required this.member,
+    this.isOwner = false,
+  });
 
   final ChannelMemberModel member;
+  final bool isOwner;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +60,34 @@ class MemberItem extends StatelessWidget {
             ],
           ),
         ),
-        if (member.isActive)
+        if (isOwner)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.workspace_premium_rounded,
+                  size: 12,
+                  color: colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.channelDetailMemberOwner,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // Owner không thể tự thu hồi chính mình (server từ chối — API spec §4.6)
+        if (member.isActive && !isOwner)
           IconButton(
             tooltip: l10n.channelDetailRevokeTooltip,
             iconSize: 20,

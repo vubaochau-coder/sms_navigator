@@ -1636,6 +1636,12 @@ abstract class AppLocalizations {
   /// **'Đã thu hồi'**
   String get channelDetailMemberRevokedStatus;
 
+  /// No description provided for @channelDetailMemberOwner.
+  ///
+  /// In vi, this message translates to:
+  /// **'Owner'**
+  String get channelDetailMemberOwner;
+
   /// No description provided for @channelDetailRevokeTooltip.
   ///
   /// In vi, this message translates to:

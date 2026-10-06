@@ -417,6 +417,7 @@
     }
   },
   "channelDetailMemberRevokedStatus": "Đã thu hồi",
+  "channelDetailMemberOwner": "Owner",
   "channelDetailRevokeTooltip": "Thu hồi",
   "channelDetailRevokeDialogTitle": "Thu hồi thành viên?",
   "channelDetailRevokeDialogMessage": "Thu hồi \"{deviceName}\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.",

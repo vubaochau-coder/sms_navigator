@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/extensions/context_extensions.dart';
-import '../../../core/models/channel_member_model.dart';
 import '../bloc/channel_detail_bloc.dart';
 import 'member_item.dart';
 
@@ -14,9 +13,10 @@ class MembersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ChannelDetailBloc, ChannelDetailState, List<ChannelMemberModel>>(
-      selector: (state) => state.members,
-      builder: (context, members) {
+    return BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
+      builder: (context, state) {
+        final members = state.members;
+        final ownerDeviceId = state.detail?.ownerDeviceId ?? '';
         final l10n = context.l10n;
         final textTheme = Theme.of(context).textTheme;
 
@@ -41,6 +41,7 @@ class MembersView extends StatelessWidget {
                   separatorBuilder: (_, _) => const SizedBox(height: 16),
                   itemBuilder: (context, index) => MemberItem(
                     member: members[index],
+                    isOwner: members[index].deviceId == ownerDeviceId,
                   ),
                 ),
               ],
