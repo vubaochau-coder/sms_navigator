@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/pairing_session_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_invite_event.dart';
@@ -18,17 +19,37 @@ class ChannelInviteBloc extends Bloc<ChannelInviteEvent, ChannelInviteState> {
     required ChannelRepository repository,
     required String channelId,
   })  : _repository = repository,
-        super(ChannelInviteState(channelId: channelId)) {
+        super(ChannelInviteState(
+          channelId: channelId,
+          session: _activeSession(channelId),
+        )) {
     on<ChannelInviteStarted>(_onStarted, transformer: droppable());
     on<ChannelInviteRegenerated>(_onRegenerated, transformer: droppable());
   }
 
   final ChannelRepository _repository;
 
+  /// Cache in-memory session còn hiệu lực theo kênh để giữ mã QR khi đóng/mở lại Sheet
+  static final Map<String, PairingSessionModel> _activeSessions = {};
+
+  static PairingSessionModel? _activeSession(String channelId) {
+    final cached = _activeSessions[channelId];
+    if (cached != null && !cached.isExpired) {
+      return cached;
+    }
+    _activeSessions.remove(channelId);
+    return null;
+  }
+
+  static void invalidateCache(String channelId) {
+    _activeSessions.remove(channelId);
+  }
+
   Future<void> _createSession(Emitter<ChannelInviteState> emit) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
       final session = await _repository.createPairingSession(state.channelId);
+      _activeSessions[state.channelId] = session;
       emit(state.copyWith(isLoading: false, session: session));
     } catch (error) {
       const msg = 'Không tạo được mã mời. Thử lại sau.';
