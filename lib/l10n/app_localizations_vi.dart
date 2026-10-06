@@ -392,6 +392,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Căn chỉnh mã QR từ Máy Gửi vào giữa khung hình để hoàn tất ghép đôi';
 
   @override
+  String get deviceProfileTitle => 'Thông tin & Thiết lập thiết bị';
+
+  @override
   String get deviceSetupTitle => 'Thiết Lập Thiết Bị';
 
   @override

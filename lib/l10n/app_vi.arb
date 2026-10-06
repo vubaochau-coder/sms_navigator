@@ -172,6 +172,7 @@
   "grantPermissionAction": "Cấp Quyền",
   "scannerTitle": "Quét Mã Ghép Đôi",
   "scannerAlignGuide": "Căn chỉnh mã QR từ Máy Gửi vào giữa khung hình để hoàn tất ghép đôi",
+  "deviceProfileTitle": "Thông tin & Thiết lập thiết bị",
   "deviceSetupTitle": "Thiết Lập Thiết Bị",
   "deviceSetupGuide": "Hoàn tất các bước dưới đây để máy luôn bắt được SMS OTP và chuyển tiếp ổn định, kể cả khi ứng dụng bị đóng.",
   "stepSmsPermissionTitle": "1. Quyền đọc tin nhắn SMS",

@@ -6,11 +6,11 @@ import '../bloc/device_profile_cubit.dart';
 import '../bloc/device_profile_state.dart';
 import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_state.dart';
-import 'device_profile_bottom_sheet.dart';
+import '../device_profile_page.dart';
 
 /// Nút hiển thị thông tin thiết bị dạng icon gọn trên AppBar (không show tên).
 /// Chấm tròn nhỏ góc biểu tượng thể hiện trạng thái hoạt động (🟢 Xanh = Đầy đủ quyền, 🟠 Vàng = Cần chú ý).
-/// Bấm vào mở BottomSheet đầy đủ để xem tên thiết bị, đổi tên, sao chép ID, kiểm tra quyền & theme.
+/// Bấm vào mở màn hình thiết lập để xem tên thiết bị, đổi tên, sao chép ID, kiểm tra quyền & theme.
 class DeviceProfileButton extends StatelessWidget {
   const DeviceProfileButton({super.key});
 
@@ -30,7 +30,7 @@ class DeviceProfileButton extends StatelessWidget {
               tooltip: profileState.deviceName.isNotEmpty
                   ? profileState.deviceName
                   : 'Thông tin & Thiết lập thiết bị',
-              onPressed: () => DeviceProfileBottomSheet.show(context),
+              onPressed: () => DeviceProfilePage.navigate(context),
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [

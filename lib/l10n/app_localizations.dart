@@ -784,6 +784,12 @@ abstract class AppLocalizations {
   /// **'Căn chỉnh mã QR từ Máy Gửi vào giữa khung hình để hoàn tất ghép đôi'**
   String get scannerAlignGuide;
 
+  /// No description provided for @deviceProfileTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin & Thiết lập thiết bị'**
+  String get deviceProfileTitle;
+
   /// No description provided for @deviceSetupTitle.
   ///
   /// In vi, this message translates to:
