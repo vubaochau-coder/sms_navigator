@@ -3,7 +3,7 @@ import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_message_model.dart';
 import '../../../core/utils/date_time_utils.dart';
 import '../../../core/utils/toast_utils.dart';
-import 'sms_detail_bottom_sheet.dart';
+import '../sms_detail_page.dart';
 
 class SmsTileView extends StatelessWidget {
   const SmsTileView({super.key, required this.message});
@@ -23,7 +23,7 @@ class SmsTileView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => SmsDetailBottomSheet.show(context, message),
+        onTap: () => SmsDetailPage.navigate(context, message),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

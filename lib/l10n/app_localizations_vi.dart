@@ -650,6 +650,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get smsPageTitle => 'SMS';
 
   @override
+  String get smsDetailTitle => 'Chi tiết tin nhắn';
+
+  @override
   String get smsRefreshTooltip => 'Làm mới';
 
   @override
