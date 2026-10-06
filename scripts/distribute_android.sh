@@ -13,14 +13,14 @@ FIREBASE_APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
 PROJECT_ID="sms-navigator-relay-81229"
 
 RELEASE_NOTES="${1:-"Bản cập nhật tính năng: Ghép đôi bằng QR Code E2EE & In-App Scanner"}"
-GROUPS="${2:-"internal-dev"}"
+TESTER_GROUPS="${2:-"internal-dev"}"
 
 echo "=========================================================="
 echo "🚀 BẮT ĐẦU QUY TRÌNH PHÂN PHỐI QUA FIREBASE APP TESTER"
 echo "=========================================================="
 echo "• Project ID:    $PROJECT_ID"
 echo "• App ID:        $FIREBASE_APP_ID"
-echo "• Nhóm Tester:   $GROUPS"
+echo "• Nhóm Tester:   $TESTER_GROUPS"
 echo "• Release Notes: $RELEASE_NOTES"
 echo "----------------------------------------------------------"
 
@@ -38,11 +38,11 @@ echo "📤 [2/3] Đang tải lên Firebase App Distribution..."
 npx -y firebase-tools@latest appdistribution:distribute "$APK_PATH" \
   --app "$FIREBASE_APP_ID" \
   --project "$PROJECT_ID" \
-  --groups "$GROUPS" \
+  --groups "$TESTER_GROUPS" \
   --release-notes "$RELEASE_NOTES"
 
 echo "----------------------------------------------------------"
 echo "🎉 [3/3] HOÀN TẤT PHÂN PHỐI THÀNH CÔNG!"
-echo "👉 Tester trong nhóm '$GROUPS' sẽ nhận được thông báo trên ứng dụng Firebase App Tester."
+echo "👉 Tester trong nhóm '$TESTER_GROUPS' sẽ nhận được thông báo trên ứng dụng Firebase App Tester."
 echo "👉 Console quản lý: https://console.firebase.google.com/project/$PROJECT_ID/appdistribution"
 echo "=========================================================="
