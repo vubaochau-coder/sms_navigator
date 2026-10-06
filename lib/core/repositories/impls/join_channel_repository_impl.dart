@@ -1,30 +1,34 @@
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
-import '../../services/channel_api_client.dart';
+import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_storage_service.dart';
+import '../../services/pairing_api_service.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../join_channel_repository.dart';
 
 class JoinChannelRepositoryImpl implements JoinChannelRepository {
   JoinChannelRepositoryImpl({
-    required ChannelApiClient apiClient,
+    required ChannelApiService channelApiService,
+    required PairingApiService pairingApiService,
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
     required DeviceStorageService deviceStorage,
-  }) : _api = apiClient,
+  }) : _channelApi = channelApiService,
+       _pairingApi = pairingApiService,
        _keyStore = keyStore,
        _crypto = cryptoHelper,
        _deviceStorage = deviceStorage;
 
-  final ChannelApiClient _api;
+  final ChannelApiService _channelApi;
+  final PairingApiService _pairingApi;
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
   final DeviceStorageService _deviceStorage;
 
   @override
   Future<ClaimRequestResultModel> submitJoinRequest(InvitePayload invite) =>
-      _api.claimPairingRequest(
+      _pairingApi.claimPairingRequest(
         sessionId: invite.sessionId,
         pairingToken: invite.pairingToken,
         deviceName: '',
@@ -34,18 +38,18 @@ class JoinChannelRepositoryImpl implements JoinChannelRepository {
   Future<ClaimRequestResultModel> claim({
     required InvitePayload invite,
     required String deviceName,
-  }) => _api.claimPairingRequest(
+  }) => _pairingApi.claimPairingRequest(
     sessionId: invite.sessionId,
     pairingToken: invite.pairingToken,
     deviceName: deviceName,
   );
 
   @override
-  Future<List<PairingRequestModel>> listMyRequests() => _api.listMyRequests();
+  Future<List<PairingRequestModel>> listMyRequests() => _pairingApi.listMyRequests();
 
   @override
   Future<void> cancelRequest(String requestId) =>
-      _api.cancelPairingRequest(requestId: requestId);
+      _pairingApi.cancelPairingRequest(requestId: requestId);
 
   @override
   Future<int?> provisionChannelKey({
@@ -57,7 +61,7 @@ class JoinChannelRepositoryImpl implements JoinChannelRepository {
     final deviceId = await _deviceStorage.getDeviceId();
     if (deviceId == null || deviceId.isEmpty) return null;
 
-    final envelope = await _api.getKeyEnvelope(channelId: channelId);
+    final envelope = await _channelApi.getKeyEnvelope(channelId: channelId);
     final alreadyProvisioned = await _keyStore.getChannelKey(
       channelId: channelId,
       epoch: envelope.keyEpoch,
@@ -83,7 +87,7 @@ class JoinChannelRepositoryImpl implements JoinChannelRepository {
 
   @override
   Future<int?> provisionLatestForApproved({required String channelId}) async {
-    final detail = await _api.getChannelDetail(channelId: channelId);
+    final detail = await _channelApi.getChannelDetail(channelId: channelId);
     if (detail.ownerPublicKey.isEmpty) return null;
     return provisionChannelKey(
       channelId: channelId,

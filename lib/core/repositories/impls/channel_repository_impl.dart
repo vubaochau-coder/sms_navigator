@@ -8,9 +8,11 @@ import '../../models/channel_model.dart';
 import '../../models/key_envelope_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
-import '../../services/channel_api_client.dart';
+import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
+import '../../services/device_api_service.dart';
 import '../../services/device_storage_service.dart';
+import '../../services/pairing_api_service.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../channel_repository.dart';
 
@@ -27,16 +29,22 @@ class _MutationSnapshot extends Equatable {
 
 class ChannelRepositoryImpl implements ChannelRepository {
   ChannelRepositoryImpl({
-    required ChannelApiClient apiClient,
+    required ChannelApiService channelApiService,
+    required PairingApiService pairingApiService,
+    required DeviceApiService deviceApiService,
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
     required DeviceStorageService deviceStorage,
-  }) : _api = apiClient,
+  }) : _channelApi = channelApiService,
+       _pairingApi = pairingApiService,
+       _deviceApi = deviceApiService,
        _keyStore = keyStore,
        _crypto = cryptoHelper,
        _deviceStorage = deviceStorage;
 
-  final ChannelApiClient _api;
+  final ChannelApiService _channelApi;
+  final PairingApiService _pairingApi;
+  final DeviceApiService _deviceApi;
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
   final DeviceStorageService _deviceStorage;
@@ -44,23 +52,23 @@ class ChannelRepositoryImpl implements ChannelRepository {
   // ------------------------------------------------------------- Đọc state
 
   @override
-  Future<List<ChannelModel>> listChannels() => _api.listChannels();
+  Future<List<ChannelModel>> listChannels() => _channelApi.listChannels();
 
   @override
   Future<ChannelDetailModel> getChannelDetail(String channelId) =>
-      _api.getChannelDetail(channelId: channelId);
+      _channelApi.getChannelDetail(channelId: channelId);
 
   @override
   Future<List<ChannelMemberModel>> getMembers(String channelId) =>
-      _api.getChannelMembers(channelId: channelId);
+      _channelApi.getChannelMembers(channelId: channelId);
 
   @override
   Future<List<PairingRequestModel>> listPendingRequests(String channelId) =>
-      _api.listChannelRequests(channelId: channelId);
+      _pairingApi.listChannelRequests(channelId: channelId);
 
   Future<_MutationSnapshot> _loadSnapshot(String channelId) async {
-    final detail = await _api.getChannelDetail(channelId: channelId);
-    final members = await _api.getChannelMembers(channelId: channelId);
+    final detail = await _channelApi.getChannelDetail(channelId: channelId);
+    final members = await _channelApi.getChannelMembers(channelId: channelId);
     return _MutationSnapshot(
       detail: detail,
       activeMembers: members.where((m) => m.isActive).toList(),
@@ -132,7 +140,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
       receiverDeviceId: deviceId,
     );
 
-    final response = await _api.createChannel(
+    final response = await _channelApi.createChannel(
       name: name,
       channelId: channelId,
       package: PackageModel(
@@ -199,7 +207,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
       publicKeyByDeviceId: publicKeyByDeviceId,
     );
 
-    final response = await _api.approvePairingRequest(
+    final response = await _pairingApi.approvePairingRequest(
       requestId: request.requestId,
       package: PackageModel(
         baseEpoch: detail.currentEpoch,
@@ -219,7 +227,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
 
   @override
   Future<void> rejectRequest(String requestId) =>
-      _api.rejectPairingRequest(requestId: requestId);
+      _pairingApi.rejectPairingRequest(requestId: requestId);
 
   // ----------------------------------------------- T4 — revoke (auto-rotate)
 
@@ -250,7 +258,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
       publicKeyByDeviceId: publicKeyByDeviceId,
     );
 
-    final response = await _api.revokeMembers(
+    final response = await _channelApi.revokeMembers(
       channelId: channelId,
       revokeDeviceIds: revokeDeviceIds,
       package: PackageModel(
@@ -271,11 +279,11 @@ class ChannelRepositoryImpl implements ChannelRepository {
 
   @override
   Future<PairingSessionModel> createPairingSession(String channelId) =>
-      _api.createPairingSession(channelId: channelId);
+      _pairingApi.createPairingSession(channelId: channelId);
 
   @override
   Future<void> renameDevice(String deviceName) =>
-      _api.updateDeviceName(deviceName: deviceName);
+      _deviceApi.updateDeviceName(deviceName);
 
   @override
   Future<int?> provisionLatestChannelKey({
@@ -287,7 +295,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
     final deviceId = await _deviceStorage.getDeviceId();
     if (deviceId == null || deviceId.isEmpty) return null;
 
-    final envelope = await _api.getKeyEnvelope(channelId: channelId);
+    final envelope = await _channelApi.getKeyEnvelope(channelId: channelId);
     final channelKey = await _crypto.unwrapKeyEnvelope(
       wrappedKeyBase64: envelope.wrappedKey,
       nonceBase64: envelope.nonce,

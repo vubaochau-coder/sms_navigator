@@ -74,11 +74,17 @@ class ChannelApiServiceImpl implements ChannelApiService {
   }
 
   @override
-  Future<KeyEnvelopeModel> getKeyEnvelope({required String channelId}) async {
+  Future<KeyEnvelopeModel> getKeyEnvelope({
+    required String channelId,
+    int? epoch,
+  }) async {
     final data = _asMap(
       await apiClient.get(
         ApiEndpoints.channelKeyEnvelopeV2,
-        queryParameters: {'channel_id': channelId},
+        queryParameters: {
+          'channel_id': channelId,
+          if (epoch != null) 'epoch': '$epoch',
+        },
       ),
     );
     return KeyEnvelopeModel.fromMap(data);

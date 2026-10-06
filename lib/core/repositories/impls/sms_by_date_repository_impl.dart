@@ -1,21 +1,21 @@
 import 'package:dio/dio.dart';
 
 import '../../models/channel_message_model.dart';
-import '../../services/channel_api_client.dart';
 import '../../services/channel_key_store.dart';
+import '../../services/message_api_service.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../sms_by_date_repository.dart';
 
 class SmsByDateRepositoryImpl implements SmsByDateRepository {
   SmsByDateRepositoryImpl({
-    required ChannelApiClient apiClient,
+    required MessageApiService messageApiService,
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
-  }) : _api = apiClient,
+  }) : _messageApi = messageApiService,
        _keyStore = keyStore,
        _crypto = cryptoHelper;
 
-  final ChannelApiClient _api;
+  final MessageApiService _messageApi;
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
 
@@ -26,7 +26,7 @@ class SmsByDateRepositoryImpl implements SmsByDateRepository {
     CancelToken? cancelToken,
   }) async {
     final dateStr = _formatDate(date);
-    final fetched = await _api.fetchMessagesByDate(
+    final fetched = await _messageApi.fetchMessagesByDate(
       date: dateStr,
       tzOffset: tzOffsetMinutes,
       cancelToken: cancelToken,

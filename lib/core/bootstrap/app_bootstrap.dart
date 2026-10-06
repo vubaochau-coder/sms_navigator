@@ -13,22 +13,26 @@ import '../repositories/join_channel_repository.dart';
 import '../repositories/sms_by_date_repository.dart';
 import '../repositories/whitelist_repository.dart';
 import '../services/analytics_service.dart';
-import '../services/channel_api_client.dart';
+import '../services/channel_api_service.dart';
 import '../services/channel_key_store.dart';
 import '../services/crashlytics_service.dart';
 import '../services/device_api_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
-import '../services/impls/channel_api_client_impl.dart';
+import '../services/impls/channel_api_service_impl.dart';
 import '../services/impls/channel_key_store_impl.dart';
 import '../services/impls/device_api_service_impl.dart';
 import '../services/impls/device_setup_service_impl.dart';
 import '../services/impls/device_storage_service_impl.dart';
 import '../services/impls/fcm_notification_service_impl.dart';
+import '../services/impls/message_api_service_impl.dart';
 import '../services/impls/native_relay_service_impl.dart';
+import '../services/impls/pairing_api_service_impl.dart';
 import '../services/impls/startup_reconcile_service_impl.dart';
 import '../services/local_storage_service.dart';
+import '../services/message_api_service.dart';
 import '../services/native_relay_service.dart';
+import '../services/pairing_api_service.dart';
 import '../services/startup_reconcile_service.dart';
 import '../theme/theme_cubit.dart';
 import '../utils/channel_crypto_helper.dart';
@@ -126,13 +130,23 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // 7. Channel E2EE (API spec v1.5)
-        RepositoryProvider<ChannelApiClient>(
+        RepositoryProvider<ChannelApiService>(
           create: (context) =>
-              ChannelApiClientImpl(apiClient: context.read<ApiClient>()),
+              ChannelApiServiceImpl(apiClient: context.read<ApiClient>()),
+        ),
+        RepositoryProvider<PairingApiService>(
+          create: (context) =>
+              PairingApiServiceImpl(apiClient: context.read<ApiClient>()),
+        ),
+        RepositoryProvider<MessageApiService>(
+          create: (context) =>
+              MessageApiServiceImpl(apiClient: context.read<ApiClient>()),
         ),
         RepositoryProvider<ChannelRepository>(
           create: (context) => ChannelRepositoryImpl(
-            apiClient: context.read<ChannelApiClient>(),
+            channelApiService: context.read<ChannelApiService>(),
+            pairingApiService: context.read<PairingApiService>(),
+            deviceApiService: context.read<DeviceApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             deviceStorage: context.read<DeviceStorageService>(),
@@ -140,7 +154,8 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<JoinChannelRepository>(
           create: (context) => JoinChannelRepositoryImpl(
-            apiClient: context.read<ChannelApiClient>(),
+            channelApiService: context.read<ChannelApiService>(),
+            pairingApiService: context.read<PairingApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             deviceStorage: context.read<DeviceStorageService>(),
@@ -148,7 +163,7 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<SmsByDateRepository>(
           create: (context) => SmsByDateRepositoryImpl(
-            apiClient: context.read<ChannelApiClient>(),
+            messageApiService: context.read<MessageApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
           ),

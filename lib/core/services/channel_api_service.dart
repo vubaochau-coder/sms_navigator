@@ -19,7 +19,10 @@ abstract class ChannelApiService {
     required String channelId,
   });
 
-  Future<KeyEnvelopeModel> getKeyEnvelope({required String channelId});
+  Future<KeyEnvelopeModel> getKeyEnvelope({
+    required String channelId,
+    int? epoch,
+  });
 
   Future<Map<String, dynamic>> revokeMembers({
     required String channelId,

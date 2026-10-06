@@ -1,5 +1,4 @@
 export 'analytics_service.dart';
-export 'channel_api_client.dart';
 export 'channel_api_service.dart';
 export 'channel_key_store.dart';
 export 'crashlytics_service.dart';
@@ -16,7 +15,6 @@ export 'secure_storage_service.dart';
 export 'startup_reconcile_service.dart';
 
 // Implementations
-export 'impls/channel_api_client_impl.dart';
 export 'impls/channel_api_service_impl.dart';
 export 'impls/channel_key_store_impl.dart';
 export 'impls/device_api_service_impl.dart';
