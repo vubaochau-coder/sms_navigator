@@ -53,4 +53,23 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
       DialogUtils.closeLoading();
     }
   }
+
+  /// Xóa toàn bộ thông tin định danh, token và cấu hình thiết bị trên máy.
+  Future<bool> clearDeviceData() async {
+    DialogUtils.showLoading(message: 'Đang xóa dữ liệu thiết bị...');
+    try {
+      await _deviceStorage.clearAll();
+      emit(state.copyWith(
+        deviceId: '',
+        deviceName: '',
+      ));
+      ToastUtils.showSuccess('Đã xóa dữ liệu thiết bị');
+      return true;
+    } catch (e) {
+      ToastUtils.showError('Không thể xóa dữ liệu thiết bị. Thử lại sau.');
+      return false;
+    } finally {
+      DialogUtils.closeLoading();
+    }
+  }
 }

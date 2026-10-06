@@ -21,6 +21,19 @@ class _FakeDeviceStorageService implements DeviceStorageService {
   Future<void> saveDeviceName(String name) async {
     deviceName = name;
   }
+
+  bool clearAllCalled = false;
+  bool shouldThrowOnClearAll = false;
+
+  @override
+  Future<void> clearAll() async {
+    if (shouldThrowOnClearAll) {
+      throw Exception('Storage clear error');
+    }
+    clearAllCalled = true;
+    deviceId = null;
+    deviceName = null;
+  }
 }
 
 class _FakeChannelRepository implements ChannelRepository {
@@ -93,6 +106,28 @@ void main() {
 
       expect(success, isFalse);
       expect(repository.lastRenamedDevice, isNull);
+    });
+
+    test('clearDeviceData clears storage, resets state and returns true', () async {
+      storage.deviceId = 'dev_123';
+      storage.deviceName = 'Test Device';
+      await cubit.loadDeviceProfile();
+
+      final result = await cubit.clearDeviceData();
+
+      expect(result, isTrue);
+      expect(storage.clearAllCalled, isTrue);
+      expect(cubit.state.deviceId, isEmpty);
+      expect(cubit.state.deviceName, isEmpty);
+    });
+
+    test('clearDeviceData returns false on error', () async {
+      storage.shouldThrowOnClearAll = true;
+
+      final result = await cubit.clearDeviceData();
+
+      expect(result, isFalse);
+      expect(storage.clearAllCalled, isFalse);
     });
   });
 }

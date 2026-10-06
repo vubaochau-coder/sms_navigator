@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/utils/bottom_sheet_utils.dart';
+import '../bloc/device_profile_cubit.dart';
 import '../bloc/device_setup_bloc.dart';
 import 'device_health_section.dart';
 import 'device_info_card.dart';
@@ -14,10 +15,14 @@ class DeviceProfileBottomSheet extends StatelessWidget {
 
   static Future<void> show(BuildContext context) {
     final setupBloc = context.read<DeviceSetupBloc>();
+    final profileCubit = context.read<DeviceProfileCubit>();
     return BottomSheetUtils.showBaseForm(
       context: context,
-      child: BlocProvider.value(
-        value: setupBloc,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: setupBloc),
+          BlocProvider.value(value: profileCubit),
+        ],
         child: const DeviceProfileBottomSheet(),
       ),
     );

@@ -2,11 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/theme_cubit.dart';
+import '../../../core/utils/dialog_utils.dart';
 import '../../settings/whitelist_settings_page.dart';
+import '../../splash/splash_page.dart';
+import '../bloc/device_profile_cubit.dart';
 
-/// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme) & lối tắt tới bộ lọc SMS Whitelist.
+/// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme), lối tắt Whitelist và Xóa dữ liệu thiết bị.
 class DevicePreferencesSection extends StatelessWidget {
   const DevicePreferencesSection({super.key});
+
+  Future<void> _handleClearDeviceData(BuildContext context) async {
+    final confirmed = await DialogUtils.showTwoOptionsDialog(
+      context: context,
+      title: 'Xóa dữ liệu thiết bị?',
+      message:
+          'Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.',
+      positiveText: 'Xóa dữ liệu',
+      negativeText: 'Hủy bỏ',
+      isPositiveDestructive: true,
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+
+    final cubit = context.read<DeviceProfileCubit>();
+    final success = await cubit.clearDeviceData();
+    if (!success) return;
+
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => const SplashPage(autoStart: true),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +150,37 @@ class DevicePreferencesSection extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              Divider(
+                height: 1,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                leading: Icon(
+                  Icons.delete_sweep_outlined,
+                  color: colorScheme.error,
+                ),
+                title: Text(
+                  'Xóa dữ liệu thiết bị',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.error,
+                  ),
+                ),
+                subtitle: Text(
+                  'Xóa mã định danh, token và khôi phục cài đặt gốc',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.chevron_right_rounded,
+                  color: colorScheme.error,
+                ),
+                onTap: () => _handleClearDeviceData(context),
               ),
             ],
           ),
