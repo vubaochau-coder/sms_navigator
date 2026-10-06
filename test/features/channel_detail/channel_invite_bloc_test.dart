@@ -6,6 +6,7 @@ import 'package:sms_navigator/features/channel_detail/bloc/channel_invite_bloc.d
 
 class _MockChannelRepository implements ChannelRepository {
   int createCallCount = 0;
+  PairingSessionModel? sessionToReturn;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -13,6 +14,9 @@ class _MockChannelRepository implements ChannelRepository {
   @override
   Future<PairingSessionModel> createPairingSession(String channelId) async {
     createCallCount++;
+    if (sessionToReturn != null) {
+      return sessionToReturn!;
+    }
     return PairingSessionModel(
       sessionId: 'ses_$createCallCount',
       pairingToken: 'tok_$createCallCount',
@@ -116,6 +120,38 @@ void main() {
       expect(repository.createCallCount, 1);
       expect(bloc2.state.session?.sessionId, 'ses_1');
       await bloc2.close();
+    });
+
+    test('invalidateIfConsumed hoạt động chính xác khi thiết bị lệch giờ (fast clock) nhờ cùng server clock domain', () async {
+      // Giả sử server time là T0 = 12:00:00 UTC
+      final serverTime = DateTime.utc(2026, 10, 6, 12, 0, 0);
+      final serverExpiresAt = serverTime.add(const Duration(minutes: 10)); // 12:10:00 UTC
+
+      // Server trả về session với expires_at (thời gian server)
+      final sessionFromMap = PairingSessionModel.fromMap({
+        'session_id': 'ses_server_clock',
+        'pairing_token': 'tok_test',
+        'expires_at': serverExpiresAt.toIso8601String(),
+        'invite_url': 'smsnav://invite/v4?s=ses_server_clock',
+      });
+      expect(sessionFromMap.effectiveCreatedAt, serverTime);
+
+      ChannelInviteBloc.invalidateCache(channelId);
+      repository = _MockChannelRepository()..sessionToReturn = sessionFromMap;
+      final bloc = ChannelInviteBloc(repository: repository, channelId: channelId);
+      bloc.add(const ChannelInviteStarted());
+      await pumpEventQueue();
+      await bloc.close();
+
+      // Request được server tạo sau đó 5 giây (T0 + 5s = 12:00:05 UTC)
+      final claimedRequest = PairingRequestModel(
+        requestId: 'req_claimed_on_server',
+        createdAt: serverTime.add(const Duration(seconds: 5)).toIso8601String(),
+      );
+
+      // Invalidate thành công dù client clock ở thời điểm nào
+      ChannelInviteBloc.invalidateIfConsumed(channelId, [claimedRequest]);
+      expect(ChannelInviteBloc.activeSession(channelId), isNull);
     });
   });
 }

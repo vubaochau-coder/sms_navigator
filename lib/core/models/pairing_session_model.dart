@@ -24,7 +24,7 @@ class PairingSessionModel extends Equatable {
   DateTime get effectiveCreatedAt =>
       createdAt ??
       (DateTime.tryParse(expiresAt)?.subtract(const Duration(minutes: 10)) ??
-          DateTime.now());
+          DateTime.fromMillisecondsSinceEpoch(0));
 
   bool get isExpired {
     final deadline = DateTime.tryParse(expiresAt);
@@ -33,12 +33,14 @@ class PairingSessionModel extends Equatable {
   }
 
   factory PairingSessionModel.fromMap(Map<String, dynamic> map) {
+    final expiresAt = DataConverter.cvToString(map['expires_at'], '')!;
     return PairingSessionModel(
       sessionId: DataConverter.cvToString(map['session_id'], '')!,
       pairingToken: DataConverter.cvToString(map['pairing_token'], '')!,
-      expiresAt: DataConverter.cvToString(map['expires_at'], '')!,
+      expiresAt: expiresAt,
       inviteUrl: DataConverter.cvToString(map['invite_url'], '')!,
-      createdAt: DateTime.now(),
+      createdAt:
+          DateTime.tryParse(expiresAt)?.subtract(const Duration(minutes: 10)),
     );
   }
 
