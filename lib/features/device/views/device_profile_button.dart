@@ -30,7 +30,21 @@ class DeviceProfileButton extends StatelessWidget {
               tooltip: profileState.deviceName.isNotEmpty
                   ? profileState.deviceName
                   : 'Thông tin & Thiết lập thiết bị',
-              onPressed: () => DeviceProfilePage.navigate(context),
+              onPressed: () {
+                final setupBloc = context.read<DeviceSetupBloc>();
+                final profileCubit = context.read<DeviceProfileCubit>();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(value: setupBloc),
+                        BlocProvider.value(value: profileCubit),
+                      ],
+                      child: const DeviceProfilePage(),
+                    ),
+                  ),
+                );
+              },
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [

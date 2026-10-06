@@ -73,7 +73,11 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
   }
 
   Future<void> _openQrScanner() async {
-    final result = await QrScanPage.scan(context);
+    final result = await Navigator.of(context).push<ScanQrResult>(
+      MaterialPageRoute(
+        builder: (_) => const QrScanPage(),
+      ),
+    );
     if (!mounted || result == null) return;
 
     Navigator.of(context).push(

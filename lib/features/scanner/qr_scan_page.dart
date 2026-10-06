@@ -37,18 +37,6 @@ class QrScanPage extends StatefulWidget {
   final MobileScannerController? _controllerOverride;
   final ImagePicker? _imagePickerOverride;
 
-  /// Hàm Future tiện ích để mở màn hình quét QR và nhận kết quả trả về.
-  static Future<ScanQrResult?> scan(
-    BuildContext context, {
-    bool Function(String raw)? validator,
-  }) {
-    return Navigator.of(context).push<ScanQrResult>(
-      MaterialPageRoute(
-        builder: (_) => QrScanPage(validator: validator),
-      ),
-    );
-  }
-
   /// Validator mặc định cho định dạng QR của ứng dụng (lời mời tham gia kênh).
   static bool defaultValidator(String raw) {
     return InvitePayload.tryParse(raw) != null;

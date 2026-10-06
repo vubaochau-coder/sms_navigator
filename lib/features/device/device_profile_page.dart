@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
-import 'bloc/device_profile_cubit.dart';
-import 'bloc/device_setup_bloc.dart';
 import 'views/device_health_section.dart';
 import 'views/device_info_card.dart';
 import 'views/device_preferences_section.dart';
@@ -12,22 +9,6 @@ import 'views/device_preferences_section.dart';
 /// Tổ chức thành 3 section độc lập: Thông tin thiết bị, Tình trạng hoạt động và Cài đặt tùy chọn.
 class DeviceProfilePage extends StatelessWidget {
   const DeviceProfilePage({super.key});
-
-  static Future<void> navigate(BuildContext context) {
-    final setupBloc = context.read<DeviceSetupBloc>();
-    final profileCubit = context.read<DeviceProfileCubit>();
-    return Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: setupBloc),
-            BlocProvider.value(value: profileCubit),
-          ],
-          child: const DeviceProfilePage(),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
