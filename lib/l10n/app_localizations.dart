@@ -1477,7 +1477,7 @@ abstract class AppLocalizations {
   /// No description provided for @joinOwnerLabel.
   ///
   /// In vi, this message translates to:
-  /// **'Máy chủ: {ownerName}'**
+  /// **'Chủ kênh: {ownerName}'**
   String joinOwnerLabel(String ownerName);
 
   /// No description provided for @joinDeviceNameLabel.
