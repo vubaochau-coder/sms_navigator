@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/core/enums/pairing_request_status.dart';
 import 'package:sms_navigator/core/models/channel_detail_model.dart';
 import 'package:sms_navigator/core/models/channel_member_model.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
