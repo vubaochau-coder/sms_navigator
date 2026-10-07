@@ -1,7 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-
-import '../models/channel_model.dart';
 import '../repositories/channel_repository.dart';
 import '../services/channel_key_store.dart';
 import '../services/device_storage_service.dart';
