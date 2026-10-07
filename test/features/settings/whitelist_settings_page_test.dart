@@ -28,8 +28,10 @@ class _FakeWhitelistRepository implements WhitelistRepository {
     return true;
   }
 
+  List<Map<String, dynamic>> logs = const [];
+
   @override
-  Future<List<Map<String, dynamic>>> getRecentLogs() async => const [];
+  Future<List<Map<String, dynamic>>> getRecentLogs() async => logs;
 }
 
 class _FakeNativeRelayService implements NativeRelayService {
@@ -121,7 +123,45 @@ void main() {
 
       expect(repo.stored.mode, WhitelistMode.allAddresses);
     });
+
+    testWidgets('tapping receipt icon opens relay log sheet and shows empty view',
+        (tester) async {
+      final repo = _FakeWhitelistRepository();
+      await _pumpSettingsPage(tester, repo);
+
+      await tester.tap(find.byIcon(Icons.receipt_long_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nhật ký tiếp nhận SMS'), findsOneWidget);
+      expect(find.text('Chưa có SMS nào được ghi nhận.'), findsOneWidget);
+    });
+
+    testWidgets('tapping receipt icon opens relay log sheet and displays log items',
+        (tester) async {
+      final repo = _FakeWhitelistRepository();
+      repo.logs = [
+        {
+          'id': 'log-1',
+          'sender': 'SSO',
+          'otp': '123456',
+          'status': 'FAILED',
+          'error': 'HTTP 401: Unauthorized',
+          'timestamp': 1728300000000,
+        }
+      ];
+      await _pumpSettingsPage(tester, repo);
+
+      await tester.tap(find.byIcon(Icons.receipt_long_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nhật ký tiếp nhận SMS'), findsOneWidget);
+      expect(find.text('SSO'), findsOneWidget);
+      expect(find.text('FAILED'), findsOneWidget);
+      expect(find.text('HTTP 401: Unauthorized'), findsOneWidget);
+      expect(find.text('Nội dung phát hiện: 123456'), findsOneWidget);
+    });
   });
+
 
   group('WhitelistBlockedBanner', () {
     testWidgets('shows on sender device when whitelist is empty',

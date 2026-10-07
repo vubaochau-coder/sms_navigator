@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/utils/bottom_sheet_utils.dart';
+import '../../core/utils/data_converter.dart';
 import '../../core/widgets/app_common_widgets.dart';
 import '../../core/models/whitelist_config_model.dart';
 import '../../core/repositories/whitelist_repository.dart';
@@ -80,11 +81,15 @@ class _WhitelistSettingsView extends StatelessWidget {
   }
 
   void _openRelayLogSheet(BuildContext context) {
-    BlocProvider.of<WhitelistBloc>(context).add(const WhitelistLogsRefreshed());
+    final bloc = BlocProvider.of<WhitelistBloc>(context);
+    bloc.add(const WhitelistLogsRefreshed());
     BottomSheetUtils.showAppBottomSheet<void>(
       context: context,
       title: 'Nhật ký tiếp nhận SMS',
-      child: const _RelayLogSheet(),
+      child: BlocProvider.value(
+        value: bloc,
+        child: const _RelayLogSheet(),
+      ),
     );
   }
 }
@@ -97,57 +102,62 @@ class _RelayLogSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.7;
+
     return BlocBuilder<WhitelistBloc, WhitelistState>(
       builder: (context, state) {
         final logs = state.recentLogs;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn '
-                      '(nếu không relay được).',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn '
+                        '(nếu không relay được).',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Làm mới',
-                    icon: const Icon(Icons.refresh_rounded),
-                    onPressed: () => BlocProvider.of<WhitelistBloc>(context)
-                        .add(const WhitelistLogsRefreshed()),
-                  ),
-                ],
-              ),
-            ),
-            if (logs.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(
-                    'Chưa có SMS nào được ghi nhận.',
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                ),
-              )
-            else
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  itemCount: logs.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, index) =>
-                      _RelayLogTile(log: logs[index]),
+                    IconButton(
+                      tooltip: 'Làm mới',
+                      icon: const Icon(Icons.refresh_rounded),
+                      onPressed: () => BlocProvider.of<WhitelistBloc>(context)
+                          .add(const WhitelistLogsRefreshed()),
+                    ),
+                  ],
                 ),
               ),
-          ],
+              if (logs.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                    child: Text(
+                      'Chưa có SMS nào được ghi nhận.',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    itemCount: logs.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) =>
+                        _RelayLogTile(log: logs[index]),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -162,14 +172,14 @@ class _RelayLogTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
-    final sender = (log['sender'] as String?) ?? '';
-    final otp = (log['otp'] as String?) ?? '';
-    final status = (log['status'] as String?) ?? '';
-    final error = (log['error'] as String?) ?? '';
-    final timestamp = log['timestamp'];
+    final sender = DataConverter.cvToString(log['sender']) ?? '';
+    final otp = DataConverter.cvToString(log['otp']) ?? '';
+    final status = DataConverter.cvToString(log['status']) ?? '';
+    final error = DataConverter.cvToString(log['error']) ?? '';
+    final timestamp = DataConverter.cvToInt(log['timestamp']);
 
     String formattedTime = '';
-    if (timestamp is int && timestamp > 0) {
+    if (timestamp != null && timestamp > 0) {
       final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
       formattedTime = DateFormat('HH:mm:ss · dd/MM/yyyy').format(dt);
     }
