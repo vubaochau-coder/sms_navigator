@@ -31,14 +31,24 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     final results = await Future.wait([
       _repository.getChannelDetail(state.channelId),
       _repository.getMembers(state.channelId),
-      _repository.listPendingRequests(state.channelId),
     ]);
-    final pending = results[2] as List<PairingRequestModel>;
-    ChannelInviteBloc.invalidateIfConsumed(state.channelId, pending);
+    final detail = results[0] as ChannelDetailModel;
+    final members = results[1] as List<ChannelMemberModel>;
+
+    List<PairingRequestModel> pending = const [];
+    if (detail.isOwner) {
+      try {
+        pending = await _repository.listPendingRequests(state.channelId);
+        ChannelInviteBloc.invalidateIfConsumed(state.channelId, pending);
+      } catch (_) {
+        pending = const [];
+      }
+    }
+
     emit(
       state.copyWith(
-        detail: results[0] as ChannelDetailModel,
-        members: results[1] as List<ChannelMemberModel>,
+        detail: detail,
+        members: members,
         pendingRequests: pending,
         isLoading: false,
       ),
