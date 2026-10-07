@@ -32,6 +32,13 @@ class RelayMethodChannel(
 
                 "getRecentLogs" -> result.success(prefs.getRecentLogs())
 
+                "setActiveRelayChannel" -> handleSetActiveRelayChannel(call, result)
+
+                "clearActiveRelayChannel" -> {
+                    prefs.clearActiveRelayChannel()
+                    result.success(true)
+                }
+
                 "clearPairing" -> {
                     prefs.clearPairing()
                     result.success(true)
@@ -100,8 +107,46 @@ class RelayMethodChannel(
         "sharedSecretBase64" to prefs.sharedSecretBase64,
         "relayUrl" to prefs.relayUrl,
         "deviceId" to prefs.deviceId,
-        "deviceToken" to prefs.deviceToken
+        "deviceToken" to prefs.deviceToken,
+        "activeChannelId" to prefs.activeChannelId,
+        "activeChannelName" to prefs.activeChannelName,
+        "activeChannelEpoch" to prefs.activeChannelEpoch,
+        "apiBaseUrl" to prefs.apiBaseUrl
     )
+
+    @Synchronized
+    private fun handleSetActiveRelayChannel(
+        call: io.flutter.plugin.common.MethodCall,
+        result: io.flutter.plugin.common.MethodChannel.Result
+    ) {
+        val channelId = call.argument<String>("channelId")
+        val channelName = call.argument<String>("channelName") ?: ""
+        val keyEpoch = (call.argument<Number>("keyEpoch"))?.toLong() ?: 1L
+        val channelKeyBase64 = call.argument<String>("channelKeyBase64")
+        val deviceToken = call.argument<String>("deviceToken")
+        val apiBaseUrl = call.argument<String>("apiBaseUrl")
+
+        if (channelId.isNullOrBlank() || channelKeyBase64.isNullOrBlank()) {
+            result.error("INVALID_ARGS", "channelId and channelKeyBase64 are required", null)
+            return
+        }
+
+        val changed = prefs.setActiveRelayChannel(
+            channelId = channelId,
+            channelName = channelName,
+            keyEpoch = keyEpoch,
+            channelKeyBase64 = channelKeyBase64,
+            token = deviceToken,
+            baseUrl = apiBaseUrl
+        )
+        result.success(
+            mapOf(
+                "updated" to changed,
+                "activeChannelId" to channelId,
+                "epoch" to keyEpoch
+            )
+        )
+    }
 
     private fun buildWhitelist(): Map<String, Any?> {
         val (mode, entries) = prefs.getWhitelistConfig()

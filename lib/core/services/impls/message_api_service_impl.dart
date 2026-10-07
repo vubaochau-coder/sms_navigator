@@ -29,7 +29,7 @@ class MessageApiServiceImpl implements MessageApiService {
   }) async {
     final body = <String, dynamic>{
       'channel_id': channelId,
-      'key_epoch': keyEpoch,
+      'request_epoch': keyEpoch,
       'ciphertext': ciphertextBase64,
       'nonce': nonceBase64,
     };

@@ -5,6 +5,7 @@ import '../../../core/models/channel_detail_model.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/repositories/channel_repository.dart';
+import '../../../core/services/sync_owner_relay_channel_use_case.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_detail_event.dart';
 import 'channel_detail_state.dart';
@@ -16,9 +17,13 @@ export 'channel_invite_bloc.dart';
 
 /// Bloc chi tiết kênh: hàng đợi duyệt + quản lý thành viên của Owner.
 class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
-  ChannelDetailBloc({required ChannelRepository repository, required String channelId})
-    : _repository = repository,
-      super(ChannelDetailState(channelId: channelId)) {
+  ChannelDetailBloc({
+    required ChannelRepository repository,
+    required String channelId,
+    SyncOwnerRelayChannelUseCase? syncUseCase,
+  })  : _repository = repository,
+        _syncUseCase = syncUseCase,
+        super(ChannelDetailState(channelId: channelId)) {
     on<ChannelDetailLoaded>(_onLoaded, transformer: restartable());
     on<ChannelDetailConfirmed>(_onConfirmed, transformer: droppable());
     on<ChannelDetailRejected>(_onRejected, transformer: droppable());
@@ -26,6 +31,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
   }
 
   final ChannelRepository _repository;
+  final SyncOwnerRelayChannelUseCase? _syncUseCase;
 
   Future<void> _refresh(Emitter<ChannelDetailState> emit) async {
     final results = await Future.wait([
@@ -73,8 +79,11 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
-      await _repository.approveRequest(channelId: state.channelId, request: event.request);
+      final newEpoch = await _repository.approveRequest(channelId: state.channelId, request: event.request);
       await _refresh(emit);
+      if (_syncUseCase != null) {
+        await _syncUseCase(channelId: state.channelId, expectedEpoch: newEpoch);
+      }
       ToastUtils.showSuccess('Đã duyệt ${event.request.requesterDeviceName}.');
       emit(state.copyWith(isMutating: false));
     } catch (error) {
@@ -114,8 +123,11 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
   ) async {
     emit(state.copyWith(isMutating: true));
     try {
-      await _repository.revokeMembers(channelId: state.channelId, revokeDeviceIds: [event.deviceId]);
+      final newEpoch = await _repository.revokeMembers(channelId: state.channelId, revokeDeviceIds: [event.deviceId]);
       await _refresh(emit);
+      if (_syncUseCase != null) {
+        await _syncUseCase(channelId: state.channelId, expectedEpoch: newEpoch);
+      }
       ToastUtils.showSuccess('Đã thu hồi thành viên và xoay khóa kênh.');
       emit(state.copyWith(isMutating: false));
     } catch (error) {

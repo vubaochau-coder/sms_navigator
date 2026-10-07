@@ -8,5 +8,6 @@ export 'impls/fcm_notification_service_impl.dart'
 abstract class FcmNotificationService {
   Future<void> initialize();
   Future<void> syncToken();
+  void setChannelEventListener(void Function() listener);
   void dispose();
 }

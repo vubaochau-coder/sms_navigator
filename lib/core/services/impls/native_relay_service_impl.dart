@@ -161,6 +161,46 @@ class NativeRelayServiceImpl implements NativeRelayService {
   }
 
   @override
+  Future<bool> setActiveRelayChannel({
+    required String channelId,
+    required String channelName,
+    required int keyEpoch,
+    required String channelKeyBase64,
+    required String deviceToken,
+    String? apiBaseUrl,
+  }) async {
+    try {
+      final result = await _channel.invokeMethod<dynamic>(
+        'setActiveRelayChannel',
+        {
+          'channelId': channelId,
+          'channelName': channelName,
+          'keyEpoch': keyEpoch,
+          'channelKeyBase64': channelKeyBase64,
+          'deviceToken': deviceToken,
+          if (apiBaseUrl != null && apiBaseUrl.isNotEmpty) 'apiBaseUrl': apiBaseUrl,
+        },
+      );
+      if (result is Map) {
+        return result['updated'] == true;
+      }
+      return result == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> clearActiveRelayChannel() async {
+    try {
+      final success = await _channel.invokeMethod<bool>('clearActiveRelayChannel');
+      return success ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<bool> isBatteryOptimizationIgnored() async {
     try {
       final result = await _channel.invokeMethod<bool>(

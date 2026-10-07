@@ -31,77 +31,88 @@ class OtpRelayWorker(
         val prefs = OtpPreferences(applicationContext)
 
         val messageId = inputData.getString(KEY_MESSAGE_ID) ?: UUID.randomUUID().toString()
-        val pairId = inputData.getString(KEY_PAIR_ID) ?: prefs.pairId
-        val encryptedPayload = inputData.getString(KEY_ENCRYPTED_PAYLOAD)
-        val iv = inputData.getString(KEY_IV)
+        val channelId = inputData.getString(KEY_CHANNEL_ID) ?: prefs.activeChannelId
+        val epoch = inputData.getLong(KEY_CHANNEL_EPOCH, prefs.activeChannelEpoch)
+        val messageText = inputData.getString(KEY_MESSAGE_TEXT)
         val sender = inputData.getString(KEY_SENDER) ?: "Unknown"
-        val otp = inputData.getString(KEY_OTP) ?: ""
-        val relayUrl = inputData.getString(KEY_RELAY_URL) ?: prefs.relayUrl
+        val channelKeyBase64 = prefs.activeChannelKeyBase64
+        val token = prefs.deviceToken
+        val baseUrl = (inputData.getString(KEY_API_BASE_URL) ?: prefs.apiBaseUrl).trimEnd('/')
+        val relayUrl = "$baseUrl/api/v2/channels/messages"
 
-        if (pairId == null || encryptedPayload == null || iv == null) {
-            Log.e(TAG, "Missing required parameters for relay")
-            prefs.addRelayLog(sender, otp, "FAILED", "Missing parameters")
+        if (channelId.isNullOrBlank() || channelKeyBase64.isNullOrBlank() || messageText.isNullOrEmpty() || token.isNullOrBlank()) {
+            val missing = buildList {
+                if (channelId.isNullOrBlank()) add("channelId")
+                if (channelKeyBase64.isNullOrBlank()) add("channelKey")
+                if (messageText.isNullOrEmpty()) add("messageText")
+                if (token.isNullOrBlank()) add("token")
+            }.joinToString(", ")
+            Log.e(TAG, "Missing required parameters for V2 relay: $missing")
+            prefs.addRelayLog(sender, "", "FAILED", "Missing config: $missing")
             return@withContext Result.failure()
         }
 
         // Cap total retries so transient 5xx/network failures never retry forever.
         if (runAttemptCount > MAX_RETRY_ATTEMPTS) {
             Log.e(TAG, "Exceeded max retry attempts ($MAX_RETRY_ATTEMPTS) for messageId=$messageId. Dropping.")
-            prefs.addRelayLog(sender, otp, "FAILED", "Max retry attempts exceeded")
+            prefs.addRelayLog(sender, "", "FAILED", "Max retry attempts exceeded")
+            return@withContext Result.failure()
+        }
+
+        val encrypted = try {
+            com.example.sms_navigator.crypto.ChannelCryptoNative.encryptMessage(
+                plaintext = messageText,
+                channelKeyBase64 = channelKeyBase64,
+                channelId = channelId,
+                keyEpoch = epoch,
+                sequenceHint = 0L
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Encryption failed for messageId=$messageId: ${e.message}", e)
+            prefs.addRelayLog(sender, "", "FAILED", "Crypto error: ${e.message}")
             return@withContext Result.failure()
         }
 
         val requestJson = JSONObject().apply {
-            put("message_id", messageId)
-            put("pair_id", pairId)
-            put("device_id", prefs.deviceId)
-            put("encrypted_payload", encryptedPayload)
-            put("iv", iv)
-            put("sent_at", System.currentTimeMillis() / 1000)
-            put("ttl_seconds", 300)
+            put("channel_id", channelId)
+            put("request_epoch", epoch)
+            put("ciphertext", encrypted.ciphertextBase64)
+            put("nonce", encrypted.nonceBase64)
         }
 
         val body = requestJson.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-        val requestBuilder = Request.Builder()
+        val request = Request.Builder()
             .url(relayUrl)
+            .addHeader("Authorization", "Bearer $token")
             .post(body)
-
-        val token = prefs.deviceToken
-        if (!token.isNullOrBlank()) {
-            requestBuilder.addHeader("Authorization", "Bearer $token")
-        }
-
-        val request = requestBuilder.build()
+            .build()
 
         try {
             val response = httpClient.newCall(request).execute()
+            val channelLabel = prefs.activeChannelName ?: channelId
             if (response.isSuccessful) {
-                Log.i(TAG, "OTP successfully relayed to $relayUrl (messageId: $messageId)")
-                prefs.addRelayLog(sender, otp, "SUCCESS")
+                Log.i(TAG, "Message successfully relayed to V2 channel $channelId (epoch $epoch)")
+                prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $channelLabel (epoch $epoch)")
                 Result.success()
             } else if (response.code in 400..499) {
-                // 4xx client errors (PAYLOAD_EXPIRED, INVALID_SENT_AT, RELAY_PAUSED_BY_SENDER, RECEIVER_NOT_PAIRED, etc.)
-                // are permanent/fatal client issues. WorkManager should NOT retry.
                 val errorMsg = "HTTP ${response.code}: ${response.message}"
-                Log.e(TAG, "Permanent client error relaying OTP ($errorMsg). Dropping.")
-                prefs.addRelayLog(sender, otp, "FAILED", errorMsg)
+                val extraHint = if (response.code == 409) " (Lỗi epoch/replay - mở app đồng bộ)" else ""
+                Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg$extraHint). Dropping.")
+                prefs.addRelayLog(sender, "", "FAILED", "$errorMsg$extraHint")
                 Result.failure()
             } else {
-                // 5xx server errors or other transient HTTP errors -> retry
                 val errorMsg = "HTTP ${response.code}: ${response.message}"
-                Log.w(TAG, "Transient server error relaying OTP ($errorMsg). Retrying later...")
-                prefs.addRelayLog(sender, otp, "RETRYING", errorMsg)
+                Log.w(TAG, "Transient server error relaying ($errorMsg). Retrying...")
+                prefs.addRelayLog(sender, "", "RETRYING", errorMsg)
                 Result.retry()
             }
         } catch (e: IOException) {
-            // Network connectivity / socket timeout errors -> transient, retry
-            Log.e(TAG, "Network error during OTP relay: ${e.message}", e)
-            prefs.addRelayLog(sender, otp, "RETRYING", e.message)
+            Log.e(TAG, "Network error during relay: ${e.message}", e)
+            prefs.addRelayLog(sender, "", "RETRYING", e.message)
             Result.retry()
         } catch (e: Exception) {
-            // Fatal unexpected exception -> do not retry infinitely
-            Log.e(TAG, "Unexpected fatal error during OTP relay: ${e.message}", e)
-            prefs.addRelayLog(sender, otp, "FAILED", e.message)
+            Log.e(TAG, "Unexpected error during relay: ${e.message}", e)
+            prefs.addRelayLog(sender, "", "FAILED", e.message)
             Result.failure()
         }
     }
@@ -112,10 +123,16 @@ class OtpRelayWorker(
         const val MAX_RETRY_ATTEMPTS = 5
 
         const val KEY_MESSAGE_ID = "message_id"
+        const val KEY_CHANNEL_ID = "channel_id"
+        const val KEY_CHANNEL_EPOCH = "channel_epoch"
+        const val KEY_MESSAGE_TEXT = "message_text"
+        const val KEY_SENDER = "sender"
+        const val KEY_API_BASE_URL = "api_base_url"
+
+        // Backward compatibility keys
         const val KEY_PAIR_ID = "pair_id"
         const val KEY_ENCRYPTED_PAYLOAD = "encrypted_payload"
         const val KEY_IV = "iv"
-        const val KEY_SENDER = "sender"
         const val KEY_OTP = "otp"
         const val KEY_RELAY_URL = "relay_url"
     }

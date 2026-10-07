@@ -5,6 +5,7 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/repositories/join_channel_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
+import '../../core/services/sync_owner_relay_channel_use_case.dart';
 import '../../core/utils/dialog_utils.dart';
 import '../device/views/device_profile_button.dart';
 import 'bloc/channel_bloc.dart';
@@ -26,10 +27,17 @@ class ChannelPage extends StatelessWidget {
         } catch (_) {
           reconcile = null;
         }
+        SyncOwnerRelayChannelUseCase? syncUseCase;
+        try {
+          syncUseCase = context.read<SyncOwnerRelayChannelUseCase>();
+        } catch (_) {
+          syncUseCase = null;
+        }
         return ChannelBloc(
           repository: context.read<ChannelRepository>(),
           joinRepository: context.read<JoinChannelRepository>(),
           reconcileService: reconcile,
+          syncUseCase: syncUseCase,
         )..add(const ChannelLoadDataEvent());
       },
       child: const _ChannelPageView(),

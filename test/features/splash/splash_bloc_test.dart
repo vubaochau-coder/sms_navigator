@@ -71,6 +71,9 @@ class _FakeFcmService implements FcmNotificationService {
   }
 
   @override
+  void setChannelEventListener(void Function() listener) {}
+
+  @override
   void dispose() {}
 }
 

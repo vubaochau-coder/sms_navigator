@@ -36,8 +36,14 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
   StreamSubscription<String>? _tokenRefreshSubscription;
+  void Function()? _channelEventListener;
 
   bool _initialized = false;
+
+  @override
+  void setChannelEventListener(void Function() listener) {
+    _channelEventListener = listener;
+  }
 
   @override
   Future<void> initialize() async {
@@ -154,6 +160,10 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
         stack,
       );
     }
+
+    try {
+      _channelEventListener?.call();
+    } catch (_) {}
   }
 
   @override

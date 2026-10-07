@@ -6,6 +6,7 @@ import '../../../core/models/pairing_request_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/repositories/join_channel_repository.dart';
 import '../../../core/services/startup_reconcile_service.dart';
+import '../../../core/services/sync_owner_relay_channel_use_case.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_event.dart';
 import 'channel_state.dart';
@@ -19,9 +20,11 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
     required ChannelRepository repository,
     JoinChannelRepository? joinRepository,
     StartupReconcileService? reconcileService,
+    SyncOwnerRelayChannelUseCase? syncUseCase,
   }) : _repository = repository,
        _joinRepository = joinRepository,
        _reconcileService = reconcileService,
+       _syncUseCase = syncUseCase,
        super(const ChannelState()) {
     on<ChannelLoadDataEvent>(_onLoadData, transformer: restartable());
     on<ChannelCreated>(_onCreated, transformer: droppable());
@@ -35,6 +38,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
   final ChannelRepository _repository;
   final JoinChannelRepository? _joinRepository;
   final StartupReconcileService? _reconcileService;
+  final SyncOwnerRelayChannelUseCase? _syncUseCase;
 
   Future<void> _onLoadData(
     ChannelLoadDataEvent event,
@@ -67,6 +71,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
         ),
       );
       _reconcileService?.reconcile().catchError((_) => null);
+      _syncUseCase?.call().catchError((_) => false);
     } catch (error) {
       ToastUtils.showError(
         'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.',
@@ -96,6 +101,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
           joinedChannels: channels.where((c) => !c.isOwner).toList(),
         ),
       );
+      _syncUseCase?.call().catchError((_) => false);
     } catch (error) {
       ToastUtils.showError('Không tạo được kênh. Thử lại sau.');
       emit(

@@ -157,8 +157,106 @@ class OtpPreferences(context: Context) {
         set(value) = prefs.edit().putString(KEY_DEVICE_ID, value).apply()
 
     var deviceToken: String?
-        get() = prefs.getString(KEY_DEVICE_TOKEN, null)
-        set(value) = prefs.edit().putString(KEY_DEVICE_TOKEN, value).apply()
+        get() {
+            val stored = prefs.getString(KEY_DEVICE_TOKEN, null) ?: return null
+            return try {
+                SecureVault.decryptFromBase64(stored)
+            } catch (_: Exception) {
+                stored
+            }
+        }
+        set(value) {
+            if (value == null) {
+                prefs.edit().remove(KEY_DEVICE_TOKEN).apply()
+                return
+            }
+            val encrypted = try {
+                SecureVault.encryptToBase64(value)
+            } catch (_: Exception) {
+                value
+            }
+            prefs.edit().putString(KEY_DEVICE_TOKEN, encrypted).apply()
+        }
+
+    var activeChannelId: String?
+        get() = prefs.getString(KEY_ACTIVE_CHANNEL_ID, null)
+        set(value) = prefs.edit().putString(KEY_ACTIVE_CHANNEL_ID, value).apply()
+
+    var activeChannelName: String?
+        get() = prefs.getString(KEY_ACTIVE_CHANNEL_NAME, null)
+        set(value) = prefs.edit().putString(KEY_ACTIVE_CHANNEL_NAME, value).apply()
+
+    var activeChannelEpoch: Long
+        get() = prefs.getLong(KEY_ACTIVE_CHANNEL_EPOCH, 1L)
+        set(value) = prefs.edit().putLong(KEY_ACTIVE_CHANNEL_EPOCH, value).apply()
+
+    var activeChannelKeyBase64: String?
+        get() {
+            val stored = prefs.getString(KEY_ACTIVE_CHANNEL_KEY, null) ?: return null
+            return try {
+                SecureVault.decryptFromBase64(stored)
+            } catch (_: Exception) {
+                stored
+            }
+        }
+        set(value) {
+            if (value == null) {
+                prefs.edit().remove(KEY_ACTIVE_CHANNEL_KEY).apply()
+                return
+            }
+            val encrypted = try {
+                SecureVault.encryptToBase64(value)
+            } catch (_: Exception) {
+                value
+            }
+            prefs.edit().putString(KEY_ACTIVE_CHANNEL_KEY, encrypted).apply()
+        }
+
+    var apiBaseUrl: String
+        get() = prefs.getString(KEY_API_BASE_URL, DEFAULT_API_BASE_URL) ?: DEFAULT_API_BASE_URL
+        set(value) {
+            val normalized = value.trim().trimEnd('/')
+            prefs.edit().putString(KEY_API_BASE_URL, normalized).apply()
+        }
+
+    @Synchronized
+    fun setActiveRelayChannel(
+        channelId: String,
+        channelName: String,
+        keyEpoch: Long,
+        channelKeyBase64: String,
+        token: String?,
+        baseUrl: String?
+    ): Boolean {
+        val currentId = activeChannelId
+        val currentEpoch = activeChannelEpoch
+        val currentKey = activeChannelKeyBase64
+        if (currentId == channelId && currentEpoch == keyEpoch && currentKey == channelKeyBase64 && !token.isNullOrBlank()) {
+            if (!baseUrl.isNullOrBlank()) apiBaseUrl = baseUrl
+            deviceToken = token
+            isRelayEnabled = true
+            return false
+        }
+
+        activeChannelId = channelId
+        activeChannelName = channelName
+        activeChannelEpoch = keyEpoch
+        activeChannelKeyBase64 = channelKeyBase64
+        if (!token.isNullOrBlank()) deviceToken = token
+        if (!baseUrl.isNullOrBlank()) apiBaseUrl = baseUrl
+        isRelayEnabled = true
+        return true
+    }
+
+    @Synchronized
+    fun clearActiveRelayChannel() {
+        prefs.edit()
+            .remove(KEY_ACTIVE_CHANNEL_ID)
+            .remove(KEY_ACTIVE_CHANNEL_NAME)
+            .remove(KEY_ACTIVE_CHANNEL_EPOCH)
+            .remove(KEY_ACTIVE_CHANNEL_KEY)
+            .apply()
+    }
 
     /**
      * Checks if this OTP was already sent in the last 5 minutes (TTL / Deduplication).
@@ -203,10 +301,12 @@ class OtpPreferences(context: Context) {
         val logsJsonStr = prefs.getString(KEY_RELAY_LOGS, "[]") ?: "[]"
         val jsonArray = JSONArray(logsJsonStr)
 
+        val maskedOtp = if (otp == "SMS" || otp.isEmpty()) otp else if (otp.length > 2) otp.take(1) + "***" + otp.takeLast(1) else "***"
+
         val item = JSONObject().apply {
             put("id", java.util.UUID.randomUUID().toString())
             put("sender", sender)
-            put("otp", otp)
+            put("otp", maskedOtp)
             put("status", status)
             put("error", error ?: "")
             put("timestamp", System.currentTimeMillis())
@@ -254,11 +354,17 @@ class OtpPreferences(context: Context) {
         private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_RECENT_HASHES = "recent_hashes"
         private const val KEY_RELAY_LOGS = "relay_logs"
+        private const val KEY_ACTIVE_CHANNEL_ID = "active_channel_id"
+        private const val KEY_ACTIVE_CHANNEL_NAME = "active_channel_name"
+        private const val KEY_ACTIVE_CHANNEL_EPOCH = "active_channel_epoch"
+        private const val KEY_ACTIVE_CHANNEL_KEY = "active_channel_key"
+        private const val KEY_API_BASE_URL = "api_base_url"
 
         const val MODE_OTP_ONLY = "OTP_ONLY"
         const val MODE_WHITELIST_ALL = "WHITELIST_ALL"
         const val MODE_ALL_SMS = "ALL_SMS"
 
         const val DEFAULT_RELAY_URL = "https://sms-navigator-server.onrender.com/api/v1/relay"
+        const val DEFAULT_API_BASE_URL = "https://sms-navigator-server.onrender.com"
     }
 }

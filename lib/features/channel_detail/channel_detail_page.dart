@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
+import '../../core/services/sync_owner_relay_channel_use_case.dart';
 import 'bloc/channel_detail_bloc.dart';
 import 'views/channel_detail_shimmer_view.dart';
 import 'views/channel_summary_view.dart';
@@ -32,6 +33,7 @@ class ChannelDetailPage extends StatelessWidget {
       create: (_) => ChannelDetailBloc(
         repository: context.read<ChannelRepository>(),
         channelId: channelId,
+        syncUseCase: context.read<SyncOwnerRelayChannelUseCase>(),
       )..add(ChannelDetailLoaded(channelId)),
       child: const _ChannelDetailPageView(),
     );

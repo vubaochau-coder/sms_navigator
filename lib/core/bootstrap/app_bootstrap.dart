@@ -34,6 +34,7 @@ import '../services/message_api_service.dart';
 import '../services/native_relay_service.dart';
 import '../services/pairing_api_service.dart';
 import '../services/startup_reconcile_service.dart';
+import '../services/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
 import '../utils/channel_crypto_helper.dart';
 import '../../features/device/bloc/device_profile_cubit.dart';
@@ -185,6 +186,16 @@ class AppBootstrap extends StatelessWidget {
             nativeRelayService: context.read<NativeRelayService>(),
           ),
         ),
+
+        // 9. Relay V2 Sync (Đồng bộ khóa Owner xuống Native)
+        RepositoryProvider<SyncOwnerRelayChannelUseCase>(
+          create: (context) => SyncOwnerRelayChannelUseCase(
+            channelRepository: context.read<ChannelRepository>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            deviceStorage: context.read<DeviceStorageService>(),
+            nativeRelayService: context.read<NativeRelayService>(),
+          ),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -224,11 +235,15 @@ class _AsyncServicesInitializerState extends State<_AsyncServicesInitializer> {
     final crashlytics = context.read<CrashlyticsService>();
     final analytics = context.read<AnalyticsService>();
     final fcm = context.read<FcmNotificationService>();
+    final syncRelay = context.read<SyncOwnerRelayChannelUseCase>();
 
     crashlytics.initialize();
     analytics.initialize();
     fcm.initialize();
     fcm.syncToken();
+    fcm.setChannelEventListener(() {
+      syncRelay().catchError((_) => false);
+    });
   }
 
   @override

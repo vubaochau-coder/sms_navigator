@@ -4,16 +4,46 @@ import 'package:toastification/toastification.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/navigation/app_navigator.dart';
+import 'core/observers/app_lifecycle_observer.dart';
 import 'core/services/analytics_service.dart';
+import 'core/services/sync_owner_relay_channel_use_case.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/splash/splash_page.dart';
 import 'l10n/app_localizations.dart';
 
-class OtpRelayApp extends StatelessWidget {
+class OtpRelayApp extends StatefulWidget {
   final Widget? home;
 
   const OtpRelayApp({super.key, this.home});
+
+  @override
+  State<OtpRelayApp> createState() => _OtpRelayAppState();
+}
+
+class _OtpRelayAppState extends State<OtpRelayApp> {
+  AppLifecycleObserver? _lifecycleObserver;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_lifecycleObserver == null) {
+      try {
+        final syncUseCase = context.read<SyncOwnerRelayChannelUseCase>();
+        _lifecycleObserver = AppLifecycleObserver(syncUseCase: syncUseCase)..register();
+        // Initial sync on startup
+        syncUseCase().catchError((_) => false);
+      } catch (_) {
+        // Fallback for tests if provider is omitted
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _lifecycleObserver?.unregister();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +65,7 @@ class OtpRelayApp extends StatelessWidget {
             navigatorObservers: [
               if (analytics.observer != null) analytics.observer!,
             ],
-            home: home ?? const SplashPage(),
+            home: widget.home ?? const SplashPage(),
           );
         },
       ),

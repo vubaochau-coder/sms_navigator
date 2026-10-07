@@ -14,7 +14,7 @@ class BootReceiver : BroadcastReceiver() {
         ) {
             Log.i(TAG, "Device rebooted. Initializing OTP Relay status...")
             val prefs = OtpPreferences(context)
-            Log.i(TAG, "Relay enabled: ${prefs.isRelayEnabled}, Paired: ${prefs.pairId != null}")
+            Log.i(TAG, "Relay enabled: ${prefs.isRelayEnabled}, Active channel: ${prefs.activeChannelId != null}")
         }
     }
 
