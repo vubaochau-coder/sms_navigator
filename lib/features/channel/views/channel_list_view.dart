@@ -20,7 +20,7 @@ class OwnedChannelListView extends StatelessWidget {
           prev.isLoading != current.isLoading ||
           prev.ownedChannels != current.ownedChannels,
       builder: (context, state) {
-        if (state.isLoading && state.ownedChannels.isEmpty) {
+        if (state.isLoading) {
           return const ShimmerLoadingList(
             itemCount: 5,
             padding: EdgeInsets.fromLTRB(12, 8, 12, 96),
@@ -76,9 +76,7 @@ class JoinedChannelListView extends StatelessWidget {
           prev.joinedChannels != current.joinedChannels ||
           prev.pendingJoinRequests != current.pendingJoinRequests,
       builder: (context, state) {
-        if (state.isLoading &&
-            state.joinedChannels.isEmpty &&
-            state.pendingJoinRequests.isEmpty) {
+        if (state.isLoading) {
           return const ShimmerLoadingList(
             itemCount: 5,
             padding: EdgeInsets.fromLTRB(12, 8, 12, 96),

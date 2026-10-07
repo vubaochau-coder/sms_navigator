@@ -68,9 +68,9 @@ class _ChannelDetailPageView extends StatelessWidget {
         ],
       ),
       body: BlocSelector<ChannelDetailBloc, ChannelDetailState, bool>(
-        selector: (state) => state.isLoading && state.detail == null,
-        builder: (context, isInitialLoading) {
-          if (isInitialLoading) {
+        selector: (state) => state.isLoading,
+        builder: (context, isLoading) {
+          if (isLoading) {
             return const ChannelDetailShimmerView();
           }
 

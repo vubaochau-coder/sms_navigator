@@ -63,7 +63,7 @@ class _WhitelistSettingsView extends StatelessWidget {
       ),
       body: BlocBuilder<WhitelistBloc, WhitelistState>(
         builder: (context, state) {
-          if (state.isLoading && state.config.entries.isEmpty) {
+          if (state.isLoading) {
             return const ShimmerLoadingList(
               itemCount: 5,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),

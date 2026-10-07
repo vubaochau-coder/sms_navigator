@@ -79,9 +79,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
       appBar: AppBar(title: Text(l10n.deviceSetupTitle)),
       body: BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
         builder: (context, state) {
-          if (state.isLoading &&
-              state.smsPermissionGranted == null &&
-              state.batteryUnrestricted == null) {
+          if (state.isLoading) {
             return const ShimmerLoadingList(
               itemCount: 4,
               padding: Dimens.screenPadding,
