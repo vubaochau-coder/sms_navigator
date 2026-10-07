@@ -176,7 +176,16 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             channelRepository: context.read<ChannelRepository>(),
             joinRepository: context.read<JoinChannelRepository>(),
-            deviceNameProvider: () => 'Thiết bị của tôi',
+            deviceNameProvider: () async {
+              try {
+                final nativeName =
+                    await context.read<NativeRelayService>().getDeviceName();
+                if (nativeName != null && nativeName.trim().isNotEmpty) {
+                  return nativeName.trim();
+                }
+              } catch (_) {}
+              return 'Thiết bị của tôi';
+            },
           ),
         ),
 
@@ -208,6 +217,7 @@ class AppBootstrap extends StatelessWidget {
             create: (context) => DeviceProfileCubit(
               deviceStorage: context.read<DeviceStorageService>(),
               channelRepository: context.read<ChannelRepository>(),
+              nativeRelayService: context.read<NativeRelayService>(),
             )..loadDeviceProfile(),
           ),
         ],

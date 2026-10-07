@@ -11,6 +11,7 @@ import '../../../core/services/crashlytics_service.dart';
 import '../../../core/services/device_api_service.dart';
 import '../../../core/services/device_storage_service.dart';
 import '../../../core/services/fcm_notification_service.dart';
+import '../../../core/services/native_relay_service.dart';
 import '../../../core/services/startup_reconcile_service.dart';
 import '../../../core/utils/app_logger.dart';
 import 'splash_event.dart';
@@ -24,6 +25,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   final ChannelKeyStore keyStore;
   final DeviceApiService deviceApiService;
   final StartupReconcileService startupReconcileService;
+  final NativeRelayService? nativeRelayService;
   final TargetPlatform platform;
   final Duration minDisplayDuration;
 
@@ -37,6 +39,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     required this.keyStore,
     required this.deviceApiService,
     required this.startupReconcileService,
+    this.nativeRelayService,
     TargetPlatform? platform,
     this.minDisplayDuration = const Duration(milliseconds: 1200),
   }) : platform = platform ?? defaultTargetPlatform,
@@ -101,9 +104,10 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       emit(state.copyWith(status: SplashStatus.authenticatingDevice));
       final deviceToken = await deviceStorageService.getDeviceToken();
       if (deviceToken == null || deviceToken.isEmpty) {
+        final resolvedName = await _resolveDeviceName(defaultDeviceName);
         emit(state.copyWith(status: SplashStatus.registeringDevice));
         await deviceApiService.registerDevice(
-          deviceName: defaultDeviceName,
+          deviceName: resolvedName,
           platform: platform == TargetPlatform.iOS ? 'ios' : 'android',
           cancelToken: _cancelToken,
         );
@@ -117,12 +121,17 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
             'Device token không hợp lệ (401), tiến hành đăng ký mới thiết bị',
           );
           await deviceStorageService.clearDeviceToken();
+          final resolvedName = await _resolveDeviceName(defaultDeviceName);
           emit(state.copyWith(status: SplashStatus.registeringDevice));
           await deviceApiService.registerDevice(
-            deviceName: defaultDeviceName,
+            deviceName: resolvedName,
             platform: platform == TargetPlatform.iOS ? 'ios' : 'android',
             cancelToken: _cancelToken,
           );
+        } else {
+          // Auto-heal: Nếu tên hiện tại đang là fallback mặc định ("Thiết bị của tôi"),
+          // thử tự động đồng bộ tên thật từ hệ thống native.
+          await _tryAutoHealDeviceName(defaultDeviceName);
         }
       }
 
@@ -186,6 +195,40 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
         status: SplashStatus.failure,
         errorMessage: userFriendlyMessage,
       ));
+    }
+  }
+
+  Future<String> _resolveDeviceName(String fallbackName) async {
+    try {
+      final nativeName = await nativeRelayService?.getDeviceName();
+      if (nativeName != null && nativeName.trim().isNotEmpty) {
+        return nativeName.trim();
+      }
+    } catch (e) {
+      AppLogger.w('SplashBloc', 'Lỗi khi lấy tên thiết bị từ native', e);
+    }
+    return fallbackName;
+  }
+
+  Future<void> _tryAutoHealDeviceName(String defaultFallbackName) async {
+    try {
+      final currentName = await deviceStorageService.getDeviceName();
+      final isDefaultOrEmpty = currentName == null ||
+          currentName.trim().isEmpty ||
+          currentName.trim() == defaultFallbackName;
+
+      if (isDefaultOrEmpty) {
+        final nativeName = await nativeRelayService?.getDeviceName();
+        if (nativeName != null &&
+            nativeName.trim().isNotEmpty &&
+            nativeName.trim() != defaultFallbackName) {
+          final trimmed = nativeName.trim();
+          await deviceApiService.updateDeviceName(trimmed);
+          AppLogger.i('SplashBloc', 'Tự động cập nhật tên thiết bị thành: $trimmed');
+        }
+      }
+    } catch (e) {
+      AppLogger.w('SplashBloc', 'Không thể tự động đồng bộ tên thiết bị', e);
     }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../enums/pairing_request_status.dart';
@@ -9,6 +11,8 @@ import '../device_api_service.dart';
 import '../device_storage_service.dart';
 import '../startup_reconcile_service.dart';
 
+typedef DeviceNameProvider = FutureOr<String> Function();
+
 class StartupReconcileServiceImpl implements StartupReconcileService {
   StartupReconcileServiceImpl({
     required DeviceApiService deviceApiService,
@@ -16,7 +20,7 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
     required ChannelKeyStore keyStore,
     required ChannelRepository channelRepository,
     required JoinChannelRepository joinRepository,
-    required String Function() deviceNameProvider,
+    required DeviceNameProvider deviceNameProvider,
   }) : _deviceApi = deviceApiService,
        _deviceStorage = deviceStorage,
        _keyStore = keyStore,
@@ -29,7 +33,7 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
   final ChannelKeyStore _keyStore;
   final ChannelRepository _channelRepository;
   final JoinChannelRepository _joinRepository;
-  final String Function() _deviceNameProvider;
+  final DeviceNameProvider _deviceNameProvider;
 
   bool _running = false;
 
@@ -58,8 +62,9 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
 
     final deviceToken = await _deviceStorage.getDeviceToken();
     if (deviceToken == null || deviceToken.isEmpty) {
+      final deviceName = await _deviceNameProvider();
       await _deviceApi.registerDevice(
-        deviceName: _deviceNameProvider(),
+        deviceName: deviceName,
         platform:
             defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       );

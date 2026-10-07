@@ -119,9 +119,42 @@ class OemAutostartNavigator(private val context: Context) {
     }
 
     fun getDeviceDisplayName(): String {
+        // 1. Thử lấy tên thiết bị do người dùng đặt (Settings > About phone / Device name)
+        try {
+            val globalName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                Settings.Global.getString(context.contentResolver, Settings.Global.DEVICE_NAME)?.trim()
+            } else {
+                Settings.Global.getString(context.contentResolver, "device_name")?.trim()
+            }
+            if (!globalName.isNullOrEmpty()) {
+                return globalName
+            }
+        } catch (_: Exception) {}
+
+        // 2. Thử lấy tên Bluetooth (tên máy khi ghép đôi / chia sẻ)
+        try {
+            val btName = Settings.Secure.getString(context.contentResolver, "bluetooth_name")?.trim()
+            if (!btName.isNullOrEmpty()) {
+                return btName
+            }
+        } catch (_: Exception) {}
+
+        // 3. Fallback phần cứng: Nhà sản xuất + Mã model
         val manufacturer = Build.MANUFACTURER?.trim() ?: ""
         val model = Build.MODEL?.trim() ?: ""
-        return "$manufacturer $model".trim()
+
+        val capitalizedManufacturer = if (manufacturer.isNotEmpty()) {
+            manufacturer.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+        } else {
+            ""
+        }
+
+        return when {
+            model.isEmpty() -> capitalizedManufacturer
+            capitalizedManufacturer.isEmpty() -> model
+            model.startsWith(capitalizedManufacturer, ignoreCase = true) -> model
+            else -> "$capitalizedManufacturer $model"
+        }.trim()
     }
 
     fun openAutostartSettings(): Boolean {

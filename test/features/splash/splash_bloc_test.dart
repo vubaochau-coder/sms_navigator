@@ -9,10 +9,23 @@ import 'package:sms_navigator/core/services/crashlytics_service.dart';
 import 'package:sms_navigator/core/services/device_api_service.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
+import 'package:sms_navigator/core/services/native_relay_service.dart';
 import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
 import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
+
+class _FakeNativeRelayService implements NativeRelayService {
+  _FakeNativeRelayService({this.deviceName});
+
+  final String? deviceName;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<String?> getDeviceName() async => deviceName;
+}
 
 class _FakeCrashlyticsService implements CrashlyticsService {
   bool initialized = false;
@@ -79,6 +92,7 @@ class _FakeFcmService implements FcmNotificationService {
 
 class _FakeDeviceStorageService implements DeviceStorageService {
   String? deviceToken;
+  String? deviceName;
 
   _FakeDeviceStorageService();
 
@@ -88,6 +102,14 @@ class _FakeDeviceStorageService implements DeviceStorageService {
   @override
   Future<void> clearDeviceToken() async {
     deviceToken = null;
+  }
+
+  @override
+  Future<String?> getDeviceName() async => deviceName;
+
+  @override
+  Future<void> saveDeviceName(String name) async {
+    deviceName = name;
   }
 
   @override
@@ -115,6 +137,8 @@ class _FakeDeviceApiService implements DeviceApiService {
   bool shouldThrow = false;
   bool tokenValid = true;
   bool verifyShouldThrow = false;
+  String? lastRegisteredName;
+  String? lastUpdatedName;
 
   @override
   Future<bool> verifyDeviceToken({CancelToken? cancelToken}) async {
@@ -134,7 +158,13 @@ class _FakeDeviceApiService implements DeviceApiService {
       throw const NetworkException('Network connection timeout');
     }
     registered = true;
+    lastRegisteredName = deviceName;
     return {'device_id': 'dev_1', 'device_token': 'tok_1'};
+  }
+
+  @override
+  Future<void> updateDeviceName(String deviceName) async {
+    lastUpdatedName = deviceName;
   }
 
   @override
@@ -174,7 +204,7 @@ void main() {
       reconcile = _FakeStartupReconcileService();
     });
 
-    SplashBloc buildBloc() {
+    SplashBloc buildBloc({NativeRelayService? nativeRelayService}) {
       return SplashBloc(
         crashlyticsService: crashlytics,
         analyticsService: analytics,
@@ -183,6 +213,7 @@ void main() {
         keyStore: keyStore,
         deviceApiService: deviceApi,
         startupReconcileService: reconcile,
+        nativeRelayService: nativeRelayService,
         platform: TargetPlatform.android,
         minDisplayDuration: Duration.zero,
       );
@@ -332,6 +363,37 @@ void main() {
 
       expect(bloc.state.isReady, isTrue);
       expect(bloc.state.errorMessage, isNull);
+
+      await bloc.close();
+    });
+
+    test('SplashStarted uses native device name when available on first registration', () async {
+      final fakeNative = _FakeNativeRelayService(deviceName: 'Samsung Galaxy A23');
+      final bloc = buildBloc(nativeRelayService: fakeNative);
+
+      bloc.add(const SplashStarted(defaultDeviceName: 'Thiết bị của tôi'));
+      await pumpEventQueue();
+
+      expect(deviceApi.registered, isTrue);
+      expect(deviceApi.lastRegisteredName, 'Samsung Galaxy A23');
+      expect(bloc.state.isReady, isTrue);
+
+      await bloc.close();
+    });
+
+    test('SplashStarted auto-heals default device name when token is valid and native name exists', () async {
+      final fakeNative = _FakeNativeRelayService(deviceName: 'Samsung SM-A236E');
+      final bloc = buildBloc(nativeRelayService: fakeNative);
+
+      storage.deviceToken = 'valid_token';
+      storage.deviceName = 'Thiết bị của tôi';
+      deviceApi.tokenValid = true;
+
+      bloc.add(const SplashStarted(defaultDeviceName: 'Thiết bị của tôi'));
+      await pumpEventQueue();
+
+      expect(deviceApi.lastUpdatedName, 'Samsung SM-A236E');
+      expect(bloc.state.isReady, isTrue);
 
       await bloc.close();
     });

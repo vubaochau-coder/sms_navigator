@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/services/device_storage_service.dart';
+import '../../../core/services/native_relay_service.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'device_profile_state.dart';
@@ -9,12 +10,15 @@ import 'device_profile_state.dart';
 class DeviceProfileCubit extends Cubit<DeviceProfileState> {
   final DeviceStorageService _deviceStorage;
   final ChannelRepository _channelRepository;
+  final NativeRelayService? _nativeRelayService;
 
   DeviceProfileCubit({
     required DeviceStorageService deviceStorage,
     required ChannelRepository channelRepository,
+    NativeRelayService? nativeRelayService,
   })  : _deviceStorage = deviceStorage,
         _channelRepository = channelRepository,
+        _nativeRelayService = nativeRelayService,
         super(const DeviceProfileState());
 
   Future<void> loadDeviceProfile() async {
@@ -22,11 +26,23 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
     try {
       final id = await _deviceStorage.getDeviceId() ?? '';
       final name = await _deviceStorage.getDeviceName();
+      var resolvedName = (name != null && name.trim().isNotEmpty) ? name.trim() : '';
+
+      if (resolvedName.isEmpty || resolvedName == 'Thiết bị của tôi') {
+        try {
+          final nativeName = await _nativeRelayService?.getDeviceName();
+          if (nativeName != null && nativeName.trim().isNotEmpty) {
+            resolvedName = nativeName.trim();
+            await _deviceStorage.saveDeviceName(resolvedName);
+          }
+        } catch (_) {}
+      }
+
       emit(state.copyWith(
         isLoading: false,
         deviceId: id,
-        deviceName: (name != null && name.trim().isNotEmpty)
-            ? name.trim()
+        deviceName: (resolvedName.isNotEmpty)
+            ? resolvedName
             : 'Thiết bị của tôi',
       ));
     } catch (_) {

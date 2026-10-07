@@ -1,8 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
+import 'package:sms_navigator/core/services/native_relay_service.dart';
 import 'package:sms_navigator/features/device/bloc/device_profile_cubit.dart';
 import 'package:sms_navigator/features/device/bloc/device_profile_state.dart';
+
+class _FakeNativeRelayService implements NativeRelayService {
+  _FakeNativeRelayService({this.deviceName});
+
+  final String? deviceName;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<String?> getDeviceName() async => deviceName;
+}
 
 class _FakeDeviceStorageService implements DeviceStorageService {
   String? deviceId;
@@ -82,13 +95,31 @@ void main() {
       expect(cubit.state.isLoading, isFalse);
     });
 
-    test('loadDeviceProfile falls back to default name when null or empty', () async {
+    test('loadDeviceProfile falls back to default name when null or empty and no native name', () async {
       storage.deviceId = 'dev_123';
       storage.deviceName = null;
 
       await cubit.loadDeviceProfile();
 
       expect(cubit.state.deviceName, 'Thiết bị của tôi');
+    });
+
+    test('loadDeviceProfile queries NativeRelayService when storage name is empty or default', () async {
+      final fakeNative = _FakeNativeRelayService(deviceName: 'Samsung Galaxy A23');
+      final cubitWithNative = DeviceProfileCubit(
+        deviceStorage: storage,
+        channelRepository: repository,
+        nativeRelayService: fakeNative,
+      );
+
+      storage.deviceId = 'dev_123';
+      storage.deviceName = 'Thiết bị của tôi';
+
+      await cubitWithNative.loadDeviceProfile();
+
+      expect(cubitWithNative.state.deviceName, 'Samsung Galaxy A23');
+      expect(storage.deviceName, 'Samsung Galaxy A23');
+      await cubitWithNative.close();
     });
 
     test('renameDevice updates repository and storage and emits updated name', () async {

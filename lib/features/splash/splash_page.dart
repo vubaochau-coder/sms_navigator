@@ -10,6 +10,7 @@ import '../../core/services/crashlytics_service.dart';
 import '../../core/services/device_api_service.dart';
 import '../../core/services/device_storage_service.dart';
 import '../../core/services/fcm_notification_service.dart';
+import '../../core/services/native_relay_service.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../home/main_navigation_page.dart';
 import 'bloc/splash_bloc.dart';
@@ -41,6 +42,7 @@ class SplashPage extends StatelessWidget {
           keyStore: ctx.read<ChannelKeyStore>(),
           deviceApiService: ctx.read<DeviceApiService>(),
           startupReconcileService: ctx.read<StartupReconcileService>(),
+          nativeRelayService: ctx.read<NativeRelayService>(),
         );
         if (autoStart) {
           bloc.add(SplashStarted(
