@@ -2,6 +2,7 @@ package com.example.sms_navigator.channel
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.example.sms_navigator.data.OtpPreferences
 import com.example.sms_navigator.device.OemAutostartNavigator
 import com.example.sms_navigator.policy.WhitelistEntry
@@ -82,10 +83,14 @@ class RelayMethodChannel(
 
     fun notifyOtpDetected(sender: String, otp: String) {
         mainHandler.post {
-            channel.invokeMethod(
-                "onOtpDetected",
-                mapOf("sender" to sender, "otp" to otp)
-            )
+            try {
+                channel.invokeMethod(
+                    "onOtpDetected",
+                    mapOf("sender" to sender, "otp" to otp)
+                )
+            } catch (t: Throwable) {
+                Log.e("RelayMethodChannel", "Failed to invoke onOtpDetected: ${t.message}", t)
+            }
         }
     }
 
