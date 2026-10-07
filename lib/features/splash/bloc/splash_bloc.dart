@@ -91,7 +91,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       analyticsService.initialize();
 
       // 2. Dịch vụ chuông FCM
-      fcmService.initialize();
+      await fcmService.initialize();
 
       // 3. Khởi tạo & kiểm tra cặp khóa định danh thiết bị (Identity Key)
       emit(state.copyWith(status: SplashStatus.checkingIdentityKey));

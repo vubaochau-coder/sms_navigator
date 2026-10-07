@@ -49,6 +49,18 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
       const initSettings = InitializationSettings(android: androidSettings);
       await _localNotifications.initialize(settings: initSettings);
 
+      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        const androidChannel = AndroidNotificationChannel(
+          'sms_navigator_otp_channel',
+          'SMS Navigator OTP',
+          description: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
+          importance: Importance.high,
+        );
+        await androidPlugin.createNotificationChannel(androidChannel);
+      }
+
       await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
@@ -57,6 +69,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
       FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed);
 
       FirebaseMessaging.onMessage.listen(_showBellNotification);
+
+      unawaited(FirebaseMessaging.instance.requestPermission());
     } catch (error, stack) {
       AppLogger.w('FcmNotificationService', 'Initialize failed', error, stack);
     }
@@ -95,8 +109,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
 
   Future<void> _showBellNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
-      'channel_events',
-      'Sự kiện kênh',
+      'sms_navigator_otp_channel',
+      'SMS Navigator OTP',
       channelDescription: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
       importance: Importance.high,
       priority: Priority.high,
