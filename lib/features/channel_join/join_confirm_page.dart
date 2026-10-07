@@ -287,7 +287,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -400,7 +400,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
                       ),
                     ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
           ],
         ),
       ),
