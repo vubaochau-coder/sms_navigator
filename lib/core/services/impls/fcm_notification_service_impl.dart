@@ -123,26 +123,48 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
     );
     const details = NotificationDetails(android: androidDetails);
 
-    String title = 'SMS Navigator';
-    String body = 'Có sự kiện mới trong kênh. Mở app để xem.';
+    // Ưu tiên tiêu đề/nội dung từ notification block của FCM nếu server đã định dạng
+    String title = message.notification?.title ?? 'SMS Navigator';
+    String body = message.notification?.body ?? 'Có sự kiện mới trong kênh. Mở app để xem.';
+
     final kind = message.data['kind'];
-    switch (kind) {
-      case 'JOIN_REQUEST':
-        title = 'Yêu cầu tham gia kênh';
-        body = 'Có thiết bị mới xin tham gia. Mở app để duyệt.';
-        break;
-      case 'APPROVED':
-        title = 'Yêu cầu đã được duyệt';
-        body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận OTP.';
-        break;
-      case 'REVOKED':
-        title = 'Quyền truy cập đã bị thu hồi';
-        body = 'Bạn không còn quyền truy cập một kênh.';
-        break;
-      case 'NEW_MESSAGE':
-        title = 'OTP mới';
-        body = 'Có mã OTP mới vừa được chia sẻ. Chạm để xem.';
-        break;
+    final channelName = message.data['channel_name'];
+    final requesterName = message.data['requester_device_name'];
+
+    // Nếu không có notification block thì tự dựng nội dung từ data payload
+    if (message.notification == null) {
+      switch (kind) {
+        case 'JOIN_REQUEST':
+          title = 'Yêu cầu tham gia kênh';
+          if (requesterName != null && requesterName.isNotEmpty && channelName != null && channelName.isNotEmpty) {
+            body = '$requesterName muốn tham gia kênh "$channelName".';
+          } else if (requesterName != null && requesterName.isNotEmpty) {
+            body = '$requesterName muốn tham gia kênh.';
+          } else {
+            body = 'Có thiết bị mới xin tham gia. Mở app để duyệt.';
+          }
+          break;
+        case 'APPROVED':
+          title = 'Yêu cầu đã được duyệt';
+          if (channelName != null && channelName.isNotEmpty) {
+            body = 'Bạn đã được thêm vào kênh "$channelName". Mở app để xem OTP.';
+          } else {
+            body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận OTP.';
+          }
+          break;
+        case 'REVOKED':
+          title = 'Quyền truy cập đã bị thu hồi';
+          body = 'Bạn không còn quyền truy cập một kênh.';
+          break;
+        case 'NEW_MESSAGE':
+          title = 'OTP mới';
+          if (channelName != null && channelName.isNotEmpty) {
+            body = 'Có mã OTP mới từ kênh "$channelName". Chạm để xem.';
+          } else {
+            body = 'Có mã OTP mới vừa được chia sẻ. Chạm để xem.';
+          }
+          break;
+      }
     }
 
     try {
