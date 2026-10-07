@@ -160,22 +160,11 @@ class FakeNativeRelayService implements NativeRelayService {
   @override
   Future<Map<String, dynamic>> getRelayConfig() async => {};
   @override
-  Future<bool> setRelayConfig({
-    bool? isRelayEnabled,
-    String? pairId,
-    String? sharedSecretBase64,
-    String? relayUrl,
-    String? deviceToken,
-    String? deviceId,
-  }) async => true;
-  @override
   Future<WhitelistConfigModel> getWhitelist() async => const WhitelistConfigModel();
   @override
   Future<bool> setWhitelist(WhitelistConfigModel config) async => true;
   @override
   Future<List<Map<String, dynamic>>> getRecentLogs() async => [];
-  @override
-  Future<bool> clearPairing() async => true;
   @override
   Future<bool> isBatteryOptimizationIgnored() async => true;
   @override
@@ -186,8 +175,6 @@ class FakeNativeRelayService implements NativeRelayService {
   Future<String?> getDeviceName() async => 'Test Device';
   @override
   Future<bool> openAutostartSettings() async => true;
-  @override
-  void setOnOtpDetectedListener(Function(String sender, String otp) listener) {}
 }
 
 void main() {

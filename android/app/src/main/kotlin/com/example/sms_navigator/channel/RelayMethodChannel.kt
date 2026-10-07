@@ -1,8 +1,5 @@
 package com.example.sms_navigator.channel
 
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import com.example.sms_navigator.data.OtpPreferences
 import com.example.sms_navigator.device.OemAutostartNavigator
 import com.example.sms_navigator.policy.WhitelistEntry
@@ -17,14 +14,11 @@ class RelayMethodChannel(
 ) {
 
     private val channel = MethodChannel(messenger, CHANNEL)
-    private val mainHandler = Handler(Looper.getMainLooper())
 
     fun register() {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "getRelayConfig" -> result.success(buildRelayConfig())
-
-                "setRelayConfig" -> handleSetRelayConfig(call, result)
 
                 "getWhitelist" -> result.success(buildWhitelist())
 
@@ -36,11 +30,6 @@ class RelayMethodChannel(
 
                 "clearActiveRelayChannel" -> {
                     prefs.clearActiveRelayChannel()
-                    result.success(true)
-                }
-
-                "clearPairing" -> {
-                    prefs.clearPairing()
                     result.success(true)
                 }
 
@@ -88,25 +77,7 @@ class RelayMethodChannel(
         channel.setMethodCallHandler(null)
     }
 
-    fun notifyOtpDetected(sender: String, otp: String) {
-        mainHandler.post {
-            try {
-                channel.invokeMethod(
-                    "onOtpDetected",
-                    mapOf("sender" to sender, "otp" to otp)
-                )
-            } catch (t: Throwable) {
-                Log.e("RelayMethodChannel", "Failed to invoke onOtpDetected: ${t.message}", t)
-            }
-        }
-    }
-
     private fun buildRelayConfig(): Map<String, Any?> = mapOf(
-        "isRelayEnabled" to prefs.isRelayEnabled,
-        "pairId" to prefs.pairId,
-        "sharedSecretBase64" to prefs.sharedSecretBase64,
-        "relayUrl" to prefs.relayUrl,
-        "deviceId" to prefs.deviceId,
         "deviceToken" to prefs.deviceToken,
         "activeChannelId" to prefs.activeChannelId,
         "activeChannelName" to prefs.activeChannelName,
@@ -185,27 +156,6 @@ class RelayMethodChannel(
         }
 
         prefs.setWhitelistConfig(mode, entries)
-        result.success(true)
-    }
-
-    private fun handleSetRelayConfig(
-        call: io.flutter.plugin.common.MethodCall,
-        result: MethodChannel.Result
-    ) {
-        val isEnabled = call.argument<Boolean>("isRelayEnabled")
-        val pairId = call.argument<String>("pairId")
-        val sharedSecretBase64 = call.argument<String>("sharedSecretBase64")
-        val relayUrl = call.argument<String>("relayUrl")
-        val deviceToken = call.argument<String>("deviceToken")
-        val deviceId = call.argument<String>("deviceId")
-
-        if (isEnabled != null) prefs.isRelayEnabled = isEnabled
-        if (pairId != null) prefs.pairId = pairId
-        if (sharedSecretBase64 != null) prefs.sharedSecretBase64 = sharedSecretBase64
-        if (relayUrl != null) prefs.relayUrl = relayUrl
-        if (deviceToken != null) prefs.deviceToken = deviceToken
-        if (deviceId != null) prefs.deviceId = deviceId
-
         result.success(true)
     }
 

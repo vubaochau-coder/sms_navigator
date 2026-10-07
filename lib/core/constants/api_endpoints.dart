@@ -3,21 +3,6 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // --- Devices ---
-  static const String registerDevice = '/api/v1/devices/register';
-  static const String updateFcmToken = '/api/v1/devices/fcm-token';
-
-  // --- Pairing Flow & Management ---
-  static const String initPair = '/api/v1/pair/init';
-  static const String confirmPair = '/api/v1/pair/confirm';
-  static const String pairStatus = '/api/v1/pair/status';
-  static const String pairedReceivers = '/api/v1/pair/receivers';
-  static const String pairedSenders = '/api/v1/pair/senders';
-
-  // --- Relay & History ---
-  static const String relay = '/api/v1/relay';
-  static const String relayHistory = '/api/v1/relay/history';
-
   // --- Devices v2 (Channel E2EE) ---
   static const String registerDeviceV2 = '/api/v2/devices/register';
   static const String updateDeviceNameV2 = '/api/v2/devices/name';

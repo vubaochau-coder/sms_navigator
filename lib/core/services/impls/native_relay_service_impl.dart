@@ -10,19 +10,13 @@ class NativeRelayServiceImpl implements NativeRelayService {
     'com.example.sms_navigator/relay',
   );
 
-  Function(String sender, String otp)? _otpListener;
-
   NativeRelayServiceImpl() {
     _channel.setMethodCallHandler(_handleMethodCall);
   }
 
   Future<dynamic> _handleMethodCall(MethodCall call) async {
-    if (call.method == 'onOtpDetected') {
-      final args = DataConverter.cvToMap<String, dynamic>(call.arguments);
-      final sender = DataConverter.cvToString(args?['sender'], 'Unknown')!;
-      final otp = DataConverter.cvToString(args?['otp'], '')!;
-      _otpListener?.call(sender, otp);
-    }
+    // Hiện không có native-to-Dart callback nào đang được sử dụng.
+    return null;
   }
 
   @override
@@ -62,11 +56,6 @@ class NativeRelayServiceImpl implements NativeRelayService {
   }
 
   @override
-  void setOnOtpDetectedListener(Function(String sender, String otp) listener) {
-    _otpListener = listener;
-  }
-
-  @override
   Future<Map<String, dynamic>> getRelayConfig() async {
     try {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
@@ -75,36 +64,6 @@ class NativeRelayServiceImpl implements NativeRelayService {
       return DataConverter.cvToMap<String, dynamic>(result) ?? {};
     } catch (_) {
       return {};
-    }
-  }
-
-  @override
-  Future<bool> setRelayConfig({
-    bool? isRelayEnabled,
-    String? pairId,
-    String? sharedSecretBase64,
-    String? relayUrl,
-    String? deviceToken,
-    String? deviceId,
-  }) async {
-    try {
-      final Map<String, dynamic> params = {};
-      if (isRelayEnabled != null) params['isRelayEnabled'] = isRelayEnabled;
-      if (pairId != null) params['pairId'] = pairId;
-      if (sharedSecretBase64 != null) {
-        params['sharedSecretBase64'] = sharedSecretBase64;
-      }
-      if (relayUrl != null) params['relayUrl'] = relayUrl;
-      if (deviceToken != null) params['deviceToken'] = deviceToken;
-      if (deviceId != null) params['deviceId'] = deviceId;
-
-      final success = await _channel.invokeMethod<bool>(
-        'setRelayConfig',
-        params,
-      );
-      return success ?? false;
-    } catch (_) {
-      return false;
     }
   }
 
@@ -147,16 +106,6 @@ class NativeRelayServiceImpl implements NativeRelayService {
           .toList();
     } catch (_) {
       return [];
-    }
-  }
-
-  @override
-  Future<bool> clearPairing() async {
-    try {
-      final success = await _channel.invokeMethod<bool>('clearPairing');
-      return success ?? false;
-    } catch (_) {
-      return false;
     }
   }
 

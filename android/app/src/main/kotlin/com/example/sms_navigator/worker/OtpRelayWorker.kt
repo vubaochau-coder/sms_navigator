@@ -128,12 +128,5 @@ class OtpRelayWorker(
         const val KEY_MESSAGE_TEXT = "message_text"
         const val KEY_SENDER = "sender"
         const val KEY_API_BASE_URL = "api_base_url"
-
-        // Backward compatibility keys
-        const val KEY_PAIR_ID = "pair_id"
-        const val KEY_ENCRYPTED_PAYLOAD = "encrypted_payload"
-        const val KEY_IV = "iv"
-        const val KEY_OTP = "otp"
-        const val KEY_RELAY_URL = "relay_url"
     }
 }

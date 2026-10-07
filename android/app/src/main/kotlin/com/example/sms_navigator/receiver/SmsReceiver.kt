@@ -50,13 +50,6 @@ class SmsReceiver : BroadcastReceiver() {
 
             // 1. Check Relay Configuration first
             val prefs = OtpPreferences(context)
-            if (!prefs.isRelayEnabled) {
-                Log.i(TAG, "Relay is disabled in settings, skipping.")
-                prefs.addRelayLog(sender, "", "SKIPPED", "Relay disabled")
-                finishOnce(pendingResult)
-                return
-            }
-
             val channelId = prefs.activeChannelId
             val channelKeyBase64 = prefs.activeChannelKeyBase64
             val token = prefs.deviceToken
@@ -134,9 +127,6 @@ class SmsReceiver : BroadcastReceiver() {
             Log.i(TAG, "Enqueued OtpRelayWorker with WorkManager (messageId: $messageId, channel: $channelDisplayName)")
             prefs.addRelayLog(sender, otpEvent.otp, "ENQUEUED", "Worker → V2 Kênh $channelDisplayName")
 
-            // Notify UI if app is currently in foreground
-            onOtpProcessedListener?.invoke(otpEvent.sender, otpEvent.otp)
-
         } catch (t: Throwable) {
             Log.e(TAG, "Error in SmsReceiver: ${t.message}", t)
         } finally {
@@ -154,8 +144,5 @@ class SmsReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "SmsReceiver"
-
-        // Optional callback to notify running Flutter activity in real-time
-        var onOtpProcessedListener: ((sender: String, otp: String) -> Unit)? = null
     }
 }

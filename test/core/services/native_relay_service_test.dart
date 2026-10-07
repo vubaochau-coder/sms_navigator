@@ -84,47 +84,24 @@ void main() {
   });
 
   group('NativeRelayServiceImpl relay config bridge', () {
-    test('getRelayConfig no longer exposes legacy whitelist fields',
-        () async {
+    test('getRelayConfig passes through native channel config', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         expect(call.method, 'getRelayConfig');
         return {
-          'isRelayEnabled': true,
-          'pairId': 'pair-123',
-          'sharedSecretBase64': 'secret',
-          'relayUrl': 'https://example.com/relay',
-          'deviceId': 'device-1',
           'deviceToken': 'token-1',
+          'activeChannelId': 'channel-1',
+          'activeChannelName': 'Kênh chính',
+          'activeChannelEpoch': 2,
+          'apiBaseUrl': 'https://sms-navigator-server.onrender.com',
         };
       });
 
       final config = await service.getRelayConfig();
-      expect(config['pairId'], 'pair-123');
+      expect(config['deviceToken'], 'token-1');
+      expect(config['activeChannelId'], 'channel-1');
       expect(config.containsKey('relayMode'), isFalse);
       expect(config.containsKey('senderWhitelist'), isFalse);
-    });
-
-    test('setRelayConfig sends only relay fields', () async {
-      MethodCall? received;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-        received = call;
-        return true;
-      });
-
-      final success = await service.setRelayConfig(
-        isRelayEnabled: true,
-        pairId: 'pair-123',
-        sharedSecretBase64: 'secret',
-      );
-
-      expect(success, isTrue);
-      expect(received!.arguments, {
-        'isRelayEnabled': true,
-        'pairId': 'pair-123',
-        'sharedSecretBase64': 'secret',
-      });
     });
   });
 }

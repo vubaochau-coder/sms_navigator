@@ -13,10 +13,6 @@ class OtpPreferences(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    var isRelayEnabled: Boolean
-        get() = prefs.getBoolean(KEY_IS_ENABLED, false)
-        set(value) = prefs.edit().putBoolean(KEY_IS_ENABLED, value).apply()
-
     var relayMode: String
         get() = prefs.getString(KEY_RELAY_MODE, MODE_OTP_ONLY) ?: MODE_OTP_ONLY
         set(value) = prefs.edit().putString(KEY_RELAY_MODE, value).apply()
@@ -100,62 +96,6 @@ class OtpPreferences(context: Context) {
         }
     }
 
-    var pairId: String?
-        get() = prefs.getString(KEY_PAIR_ID, null)
-        set(value) = prefs.edit().putString(KEY_PAIR_ID, value).apply()
-
-    /**
-     * Shared secret ECDH — mã hóa bằng AES-256-GCM với key trong Android
-     * Keystore trước khi lưu (roadmap GĐ4.1). Đọc giá trị plaintext cũ
-     * (phiên bản trước GĐ4) sẽ tự migrate sang dạng mã hóa một lần.
-     */
-    var sharedSecretBase64: String?
-        get() {
-            val stored = prefs.getString(KEY_SHARED_SECRET, null) ?: return null
-            return try {
-                SecureVault.decryptFromBase64(stored)
-            } catch (_: Exception) {
-                // Giá trị plaintext cũ hoặc blob lỗi (key bị invalidate):
-                // trả nguyên gốc để không phá phiên ghép đôi đang hoạt động,
-                // đồng thời thử migrate sang dạng mã hóa.
-                runCatching {
-                    prefs.edit()
-                        .putString(KEY_SHARED_SECRET, SecureVault.encryptToBase64(stored))
-                        .apply()
-                }
-                stored
-            }
-        }
-        set(value) {
-            if (value == null) {
-                prefs.edit().remove(KEY_SHARED_SECRET).apply()
-                return
-            }
-            val encrypted = try {
-                SecureVault.encryptToBase64(value)
-            } catch (_: Exception) {
-                // Keystore lỗi trên một số thiết bị: lưu plaintext để đảm bảo
-                // tính khả dụng (đánh đổi có chủ ý, xem roadmap GĐ4.1).
-                value
-            }
-            prefs.edit().putString(KEY_SHARED_SECRET, encrypted).apply()
-        }
-
-    var relayUrl: String
-        get() = prefs.getString(KEY_RELAY_URL, DEFAULT_RELAY_URL) ?: DEFAULT_RELAY_URL
-        set(value) = prefs.edit().putString(KEY_RELAY_URL, value).apply()
-
-    var deviceId: String
-        get() {
-            var id = prefs.getString(KEY_DEVICE_ID, null)
-            if (id == null) {
-                id = java.util.UUID.randomUUID().toString()
-                prefs.edit().putString(KEY_DEVICE_ID, id).apply()
-            }
-            return id
-        }
-        set(value) = prefs.edit().putString(KEY_DEVICE_ID, value).apply()
-
     var deviceToken: String?
         get() {
             val stored = prefs.getString(KEY_DEVICE_TOKEN, null) ?: return null
@@ -234,7 +174,6 @@ class OtpPreferences(context: Context) {
         if (currentId == channelId && currentEpoch == keyEpoch && currentKey == channelKeyBase64 && !token.isNullOrBlank()) {
             if (!baseUrl.isNullOrBlank()) apiBaseUrl = baseUrl
             deviceToken = token
-            isRelayEnabled = true
             return false
         }
 
@@ -244,7 +183,6 @@ class OtpPreferences(context: Context) {
         activeChannelKeyBase64 = channelKeyBase64
         if (!token.isNullOrBlank()) deviceToken = token
         if (!baseUrl.isNullOrBlank()) apiBaseUrl = baseUrl
-        isRelayEnabled = true
         return true
     }
 
@@ -326,14 +264,6 @@ class OtpPreferences(context: Context) {
         return prefs.getString(KEY_RELAY_LOGS, "[]") ?: "[]"
     }
 
-    fun clearPairing() {
-        prefs.edit()
-            .remove(KEY_PAIR_ID)
-            .remove(KEY_SHARED_SECRET)
-            .putBoolean(KEY_IS_ENABLED, false)
-            .apply()
-    }
-
     private fun sha256(input: String): String {
         val md = MessageDigest.getInstance("SHA-256")
         val bytes = md.digest(input.toByteArray(Charsets.UTF_8))
@@ -342,15 +272,10 @@ class OtpPreferences(context: Context) {
 
     companion object {
         private const val PREF_NAME = "otp_relay_prefs"
-        private const val KEY_IS_ENABLED = "is_relay_enabled"
         private const val KEY_RELAY_MODE = "relay_mode"
         private const val KEY_SENDER_WHITELIST = "sender_whitelist"
         private const val KEY_WHITELIST_MODE = "whitelist_v2_mode"
         private const val KEY_WHITELIST_ENTRIES = "whitelist_v2_entries"
-        private const val KEY_PAIR_ID = "pair_id"
-        private const val KEY_SHARED_SECRET = "shared_secret"
-        private const val KEY_RELAY_URL = "relay_url"
-        private const val KEY_DEVICE_ID = "device_id"
         private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_RECENT_HASHES = "recent_hashes"
         private const val KEY_RELAY_LOGS = "relay_logs"
@@ -364,7 +289,6 @@ class OtpPreferences(context: Context) {
         const val MODE_WHITELIST_ALL = "WHITELIST_ALL"
         const val MODE_ALL_SMS = "ALL_SMS"
 
-        const val DEFAULT_RELAY_URL = "https://sms-navigator-server.onrender.com/api/v1/relay"
         const val DEFAULT_API_BASE_URL = "https://sms-navigator-server.onrender.com"
     }
 }

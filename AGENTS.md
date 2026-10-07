@@ -138,14 +138,14 @@ Khối Data được tách thành 2 tầng con:
 
 ---
 
-## 4. Backend: Firebase Integration
+## 4. Backend: Server riêng + Firebase (FCM)
 
-- Dự án **không có Backend server riêng** (No custom backend).
-- Toàn bộ backend xử lý thông qua hệ sinh thái Firebase (Cloud Firestore, Firebase Authentication, Firebase Storage, Firebase Cloud Messaging,...).
-- **Quy tắc thao tác Firebase**:
-  - Toàn bộ lời gọi Firebase SDK phải nằm trong các class thuộc tầng **Services** (ví dụ: `FirestoreService`, `FirebaseAuthService`).
-  - Tầng UI và BLoC không được import bất kỳ package Firebase SDK nào trực tiếp.
-  - Cần bọc các lỗi từ Firebase (ví dụ: `FirebaseException`) thành các domain error / exception thân thiện trước khi trả về Repository.
+- Dự án có **Backend server riêng** (Node.js/Express + Firestore Admin, repo `sms_navigator_server`) — KHÔNG phải kiến trúc Firebase-only. Server là nguồn chân lý duy nhất cho kênh E2EE, membership và key-envelope.
+- **FCM (Firebase Cloud Messaging)** chỉ đóng vai trò **chuông thông báo** (wake-up bell) do server bắn ra; app luôn reconcile với server khi mở, nên mất FCM không mất dữ liệu.
+- **Quy tắc thao tác Backend**:
+  - Toàn bộ lời gọi HTTP tới server phải nằm trong các class thuộc tầng **Services** (ví dụ: `MessageApiService`, `ChannelApiService`, `DeviceApiService`), endpoint tập trung ở `core/constants/api_endpoints.dart`.
+  - Tầng UI và BLoC không được gọi HTTP trực tiếp.
+  - Lời gọi Firebase SDK trong app (FCM token, notification foreground) phải nằm trong tầng **Services** (ví dụ: `FcmNotificationService`); bọc lỗi thành domain error/exception thân thiện trước khi trả về Repository.
 
 ---
 

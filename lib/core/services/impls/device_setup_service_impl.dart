@@ -1,7 +1,6 @@
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../storage/storage_keys.dart';
-import '../../utils/data_converter.dart';
 import '../device_setup_service.dart';
 import '../local_storage_service.dart';
 import '../native_relay_service.dart';
@@ -121,21 +120,9 @@ class DeviceSetupServiceImpl implements DeviceSetupService {
         return false;
       }
 
+      // Đã cấp quyền thì không nhắc lại.
       final granted = await isSmsPermissionGranted();
-      if (granted) return false;
-
-      final config = await nativeRelayService.getRelayConfig();
-      final pairId = DataConverter.cvToString(config['pairId'], '')!;
-      final isSenderActive =
-          config['isRelayEnabled'] == true && pairId.isNotEmpty;
-      if (isSenderActive) return true;
-
-      final isReceiverPaired = (localStorageService.getString(
-                StorageKeys.receiverPairId,
-              ) ??
-              '')
-          .isNotEmpty;
-      return !isReceiverPaired;
+      return !granted;
     } catch (_) {
       return false;
     }

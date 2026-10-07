@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
-import 'package:sms_navigator/core/storage/storage_keys.dart';
 import 'package:sms_navigator/core/widgets/app_switch.dart';
 import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/repositories/whitelist_repository.dart';
-import 'package:sms_navigator/core/services/native_relay_service.dart';
 import 'package:sms_navigator/features/settings/whitelist_settings_page.dart';
-import 'package:sms_navigator/features/settings/views/whitelist_blocked_banner.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 
 class _FakeWhitelistRepository implements WhitelistRepository {
@@ -32,33 +28,6 @@ class _FakeWhitelistRepository implements WhitelistRepository {
 
   @override
   Future<List<Map<String, dynamic>>> getRecentLogs() async => logs;
-}
-
-class _FakeNativeRelayService implements NativeRelayService {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeLocalStorageService implements LocalStorageService {
-  _FakeLocalStorageService({this.receiverPairId});
-
-  final String? receiverPairId;
-
-  @override
-  String? getString(String key) =>
-      key == StorageKeys.receiverPairId ? receiverPairId : null;
-
-  @override
-  Future<void> setString(String key, String value) async {}
-
-  @override
-  bool? getBool(String key) => null;
-
-  @override
-  Future<void> setBool(String key, bool value) async {}
-
-  @override
-  Future<void> remove(String key) async {}
 }
 
 Future<void> _pumpSettingsPage(
@@ -159,61 +128,6 @@ void main() {
       expect(find.text('FAILED'), findsOneWidget);
       expect(find.text('HTTP 401: Unauthorized'), findsOneWidget);
       expect(find.text('Nội dung phát hiện: 123456'), findsOneWidget);
-    });
-  });
-
-
-  group('WhitelistBlockedBanner', () {
-    testWidgets('shows on sender device when whitelist is empty',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MultiRepositoryProvider(
-            providers: [
-              RepositoryProvider<NativeRelayService>(
-                create: (_) => _FakeNativeRelayService(),
-              ),
-              RepositoryProvider<LocalStorageService>(
-                create: (_) => _FakeLocalStorageService(),
-              ),
-            ],
-            child: const Scaffold(body: WhitelistBlockedBanner()),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text(
-          'Tin nhắn SMS đang tạm dừng chuyển tiếp để bảo vệ an toàn dữ liệu. Thêm địa chỉ bạn muốn chuyển tiếp.',
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('hides on receiver-paired device', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MultiRepositoryProvider(
-            providers: [
-              RepositoryProvider<NativeRelayService>(
-                create: (_) => _FakeNativeRelayService(),
-              ),
-              RepositoryProvider<LocalStorageService>(
-                create: (_) => _FakeLocalStorageService(receiverPairId: 'p1'),
-              ),
-            ],
-            child: const Scaffold(body: WhitelistBlockedBanner()),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('đang bị chặn'), findsNothing);
     });
   });
 }

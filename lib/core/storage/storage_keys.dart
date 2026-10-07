@@ -10,10 +10,6 @@ abstract final class StorageKeys {
   static const String serverUrl = 'server_url';
   static const String fcmToken = 'fcm_token';
 
-  // --- Pairing & Crypto Secrets ---
-  static const String receiverPairId = 'receiver_pair_id';
-  static const String receiverSharedSecret = 'receiver_shared_secret';
-
   // --- Channel E2EE (secure storage) ---
   static const String channelIdentityPrivateKey = 'channel_identity_private_key';
   static const String channelIdentityPublicKey = 'channel_identity_public_key';
