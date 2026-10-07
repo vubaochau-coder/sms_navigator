@@ -6,6 +6,7 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/utils/bottom_sheet_utils.dart';
 import '../../core/utils/data_converter.dart';
 import '../../core/widgets/app_common_widgets.dart';
+import '../../core/widgets/shimmer_loading.dart';
 import '../../core/models/whitelist_config_model.dart';
 import '../../core/repositories/whitelist_repository.dart';
 import 'bloc/whitelist_bloc.dart';
@@ -63,7 +64,11 @@ class _WhitelistSettingsView extends StatelessWidget {
       body: BlocBuilder<WhitelistBloc, WhitelistState>(
         builder: (context, state) {
           if (state.isLoading && state.config.entries.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerLoadingList(
+              itemCount: 5,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              cardHeight: 72,
+            );
           }
 
           return Column(

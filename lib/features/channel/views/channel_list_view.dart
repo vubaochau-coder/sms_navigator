@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/extensions/context_extensions.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import '../bloc/channel_bloc.dart';
 import 'channel_card_view.dart';
 import 'pending_join_request_card.dart';
@@ -20,7 +21,11 @@ class OwnedChannelListView extends StatelessWidget {
           prev.ownedChannels != current.ownedChannels,
       builder: (context, state) {
         if (state.isLoading && state.ownedChannels.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerLoadingList(
+            itemCount: 5,
+            padding: EdgeInsets.fromLTRB(12, 8, 12, 96),
+            cardHeight: 76,
+          );
         }
 
         if (state.ownedChannels.isEmpty) {
@@ -74,7 +79,11 @@ class JoinedChannelListView extends StatelessWidget {
         if (state.isLoading &&
             state.joinedChannels.isEmpty &&
             state.pendingJoinRequests.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerLoadingList(
+            itemCount: 5,
+            padding: EdgeInsets.fromLTRB(12, 8, 12, 96),
+            cardHeight: 76,
+          );
         }
 
         if (state.joinedChannels.isEmpty && state.pendingJoinRequests.isEmpty) {

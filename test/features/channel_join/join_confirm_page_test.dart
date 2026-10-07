@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/models/invite_preview_model.dart';
 import 'package:sms_navigator/core/models/pairing_request_model.dart';
@@ -111,7 +112,7 @@ void main() {
     await tester.pump(); // Trigger frame
 
     expect(find.text('Đang tải thông tin kênh...'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(Shimmer), findsOneWidget);
   });
 
   testWidgets('displays channel and owner when resolve completes', (tester) async {

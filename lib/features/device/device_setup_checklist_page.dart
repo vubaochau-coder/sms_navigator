@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/constants/dimens.dart';
 import '../../core/extensions/context_extensions.dart';
+import '../../core/widgets/shimmer_loading.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import 'bloc/device_setup_bloc.dart';
 import 'bloc/device_setup_event.dart';
@@ -81,7 +82,11 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
           if (state.isLoading &&
               state.smsPermissionGranted == null &&
               state.batteryUnrestricted == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerLoadingList(
+              itemCount: 4,
+              padding: Dimens.screenPadding,
+              cardHeight: 110,
+            );
           }
           return ListView(
             padding: Dimens.screenPadding,
