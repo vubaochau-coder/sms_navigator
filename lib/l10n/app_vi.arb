@@ -340,7 +340,7 @@
       "channelName": { "type": "String" }
     }
   },
-  "joinOwnerLabel": "Máy chủ: {ownerName}",
+  "joinOwnerLabel": "Chủ kênh: {ownerName}",
   "@joinOwnerLabel": {
     "placeholders": {
       "ownerName": { "type": "String" }

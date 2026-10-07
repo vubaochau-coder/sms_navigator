@@ -1,14 +1,23 @@
-/// Giai đoạn của luồng tham gia kênh (3.1–3.6).
+/// Giai đoạn của luồng xác nhận tham gia kênh độc lập.
 enum JoinPhase {
-  /// Đang hiển thị dialog xác nhận (3.2) — KHÔNG tự gọi API sau khi quét.
-  confirming,
+  /// Khởi tạo, chưa resolve session.
+  initial,
 
-  /// Đã gửi request, đang chờ Owner duyệt (3.4) — không phụ thuộc TTL 10'.
-  waitingApproval,
+  /// Đang gọi API resolve để lấy thông tin kênh (hiển thị skeleton).
+  resolving,
 
-  /// Được duyệt — app sẽ provision key ngầm rồi quay về màn kênh.
-  approved,
+  /// Resolve thất bại (lỗi kết nối, hết hạn, ALREADY_MEMBER, REQUEST_ALREADY_PENDING...).
+  resolveFailed,
 
-  /// Bị từ chối / hủy / mã lỗi (3.6).
-  failed,
+  /// Đã resolve thành công, hiển thị card thông tin kênh và thiết bị (read-only).
+  ready,
+
+  /// Đang gửi claim request lên server.
+  claiming,
+
+  /// Claim thành công (toast & pop).
+  claimSuccess,
+
+  /// Claim thất bại (hiển thị lỗi để user thử lại).
+  claimFailed,
 }

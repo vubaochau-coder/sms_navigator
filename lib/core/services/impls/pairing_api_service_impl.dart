@@ -1,4 +1,5 @@
 import '../../constants/api_endpoints.dart';
+import '../../models/invite_preview_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
 import '../../network/api_client.dart';
@@ -30,6 +31,23 @@ class PairingApiServiceImpl implements PairingApiService {
       ),
     );
     return PairingSessionModel.fromMap(data);
+  }
+
+  @override
+  Future<InvitePreviewModel> resolveSession({
+    required String sessionId,
+    required String pairingToken,
+  }) async {
+    final data = _asMap(
+      await apiClient.post(
+        ApiEndpoints.channelSessionsResolveV2,
+        body: <String, dynamic>{
+          'session_id': sessionId,
+          'pairing_token': pairingToken,
+        },
+      ),
+    );
+    return InvitePreviewModel.fromMap(data);
   }
 
   @override

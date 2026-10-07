@@ -54,6 +54,28 @@ class PendingJoinRequestCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (request.ownerDeviceName.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Chủ kênh: ${request.ownerDeviceName}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (request.formattedCreatedAt.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      request.formattedCreatedAt,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -83,11 +105,16 @@ class PendingJoinRequestCard extends StatelessWidget {
                 side: BorderSide(
                   color: theme.colorScheme.error.withValues(alpha: 0.5),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 visualDensity: VisualDensity.compact,
               ),
               onPressed: () => _cancelRequest(context),
-              child: Text(l10n.joinCancelRequestAction),
+              child: Text(
+                l10n.joinCancelRequestAction,
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
           ],
         ),

@@ -30,6 +30,7 @@ class ApiEndpoints {
   static const String channelDetailV2 = '/api/v2/channels/detail';
   static const String channelMembersV2 = '/api/v2/channels/members';
   static const String channelSessionsV2 = '/api/v2/channels/sessions';
+  static const String channelSessionsResolveV2 = '/api/v2/channels/sessions/resolve';
   static const String channelRequestsV2 = '/api/v2/channels/requests';
   static const String channelKeyEnvelopeV2 = '/api/v2/channels/key-envelope';
   static const String channelMessagesV2 = '/api/v2/channels/messages';

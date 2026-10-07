@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/repositories/join_channel_repository.dart';
+import '../../core/services/startup_reconcile_service.dart';
 import '../../core/utils/dialog_utils.dart';
 import '../device/views/device_profile_button.dart';
 import 'bloc/channel_bloc.dart';
@@ -19,9 +20,16 @@ class ChannelPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
+        StartupReconcileService? reconcile;
+        try {
+          reconcile = context.read<StartupReconcileService>();
+        } catch (_) {
+          reconcile = null;
+        }
         return ChannelBloc(
           repository: context.read<ChannelRepository>(),
           joinRepository: context.read<JoinChannelRepository>(),
+          reconcileService: reconcile,
         )..add(const ChannelLoadDataEvent());
       },
       child: const _ChannelPageView(),

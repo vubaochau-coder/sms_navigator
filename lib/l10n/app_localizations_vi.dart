@@ -779,7 +779,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String joinOwnerLabel(String ownerName) {
-    return 'Máy chủ: $ownerName';
+    return 'Chủ kênh: $ownerName';
   }
 
   @override

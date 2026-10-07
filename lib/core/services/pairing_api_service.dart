@@ -1,3 +1,4 @@
+import '../models/invite_preview_model.dart';
 import '../models/pairing_request_model.dart';
 import '../models/pairing_session_model.dart';
 
@@ -5,6 +6,11 @@ import '../models/pairing_session_model.dart';
 abstract class PairingApiService {
   Future<PairingSessionModel> createPairingSession({
     required String channelId,
+  });
+
+  Future<InvitePreviewModel> resolveSession({
+    required String sessionId,
+    required String pairingToken,
   });
 
   Future<ClaimRequestResultModel> claimPairingRequest({

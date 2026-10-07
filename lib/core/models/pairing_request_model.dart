@@ -65,6 +65,7 @@ class PairingRequestModel extends Equatable {
   final String requesterDeviceId;
   final String requesterDeviceName;
   final String requesterPublicKey;
+  final String ownerDeviceName;
   final PairingRequestStatus status;
   final String createdAt;
   final String? decidedAt;
@@ -76,12 +77,28 @@ class PairingRequestModel extends Equatable {
     this.requesterDeviceId = '',
     this.requesterDeviceName = '',
     this.requesterPublicKey = '',
+    this.ownerDeviceName = '',
     this.status = PairingRequestStatus.pending,
     this.createdAt = '',
     this.decidedAt,
   });
 
   bool get isPending => status == PairingRequestStatus.pending;
+
+  String get formattedCreatedAt {
+    if (createdAt.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(createdAt).toLocal();
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      final year = dt.year.toString();
+      return '$hour:$minute · $day/$month/$year';
+    } catch (_) {
+      return createdAt;
+    }
+  }
 
   factory PairingRequestModel.fromMap(Map<String, dynamic> map) {
     return PairingRequestModel(
@@ -94,6 +111,8 @@ class PairingRequestModel extends Equatable {
           DataConverter.cvToString(map['requester_device_name'], '')!,
       requesterPublicKey:
           DataConverter.cvToString(map['requester_public_key'], '')!,
+      ownerDeviceName:
+          DataConverter.cvToString(map['owner_device_name'], '')!,
       status: pairingRequestStatusFromRaw(
         DataConverter.cvToString(map['status'], 'PENDING'),
       ),
@@ -110,6 +129,7 @@ class PairingRequestModel extends Equatable {
     requesterDeviceId,
     requesterDeviceName,
     requesterPublicKey,
+    ownerDeviceName,
     status,
     createdAt,
     decidedAt,

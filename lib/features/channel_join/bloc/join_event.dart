@@ -9,17 +9,22 @@ abstract class JoinEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Sau khi quét QR / mở deeplink: hiển thị dialog xác nhận (3.2).
-class JoinInviteScanned extends JoinEvent {
+/// Bắt đầu resolve session từ mã mời đã quét.
+class JoinResolveStarted extends JoinEvent {
   final InvitePayload invite;
 
-  const JoinInviteScanned(this.invite);
+  const JoinResolveStarted(this.invite);
 
   @override
   List<Object?> get props => [invite];
 }
 
-/// Bấm [Gửi yêu cầu kết nối] (3.3) — lúc này mới claim QR.
+/// Alias cho JoinResolveStarted để tương thích ngược.
+class JoinInviteScanned extends JoinResolveStarted {
+  const JoinInviteScanned(super.invite);
+}
+
+/// Bấm [Gửi yêu cầu kết nối] — claim QR với tên thiết bị hiện tại (read-only).
 class JoinSubmitted extends JoinEvent {
   final String deviceName;
 
@@ -27,14 +32,4 @@ class JoinSubmitted extends JoinEvent {
 
   @override
   List<Object?> get props => [deviceName];
-}
-
-/// Hủy request (3.5) — chỉ khi còn PENDING.
-class JoinCancelled extends JoinEvent {
-  const JoinCancelled();
-}
-
-/// Refresh trạng thái các request của tôi (reconcile khi mở app, SRD 7.3).
-class JoinRequestsRefreshed extends JoinEvent {
-  const JoinRequestsRefreshed();
 }
