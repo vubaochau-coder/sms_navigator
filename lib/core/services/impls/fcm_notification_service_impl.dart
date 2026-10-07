@@ -23,6 +23,24 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
+class BellNotificationContent {
+  const BellNotificationContent({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BellNotificationContent &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          body == other.body;
+
+  @override
+  int get hashCode => Object.hash(title, body);
+}
+
 class FcmNotificationServiceImpl implements FcmNotificationService {
   FcmNotificationServiceImpl({
     required DeviceStorageService deviceStorageService,
@@ -113,16 +131,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
     }
   }
 
-  Future<void> _showBellNotification(RemoteMessage message) async {
-    const androidDetails = AndroidNotificationDetails(
-      'sms_navigator_otp_channel',
-      'SMS Navigator OTP',
-      channelDescription: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const details = NotificationDetails(android: androidDetails);
-
+  @visibleForTesting
+  static BellNotificationContent resolveContent(RemoteMessage message) {
     // Ưu tiên tiêu đề/nội dung từ notification block của FCM nếu server đã định dạng
     String title = message.notification?.title ?? 'SMS Navigator';
     String body = message.notification?.body ?? 'Có sự kiện mới trong kênh. Mở app để xem.';
@@ -154,7 +164,11 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
           break;
         case 'REVOKED':
           title = 'Quyền truy cập đã bị thu hồi';
-          body = 'Bạn không còn quyền truy cập một kênh.';
+          if (channelName != null && channelName.isNotEmpty) {
+            body = 'Bạn không còn quyền truy cập kênh "$channelName".';
+          } else {
+            body = 'Bạn không còn quyền truy cập một kênh.';
+          }
           break;
         case 'NEW_MESSAGE':
           title = 'OTP mới';
@@ -167,11 +181,26 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
       }
     }
 
+    return BellNotificationContent(title: title, body: body);
+  }
+
+  Future<void> _showBellNotification(RemoteMessage message) async {
+    const androidDetails = AndroidNotificationDetails(
+      'sms_navigator_otp_channel',
+      'SMS Navigator OTP',
+      channelDescription: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const details = NotificationDetails(android: androidDetails);
+
+    final content = resolveContent(message);
+
     try {
       await _localNotifications.show(
         id: DateTime.now().millisecondsSinceEpoch % 0x7fffffff,
-        title: title,
-        body: body,
+        title: content.title,
+        body: content.body,
         notificationDetails: details,
       );
     } catch (error, stack) {
