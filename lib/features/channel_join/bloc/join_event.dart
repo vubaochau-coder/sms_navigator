@@ -19,10 +19,6 @@ class JoinResolveStarted extends JoinEvent {
   List<Object?> get props => [invite];
 }
 
-/// Alias cho JoinResolveStarted để tương thích ngược.
-class JoinInviteScanned extends JoinResolveStarted {
-  const JoinInviteScanned(super.invite);
-}
 
 /// Bấm [Gửi yêu cầu kết nối] — claim QR với tên thiết bị hiện tại (read-only).
 class JoinSubmitted extends JoinEvent {

@@ -5,6 +5,7 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/models/pairing_session_model.dart';
 import '../../core/repositories/join_channel_repository.dart';
 import '../../core/utils/toast_utils.dart';
+import '../../l10n/app_localizations.dart';
 import '../device/bloc/device_profile_cubit.dart';
 import 'bloc/join_bloc.dart';
 
@@ -278,7 +279,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
     BuildContext context,
     JoinState state,
     ThemeData theme,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     final channelName = state.channelName.isNotEmpty ? state.channelName : '—';
     final ownerName = state.ownerDeviceName.isNotEmpty ? state.ownerDeviceName : '—';
