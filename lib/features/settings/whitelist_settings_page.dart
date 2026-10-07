@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/utils/bottom_sheet_utils.dart';
 import '../../core/widgets/app_common_widgets.dart';
 import '../../core/models/whitelist_config_model.dart';
 import '../../core/repositories/whitelist_repository.dart';
@@ -33,7 +35,16 @@ class _WhitelistSettingsView extends StatelessWidget {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.whitelistSettingsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.whitelistSettingsTitle),
+        actions: [
+          IconButton(
+            tooltip: 'Nhật ký tiếp nhận SMS',
+            icon: const Icon(Icons.receipt_long_rounded),
+            onPressed: () => _openRelayLogSheet(context),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'whitelist_settings_add_fab',
         onPressed: () {
@@ -64,6 +75,182 @@ class _WhitelistSettingsView extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _openRelayLogSheet(BuildContext context) {
+    BlocProvider.of<WhitelistBloc>(context).add(const WhitelistLogsRefreshed());
+    BottomSheetUtils.showAppBottomSheet<void>(
+      context: context,
+      title: 'Nhật ký tiếp nhận SMS',
+      child: const _RelayLogSheet(),
+    );
+  }
+}
+
+/// Sheet hiển thị nhật ký tiếp nhận SMS từ native — truy vết pipeline
+/// (gate nào chặn SMS, vì sao không relay được).
+class _RelayLogSheet extends StatelessWidget {
+  const _RelayLogSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.colorScheme;
+    return BlocBuilder<WhitelistBloc, WhitelistState>(
+      builder: (context, state) {
+        final logs = state.recentLogs;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn '
+                      '(nếu không relay được).',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Làm mới',
+                    icon: const Icon(Icons.refresh_rounded),
+                    onPressed: () => BlocProvider.of<WhitelistBloc>(context)
+                        .add(const WhitelistLogsRefreshed()),
+                  ),
+                ],
+              ),
+            ),
+            if (logs.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text(
+                    'Chưa có SMS nào được ghi nhận.',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  itemCount: logs.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) =>
+                      _RelayLogTile(log: logs[index]),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RelayLogTile extends StatelessWidget {
+  const _RelayLogTile({required this.log});
+
+  final Map<String, dynamic> log;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.colorScheme;
+    final sender = (log['sender'] as String?) ?? '';
+    final otp = (log['otp'] as String?) ?? '';
+    final status = (log['status'] as String?) ?? '';
+    final error = (log['error'] as String?) ?? '';
+    final timestamp = log['timestamp'];
+
+    String formattedTime = '';
+    if (timestamp is int && timestamp > 0) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      formattedTime = DateFormat('HH:mm:ss · dd/MM/yyyy').format(dt);
+    }
+
+    final (Color color, IconData icon) = switch (status) {
+      'SUCCESS' => (Colors.green.shade700, Icons.check_circle_outline_rounded),
+      'ENQUEUED' => (Colors.blue.shade700, Icons.schedule_send_rounded),
+      'RETRYING' => (Colors.orange.shade800, Icons.refresh_rounded),
+      'FAILED' => (colorScheme.error, Icons.error_outline_rounded),
+      'BLOCKED' => (Colors.purple.shade700, Icons.block_rounded),
+      _ => (colorScheme.onSurfaceVariant, Icons.remove_circle_outline_rounded),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        sender.isEmpty ? '(không rõ số gửi)' : sender,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      status,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+                if (formattedTime.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      formattedTime,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                if (otp.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'Nội dung phát hiện: $otp',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                if (error.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      error,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

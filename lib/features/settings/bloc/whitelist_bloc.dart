@@ -15,6 +15,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     on<WhitelistEntryAdded>(_onEntryAdded);
     on<WhitelistAllowOtpToggled>(_onAllowOtpToggled);
     on<WhitelistEntryRemoved>(_onEntryRemoved);
+    on<WhitelistLogsRefreshed>(_onLogsRefreshed);
   }
 
   Future<void> _onStarted(
@@ -22,12 +23,30 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     Emitter<WhitelistState> emit,
   ) async {
     emit(state.copyWith(isLoading: true));
+    List<Map<String, dynamic>> logs = const [];
     try {
       final config = await repository.getWhitelist();
-      emit(state.copyWith(isLoading: false, config: config));
+      try {
+        logs = await repository.getRecentLogs();
+      } catch (_) {
+        // Log chẩn đoán — lỗi im lặng, không phá màn hình
+      }
+      emit(state.copyWith(isLoading: false, config: config, recentLogs: logs));
     } catch (e) {
       ToastUtils.showError('Không thể đọc cấu hình white-list: $e');
       emit(state.copyWith(isLoading: false));
+    }
+  }
+
+  Future<void> _onLogsRefreshed(
+    WhitelistLogsRefreshed event,
+    Emitter<WhitelistState> emit,
+  ) async {
+    try {
+      final logs = await repository.getRecentLogs();
+      emit(state.copyWith(recentLogs: logs));
+    } catch (_) {
+      // Log chẩn đoán — lỗi im lặng, không phá UI
     }
   }
 

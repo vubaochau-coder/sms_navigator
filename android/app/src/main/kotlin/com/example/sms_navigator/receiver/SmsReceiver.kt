@@ -35,6 +35,7 @@ class SmsReceiver : BroadcastReceiver() {
         try {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             if (messages.isNullOrEmpty()) {
+                OtpPreferences(context).addRelayLog("Unknown", "", "SKIPPED", "No SMS parts in intent")
                 finishOnce(pendingResult)
                 return
             }
@@ -53,6 +54,7 @@ class SmsReceiver : BroadcastReceiver() {
             val prefs = OtpPreferences(context)
             if (!prefs.isRelayEnabled) {
                 Log.d(TAG, "Relay is disabled in settings, skipping.")
+                prefs.addRelayLog(sender, "", "SKIPPED", "Relay disabled")
                 finishOnce(pendingResult)
                 return
             }
@@ -61,6 +63,7 @@ class SmsReceiver : BroadcastReceiver() {
             val sharedSecretBase64 = prefs.sharedSecretBase64
             if (pairId.isNullOrBlank() || sharedSecretBase64.isNullOrBlank()) {
                 Log.w(TAG, "Device is not paired yet. Cannot relay.")
+                prefs.addRelayLog(sender, "", "SKIPPED", "Not paired (legacy V1 config missing)")
                 finishOnce(pendingResult)
                 return
             }
@@ -101,6 +104,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             if (prefs.isDuplicateAndRecord(sender, deduplicationKey)) {
                 Log.w(TAG, "Duplicate message/OTP received within TTL window. Dropping.")
+                prefs.addRelayLog(sender, otpEvent.otp, "SKIPPED", "Duplicate within TTL window")
                 finishOnce(pendingResult)
                 return
             }
@@ -133,6 +137,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             WorkManager.getInstance(context).enqueue(workRequest)
             Log.i(TAG, "Enqueued OtpRelayWorker with WorkManager (messageId: $messageId)")
+            prefs.addRelayLog(sender, otpEvent.otp, "ENQUEUED", "Worker → ${prefs.relayUrl}")
 
             // Notify UI if app is currently in foreground
             onOtpProcessedListener?.invoke(otpEvent.sender, otpEvent.otp)

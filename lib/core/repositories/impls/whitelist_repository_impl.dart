@@ -25,4 +25,13 @@ class WhitelistRepositoryImpl implements WhitelistRepository {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecentLogs() async {
+    try {
+      return await nativeRelayService.getRecentLogs();
+    } catch (_) {
+      return const [];
+    }
+  }
 }

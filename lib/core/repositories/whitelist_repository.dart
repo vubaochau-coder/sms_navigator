@@ -6,4 +6,8 @@ abstract class WhitelistRepository {
 
   /// Lưu toàn bộ cấu hình white-list xuống native.
   Future<bool> saveWhitelist(WhitelistConfigModel config);
+
+  /// Đọc nhật ký tiếp nhận SMS từ native (30 entry gần nhất) — dùng để
+  /// truy vết pipeline nhận SMS: SMS đã đi tới gate nào, bị chặn vì sao.
+  Future<List<Map<String, dynamic>>> getRecentLogs();
 }

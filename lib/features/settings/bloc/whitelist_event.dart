@@ -32,3 +32,8 @@ class WhitelistEntryRemoved extends WhitelistEvent {
 
   const WhitelistEntryRemoved(this.entry);
 }
+
+/// Tải lại nhật ký tiếp nhận SMS từ native (truy vết pipeline).
+class WhitelistLogsRefreshed extends WhitelistEvent {
+  const WhitelistLogsRefreshed();
+}

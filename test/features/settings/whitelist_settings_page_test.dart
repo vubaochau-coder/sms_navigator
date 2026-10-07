@@ -27,6 +27,9 @@ class _FakeWhitelistRepository implements WhitelistRepository {
     stored = config;
     return true;
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecentLogs() async => const [];
 }
 
 class _FakeNativeRelayService implements NativeRelayService {
