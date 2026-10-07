@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit
 
 class SmsReceiver : BroadcastReceiver() {
 
+    private var finished = false
+
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             return
@@ -33,7 +35,7 @@ class SmsReceiver : BroadcastReceiver() {
         try {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             if (messages.isNullOrEmpty()) {
-                pendingResult.finish()
+                finishOnce(pendingResult)
                 return
             }
 
@@ -51,7 +53,7 @@ class SmsReceiver : BroadcastReceiver() {
             val prefs = OtpPreferences(context)
             if (!prefs.isRelayEnabled) {
                 Log.d(TAG, "Relay is disabled in settings, skipping.")
-                pendingResult.finish()
+                finishOnce(pendingResult)
                 return
             }
 
@@ -59,7 +61,7 @@ class SmsReceiver : BroadcastReceiver() {
             val sharedSecretBase64 = prefs.sharedSecretBase64
             if (pairId.isNullOrBlank() || sharedSecretBase64.isNullOrBlank()) {
                 Log.w(TAG, "Device is not paired yet. Cannot relay.")
-                pendingResult.finish()
+                finishOnce(pendingResult)
                 return
             }
 
@@ -70,7 +72,7 @@ class SmsReceiver : BroadcastReceiver() {
                 is RelayDecision.Drop -> {
                     Log.i(TAG, "Dropping SMS from $sender: ${decision.reason}")
                     prefs.addRelayLog(sender, "", "BLOCKED", decision.reason)
-                    pendingResult.finish()
+                    finishOnce(pendingResult)
                     return
                 }
                 RelayDecision.Allow -> Unit
@@ -99,7 +101,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             if (prefs.isDuplicateAndRecord(sender, deduplicationKey)) {
                 Log.w(TAG, "Duplicate message/OTP received within TTL window. Dropping.")
-                pendingResult.finish()
+                finishOnce(pendingResult)
                 return
             }
 
@@ -135,11 +137,19 @@ class SmsReceiver : BroadcastReceiver() {
             // Notify UI if app is currently in foreground
             onOtpProcessedListener?.invoke(otpEvent.sender, otpEvent.otp)
 
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in SmsReceiver: ${e.message}", e)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Error in SmsReceiver: ${t.message}", t)
         } finally {
-            pendingResult.finish()
+            finishOnce(pendingResult)
         }
+    }
+
+    /** FR: goAsync() requires exactly one finish() — guard against double-finish
+     * (IllegalStateException "Broadcast already finished" killed the process). */
+    private fun finishOnce(pendingResult: PendingResult) {
+        if (finished) return
+        finished = true
+        pendingResult.finish()
     }
 
     companion object {
