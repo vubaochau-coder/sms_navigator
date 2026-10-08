@@ -59,9 +59,14 @@ class OtpRelayWorker(
             return@withContext Result.failure()
         }
 
+        val payloadToEncrypt = JSONObject().apply {
+            put("sender", sender)
+            put("fullMessage", messageText)
+        }.toString()
+
         val encrypted = try {
             com.example.sms_navigator.crypto.ChannelCryptoNative.encryptMessage(
-                plaintext = messageText,
+                plaintext = payloadToEncrypt,
                 channelKeyBase64 = channelKeyBase64,
                 channelId = channelId,
                 keyEpoch = epoch,

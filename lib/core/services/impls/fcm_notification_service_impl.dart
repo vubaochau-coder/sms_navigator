@@ -78,8 +78,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
       if (androidPlugin != null) {
         const androidChannel = AndroidNotificationChannel(
           'sms_navigator_otp_channel',
-          'SMS Navigator OTP',
-          description: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
+          'SMS Navigator',
+          description: 'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh',
           importance: Importance.high,
         );
         await androidPlugin.createNotificationChannel(androidChannel);
@@ -157,9 +157,9 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
         case 'APPROVED':
           title = 'Yêu cầu đã được duyệt';
           if (channelName != null && channelName.isNotEmpty) {
-            body = 'Bạn đã được thêm vào kênh "$channelName". Mở app để xem OTP.';
+            body = 'Bạn đã được thêm vào kênh "$channelName". Mở app để xem tin nhắn SMS.';
           } else {
-            body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận OTP.';
+            body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.';
           }
           break;
         case 'REVOKED':
@@ -171,11 +171,11 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
           }
           break;
         case 'NEW_MESSAGE':
-          title = 'OTP mới';
+          title = 'Tin nhắn SMS mới';
           if (channelName != null && channelName.isNotEmpty) {
-            body = 'Có mã OTP mới từ kênh "$channelName". Chạm để xem.';
+            body = 'Có tin nhắn SMS mới từ kênh "$channelName". Chạm để xem.';
           } else {
-            body = 'Có mã OTP mới vừa được chia sẻ. Chạm để xem.';
+            body = 'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
           }
           break;
       }
@@ -187,8 +187,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   Future<void> _showBellNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
       'sms_navigator_otp_channel',
-      'SMS Navigator OTP',
-      channelDescription: 'Chuông báo có yêu cầu duyệt / OTP mới / thay đổi kênh',
+      'SMS Navigator',
+      channelDescription: 'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh',
       importance: Importance.high,
       priority: Priority.high,
     );

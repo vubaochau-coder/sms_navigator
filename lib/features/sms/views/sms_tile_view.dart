@@ -45,7 +45,7 @@ class SmsTileView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Hàng đầu tiên: Tên kênh · Thời gian (size nhỏ)
+                          // Hàng đầu tiên: Tên kênh · Brand · Thời gian (size nhỏ)
                           Row(
                             children: [
                               Flexible(
@@ -60,6 +60,28 @@ class SmsTileView extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              if (message.sender != null &&
+                                  message.sender!.isNotEmpty) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    message.sender!,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(width: 6),
                               Text(
                                 '· $formattedTime',

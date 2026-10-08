@@ -118,7 +118,7 @@ void main() {
 
         final result = FcmNotificationServiceImpl.resolveContent(message);
         expect(result.title, 'Yêu cầu đã được duyệt');
-        expect(result.body, 'Bạn đã được thêm vào kênh "Kênh OTP VIP". Mở app để xem OTP.');
+        expect(result.body, 'Bạn đã được thêm vào kênh "Kênh OTP VIP". Mở app để xem tin nhắn SMS.');
       });
 
       test('APPROVED fallback without channel name', () {
@@ -128,7 +128,7 @@ void main() {
 
         final result = FcmNotificationServiceImpl.resolveContent(message);
         expect(result.title, 'Yêu cầu đã được duyệt');
-        expect(result.body, 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận OTP.');
+        expect(result.body, 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.');
       });
 
       test('REVOKED with channel name', () {
@@ -163,8 +163,8 @@ void main() {
         );
 
         final result = FcmNotificationServiceImpl.resolveContent(message);
-        expect(result.title, 'OTP mới');
-        expect(result.body, 'Có mã OTP mới từ kênh "Kênh Ngân Hàng". Chạm để xem.');
+        expect(result.title, 'Tin nhắn SMS mới');
+        expect(result.body, 'Có tin nhắn SMS mới từ kênh "Kênh Ngân Hàng". Chạm để xem.');
       });
 
       test('NEW_MESSAGE fallback without channel name', () {
@@ -173,8 +173,8 @@ void main() {
         );
 
         final result = FcmNotificationServiceImpl.resolveContent(message);
-        expect(result.title, 'OTP mới');
-        expect(result.body, 'Có mã OTP mới vừa được chia sẻ. Chạm để xem.');
+        expect(result.title, 'Tin nhắn SMS mới');
+        expect(result.body, 'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.');
       });
 
       test('Unknown kind falls back to default app notification', () {

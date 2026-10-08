@@ -11,7 +11,7 @@ import 'views/message_list_view.dart';
 /// Màn hình SMS theo ngày (MOBILE_FEATURES 6.1–6.4):
 /// - Chọn ngày trên calendar (6.1);
 /// - SMS/OTP gộp của TẤT CẢ kênh đang tham gia, mỗi dòng ghi rõ kênh nguồn (6.2);
-/// - Thông báo SMS/OTP mới (FCM chuông) mở thẳng màn này (6.3);
+/// - Thông báo tin nhắn SMS mới (FCM chuông) mở thẳng màn này (6.3);
 /// - Trạng thái rỗng hiển thị rõ ràng (6.4).
 class SmsPage extends StatelessWidget {
   const SmsPage({super.key});
