@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
+import '../repositories/app_update_repository.dart';
 import '../repositories/channel_repository.dart';
 import '../repositories/device_setup_repository.dart';
+import '../repositories/impls/app_update_repository_impl.dart';
 import '../repositories/impls/channel_repository_impl.dart';
 import '../repositories/impls/device_setup_repository_impl.dart';
 import '../repositories/impls/join_channel_repository_impl.dart';
@@ -13,12 +15,14 @@ import '../repositories/join_channel_repository.dart';
 import '../repositories/sms_by_date_repository.dart';
 import '../repositories/whitelist_repository.dart';
 import '../services/analytics_service.dart';
+import '../services/app_update_service.dart';
 import '../services/channel_api_service.dart';
 import '../services/channel_key_store.dart';
 import '../services/crashlytics_service.dart';
 import '../services/device_api_service.dart';
 import '../services/device_storage_service.dart';
 import '../services/fcm_notification_service.dart';
+import '../services/impls/app_update_service_impl.dart';
 import '../services/impls/channel_api_service_impl.dart';
 import '../services/impls/channel_key_store_impl.dart';
 import '../services/impls/device_api_service_impl.dart';
@@ -74,6 +78,11 @@ class AppBootstrap extends StatelessWidget {
         RepositoryProvider<LocalStorageService>.value(
           value: localStorageService,
         ),
+        RepositoryProvider<AppUpdateService>(
+          create: (context) => AppUpdateServiceImpl(
+            localStorage: context.read<LocalStorageService>(),
+          ),
+        ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),
         ),
@@ -119,6 +128,11 @@ class AppBootstrap extends StatelessWidget {
               nativeRelayService: context.read<NativeRelayService>(),
               localStorageService: context.read<LocalStorageService>(),
             ),
+          ),
+        ),
+        RepositoryProvider<AppUpdateRepository>(
+          create: (context) => AppUpdateRepositoryImpl(
+            appUpdateService: context.read<AppUpdateService>(),
           ),
         ),
 

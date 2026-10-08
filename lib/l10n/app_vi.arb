@@ -454,5 +454,12 @@
   },
   "channelPendingBadge": "Đang chờ duyệt",
   "channelCancelRequestSuccess": "Đã hủy yêu cầu tham gia kênh",
-  "channelCancelRequestFailed": "Không hủy được yêu cầu. Thử lại sau."
+  "channelCancelRequestFailed": "Không hủy được yêu cầu. Thử lại sau.",
+  "updateDialogTitle": "Có phiên bản mới",
+  "updateNowButton": "Cập nhật ngay",
+  "updateLaterButton": "Để sau",
+  "updateForceNotice": "Bắt buộc cập nhật để tiếp tục sử dụng",
+  "updateMissingUrlMessage": "Chưa có liên kết tải phiên bản mới",
+  "updateInvalidUrlMessage": "Liên kết tải không hợp lệ",
+  "updateLaunchErrorMessage": "Không thể mở liên kết tải"
 }

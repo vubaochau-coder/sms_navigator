@@ -1,0 +1,50 @@
+{
+  "parameters": {
+    "app_update_latest_build": {
+      "defaultValue": {
+        "value": "16"
+      },
+      "valueType": "NUMBER",
+      "description": "Build number mới nhất phát hành (ví dụ: 16 để test hiện popup với app build 15)"
+    },
+    "app_update_latest_version": {
+      "defaultValue": {
+        "value": "0.0.2"
+      },
+      "valueType": "STRING",
+      "description": "Tên phiên bản hiển thị (ví dụ: 0.0.2)"
+    },
+    "app_update_min_build": {
+      "defaultValue": {
+        "value": "0"
+      },
+      "valueType": "NUMBER",
+      "description": "Build number tối thiểu. Nếu máy có build < min_build sẽ bị bắt buộc cập nhật (Force Update)"
+    },
+    "app_update_title": {
+      "defaultValue": {
+        "value": "Có phiên bản mới"
+      },
+      "valueType": "STRING",
+      "description": "Tiêu đề popup thông báo"
+    },
+    "app_update_description": {
+      "defaultValue": {
+        "value": "• Cập nhật hiển thị Brand Name cho SMS\n• Tối ưu hệ thống và kết nối mạng"
+      },
+      "valueType": "STRING",
+      "description": "Mô tả ngắn gọn về các thay đổi hoặc tính năng mới"
+    },
+    "app_update_download_url": {
+      "defaultValue": {
+        "value": "https://appdistribution.firebase.google.com/testerapps/1:510867121628:android:8e0205deb80aa79c565b19"
+      },
+      "valueType": "STRING",
+      "description": "Link tải ứng dụng (Firebase App Tester hoặc link trực tiếp)"
+    }
+  },
+  "version": {
+    "versionNumber": "1",
+    "description": "App update configuration template"
+  }
+}

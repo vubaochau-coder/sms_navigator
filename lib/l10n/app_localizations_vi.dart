@@ -959,4 +959,25 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get channelCancelRequestFailed =>
       'Không hủy được yêu cầu. Thử lại sau.';
+
+  @override
+  String get updateDialogTitle => 'Có phiên bản mới';
+
+  @override
+  String get updateNowButton => 'Cập nhật ngay';
+
+  @override
+  String get updateLaterButton => 'Để sau';
+
+  @override
+  String get updateForceNotice => 'Bắt buộc cập nhật để tiếp tục sử dụng';
+
+  @override
+  String get updateMissingUrlMessage => 'Chưa có liên kết tải phiên bản mới';
+
+  @override
+  String get updateInvalidUrlMessage => 'Liên kết tải không hợp lệ';
+
+  @override
+  String get updateLaunchErrorMessage => 'Không thể mở liên kết tải';
 }

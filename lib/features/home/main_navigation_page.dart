@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/repositories/app_update_repository.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../channel/channel_page.dart';
@@ -11,6 +12,7 @@ import '../device/bloc/device_setup_bloc.dart';
 import '../device/bloc/device_setup_event.dart';
 import '../device/bloc/device_setup_state.dart';
 import '../device/views/sms_permission_prompt_dialog.dart';
+import 'views/app_update_dialog.dart';
 
 /// Main navigation (kiến trúc mới):
 /// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);
@@ -67,6 +69,33 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
     });
   }
 
+  bool _updateCheckStarted = false;
+
+  /// Kiểm tra phiên bản mới từ Firebase Remote Config và hiện popup nếu có.
+  void _checkAppUpdate() {
+    if (_updateCheckStarted) return;
+    _updateCheckStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      try {
+        final updateRepo = context.read<AppUpdateRepository>();
+        final updateInfo = await updateRepo.checkForUpdate();
+        if (updateInfo == null || !mounted) return;
+
+        // Nếu không phải force update và người dùng đã chọn "Để sau" cho build này thì bỏ qua
+        if (!updateInfo.isForceUpdate &&
+            updateRepo.isUpdateDismissed(updateInfo.latestBuild)) {
+          return;
+        }
+
+        if (!mounted) return;
+        await AppUpdateDialog.show(context, updateInfo, updateRepo);
+      } catch (e) {
+        debugPrint('Check app update error: $e');
+      }
+    });
+  }
+
   void _selectTab(int index) {
     if (index == _selectedIndex) return;
     setState(() => _selectedIndex = index);
@@ -91,6 +120,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     _runStartupReconcile();
+    _checkAppUpdate();
     return BlocListener<DeviceSetupBloc, DeviceSetupState>(
       listener: (context, state) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

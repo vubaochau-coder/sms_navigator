@@ -25,4 +25,7 @@ abstract final class StorageKeys {
 
   // --- Receiver OTP History ---
   static const String receivedOtpsHistory = 'received_otps_history';
+
+  // --- App Update ---
+  static const String lastDismissedAppUpdateBuild = 'last_dismissed_app_update_build';
 }

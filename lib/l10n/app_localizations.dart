@@ -1773,6 +1773,48 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không hủy được yêu cầu. Thử lại sau.'**
   String get channelCancelRequestFailed;
+
+  /// No description provided for @updateDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có phiên bản mới'**
+  String get updateDialogTitle;
+
+  /// No description provided for @updateNowButton.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật ngay'**
+  String get updateNowButton;
+
+  /// No description provided for @updateLaterButton.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get updateLaterButton;
+
+  /// No description provided for @updateForceNotice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bắt buộc cập nhật để tiếp tục sử dụng'**
+  String get updateForceNotice;
+
+  /// No description provided for @updateMissingUrlMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có liên kết tải phiên bản mới'**
+  String get updateMissingUrlMessage;
+
+  /// No description provided for @updateInvalidUrlMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Liên kết tải không hợp lệ'**
+  String get updateInvalidUrlMessage;
+
+  /// No description provided for @updateLaunchErrorMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể mở liên kết tải'**
+  String get updateLaunchErrorMessage;
 }
 
 class _AppLocalizationsDelegate

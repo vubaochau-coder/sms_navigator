@@ -14,7 +14,10 @@ export 'receiver_storage_service.dart';
 export 'secure_storage_service.dart';
 export 'startup_reconcile_service.dart';
 
+export 'app_update_service.dart';
+
 // Implementations
+export 'impls/app_update_service_impl.dart';
 export 'impls/channel_api_service_impl.dart';
 export 'impls/channel_key_store_impl.dart';
 export 'impls/device_api_service_impl.dart';
