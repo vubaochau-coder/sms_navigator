@@ -71,7 +71,7 @@ class DataConverter {
   /// Hỗ trợ chuỗi ISO-8601, timestamp milliseconds, hoặc timestamp seconds
   static DateTime? cvToDateTime(dynamic value, [DateTime? defaultValue]) {
     if (value == null) return defaultValue;
-    if (value is DateTime) return value;
+    if (value is DateTime) return value.toLocal();
     if (value is int) {
       // Nếu là timestamp tính bằng giây (10 chữ số)
       if (value < 10000000000) {

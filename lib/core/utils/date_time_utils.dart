@@ -16,24 +16,26 @@ class DateTimeUtils {
   /// Định dạng ngày (mặc định: `dd/MM/yyyy`)
   static String formatDate(DateTime? dateTime, {String? pattern}) {
     if (dateTime == null) return '--';
+    final local = dateTime.toLocal();
     if (pattern != null) {
-      return DateFormat(pattern).format(dateTime);
+      return DateFormat(pattern).format(local);
     }
-    return _dateFormat.format(dateTime);
+    return _dateFormat.format(local);
   }
 
   /// Định dạng ngày chuẩn ISO `yyyy-MM-dd` (thường dùng cho API query params)
   static String formatIsoDate(DateTime? dateTime) {
     if (dateTime == null) return '';
-    return _isoDateFormat.format(dateTime);
+    return _isoDateFormat.format(dateTime.toLocal());
   }
 
   /// Định dạng giờ (mặc định: `HH:mm`, có giây: `HH:mm:ss`)
   static String formatTime(DateTime? dateTime, {bool includeSeconds = false}) {
     if (dateTime == null) return '--';
+    final local = dateTime.toLocal();
     return includeSeconds
-        ? _timeWithSecondsFormat.format(dateTime)
-        : _timeFormat.format(dateTime);
+        ? _timeWithSecondsFormat.format(local)
+        : _timeFormat.format(local);
   }
 
   /// Định dạng ngày và giờ (mặc định: `dd/MM/yyyy HH:mm`)
@@ -42,16 +44,18 @@ class DateTimeUtils {
     bool includeSeconds = false,
   }) {
     if (dateTime == null) return '--';
+    final local = dateTime.toLocal();
     return includeSeconds
-        ? _dateTimeWithSecondsFormat.format(dateTime)
-        : _dateTimeFormat.format(dateTime);
+        ? _dateTimeWithSecondsFormat.format(local)
+        : _dateTimeFormat.format(local);
   }
 
   /// Định dạng thời gian tương đối thân thiện (VD: "Vừa xong", "5 phút trước", "Hôm qua")
   static String timeAgo(DateTime? dateTime) {
     if (dateTime == null) return '--';
+    final local = dateTime.toLocal();
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final difference = now.difference(local);
 
     if (difference.inSeconds < 45) {
       return 'Vừa xong';
@@ -60,28 +64,34 @@ class DateTimeUtils {
     } else if (difference.inHours < 24) {
       return '${difference.inHours} giờ trước';
     } else if (difference.inDays == 1) {
-      return 'Hôm qua ${formatTime(dateTime)}';
+      return 'Hôm qua ${formatTime(local)}';
     } else if (difference.inDays < 7) {
       return '${difference.inDays} ngày trước';
     } else {
-      return formatDate(dateTime);
+      return formatDate(local);
     }
   }
 
   /// Kiểm tra 2 mốc thời gian có cùng ngày hay không
   static bool isSameDay(DateTime? a, DateTime? b) {
     if (a == null || b == null) return false;
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
   }
 
   /// Lấy mốc 00:00:00.000 đầu ngày
   static DateTime startOfDay(DateTime date) {
-    return DateTime(date.year, date.month, date.day);
+    final local = date.toLocal();
+    return DateTime(local.year, local.month, local.day);
   }
 
   /// Lấy mốc 23:59:59.999 cuối ngày
   static DateTime endOfDay(DateTime date) {
-    return DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+    final local = date.toLocal();
+    return DateTime(local.year, local.month, local.day, 23, 59, 59, 999);
   }
 
   /// Parse chuỗi ngày ISO `yyyy-MM-dd` an toàn
@@ -95,9 +105,10 @@ class DateTimeUtils {
   }
 
   /// Parse chuỗi thời gian ISO-8601 an toàn, trả về null nếu chuỗi rỗng hoặc không đúng định dạng.
+  /// Chuỗi UTC (đuôi `Z`) được convert về giờ máy trước khi format để tránh lệch múi giờ.
   static DateTime? tryParse(String? isoString) {
     if (isoString == null || isoString.trim().isEmpty) return null;
-    return DateTime.tryParse(isoString.trim());
+    return DateTime.tryParse(isoString.trim())?.toLocal();
   }
 
   /// Parse chuỗi thời gian ISO-8601, nếu lỗi hoặc rỗng trả về mốc mặc định (fallback hoặc epoch 0).

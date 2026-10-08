@@ -13,9 +13,36 @@ void main() {
       ciphertext: 'ciphertext_base64',
       nonce: 'nonce_base64',
       senderDeviceId: 'device_owner_a',
-      sentAt: '2026-10-08T00:00:00.000Z',
-      serverReceivedAt: '2026-10-08T00:00:01.000Z',
+      sentAt: null,
+      serverReceivedAt: null,
     );
+
+    test('fromMap parses ISO UTC timestamps to device-local DateTime', () {
+      final map = {
+        'message_id': 'msg_test',
+        'channel_id': 'ch_test',
+        'channel_name': 'Channel Test',
+        'sequence_number': 42,
+        'key_epoch': 1,
+        'ciphertext': 'enc_base64',
+        'nonce': 'nonce_base64',
+        'sender_device_id': 'dev_test',
+        'sent_at': '2026-10-08T08:00:00.000Z',
+        'server_received_at': '2026-10-08T08:00:01.000Z',
+        'sender': 'VIB',
+      };
+
+      final model = ChannelMessageModel.fromMap(map);
+
+      expect(model.sentAt, isNotNull);
+      expect(model.sentAt!.isUtc, isFalse);
+      expect(model.serverReceivedAt, isNotNull);
+      expect(model.serverReceivedAt!.isUtc, isFalse);
+      expect(
+        model.serverReceivedAt!.millisecondsSinceEpoch,
+        DateTime.parse('2026-10-08T08:00:01.000Z').millisecondsSinceEpoch,
+      );
+    });
 
     test('copyWithDecrypted extracts sender and fullMessage from JSON payload', () {
       final jsonPayload = jsonEncode({

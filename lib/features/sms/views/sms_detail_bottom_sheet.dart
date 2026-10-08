@@ -34,9 +34,8 @@ class SmsDetailBottomSheet extends StatelessWidget {
     final contentText =
         hasContent ? message.decryptedOtp! : l10n.smsDecryptError;
 
-    final receivedDate = DateTimeUtils.tryParse(message.serverReceivedAt);
     final formattedTime = DateTimeUtils.formatDate(
-      receivedDate,
+      message.serverReceivedAt,
       pattern: 'HH:mm:ss · dd/MM/yyyy',
     );
 

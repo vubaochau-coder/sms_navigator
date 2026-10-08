@@ -223,5 +223,13 @@ void main() {
       expect(DataConverter.cvToDateTime('not_a_timestamp'), isNull);
       expect(DataConverter.cvToDateTime('invalid', DateTime(2026)), isNotNull);
     });
+
+    test('DateTime input with isUtc == true is converted to local time', () {
+      final utcInstance = DateTime.utc(2026, 10, 8, 9, 30);
+      final converted = DataConverter.cvToDateTime(utcInstance);
+      expect(converted, isNotNull);
+      expect(converted!.isUtc, isFalse);
+      expect(converted, equals(utcInstance.toLocal()));
+    });
   });
 }

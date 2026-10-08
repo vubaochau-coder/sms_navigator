@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-
 import '../../core/extensions/context_extensions.dart';
 import '../../core/utils/bottom_sheet_utils.dart';
 import '../../core/utils/data_converter.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../core/widgets/app_common_widgets.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/models/whitelist_config_model.dart';
@@ -181,13 +180,10 @@ class _RelayLogTile extends StatelessWidget {
     final otp = DataConverter.cvToString(log['otp']) ?? '';
     final status = DataConverter.cvToString(log['status']) ?? '';
     final error = DataConverter.cvToString(log['error']) ?? '';
-    final timestamp = DataConverter.cvToInt(log['timestamp']);
-
-    String formattedTime = '';
-    if (timestamp != null && timestamp > 0) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      formattedTime = DateFormat('HH:mm:ss · dd/MM/yyyy').format(dt);
-    }
+    final dt = DataConverter.cvToDateTime(log['timestamp']);
+    final formattedTime = (dt != null && dt.millisecondsSinceEpoch > 0)
+        ? DateTimeUtils.formatDate(dt, pattern: 'HH:mm:ss · dd/MM/yyyy')
+        : '';
 
     final (Color color, IconData icon) = switch (status) {
       'SUCCESS' => (Colors.green.shade700, Icons.check_circle_outline_rounded),

@@ -16,8 +16,8 @@ class ChannelMessageModel extends Equatable {
   final String ciphertext;
   final String nonce;
   final String senderDeviceId;
-  final String sentAt;
-  final String serverReceivedAt;
+  final DateTime? sentAt;
+  final DateTime? serverReceivedAt;
 
   /// Đầu số / Brandname gửi tin gốc (ví dụ: "VCB", "Techcombank", "+8491...").
   final String? sender;
@@ -35,8 +35,8 @@ class ChannelMessageModel extends Equatable {
     required this.ciphertext,
     required this.nonce,
     this.senderDeviceId = '',
-    this.sentAt = '',
-    this.serverReceivedAt = '',
+    this.sentAt,
+    this.serverReceivedAt,
     this.sender,
     this.decryptedOtp,
     this.decryptFailed = false,
@@ -52,8 +52,8 @@ class ChannelMessageModel extends Equatable {
       ciphertext: DataConverter.cvToString(map['ciphertext'], '')!,
       nonce: DataConverter.cvToString(map['nonce'], '')!,
       senderDeviceId: DataConverter.cvToString(map['sender_device_id'], '')!,
-      sentAt: DataConverter.cvToString(map['sent_at'], '')!,
-      serverReceivedAt: DataConverter.cvToString(map['server_received_at'], '')!,
+      sentAt: DataConverter.cvToDateTime(map['sent_at']),
+      serverReceivedAt: DataConverter.cvToDateTime(map['server_received_at']),
       sender: DataConverter.cvToString(map['sender']),
     );
   }
@@ -126,19 +126,19 @@ class ChannelMessageModel extends Equatable {
 class SendMessageResultModel extends Equatable {
   final String messageId;
   final int sequenceNumber;
-  final String serverReceivedAt;
+  final DateTime? serverReceivedAt;
 
   const SendMessageResultModel({
     required this.messageId,
     required this.sequenceNumber,
-    required this.serverReceivedAt,
+    this.serverReceivedAt,
   });
 
   factory SendMessageResultModel.fromMap(Map<String, dynamic> map) {
     return SendMessageResultModel(
       messageId: DataConverter.cvToString(map['message_id'], '')!,
       sequenceNumber: DataConverter.cvToInt(map['sequence_number'], 0)!,
-      serverReceivedAt: DataConverter.cvToString(map['server_received_at'], '')!,
+      serverReceivedAt: DataConverter.cvToDateTime(map['server_received_at']),
     );
   }
 

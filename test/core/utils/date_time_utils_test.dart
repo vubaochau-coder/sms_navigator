@@ -69,5 +69,37 @@ void main() {
       expect(DateTimeUtils.parseIsoDate(''), isNull);
       expect(DateTimeUtils.parseIsoDate('invalid-date'), isNull);
     });
+
+    test('tryParse normalizes UTC ISO string to device-local DateTime', () {
+      const utcString = '2026-10-08T09:30:00.000Z';
+      final parsed = DateTimeUtils.tryParse(utcString);
+      expect(parsed, isNotNull);
+      expect(parsed!.isUtc, isFalse);
+      expect(
+        parsed.millisecondsSinceEpoch,
+        DateTime.parse(utcString).millisecondsSinceEpoch,
+      );
+      expect(DateTimeUtils.tryParse(null), isNull);
+      expect(DateTimeUtils.tryParse('   '), isNull);
+    });
+
+    test('format methods defensively convert UTC DateTime to device-local wall clock', () {
+      final utcDt = DateTime.utc(2026, 10, 8, 9, 30, 45);
+      final localDt = utcDt.toLocal();
+
+      final expectedTime =
+          '${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}';
+      expect(DateTimeUtils.formatTime(utcDt), equals(expectedTime));
+
+      final expectedDate =
+          '${localDt.day.toString().padLeft(2, '0')}/${localDt.month.toString().padLeft(2, '0')}/${localDt.year}';
+      expect(DateTimeUtils.formatDate(utcDt), equals(expectedDate));
+    });
+
+    test('isSameDay accurately compares UTC and local DateTime', () {
+      final localNow = DateTime.now();
+      final utcSameInstant = localNow.toUtc();
+      expect(DateTimeUtils.isSameDay(localNow, utcSameInstant), isTrue);
+    });
   });
 }

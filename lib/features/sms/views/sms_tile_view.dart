@@ -15,7 +15,7 @@ class SmsTileView extends StatelessWidget {
     final hasContent = message.decryptedOtp != null;
     final colorScheme = Theme.of(context).colorScheme;
     final formattedTime = DateTimeUtils.formatTime(
-      DateTimeUtils.tryParse(message.serverReceivedAt),
+      message.serverReceivedAt,
       includeSeconds: true,
     );
 
