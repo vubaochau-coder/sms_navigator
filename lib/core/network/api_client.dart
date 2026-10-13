@@ -99,8 +99,8 @@ class ApiClient {
     );
   }
 
-  /// Base URL mặc định trỏ tới Production server trên Render.
-  static const String defaultBaseUrl = 'https://sms-navigator-server.onrender.com';
+  /// Base URL mặc định trỏ tới Cloudflare Worker proxy (chuyển tiếp tới Render).
+  static const String defaultBaseUrl = 'https://sms-relay.hirusakunasaga.workers.dev';
 
   /// Base URL dùng khi chạy test/debug trực tiếp trên máy.
   static const String localBaseUrl = 'http://127.0.0.1:3000';
@@ -122,6 +122,10 @@ class ApiClient {
     final stored = await _serverUrlProvider?.call();
     if (stored != null && stored.trim().isNotEmpty) {
       final trimmed = stored.trim();
+      // Tự động bỏ qua URL Render cũ nếu từng lưu vào storage trước đây
+      if (trimmed.contains('sms-navigator-server.onrender.com')) {
+        return _fallbackBaseUrl;
+      }
       return trimmed.endsWith('/')
           ? trimmed.substring(0, trimmed.length - 1)
           : trimmed;

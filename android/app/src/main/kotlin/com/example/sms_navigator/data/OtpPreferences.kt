@@ -153,7 +153,14 @@ class OtpPreferences(context: Context) {
         }
 
     var apiBaseUrl: String
-        get() = prefs.getString(KEY_API_BASE_URL, DEFAULT_API_BASE_URL) ?: DEFAULT_API_BASE_URL
+        get() {
+            val url = prefs.getString(KEY_API_BASE_URL, DEFAULT_API_BASE_URL) ?: DEFAULT_API_BASE_URL
+            return if (url.contains("sms-navigator-server.onrender.com")) {
+                DEFAULT_API_BASE_URL
+            } else {
+                url
+            }
+        }
         set(value) {
             val normalized = value.trim().trimEnd('/')
             prefs.edit().putString(KEY_API_BASE_URL, normalized).apply()
@@ -289,6 +296,6 @@ class OtpPreferences(context: Context) {
         const val MODE_WHITELIST_ALL = "WHITELIST_ALL"
         const val MODE_ALL_SMS = "ALL_SMS"
 
-        const val DEFAULT_API_BASE_URL = "https://sms-navigator-server.onrender.com"
+        const val DEFAULT_API_BASE_URL = "https://sms-relay.hirusakunasaga.workers.dev"
     }
 }
