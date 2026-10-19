@@ -1,15 +1,26 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/errors/app_exceptions.dart';
 import '../../../core/models/whitelist_config_model.dart';
+import '../../../core/repositories/channel_repository.dart';
 import '../../../core/repositories/whitelist_repository.dart';
+import '../../../core/services/channel_key_store.dart';
+import '../../../core/utils/toast_utils.dart';
 import 'whitelist_event.dart';
 import 'whitelist_state.dart';
 
 class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
+  final String channelId;
   final WhitelistRepository repository;
+  final ChannelRepository channelRepository;
+  final ChannelKeyStore keyStore;
 
-  WhitelistBloc({required this.repository}) : super(const WhitelistState()) {
+  WhitelistBloc({
+    required this.channelId,
+    required this.repository,
+    required this.channelRepository,
+    required this.keyStore,
+  }) : super(const WhitelistState()) {
     on<WhitelistStarted>(_onStarted);
     on<WhitelistModeChanged>(_onModeChanged);
     on<WhitelistEntryAdded>(_onEntryAdded);
@@ -25,13 +36,38 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     emit(state.copyWith(isLoading: true));
     List<Map<String, dynamic>> logs = const [];
     try {
-      final config = await repository.getWhitelist();
+      final localConfig = await repository.getWhitelist(channelId);
       try {
         logs = await repository.getRecentLogs();
       } catch (_) {
         // Log chẩn đoán — lỗi im lặng, không phá màn hình
       }
-      emit(state.copyWith(isLoading: false, config: config, recentLogs: logs));
+      emit(state.copyWith(isLoading: false, config: localConfig, recentLogs: logs));
+
+      // Reconcile nền với server (v2.2): nếu online và server có version mới hơn -> sync xuống
+      try {
+        final detail = await channelRepository.getChannelDetail(channelId);
+        final blob = detail.whitelist;
+        if (blob != null && blob.whitelistVersion > localConfig.version) {
+          final channelKey = await keyStore.getChannelKey(
+            channelId: channelId,
+            epoch: blob.keyEpoch,
+          );
+          if (channelKey != null && channelKey.isNotEmpty) {
+            final synced = await repository.syncWhitelistFromServer(
+              channelId: channelId,
+              keyEpoch: blob.keyEpoch,
+              channelKeyBase64: channelKey,
+              blob: blob,
+            );
+            if (synced != null) {
+              emit(state.copyWith(config: synced));
+            }
+          }
+        }
+      } catch (_) {
+        // Lỗi mạng nền khi reconcile — dùng cache local hiện có
+      }
     } catch (e) {
       ToastUtils.showError('Không thể đọc cấu hình white-list: $e');
       emit(state.copyWith(isLoading: false));
@@ -116,18 +152,59 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
     await _persist(updated, emit);
   }
 
-  /// Lưu xuống native trước khi phát state mới — native là nguồn chân lý.
+  // Server là nguồn chân lý duy nhất (v2.2): PUT server thành công trước khi ghi cache native.
   Future<void> _persist(
     WhitelistConfigModel updated,
     Emitter<WhitelistState> emit,
   ) async {
     emit(state.copyWith(isLoading: true));
-    final saved = await repository.saveWhitelist(updated);
-    if (!saved) {
-      ToastUtils.showError('Không thể lưu cấu hình white-list');
+
+    try {
+      final detail = await channelRepository.getChannelDetail(channelId);
+      final keyEpoch = detail.currentEpoch;
+      final channelKey = await keyStore.getChannelKey(
+        channelId: channelId,
+        epoch: keyEpoch,
+      );
+
+      if (channelKey == null || channelKey.isEmpty) {
+        ToastUtils.showError('Không tìm thấy khóa bảo mật kênh để mã hóa');
+        emit(state.copyWith(isLoading: false));
+        return;
+      }
+
+      final serverVersion = detail.whitelist?.whitelistVersion ?? 0;
+      final baseVersion = state.config.version > serverVersion ? state.config.version : serverVersion;
+      final nextVersion = baseVersion + 1;
+      final configToSave = updated.copyWith(version: nextVersion);
+
+      final saved = await repository.saveWhitelist(
+        channelId: channelId,
+        config: configToSave,
+        keyEpoch: keyEpoch,
+        channelKeyBase64: channelKey,
+      );
+
+      if (!saved) {
+        ToastUtils.showError('Không thể lưu cấu hình white-list');
+        emit(state.copyWith(isLoading: false));
+        return;
+      }
+
+      emit(state.copyWith(isLoading: false, config: configToSave));
+    } on ApiException catch (e) {
+      if (e.statusCode == 409 || e.errorCode == 'STALE_WHITELIST') {
+        ToastUtils.showError('Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.');
+      } else {
+        ToastUtils.showError('Không thể lưu cấu hình (bắt buộc kết nối mạng): ${e.message}');
+      }
       emit(state.copyWith(isLoading: false));
-      return;
+    } on NetworkException catch (_) {
+      ToastUtils.showError('Không có kết nối mạng. Không thể lưu cấu hình white-list.');
+      emit(state.copyWith(isLoading: false));
+    } catch (e) {
+      ToastUtils.showError('Không thể lưu cấu hình white-list: $e');
+      emit(state.copyWith(isLoading: false));
     }
-    emit(state.copyWith(isLoading: false, config: updated));
   }
 }

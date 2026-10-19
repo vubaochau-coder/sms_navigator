@@ -7,12 +7,14 @@ import '../../core/services/sync_owner_relay_channel_use_case.dart';
 import 'bloc/channel_detail_bloc.dart';
 import 'views/channel_detail_shimmer_view.dart';
 import 'views/channel_summary_view.dart';
+import 'views/channel_whitelist_section.dart';
 import 'views/invite_bottom_sheet.dart';
 import 'views/members_view.dart';
 import 'views/pending_requests_view.dart';
 
 export 'views/channel_detail_shimmer_view.dart';
 export 'views/channel_summary_view.dart';
+export 'views/channel_whitelist_section.dart';
 export 'views/invite_bottom_sheet.dart';
 export 'views/member_item.dart';
 export 'views/members_view.dart';
@@ -92,6 +94,8 @@ class _ChannelDetailPageView extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
               children: [
                 const ChannelSummaryView(),
+                const SizedBox(height: 12),
+                const ChannelWhitelistSection(),
                 const SizedBox(height: 12),
                 if (hasPendingRequests) ...[
                   const PendingRequestsView(),

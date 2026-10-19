@@ -137,7 +137,7 @@ void main() {
     // Check DevicePreferencesSection
     expect(find.byType(DevicePreferencesSection), findsOneWidget);
     expect(find.text('CÀI ĐẶT & TÙY CHỌN'), findsOneWidget);
-    expect(find.text('Bộ lọc SMS (Whitelist)'), findsOneWidget);
+    expect(find.text('Bộ lọc SMS (Whitelist)'), findsNothing);
     expect(find.text('Xóa dữ liệu thiết bị'), findsOneWidget);
   });
 }

@@ -68,10 +68,11 @@ class NativeRelayServiceImpl implements NativeRelayService {
   }
 
   @override
-  Future<WhitelistConfigModel> getWhitelist() async {
+  Future<WhitelistConfigModel> getWhitelist(String channelId) async {
     try {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
         'getWhitelist',
+        {'channelId': channelId},
       );
       final map = DataConverter.cvToMap<String, dynamic>(result);
       if (map == null) return const WhitelistConfigModel();
@@ -82,11 +83,13 @@ class NativeRelayServiceImpl implements NativeRelayService {
   }
 
   @override
-  Future<bool> setWhitelist(WhitelistConfigModel config) async {
+  Future<bool> setWhitelist(String channelId, WhitelistConfigModel config) async {
     try {
+      final payload = Map<String, dynamic>.from(config.toMap());
+      payload['channelId'] = channelId;
       final success = await _channel.invokeMethod<bool>(
         'setWhitelist',
-        config.toMap(),
+        payload,
       );
       return success ?? false;
     } catch (_) {

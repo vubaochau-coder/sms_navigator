@@ -61,7 +61,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
 
             // 2. Whitelist guard (deny-by-default)
-            val (whitelistMode, whitelistEntries) = prefs.getWhitelistConfig()
+            val (whitelistMode, whitelistEntries) = prefs.getWhitelistConfig(channelId)
             val otpConfidence = OtpParser.classifyConfidence(messageText)
             when (val decision = WhitelistPolicy.evaluate(whitelistMode, whitelistEntries, sender, otpConfidence)) {
                 is RelayDecision.Drop -> {

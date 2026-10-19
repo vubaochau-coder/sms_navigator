@@ -1,4 +1,5 @@
 import '../repositories/channel_repository.dart';
+import '../repositories/whitelist_repository.dart';
 import '../services/channel_key_store.dart';
 import '../services/device_storage_service.dart';
 import '../services/native_relay_service.dart';
@@ -11,16 +12,19 @@ class SyncOwnerRelayChannelUseCase {
   final ChannelKeyStore _keyStore;
   final DeviceStorageService _deviceStorage;
   final NativeRelayService _nativeRelayService;
+  final WhitelistRepository? _whitelistRepository;
 
   SyncOwnerRelayChannelUseCase({
     required ChannelRepository channelRepository,
     required ChannelKeyStore keyStore,
     required DeviceStorageService deviceStorage,
     required NativeRelayService nativeRelayService,
+    WhitelistRepository? whitelistRepository,
   })  : _channelRepository = channelRepository,
         _keyStore = keyStore,
         _deviceStorage = deviceStorage,
-        _nativeRelayService = nativeRelayService;
+        _nativeRelayService = nativeRelayService,
+        _whitelistRepository = whitelistRepository;
 
   /// Thực hiện đồng bộ:
   /// - [channelId]: Kênh cụ thể cần đồng bộ. Nếu null, chọn kênh Owner ACTIVE đầu tiên.
@@ -84,6 +88,38 @@ class SyncOwnerRelayChannelUseCase {
         'SyncOwnerRelayChannel',
         'Synced channel ${targetChannel.channelId} (epoch $epochToUse) to native. Updated: $updated',
       );
+
+      // Best-effort sync whitelist từ server nếu channel có whitelist blob (v2.2)
+      if (_whitelistRepository != null) {
+        try {
+          final detail = await _channelRepository.getChannelDetail(targetChannel.channelId);
+          final blob = detail.whitelist;
+          if (blob != null) {
+            final blobKey = blob.keyEpoch == epochToUse
+                ? channelKeyBase64
+                : await _keyStore.getChannelKey(
+                    channelId: targetChannel.channelId,
+                    epoch: blob.keyEpoch,
+                  );
+            if (blobKey != null && blobKey.isNotEmpty) {
+              await _whitelistRepository.syncWhitelistFromServer(
+                channelId: targetChannel.channelId,
+                keyEpoch: blob.keyEpoch,
+                channelKeyBase64: blobKey,
+                blob: blob,
+              );
+            } else {
+              AppLogger.w(
+                'SyncOwnerRelayChannel',
+                'Cannot sync whitelist: key for epoch ${blob.keyEpoch} not found in keyStore',
+              );
+            }
+          }
+        } catch (e) {
+          AppLogger.w('SyncOwnerRelayChannel', 'Best-effort whitelist sync failed (continuing)', e);
+        }
+      }
+
       return updated;
     } catch (e, stack) {
       AppLogger.w('SyncOwnerRelayChannel', 'Sync failed with error', e, stack);

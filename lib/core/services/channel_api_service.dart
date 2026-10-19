@@ -29,4 +29,12 @@ abstract class ChannelApiService {
     required List<String> revokeDeviceIds,
     required Map<String, dynamic> package,
   });
+
+  Future<Map<String, dynamic>> updateChannelWhitelist({
+    required String channelId,
+    required int keyEpoch,
+    required String ciphertext,
+    required String nonce,
+    required int whitelistVersion,
+  });
 }

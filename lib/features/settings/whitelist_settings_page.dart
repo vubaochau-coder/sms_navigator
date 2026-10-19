@@ -7,37 +7,54 @@ import '../../core/utils/date_time_utils.dart';
 import '../../core/widgets/app_common_widgets.dart';
 import '../../core/widgets/shimmer_loading.dart';
 import '../../core/models/whitelist_config_model.dart';
+import '../../core/repositories/channel_repository.dart';
 import '../../core/repositories/whitelist_repository.dart';
+import '../../core/services/channel_key_store.dart';
 import 'bloc/whitelist_bloc.dart';
 import 'bloc/whitelist_event.dart';
 import 'bloc/whitelist_state.dart';
 import 'views/whitelist_add_entry_dialog.dart';
 
-/// Màn cấu hình Danh sách trắng SMS (deny-by-default).
+/// Màn cấu hình Danh sách trắng SMS theo kênh (deny-by-default).
 class WhitelistSettingsPage extends StatelessWidget {
-  const WhitelistSettingsPage({super.key});
+  const WhitelistSettingsPage({
+    super.key,
+    required this.channelId,
+    this.channelName,
+  });
+
+  final String channelId;
+  final String? channelName;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (ctx) => WhitelistBloc(
+        channelId: channelId,
         repository: ctx.read<WhitelistRepository>(),
+        channelRepository: ctx.read<ChannelRepository>(),
+        keyStore: ctx.read<ChannelKeyStore>(),
       )..add(const WhitelistStarted()),
-      child: const _WhitelistSettingsView(),
+      child: _WhitelistSettingsView(channelName: channelName),
     );
   }
 }
 
 class _WhitelistSettingsView extends StatelessWidget {
-  const _WhitelistSettingsView();
+  const _WhitelistSettingsView({this.channelName});
+
+  final String? channelName;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final title = channelName != null && channelName!.trim().isNotEmpty
+        ? 'Bộ lọc: $channelName'
+        : 'Bộ lọc tin nhắn (White-list)';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.whitelistSettingsTitle),
+        title: Text(title),
         actions: [
           IconButton(
             tooltip: 'Nhật ký tiếp nhận SMS',

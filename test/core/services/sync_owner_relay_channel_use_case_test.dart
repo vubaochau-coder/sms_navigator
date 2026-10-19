@@ -160,9 +160,9 @@ class FakeNativeRelayService implements NativeRelayService {
   @override
   Future<Map<String, dynamic>> getRelayConfig() async => {};
   @override
-  Future<WhitelistConfigModel> getWhitelist() async => const WhitelistConfigModel();
+  Future<WhitelistConfigModel> getWhitelist(String channelId) async => const WhitelistConfigModel();
   @override
-  Future<bool> setWhitelist(WhitelistConfigModel config) async => true;
+  Future<bool> setWhitelist(String channelId, WhitelistConfigModel config) async => true;
   @override
   Future<List<Map<String, dynamic>>> getRecentLogs() async => [];
   @override

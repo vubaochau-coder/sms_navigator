@@ -8,10 +8,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
 
-class OtpPreferences(context: Context) {
-
-    private val prefs: SharedPreferences =
+class OtpPreferences(
+    internal val prefs: SharedPreferences
+) {
+    constructor(context: Context) : this(
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    )
 
     var relayMode: String
         get() = prefs.getString(KEY_RELAY_MODE, MODE_OTP_ONLY) ?: MODE_OTP_ONLY
@@ -38,29 +40,65 @@ class OtpPreferences(context: Context) {
             prefs.edit().putString(KEY_SENDER_WHITELIST, array.toString()).apply()
         }
 
+    fun channelWhitelistEntriesKey(channelId: String): String = "whitelist_${channelId}_entries"
+    fun channelWhitelistModeKey(channelId: String): String = "whitelist_${channelId}_mode"
+    fun channelWhitelistVersionKey(channelId: String): String = "whitelist_${channelId}_version"
+
+    fun migrateLegacyWhitelistIfNeeded(channelId: String?) {
+        if (channelId.isNullOrBlank()) return
+        val entriesKey = channelWhitelistEntriesKey(channelId)
+
+        if (!prefs.contains(entriesKey)) {
+            val globalEntries = prefs.getString(KEY_WHITELIST_ENTRIES, null)
+            val globalMode = prefs.getString(KEY_WHITELIST_MODE, null)
+            if (globalEntries != null) {
+                val mode = if (globalMode != null) {
+                    try { WhitelistMode.valueOf(globalMode) } catch (_: Exception) { WhitelistMode.EXPLICIT }
+                } else WhitelistMode.EXPLICIT
+                val entries = parseWhitelistEntries(globalEntries)
+                setWhitelistConfig(channelId, mode, entries, 1)
+                prefs.edit().remove(KEY_WHITELIST_ENTRIES).remove(KEY_WHITELIST_MODE).apply()
+            }
+        }
+    }
+
     /**
-     * Đọc cấu hình white-list v2. Nếu chưa có (lần chạy đầu sau nâng cấp),
-     * migrate từ cấu hình legacy (relay_mode + sender_whitelist) một lần duy nhất.
+     * Đọc cấu hình white-list theo channelId kèm version.
+     * Tự động migrate từ cấu hình global cũ nếu channelId chưa từng có cấu hình riêng.
      */
-    fun getWhitelistConfig(): Pair<WhitelistMode, List<WhitelistEntry>> {
-        val rawMode = prefs.getString(KEY_WHITELIST_MODE, null)
-        val rawEntries = prefs.getString(KEY_WHITELIST_ENTRIES, null)
-        if (rawMode != null && rawEntries != null) {
+    fun getWhitelistConfig(channelId: String? = activeChannelId): Triple<WhitelistMode, List<WhitelistEntry>, Int> {
+        if (channelId.isNullOrBlank()) {
+            return Triple(WhitelistMode.EXPLICIT, emptyList(), 1)
+        }
+
+        migrateLegacyWhitelistIfNeeded(channelId)
+
+        val entriesKey = channelWhitelistEntriesKey(channelId)
+        val modeKey = channelWhitelistModeKey(channelId)
+        val versionKey = channelWhitelistVersionKey(channelId)
+
+        val rawEntries = prefs.getString(entriesKey, null)
+        val rawMode = prefs.getString(modeKey, null)
+        val version = prefs.getInt(versionKey, 1)
+
+        if (rawEntries != null && rawMode != null) {
             val mode = try {
                 WhitelistMode.valueOf(rawMode)
             } catch (_: Exception) {
                 WhitelistMode.EXPLICIT
             }
-            return mode to parseWhitelistEntries(rawEntries)
+            return Triple(mode, parseWhitelistEntries(rawEntries), version)
         }
 
-        val mode = if (relayMode == MODE_ALL_SMS) WhitelistMode.ALL_ADDRESSES else WhitelistMode.EXPLICIT
-        val entries = senderWhitelist.map { WhitelistEntry(address = it, allowOtp = false) }
-        setWhitelistConfig(mode, entries)
-        return mode to entries
+        return Triple(WhitelistMode.EXPLICIT, emptyList(), version)
     }
 
-    fun setWhitelistConfig(mode: WhitelistMode, entries: List<WhitelistEntry>) {
+    fun setWhitelistConfig(
+        channelId: String,
+        mode: WhitelistMode,
+        entries: List<WhitelistEntry>,
+        version: Int = 1
+    ) {
         val array = JSONArray()
         entries.forEach { entry ->
             val address = entry.address.trim()
@@ -74,8 +112,9 @@ class OtpPreferences(context: Context) {
             }
         }
         prefs.edit()
-            .putString(KEY_WHITELIST_MODE, mode.name)
-            .putString(KEY_WHITELIST_ENTRIES, array.toString())
+            .putString(channelWhitelistModeKey(channelId), mode.name)
+            .putString(channelWhitelistEntriesKey(channelId), array.toString())
+            .putInt(channelWhitelistVersionKey(channelId), version)
             .apply()
     }
 
@@ -87,7 +126,8 @@ class OtpPreferences(context: Context) {
                 val obj = array.optJSONObject(i) ?: continue
                 val address = obj.optString("address").trim()
                 if (address.isNotBlank()) {
-                    list.add(WhitelistEntry(address = address, allowOtp = obj.optBoolean("allow_otp", false)))
+                    val allowOtp = obj.optBoolean("allow_otp", obj.optBoolean("allowOtp", false))
+                    list.add(WhitelistEntry(address = address, allowOtp = allowOtp))
                 }
             }
             list

@@ -20,7 +20,10 @@ class RelayMethodChannel(
             when (call.method) {
                 "getRelayConfig" -> result.success(buildRelayConfig())
 
-                "getWhitelist" -> result.success(buildWhitelist())
+                "getWhitelist" -> {
+                    val channelId = call.argument<String>("channelId")
+                    result.success(buildWhitelist(channelId))
+                }
 
                 "setWhitelist" -> handleSetWhitelist(call, result)
 
@@ -119,10 +122,11 @@ class RelayMethodChannel(
         )
     }
 
-    private fun buildWhitelist(): Map<String, Any?> {
-        val (mode, entries) = prefs.getWhitelistConfig()
+    private fun buildWhitelist(channelId: String? = null): Map<String, Any?> {
+        val (mode, entries, version) = prefs.getWhitelistConfig(channelId)
         return mapOf(
             "mode" to mode.name,
+            "version" to version,
             "entries" to entries.map {
                 mapOf(
                     "address" to it.address,
@@ -136,12 +140,19 @@ class RelayMethodChannel(
         call: io.flutter.plugin.common.MethodCall,
         result: MethodChannel.Result
     ) {
+        val channelId = call.argument<String>("channelId")
+        if (channelId.isNullOrBlank()) {
+            result.error("INVALID_ARGS", "channelId is required to set whitelist", null)
+            return
+        }
+
         val modeName = call.argument<String>("mode") ?: WhitelistMode.EXPLICIT.name
         val mode = try {
             WhitelistMode.valueOf(modeName)
         } catch (_: Exception) {
             WhitelistMode.EXPLICIT
         }
+        val version = (call.argument<Number>("version"))?.toInt() ?: 1
 
         val rawEntries = call.argument<List<*>>("entries") ?: emptyList<Any>()
         val entries = rawEntries.mapNotNull { item ->
@@ -150,12 +161,15 @@ class RelayMethodChannel(
                 if (address.isNullOrBlank()) {
                     null
                 } else {
-                    WhitelistEntry(address = address, allowOtp = map["allowOtp"] == true)
+                    val allowOtp = (map["allowOtp"] as? Boolean)
+                        ?: (map["allow_otp"] as? Boolean)
+                        ?: false
+                    WhitelistEntry(address = address, allowOtp = allowOtp)
                 }
             }
         }
 
-        prefs.setWhitelistConfig(mode, entries)
+        prefs.setWhitelistConfig(channelId, mode, entries, version)
         result.success(true)
     }
 

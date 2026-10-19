@@ -8,13 +8,16 @@ import '../../models/channel_model.dart';
 import '../../models/key_envelope_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../models/whitelist_config_model.dart';
 import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_api_service.dart';
 import '../../services/device_storage_service.dart';
 import '../../services/pairing_api_service.dart';
+import '../../utils/app_logger.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../channel_repository.dart';
+import '../whitelist_repository.dart';
 
 /// Snapshot server cần cho một mutation membership (Package Pattern, SRD 4.0).
 class _MutationSnapshot extends Equatable {
@@ -35,12 +38,14 @@ class ChannelRepositoryImpl implements ChannelRepository {
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
     required DeviceStorageService deviceStorage,
+    WhitelistRepository? whitelistRepository,
   }) : _channelApi = channelApiService,
        _pairingApi = pairingApiService,
        _deviceApi = deviceApiService,
        _keyStore = keyStore,
        _crypto = cryptoHelper,
-       _deviceStorage = deviceStorage;
+       _deviceStorage = deviceStorage,
+       _whitelistRepository = whitelistRepository;
 
   final ChannelApiService _channelApi;
   final PairingApiService _pairingApi;
@@ -48,6 +53,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
   final DeviceStorageService _deviceStorage;
+  final WhitelistRepository? _whitelistRepository;
 
   // ------------------------------------------------------------- Đọc state
 
@@ -222,6 +228,14 @@ class ChannelRepositoryImpl implements ChannelRepository {
       channelKeyBase64: channelKey,
     );
 
+    // §8.4: Re-encrypt whitelist blob sau rotation
+    await _reEncryptWhitelistAfterRotation(
+      channelId: channelId,
+      detail: detail,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+    );
+
     return response['current_epoch'] as int? ?? newEpoch;
   }
 
@@ -274,7 +288,70 @@ class ChannelRepositoryImpl implements ChannelRepository {
       channelKeyBase64: channelKey,
     );
 
+    // §8.4: Re-encrypt whitelist blob sau rotation
+    await _reEncryptWhitelistAfterRotation(
+      channelId: channelId,
+      detail: detail,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+    );
+
     return response['current_epoch'] as int? ?? newEpoch;
+  }
+
+  /// §8.4: Re-encrypt whitelist blob bằng khóa epoch mới sau khi rotate.
+  Future<void> _reEncryptWhitelistAfterRotation({
+    required String channelId,
+    required ChannelDetailModel detail,
+    required int newEpoch,
+    required String channelKeyBase64,
+  }) async {
+    final whitelistRepo = _whitelistRepository;
+    if (whitelistRepo == null) return;
+
+    try {
+      final oldBlob = detail.whitelist;
+      WhitelistConfigModel? config;
+      try {
+        config = await whitelistRepo.getWhitelist(channelId);
+      } catch (_) {}
+
+      if ((config == null || config.isEmptyList) && oldBlob != null) {
+        final oldKey = await _keyStore.getChannelKey(
+          channelId: channelId,
+          epoch: oldBlob.keyEpoch,
+        );
+        if (oldKey != null && oldKey.isNotEmpty) {
+          config = await whitelistRepo.syncWhitelistFromServer(
+            channelId: channelId,
+            keyEpoch: oldBlob.keyEpoch,
+            channelKeyBase64: oldKey,
+            blob: oldBlob,
+          );
+        }
+      }
+
+      if (config != null && (oldBlob != null || !config.isEmptyList)) {
+        final currentVersion = oldBlob?.whitelistVersion ?? config.version;
+        final nextVersion = currentVersion + 1;
+        await whitelistRepo.saveWhitelist(
+          channelId: channelId,
+          config: config.copyWith(version: nextVersion),
+          keyEpoch: newEpoch,
+          channelKeyBase64: channelKeyBase64,
+        );
+        AppLogger.i(
+          'ChannelRepository',
+          'Re-encrypted whitelist for channel $channelId at epoch $newEpoch (v$nextVersion)',
+        );
+      }
+    } catch (e) {
+      AppLogger.w(
+        'ChannelRepository',
+        'Failed to re-encrypt whitelist after rotation (continuing)',
+        e,
+      );
+    }
   }
 
   @override

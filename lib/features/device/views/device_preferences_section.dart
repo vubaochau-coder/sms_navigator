@@ -3,11 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/dialog_utils.dart';
-import '../../settings/whitelist_settings_page.dart';
 import '../../splash/splash_page.dart';
 import '../bloc/device_profile_cubit.dart';
 
-/// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme), lối tắt Whitelist và Xóa dữ liệu thiết bị.
+/// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme) và Xóa dữ liệu thiết bị.
 class DevicePreferencesSection extends StatelessWidget {
   const DevicePreferencesSection({super.key});
 
@@ -120,36 +119,6 @@ class DevicePreferencesSection extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              Divider(
-                height: 1,
-                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                leading: Icon(
-                  Icons.filter_list_rounded,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                title: const Text(
-                  'Bộ lọc SMS (Whitelist)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  'Cấu hình danh sách số điện thoại/OTP cho phép',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const WhitelistSettingsPage(),
-                    ),
-                  );
-                },
               ),
               Divider(
                 height: 1,

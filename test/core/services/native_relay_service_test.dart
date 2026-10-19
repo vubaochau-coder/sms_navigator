@@ -19,6 +19,7 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         expect(call.method, 'getWhitelist');
+        expect(call.arguments, {'channelId': 'ch-1'});
         return {
           'mode': 'ALL_ADDRESSES',
           'entries': [
@@ -28,7 +29,7 @@ void main() {
         };
       });
 
-      final config = await service.getWhitelist();
+      final config = await service.getWhitelist('ch-1');
       expect(config.mode, WhitelistMode.allAddresses);
       expect(config.entries.length, 2);
       expect(config.entries.first, const WhitelistEntryModel(address: 'VCB', allowOtp: true));
@@ -42,7 +43,7 @@ void main() {
         throw PlatformException(code: 'ERROR');
       });
 
-      final config = await service.getWhitelist();
+      final config = await service.getWhitelist('ch-1');
       expect(config, const WhitelistConfigModel());
     });
 
@@ -58,15 +59,17 @@ void main() {
         mode: WhitelistMode.explicit,
         entries: [WhitelistEntryModel(address: 'VCB', allowOtp: true)],
       );
-      final success = await service.setWhitelist(config);
+      final success = await service.setWhitelist('ch-1', config);
 
       expect(success, isTrue);
       expect(received!.method, 'setWhitelist');
       expect(received!.arguments, {
+        'channelId': 'ch-1',
         'mode': 'EXPLICIT',
         'entries': [
           {'address': 'VCB', 'allowOtp': true},
         ],
+        'version': 1,
       });
     });
 
@@ -77,7 +80,7 @@ void main() {
       });
 
       expect(
-        await service.setWhitelist(const WhitelistConfigModel()),
+        await service.setWhitelist('ch-1', const WhitelistConfigModel()),
         isFalse,
       );
     });

@@ -73,6 +73,7 @@ void main() {
           {'address': 'VCB', 'allowOtp': true},
           {'address': '+8498', 'allowOtp': false},
         ],
+        'version': 1,
       });
     });
 

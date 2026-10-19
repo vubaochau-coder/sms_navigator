@@ -19,6 +19,7 @@ class ChannelDetailModel extends Equatable {
   final String myStatus;
   final int myJoinedEpoch;
   final int myProvisionedEpoch;
+  final ChannelWhitelistBlobModel? whitelist;
 
   const ChannelDetailModel({
     required this.channelId,
@@ -35,12 +36,17 @@ class ChannelDetailModel extends Equatable {
     this.myStatus = 'ACTIVE',
     this.myJoinedEpoch = 1,
     this.myProvisionedEpoch = 1,
+    this.whitelist,
   });
 
   bool get isOwner => myRole == ChannelRole.owner;
 
   factory ChannelDetailModel.fromMap(Map<String, dynamic> map) {
     final channel = DataConverter.cvToMap<String, dynamic>(map['channel']);
+    final rawWhitelist = map['whitelist'] != null
+        ? DataConverter.cvToMap<String, dynamic>(map['whitelist'])
+        : null;
+
     return ChannelDetailModel(
       channelId: DataConverter.cvToString(channel?['channel_id'], '')!,
       name: DataConverter.cvToString(channel?['name'], '')!,
@@ -58,6 +64,9 @@ class ChannelDetailModel extends Equatable {
       myJoinedEpoch: DataConverter.cvToInt(map['my_joined_epoch'], 1)!,
       myProvisionedEpoch:
           DataConverter.cvToInt(map['my_provisioned_epoch'], 1)!,
+      whitelist: rawWhitelist != null
+          ? ChannelWhitelistBlobModel.fromMap(rawWhitelist)
+          : null,
     );
   }
 
@@ -77,5 +86,50 @@ class ChannelDetailModel extends Equatable {
     myStatus,
     myJoinedEpoch,
     myProvisionedEpoch,
+    whitelist,
+  ];
+}
+
+/// Blob White-list E2EE lưu trên Server.
+class ChannelWhitelistBlobModel extends Equatable {
+  final int keyEpoch;
+  final String ciphertext;
+  final String nonce;
+  final int whitelistVersion;
+  final String updatedAt;
+
+  const ChannelWhitelistBlobModel({
+    required this.keyEpoch,
+    required this.ciphertext,
+    required this.nonce,
+    required this.whitelistVersion,
+    required this.updatedAt,
+  });
+
+  factory ChannelWhitelistBlobModel.fromMap(Map<String, dynamic> map) {
+    return ChannelWhitelistBlobModel(
+      keyEpoch: DataConverter.cvToInt(map['key_epoch'], 1)!,
+      ciphertext: DataConverter.cvToString(map['ciphertext'], '')!,
+      nonce: DataConverter.cvToString(map['nonce'], '')!,
+      whitelistVersion: DataConverter.cvToInt(map['whitelist_version'], 1)!,
+      updatedAt: DataConverter.cvToString(map['updated_at'], '')!,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'key_epoch': keyEpoch,
+    'ciphertext': ciphertext,
+    'nonce': nonce,
+    'whitelist_version': whitelistVersion,
+    'updated_at': updatedAt,
+  };
+
+  @override
+  List<Object?> get props => [
+    keyEpoch,
+    ciphertext,
+    nonce,
+    whitelistVersion,
+    updatedAt,
   ];
 }

@@ -107,4 +107,26 @@ class ChannelApiServiceImpl implements ChannelApiService {
       ),
     );
   }
+
+  @override
+  Future<Map<String, dynamic>> updateChannelWhitelist({
+    required String channelId,
+    required int keyEpoch,
+    required String ciphertext,
+    required String nonce,
+    required int whitelistVersion,
+  }) async {
+    return _asMap(
+      await apiClient.put(
+        ApiEndpoints.channelWhitelistV2,
+        body: <String, dynamic>{
+          'channel_id': channelId,
+          'key_epoch': keyEpoch,
+          'ciphertext': ciphertext,
+          'nonce': nonce,
+          'whitelist_version': whitelistVersion,
+        },
+      ),
+    );
+  }
 }

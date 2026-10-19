@@ -2,8 +2,8 @@ import '../models/whitelist_config_model.dart';
 
 abstract class NativeRelayService {
   Future<Map<String, dynamic>> getRelayConfig();
-  Future<WhitelistConfigModel> getWhitelist();
-  Future<bool> setWhitelist(WhitelistConfigModel config);
+  Future<WhitelistConfigModel> getWhitelist(String channelId);
+  Future<bool> setWhitelist(String channelId, WhitelistConfigModel config);
   Future<List<Map<String, dynamic>>> getRecentLogs();
   Future<bool> isBatteryOptimizationIgnored();
   Future<bool> requestIgnoreBatteryOptimization();

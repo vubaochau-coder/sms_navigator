@@ -157,6 +157,13 @@ class AppBootstrap extends StatelessWidget {
           create: (context) =>
               MessageApiServiceImpl(apiClient: context.read<ApiClient>()),
         ),
+        RepositoryProvider<WhitelistRepository>(
+          create: (context) => WhitelistRepositoryImpl(
+            nativeRelayService: context.read<NativeRelayService>(),
+            channelApiService: context.read<ChannelApiService>(),
+            cryptoHelper: context.read<ChannelCryptoHelper>(),
+          ),
+        ),
         RepositoryProvider<ChannelRepository>(
           create: (context) => ChannelRepositoryImpl(
             channelApiService: context.read<ChannelApiService>(),
@@ -165,6 +172,7 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             deviceStorage: context.read<DeviceStorageService>(),
+            whitelistRepository: context.read<WhitelistRepository>(),
           ),
         ),
         RepositoryProvider<JoinChannelRepository>(
@@ -203,20 +211,14 @@ class AppBootstrap extends StatelessWidget {
           ),
         ),
 
-        // 8. Settings (SMS whitelist — giữ nguyên hạ tầng native 7.2)
-        RepositoryProvider<WhitelistRepository>(
-          create: (context) => WhitelistRepositoryImpl(
-            nativeRelayService: context.read<NativeRelayService>(),
-          ),
-        ),
-
-        // 9. Relay V2 Sync (Đồng bộ khóa Owner xuống Native)
+        // 8. Relay V2 Sync (Đồng bộ khóa Owner xuống Native)
         RepositoryProvider<SyncOwnerRelayChannelUseCase>(
           create: (context) => SyncOwnerRelayChannelUseCase(
             channelRepository: context.read<ChannelRepository>(),
             keyStore: context.read<ChannelKeyStore>(),
             deviceStorage: context.read<DeviceStorageService>(),
             nativeRelayService: context.read<NativeRelayService>(),
+            whitelistRepository: context.read<WhitelistRepository>(),
           ),
         ),
       ],
