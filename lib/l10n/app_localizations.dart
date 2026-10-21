@@ -1879,7 +1879,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationJoinRequestBody.
   ///
   /// In vi, this message translates to:
-  /// **'{requesterName} muốn tham gia kênh "{channelName}".'**
+  /// **'{requesterName} muốn tham gia kênh \"{channelName}\".'**
   String notificationJoinRequestBody(String requesterName, String channelName);
 
   /// No description provided for @notificationJoinRequestBodyNoChannel.
@@ -1903,7 +1903,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationApprovedBody.
   ///
   /// In vi, this message translates to:
-  /// **'Bạn đã được thêm vào kênh "{channelName}". Mở app để xem tin nhắn SMS.'**
+  /// **'Bạn đã được thêm vào kênh \"{channelName}\". Mở app để xem tin nhắn SMS.'**
   String notificationApprovedBody(String channelName);
 
   /// No description provided for @notificationApprovedBodyGeneric.
@@ -1921,7 +1921,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationRevokedBody.
   ///
   /// In vi, this message translates to:
-  /// **'Bạn không còn quyền truy cập kênh "{channelName}".'**
+  /// **'Bạn không còn quyền truy cập kênh \"{channelName}\".'**
   String notificationRevokedBody(String channelName);
 
   /// No description provided for @notificationRevokedBodyGeneric.
@@ -1939,7 +1939,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationNewMessageBody.
   ///
   /// In vi, this message translates to:
-  /// **'Có tin nhắn SMS mới từ kênh "{channelName}". Chạm để xem.'**
+  /// **'Có tin nhắn SMS mới từ kênh \"{channelName}\". Chạm để xem.'**
   String notificationNewMessageBody(String channelName);
 
   /// No description provided for @notificationNewMessageBodyGeneric.

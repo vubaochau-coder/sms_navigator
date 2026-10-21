@@ -995,7 +995,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get networkUnauthorized => 'Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).';
+  String get networkUnauthorized =>
+      'Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).';
 
   @override
   String networkServerError(String status) {
@@ -1008,20 +1009,23 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get networkOffline => 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.';
+  String get networkOffline =>
+      'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.';
 
   @override
-  String get notificationChannelDescription => 'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh';
+  String get notificationChannelDescription =>
+      'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh';
 
   @override
-  String get notificationDefaultBody => 'Có sự kiện mới trong kênh. Mở app để xem.';
+  String get notificationDefaultBody =>
+      'Có sự kiện mới trong kênh. Mở app để xem.';
 
   @override
   String get notificationJoinRequestTitle => 'Yêu cầu tham gia kênh';
 
   @override
   String notificationJoinRequestBody(String requesterName, String channelName) {
-    return '$requesterName muốn tham gia kênh "$channelName".';
+    return '$requesterName muốn tham gia kênh \"$channelName\".';
   }
 
   @override
@@ -1030,40 +1034,44 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get notificationJoinRequestBodyGeneric => 'Có thiết bị mới xin tham gia. Mở app để duyệt.';
+  String get notificationJoinRequestBodyGeneric =>
+      'Có thiết bị mới xin tham gia. Mở app để duyệt.';
 
   @override
   String get notificationApprovedTitle => 'Yêu cầu đã được duyệt';
 
   @override
   String notificationApprovedBody(String channelName) {
-    return 'Bạn đã được thêm vào kênh "$channelName". Mở app để xem tin nhắn SMS.';
+    return 'Bạn đã được thêm vào kênh \"$channelName\". Mở app để xem tin nhắn SMS.';
   }
 
   @override
-  String get notificationApprovedBodyGeneric => 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.';
+  String get notificationApprovedBodyGeneric =>
+      'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.';
 
   @override
   String get notificationRevokedTitle => 'Quyền truy cập đã bị thu hồi';
 
   @override
   String notificationRevokedBody(String channelName) {
-    return 'Bạn không còn quyền truy cập kênh "$channelName".';
+    return 'Bạn không còn quyền truy cập kênh \"$channelName\".';
   }
 
   @override
-  String get notificationRevokedBodyGeneric => 'Bạn không còn quyền truy cập một kênh.';
+  String get notificationRevokedBodyGeneric =>
+      'Bạn không còn quyền truy cập một kênh.';
 
   @override
   String get notificationNewMessageTitle => 'Tin nhắn SMS mới';
 
   @override
   String notificationNewMessageBody(String channelName) {
-    return 'Có tin nhắn SMS mới từ kênh "$channelName". Chạm để xem.';
+    return 'Có tin nhắn SMS mới từ kênh \"$channelName\". Chạm để xem.';
   }
 
   @override
-  String get notificationNewMessageBodyGeneric => 'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
+  String get notificationNewMessageBodyGeneric =>
+      'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
 
   @override
   String get relativeJustNow => 'Vừa xong';
@@ -1089,19 +1097,24 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get qrUnsupportedFormat => 'Mã QR không được hỗ trợ. Hãy quét mã mời từ SMS Navigator.';
+  String get qrUnsupportedFormat =>
+      'Mã QR không được hỗ trợ. Hãy quét mã mời từ SMS Navigator.';
 
   @override
-  String get qrUpdateRequired => 'Mã này cần phiên bản SMS Navigator mới hơn. Hãy cập nhật ứng dụng.';
+  String get qrUpdateRequired =>
+      'Mã này cần phiên bản SMS Navigator mới hơn. Hãy cập nhật ứng dụng.';
 
   @override
-  String get qrCheckFailed => 'Không thể kiểm tra mã kết nối. Vui lòng thử lại sau.';
+  String get qrCheckFailed =>
+      'Không thể kiểm tra mã kết nối. Vui lòng thử lại sau.';
 
   @override
-  String get qrNotFound => 'Không tìm thấy mã mời. Hãy kiểm tra lại hoặc xin Chủ kênh mã mới.';
+  String get qrNotFound =>
+      'Không tìm thấy mã mời. Hãy kiểm tra lại hoặc xin Chủ kênh mã mới.';
 
   @override
-  String get qrRateLimited => 'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.';
+  String get qrRateLimited =>
+      'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.';
 
   @override
   String get qrEntryTitle => 'Mã kết nối';
@@ -1113,34 +1126,43 @@ class AppLocalizationsVi extends AppLocalizations {
   String get qrEntryCheckFailedShort => 'Không thể kiểm tra mã kết nối.';
 
   @override
-  String get joinErrorAlreadyPending => 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
+  String get joinErrorAlreadyPending =>
+      'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
 
   @override
-  String get joinErrorAlreadyMember => 'Thiết bị của bạn đã là thành viên của kênh này.';
+  String get joinErrorAlreadyMember =>
+      'Thiết bị của bạn đã là thành viên của kênh này.';
 
   @override
-  String get joinErrorExpired => 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
+  String get joinErrorExpired =>
+      'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
 
   @override
-  String get joinErrorUsed => 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
+  String get joinErrorUsed =>
+      'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
 
   @override
-  String get joinErrorChannelArchived => 'Kênh này đã bị lưu trữ, không thể tham gia.';
+  String get joinErrorChannelArchived =>
+      'Kênh này đã bị lưu trữ, không thể tham gia.';
 
   @override
-  String get joinResolveFailed => 'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.';
+  String get joinResolveFailed =>
+      'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.';
 
   @override
   String get joinResolveFailedShort => 'Không thể kiểm tra thông tin kênh.';
 
   @override
-  String get joinClaimFailed => 'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.';
+  String get joinClaimFailed =>
+      'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.';
 
   @override
-  String get joinClaimFailedRetry => 'Không gửi được yêu cầu. Vui lòng thử lại sau.';
+  String get joinClaimFailedRetry =>
+      'Không gửi được yêu cầu. Vui lòng thử lại sau.';
 
   @override
-  String get joinInvalidQrFormat => 'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
+  String get joinInvalidQrFormat =>
+      'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
 
   @override
   String get joinChannelFallbackName => 'kênh';
@@ -1168,7 +1190,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get statusPending => 'Đang chờ';
 
   @override
-  String get channelLoadFailed => 'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.';
+  String get channelLoadFailed =>
+      'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.';
 
   @override
   String get channelCreateFailed => 'Không tạo được kênh. Thử lại sau.';
@@ -1177,7 +1200,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deviceRenameFailed => 'Không đổi được tên thiết bị. Thử lại sau.';
 
   @override
-  String get channelDetailLoadFailed => 'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.';
+  String get channelDetailLoadFailed =>
+      'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.';
 
   @override
   String channelDetailApproved(String deviceName) {
@@ -1185,7 +1209,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get channelDetailApproveConflict => 'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.';
+  String get channelDetailApproveConflict =>
+      'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.';
 
   @override
   String channelDetailRejected(String deviceName) {
@@ -1193,13 +1218,15 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get channelDetailRejectFailed => 'Không từ chối được: yêu cầu có thể đã được xử lý.';
+  String get channelDetailRejectFailed =>
+      'Không từ chối được: yêu cầu có thể đã được xử lý.';
 
   @override
   String get channelDetailRevoked => 'Đã thu hồi thành viên và xoay khóa kênh.';
 
   @override
-  String get channelDetailRevokeConflict => 'Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.';
+  String get channelDetailRevokeConflict =>
+      'Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.';
 
   @override
   String get channelInviteCreateFailed => 'Không tạo được mã mời. Thử lại sau.';
@@ -1211,10 +1238,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get whitelistConfigureButton => 'Cấu hình';
 
   @override
-  String get whitelistSectionOwnerDesc => 'Thiết lập danh sách số điện thoại/Brandname được phép chuyển tiếp tin nhắn SMS và OTP qua kênh này.';
+  String get whitelistSectionOwnerDesc =>
+      'Thiết lập danh sách số điện thoại/Brandname được phép chuyển tiếp tin nhắn SMS và OTP qua kênh này.';
 
   @override
-  String get whitelistSectionMemberDesc => 'Kênh này được bảo vệ bởi bộ lọc của Chủ kênh. Tin nhắn SMS sẽ được chuyển tiếp theo cấu hình bảo mật đã duyệt.';
+  String get whitelistSectionMemberDesc =>
+      'Kênh này được bảo vệ bởi bộ lọc của Chủ kênh. Tin nhắn SMS sẽ được chuyển tiếp theo cấu hình bảo mật đã duyệt.';
 
   @override
   String whitelistVersionLabel(int version) {
@@ -1227,10 +1256,12 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get whitelistMissingChannelKey => 'Không tìm thấy khóa bảo mật kênh để mã hóa';
+  String get whitelistMissingChannelKey =>
+      'Không tìm thấy khóa bảo mật kênh để mã hóa';
 
   @override
-  String get whitelistConflict => 'Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.';
+  String get whitelistConflict =>
+      'Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.';
 
   @override
   String whitelistSaveRequiresNetwork(String detail) {
@@ -1238,13 +1269,15 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get whitelistSaveOffline => 'Không có kết nối mạng. Không thể lưu cấu hình bộ lọc.';
+  String get whitelistSaveOffline =>
+      'Không có kết nối mạng. Không thể lưu cấu hình bộ lọc.';
 
   @override
   String get relayLogTitle => 'Nhật ký tiếp nhận SMS';
 
   @override
-  String get relayLogDescription => 'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn (nếu không relay được).';
+  String get relayLogDescription =>
+      'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn (nếu không relay được).';
 
   @override
   String get relayLogEmpty => 'Chưa có SMS nào được ghi nhận.';
@@ -1270,13 +1303,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deviceResetSuccess => 'Đã xóa dữ liệu thiết bị';
 
   @override
-  String get deviceResetFailed => 'Không thể xóa dữ liệu thiết bị. Thử lại sau.';
+  String get deviceResetFailed =>
+      'Không thể xóa dữ liệu thiết bị. Thử lại sau.';
 
   @override
   String get deviceResetDialogTitle => 'Xóa dữ liệu thiết bị?';
 
   @override
-  String get deviceResetDialogMessage => 'Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.';
+  String get deviceResetDialogMessage =>
+      'Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.';
 
   @override
   String get deviceResetConfirm => 'Xóa dữ liệu';
@@ -1285,7 +1320,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deviceResetTitle => 'Xóa dữ liệu thiết bị';
 
   @override
-  String get deviceResetSubtitle => 'Xóa mã định danh, token và khôi phục cài đặt gốc';
+  String get deviceResetSubtitle =>
+      'Xóa mã định danh, token và khôi phục cài đặt gốc';
 
   @override
   String get devicePreferencesTitle => 'CÀI ĐẶT & TÙY CHỌN';
@@ -1336,7 +1372,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deviceHealthBatteryRestricted => 'Có thể bị hệ điều hành tắt';
 
   @override
-  String get deviceHealthOemDetails => 'Chi tiết thiết lập thiết bị & cài đặt OEM';
+  String get deviceHealthOemDetails =>
+      'Chi tiết thiết lập thiết bị & cài đặt OEM';
 
   @override
   String get deviceIdUnknown => 'Chưa xác định';
@@ -1354,7 +1391,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get scannerClipboardEmpty => 'Bộ nhớ tạm không có mã nào để dán.';
 
   @override
-  String get scannerCameraPermissionRequired => 'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR';
+  String get scannerCameraPermissionRequired =>
+      'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR';
 
   @override
   String scannerCameraStartFailed(String detail) {
@@ -1367,5 +1405,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get splashStartupFailed => 'Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.';
+  String get splashStartupFailed =>
+      'Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.';
 }
