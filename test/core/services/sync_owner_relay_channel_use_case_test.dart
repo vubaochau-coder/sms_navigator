@@ -4,23 +4,33 @@ import 'package:sms_navigator/core/models/channel_member_model.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/models/pairing_request_model.dart';
 import 'package:sms_navigator/core/models/pairing_session_model.dart';
-import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
-import 'package:sms_navigator/core/services/native_relay_service.dart';
+import 'package:sms_navigator/core/services/relay_channel_bridge.dart';
 import 'package:sms_navigator/core/services/sync_owner_relay_channel_use_case.dart';
 import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
 
 class FakeChannelRepository implements ChannelRepository {
   List<ChannelModel> channels = [];
 
+  /// Key the fake "server self-envelope" yields on provisionLatestChannelKey.
+  FakeChannelKeyStore? recoverInto;
+  int? recoverEpoch;
+  String recoverKey = 'recovered-key';
+  final List<String> provisionCalls = [];
+
   @override
   Future<List<ChannelModel>> listChannels() async => channels;
 
   @override
   Future<ChannelDetailModel> getChannelDetail(String channelId) async =>
-      throw UnimplementedError();
+      ChannelDetailModel(
+        channelId: channelId,
+        name: 'detail-$channelId',
+        ownerPublicKey: 'owner-pk',
+        myRole: ChannelRole.owner,
+      );
 
   @override
   Future<List<ChannelMemberModel>> getMembers(String channelId) async => [];
@@ -55,7 +65,17 @@ class FakeChannelRepository implements ChannelRepository {
   Future<int?> provisionLatestChannelKey({
     required String channelId,
     required String ownerPublicKeyBase64,
-  }) async => null;
+  }) async {
+    provisionCalls.add('$channelId|$ownerPublicKeyBase64');
+    final epoch = recoverEpoch;
+    if (epoch == null || recoverInto == null) return null;
+    await recoverInto!.saveChannelKey(
+      channelId: channelId,
+      epoch: epoch,
+      channelKeyBase64: recoverKey,
+    );
+    return epoch;
+  }
 
   @override
   Future<void> renameDevice(String newName) async {}
@@ -125,75 +145,76 @@ class FakeDeviceStorageService implements DeviceStorageService {
   Future<void> clearAll() async {}
 }
 
-class FakeNativeRelayService implements NativeRelayService {
-  Map<String, dynamic>? activeConfig;
-  bool cleared = false;
+class FakeRelayBridge implements RelayChannelBridge {
+  List<RelayChannelSnapshot>? replaced;
+  List<String> retained = const [];
+  String? token;
+  String? baseUrl;
+  int flushCalls = 0;
+  int parkedToFlush = 0;
 
   @override
-  Future<bool> setActiveRelayChannel({
+  Future<void> setCredentials({required String deviceToken, String? apiBaseUrl}) async {
+    token = deviceToken;
+    baseUrl = apiBaseUrl;
+  }
+
+  @override
+  Future<int> replaceRelayChannels(
+    List<RelayChannelSnapshot> channels, {
+    List<String> retainChannelIds = const [],
+  }) async {
+    replaced = channels;
+    retained = retainChannelIds;
+    return channels.length;
+  }
+
+  @override
+  Future<void> stageKey({
     required String channelId,
-    required String channelName,
     required int keyEpoch,
     required String channelKeyBase64,
-    required String deviceToken,
-    String? apiBaseUrl,
-  }) async {
-    activeConfig = {
-      'channelId': channelId,
-      'channelName': channelName,
-      'keyEpoch': keyEpoch,
-      'channelKeyBase64': channelKeyBase64,
-      'deviceToken': deviceToken,
-      'apiBaseUrl': apiBaseUrl,
-    };
-    cleared = false;
-    return true;
-  }
+    String? channelName,
+  }) async {}
 
   @override
-  Future<bool> clearActiveRelayChannel() async {
-    cleared = true;
-    activeConfig = null;
-    return true;
-  }
+  Future<bool> promoteKey({required String channelId, required int keyEpoch}) async => true;
 
   @override
-  Future<Map<String, dynamic>> getRelayConfig() async => {};
+  Future<void> discardKey({required String channelId, required int keyEpoch}) async {}
+
   @override
-  Future<WhitelistConfigModel> getWhitelist(String channelId) async => const WhitelistConfigModel();
-  @override
-  Future<bool> setWhitelist(String channelId, WhitelistConfigModel config) async => true;
-  @override
-  Future<List<Map<String, dynamic>>> getRecentLogs() async => [];
-  @override
-  Future<bool> isBatteryOptimizationIgnored() async => true;
-  @override
-  Future<bool> requestIgnoreBatteryOptimization() async => true;
-  @override
-  Future<Map<String, dynamic>> getAggressiveRomInfo() async => {};
-  @override
-  Future<String?> getDeviceName() async => 'Test Device';
-  @override
-  Future<bool> openAutostartSettings() async => true;
+  Future<int> flushParkedMessages() async {
+    flushCalls++;
+    return parkedToFlush;
+  }
 }
 
 void main() {
   late FakeChannelRepository channelRepo;
   late FakeChannelKeyStore keyStore;
   late FakeDeviceStorageService deviceStorage;
-  late FakeNativeRelayService nativeRelay;
+  late FakeRelayBridge bridge;
   late SyncOwnerRelayChannelUseCase useCase;
+
+  ChannelModel owner(String id, {int epoch = 1, String status = 'ACTIVE'}) => ChannelModel(
+        channelId: id,
+        name: 'Kênh $id',
+        role: ChannelRole.owner,
+        currentEpoch: epoch,
+        status: status,
+      );
 
   setUp(() {
     channelRepo = FakeChannelRepository();
     keyStore = FakeChannelKeyStore();
     deviceStorage = FakeDeviceStorageService();
-    nativeRelay = FakeNativeRelayService();
+    bridge = FakeRelayBridge();
     useCase = SyncOwnerRelayChannelUseCase(
       channelRepository: channelRepo,
       keyStore: keyStore,
       deviceStorage: deviceStorage,
-      nativeRelayService: nativeRelay,
+      relayBridge: bridge,
     );
   });
 
@@ -209,45 +230,84 @@ void main() {
 
     final result = await useCase();
     expect(result, isFalse);
-    expect(nativeRelay.cleared, isTrue);
-    expect(nativeRelay.activeConfig, isNull);
+    expect(bridge.replaced, isEmpty);
+    expect(bridge.retained, isEmpty);
   });
 
-  test('syncs active owner channel to native relay successfully', () async {
-    const ownerChannel = ChannelModel(
-      channelId: 'ch-owner-1',
-      name: 'Owner Channel',
-      role: ChannelRole.owner,
-      currentEpoch: 2,
-      status: 'ACTIVE',
-    );
-    channelRepo.channels = [ownerChannel];
-    keyStore.keys['ch-owner-1_2'] = 'base64key-for-epoch-2';
+  test('syncs EVERY active owner channel, not only the first', () async {
+    channelRepo.channels = [
+      owner('ch-a', epoch: 2),
+      owner('ch-b', epoch: 5),
+      owner('ch-archived', status: 'ARCHIVED'),
+    ];
+    keyStore.keys['ch-a_2'] = 'key-a-2';
+    keyStore.keys['ch-b_5'] = 'key-b-5';
 
     final result = await useCase();
+
     expect(result, isTrue);
-    expect(nativeRelay.cleared, isFalse);
-    expect(nativeRelay.activeConfig?['channelId'], 'ch-owner-1');
-    expect(nativeRelay.activeConfig?['channelName'], 'Owner Channel');
-    expect(nativeRelay.activeConfig?['keyEpoch'], 2);
-    expect(nativeRelay.activeConfig?['channelKeyBase64'], 'base64key-for-epoch-2');
-    expect(nativeRelay.activeConfig?['deviceToken'], 'token-abc');
+    expect(bridge.replaced, const [
+      RelayChannelSnapshot(channelId: 'ch-a', channelName: 'Kênh ch-a', keyEpoch: 2, channelKeyBase64: 'key-a-2'),
+      RelayChannelSnapshot(channelId: 'ch-b', channelName: 'Kênh ch-b', keyEpoch: 5, channelKeyBase64: 'key-b-5'),
+    ]);
+    expect(bridge.token, 'token-abc');
+    expect(bridge.baseUrl, deviceStorage.serverUrl);
   });
 
-  test('syncs with expectedEpoch when higher than currentEpoch (rotation)', () async {
-    const ownerChannel = ChannelModel(
-      channelId: 'ch-owner-1',
-      name: 'Owner Channel',
-      role: ChannelRole.owner,
-      currentEpoch: 1,
-      status: 'ACTIVE',
-    );
-    channelRepo.channels = [ownerChannel];
-    keyStore.keys['ch-owner-1_2'] = 'base64key-rotated-epoch-2';
+  test('uses expectedEpoch hint only for the channel it targets', () async {
+    channelRepo.channels = [owner('ch-a', epoch: 1), owner('ch-b', epoch: 1)];
+    keyStore.keys['ch-a_2'] = 'key-a-rotated';
+    keyStore.keys['ch-b_1'] = 'key-b-1';
 
-    final result = await useCase(channelId: 'ch-owner-1', expectedEpoch: 2);
+    await useCase(channelId: 'ch-a', expectedEpoch: 2);
+
+    final byId = {for (final s in bridge.replaced!) s.channelId: s};
+    expect(byId['ch-a']!.keyEpoch, 2);
+    expect(byId['ch-a']!.channelKeyBase64, 'key-a-rotated');
+    expect(byId['ch-b']!.keyEpoch, 1);
+  });
+
+  test('recovers a missing key from the owner self-envelope', () async {
+    channelRepo.channels = [owner('ch-a', epoch: 3)];
+    channelRepo.recoverInto = keyStore;
+    channelRepo.recoverEpoch = 3;
+
+    final result = await useCase();
+
     expect(result, isTrue);
-    expect(nativeRelay.activeConfig?['keyEpoch'], 2);
-    expect(nativeRelay.activeConfig?['channelKeyBase64'], 'base64key-rotated-epoch-2');
+    expect(channelRepo.provisionCalls, ['ch-a|owner-pk']);
+    expect(bridge.replaced!.single.channelKeyBase64, 'recovered-key');
+    expect(bridge.replaced!.single.keyEpoch, 3);
+  });
+
+  test('retains a channel on native when its key cannot be resolved', () async {
+    channelRepo.channels = [owner('ch-a', epoch: 3), owner('ch-b', epoch: 1)];
+    keyStore.keys['ch-b_1'] = 'key-b-1';
+
+    await useCase();
+
+    expect(bridge.replaced!.map((s) => s.channelId), ['ch-b']);
+    expect(bridge.retained, ['ch-a']);
+  });
+
+  test('does nothing without a device token', () async {
+    deviceStorage.token = null;
+    channelRepo.channels = [owner('ch-a')];
+    keyStore.keys['ch-a_1'] = 'key';
+
+    final result = await useCase();
+
+    expect(result, isFalse);
+    expect(bridge.replaced, isNull);
+  });
+
+  test('flushes parked SMS after syncing keys', () async {
+    channelRepo.channels = [owner('ch-a')];
+    keyStore.keys['ch-a_1'] = 'key';
+    bridge.parkedToFlush = 2;
+
+    await useCase();
+
+    expect(bridge.flushCalls, 1);
   });
 }

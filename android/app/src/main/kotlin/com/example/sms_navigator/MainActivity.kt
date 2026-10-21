@@ -17,6 +17,7 @@ class MainActivity : FlutterActivity() {
         val deviceNavigator = OemAutostartNavigator(this)
         relayChannel = RelayMethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
+            applicationContext,
             prefs,
             deviceNavigator
         )

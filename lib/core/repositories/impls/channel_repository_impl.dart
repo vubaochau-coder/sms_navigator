@@ -8,12 +8,14 @@ import '../../models/channel_model.dart';
 import '../../models/key_envelope_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../errors/app_exceptions.dart';
 import '../../models/whitelist_config_model.dart';
 import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_api_service.dart';
 import '../../services/device_storage_service.dart';
 import '../../services/pairing_api_service.dart';
+import '../../services/relay_channel_bridge.dart';
 import '../../utils/app_logger.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../channel_repository.dart';
@@ -39,13 +41,21 @@ class ChannelRepositoryImpl implements ChannelRepository {
     required ChannelCryptoHelper cryptoHelper,
     required DeviceStorageService deviceStorage,
     WhitelistRepository? whitelistRepository,
+    RelayChannelBridge? relayBridge,
+    Duration retryBaseDelay = const Duration(seconds: 1),
   }) : _channelApi = channelApiService,
        _pairingApi = pairingApiService,
        _deviceApi = deviceApiService,
        _keyStore = keyStore,
        _crypto = cryptoHelper,
        _deviceStorage = deviceStorage,
-       _whitelistRepository = whitelistRepository;
+       _whitelistRepository = whitelistRepository,
+       _relayBridge = relayBridge,
+       _retryBaseDelay = retryBaseDelay;
+
+  /// Số lần gửi lại cùng một package khi mất mạng / timeout. An toàn vì server
+  /// nhận diện retry trùng package và trả kết quả đã commit (idempotent).
+  static const int _rotationNetworkRetries = 2;
 
   final ChannelApiService _channelApi;
   final PairingApiService _pairingApi;
@@ -54,6 +64,8 @@ class ChannelRepositoryImpl implements ChannelRepository {
   final ChannelCryptoHelper _crypto;
   final DeviceStorageService _deviceStorage;
   final WhitelistRepository? _whitelistRepository;
+  final RelayChannelBridge? _relayBridge;
+  final Duration _retryBaseDelay;
 
   // ------------------------------------------------------------- Đọc state
 
@@ -126,6 +138,67 @@ class ChannelRepositoryImpl implements ChannelRepository {
       );
     }
     return envelopes;
+  }
+
+  /// Xoay khóa nhất quán giữa server, key store Dart và native relay:
+  ///
+  /// 1. Lưu key mới vào key store + stage xuống native **trước** khi gọi
+  ///    server — nếu app bị kill ngay sau khi server commit, key vẫn còn.
+  /// 2. Gọi server với package; mất mạng/timeout → gửi lại ĐÚNG package đó
+  ///    (server trả kết quả đã commit, không xoay thêm epoch).
+  /// 3. Thành công → promote ở native. Server từ chối dứt khoát (4xx) →
+  ///    discard. Kết quả không rõ (mạng/5xx) → giữ pending để worker và
+  ///    reconcile tự phục hồi.
+  Future<int> _rotate({
+    required String channelId,
+    required String? channelName,
+    required int newEpoch,
+    required String channelKeyBase64,
+    required Future<Map<String, dynamic>> Function() commit,
+  }) async {
+    await _keyStore.saveChannelKey(
+      channelId: channelId,
+      epoch: newEpoch,
+      channelKeyBase64: channelKeyBase64,
+    );
+    await _relayBridge?.stageKey(
+      channelId: channelId,
+      channelName: channelName,
+      keyEpoch: newEpoch,
+      channelKeyBase64: channelKeyBase64,
+    );
+
+    var attempt = 0;
+    while (true) {
+      try {
+        final response = await commit();
+        final committedEpoch = response['current_epoch'] as int? ?? newEpoch;
+        await _relayBridge?.promoteKey(channelId: channelId, keyEpoch: committedEpoch);
+        return committedEpoch;
+      } on AppException catch (e) {
+        final definitiveRejection =
+            e is ApiException && e.statusCode != null && e.statusCode! >= 400 && e.statusCode! < 500;
+        if (definitiveRejection) {
+          // 4xx: server did not commit this package (409 MEMBERSHIP_CHANGED,
+          // 422 PACKAGE_INCOMPLETE, 403…) — the staged key is garbage.
+          await _relayBridge?.discardKey(channelId: channelId, keyEpoch: newEpoch);
+          rethrow;
+        }
+        // Outcome unknown (network, timeout, 5xx, 401): the rotation may
+        // have committed. Retry the identical package; if still failing,
+        // keep the key pending for worker self-heal / next reconcile.
+        final retryable = e is NetworkException || e is ApiException;
+        if (!retryable || attempt >= _rotationNetworkRetries) {
+          AppLogger.w(
+            'ChannelRepository',
+            'Rotation of $channelId to epoch $newEpoch: outcome unknown (${e.runtimeType}) — key kept pending',
+          );
+          rethrow;
+        }
+        attempt++;
+        await Future<void>.delayed(_retryBaseDelay * attempt);
+      }
+    }
   }
 
   // ------------------------------------------------------- T0 — tạo kênh
@@ -213,22 +286,26 @@ class ChannelRepositoryImpl implements ChannelRepository {
       publicKeyByDeviceId: publicKeyByDeviceId,
     );
 
-    final response = await _pairingApi.approvePairingRequest(
-      requestId: request.requestId,
-      package: PackageModel(
-        baseEpoch: detail.currentEpoch,
-        baseMembershipVersion: detail.membershipVersion,
-        envelopes: envelopes,
-      ).toMap(),
-    );
+    // Built once: retries must resend the byte-identical package.
+    final package = PackageModel(
+      baseEpoch: detail.currentEpoch,
+      baseMembershipVersion: detail.membershipVersion,
+      envelopes: envelopes,
+    ).toMap();
 
-    await _keyStore.saveChannelKey(
+    final committedEpoch = await _rotate(
       channelId: channelId,
-      epoch: newEpoch,
+      channelName: detail.name,
+      newEpoch: newEpoch,
       channelKeyBase64: channelKey,
+      commit: () => _pairingApi.approvePairingRequest(
+        requestId: request.requestId,
+        package: package,
+      ),
     );
 
-    // §8.4: Re-encrypt whitelist blob sau rotation
+    // §8.4: Re-encrypt whitelist blob sau rotation (best-effort; nếu gián
+    // đoạn, SyncOwnerRelayChannelUseCase sẽ tự mã hóa lại ở lần sync sau)
     await _reEncryptWhitelistAfterRotation(
       channelId: channelId,
       detail: detail,
@@ -236,7 +313,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
       channelKeyBase64: channelKey,
     );
 
-    return response['current_epoch'] as int? ?? newEpoch;
+    return committedEpoch;
   }
 
   @override
@@ -272,23 +349,27 @@ class ChannelRepositoryImpl implements ChannelRepository {
       publicKeyByDeviceId: publicKeyByDeviceId,
     );
 
-    final response = await _channelApi.revokeMembers(
-      channelId: channelId,
-      revokeDeviceIds: revokeDeviceIds,
-      package: PackageModel(
-        baseEpoch: detail.currentEpoch,
-        baseMembershipVersion: detail.membershipVersion,
-        envelopes: envelopes,
-      ).toMap(),
-    );
+    // Built once: retries must resend the byte-identical package.
+    final package = PackageModel(
+      baseEpoch: detail.currentEpoch,
+      baseMembershipVersion: detail.membershipVersion,
+      envelopes: envelopes,
+    ).toMap();
 
-    await _keyStore.saveChannelKey(
+    final committedEpoch = await _rotate(
       channelId: channelId,
-      epoch: newEpoch,
+      channelName: detail.name,
+      newEpoch: newEpoch,
       channelKeyBase64: channelKey,
+      commit: () => _channelApi.revokeMembers(
+        channelId: channelId,
+        revokeDeviceIds: revokeDeviceIds,
+        package: package,
+      ),
     );
 
-    // §8.4: Re-encrypt whitelist blob sau rotation
+    // §8.4: Re-encrypt whitelist blob sau rotation (best-effort; nếu gián
+    // đoạn, SyncOwnerRelayChannelUseCase sẽ tự mã hóa lại ở lần sync sau)
     await _reEncryptWhitelistAfterRotation(
       channelId: channelId,
       detail: detail,
@@ -296,7 +377,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
       channelKeyBase64: channelKey,
     );
 
-    return response['current_epoch'] as int? ?? newEpoch;
+    return committedEpoch;
   }
 
   /// §8.4: Re-encrypt whitelist blob bằng khóa epoch mới sau khi rotate.

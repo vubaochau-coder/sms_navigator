@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.sms_navigator.data.OtpPreferences
+import com.example.sms_navigator.data.ParkedMessage
+import com.example.sms_navigator.data.RelayChannelStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -27,29 +29,47 @@ class OtpRelayWorker(
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
+    private data class SendResult(val code: Int, val message: String, val body: String?)
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val prefs = OtpPreferences(applicationContext)
+        val store = RelayChannelStore(prefs)
 
         val messageId = inputData.getString(KEY_MESSAGE_ID) ?: UUID.randomUUID().toString()
-        val channelId = inputData.getString(KEY_CHANNEL_ID) ?: prefs.activeChannelId
-        val epoch = inputData.getLong(KEY_CHANNEL_EPOCH, prefs.activeChannelEpoch)
+        val channelId = inputData.getString(KEY_CHANNEL_ID)
         val messageText = inputData.getString(KEY_MESSAGE_TEXT)
         val sender = inputData.getString(KEY_SENDER) ?: "Unknown"
-        val channelKeyBase64 = prefs.activeChannelKeyBase64
         val token = prefs.deviceToken
-        val baseUrl = (inputData.getString(KEY_API_BASE_URL) ?: prefs.apiBaseUrl).trimEnd('/')
+        val baseUrl = prefs.apiBaseUrl.trimEnd('/')
         val relayUrl = "$baseUrl/api/v2/channels/messages"
 
-        if (channelId.isNullOrBlank() || channelKeyBase64.isNullOrBlank() || messageText.isNullOrEmpty() || token.isNullOrBlank()) {
+        if (channelId.isNullOrBlank() || messageText.isNullOrEmpty() || token.isNullOrBlank()) {
             val missing = buildList {
                 if (channelId.isNullOrBlank()) add("channelId")
-                if (channelKeyBase64.isNullOrBlank()) add("channelKey")
                 if (messageText.isNullOrEmpty()) add("messageText")
                 if (token.isNullOrBlank()) add("token")
             }.joinToString(", ")
             Log.e(TAG, "Missing required parameters for V2 relay: $missing")
             prefs.addRelayLog(sender, "", "FAILED", "Missing config: $missing")
             return@withContext Result.failure()
+        }
+
+        // Key + epoch are read at run time (not captured at enqueue) so a
+        // rotation that happened after the SMS arrived is picked up.
+        val channel = store.get(channelId)
+        if (channel == null) {
+            Log.w(TAG, "Channel $channelId is no longer relayed. Dropping messageId=$messageId.")
+            prefs.addRelayLog(sender, "", "FAILED", "Kênh không còn được relay")
+            return@withContext Result.failure()
+        }
+        val label = channel.name.ifBlank { channelId }
+        val parked = ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
+
+        val activeKey = channel.activeKey
+        if (activeKey == null) {
+            store.park(parked)
+            prefs.addRelayLog(sender, "", "PARKED", "[$label] Chưa có khóa kênh — mở app để đồng bộ")
+            return@withContext Result.success()
         }
 
         // Cap total retries so transient 5xx/network failures never retry forever.
@@ -64,63 +84,114 @@ class OtpRelayWorker(
             put("fullMessage", messageText)
         }.toString()
 
-        val encrypted = try {
-            com.example.sms_navigator.crypto.ChannelCryptoNative.encryptMessage(
-                plaintext = payloadToEncrypt,
-                channelKeyBase64 = channelKeyBase64,
-                channelId = channelId,
-                keyEpoch = epoch,
-                sequenceHint = 0L
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Encryption failed for messageId=$messageId: ${e.message}", e)
-            prefs.addRelayLog(sender, "", "FAILED", "Crypto error: ${e.message}")
-            return@withContext Result.failure()
-        }
+        var epoch = channel.activeEpoch
+        var key: String = activeKey
+        var healedOnce = false
 
+        while (true) {
+            val result = try {
+                send(relayUrl, token, channelId, epoch, key, payloadToEncrypt)
+            } catch (e: IOException) {
+                Log.e(TAG, "Network error during relay: ${e.message}", e)
+                prefs.addRelayLog(sender, "", "RETRYING", e.message)
+                return@withContext Result.retry()
+            } catch (e: Exception) {
+                Log.e(TAG, "Relay failed for messageId=$messageId: ${e.message}", e)
+                prefs.addRelayLog(sender, "", "FAILED", "Crypto/IO error: ${e.message}")
+                return@withContext Result.failure()
+            }
+
+            when {
+                result.code in 200..299 -> {
+                    Log.i(TAG, "Message relayed to V2 channel $channelId (epoch $epoch)")
+                    prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (epoch $epoch)")
+                    return@withContext Result.success()
+                }
+
+                result.code == 409 -> {
+                    val body = parseJson(result.body)
+                    val errorCode = body?.optString("error").orEmpty()
+                    if (errorCode == "REPLAY_DETECTED") {
+                        // A previous attempt already landed (response lost) — done.
+                        prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (đã nhận trước đó)")
+                        return@withContext Result.success()
+                    }
+                    if (errorCode == "EPOCH_OUTDATED") {
+                        val serverEpoch = body?.optLong("current_epoch", 0L) ?: 0L
+                        val stagedKey = if (serverEpoch > 0) store.get(channelId)?.keyFor(serverEpoch) else null
+                        if (!healedOnce && stagedKey != null) {
+                            // The rotation committed but the app never promoted
+                            // (killed / offline): we already hold the staged key.
+                            store.promoteKey(channelId, serverEpoch)
+                            Log.i(TAG, "Self-healed epoch $epoch → $serverEpoch for $channelId, resending")
+                            epoch = serverEpoch
+                            key = stagedKey
+                            healedOnce = true
+                            continue
+                        }
+                        store.park(parked)
+                        Log.w(TAG, "No key for server epoch $serverEpoch on $channelId. Parked messageId=$messageId.")
+                        prefs.addRelayLog(sender, "", "PARKED", "[$label] Khóa kênh đã đổi — mở app để đồng bộ")
+                        return@withContext Result.success()
+                    }
+                    val errorMsg = "HTTP 409 ${errorCode.ifBlank { result.message }}"
+                    prefs.addRelayLog(sender, "", "FAILED", errorMsg)
+                    return@withContext Result.failure()
+                }
+
+                result.code in 400..499 -> {
+                    val errorMsg = "HTTP ${result.code}: ${result.message}"
+                    Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg). Dropping.")
+                    prefs.addRelayLog(sender, "", "FAILED", errorMsg)
+                    return@withContext Result.failure()
+                }
+
+                else -> {
+                    val errorMsg = "HTTP ${result.code}: ${result.message}"
+                    Log.w(TAG, "Transient server error relaying ($errorMsg). Retrying...")
+                    prefs.addRelayLog(sender, "", "RETRYING", errorMsg)
+                    return@withContext Result.retry()
+                }
+            }
+        }
+        // Every branch of the loop above returns; this line is never reached.
+        Result.failure()
+    }
+
+    private fun send(
+        relayUrl: String,
+        token: String,
+        channelId: String,
+        epoch: Long,
+        channelKeyBase64: String,
+        payload: String
+    ): SendResult {
+        val encrypted = com.example.sms_navigator.crypto.ChannelCryptoNative.encryptMessage(
+            plaintext = payload,
+            channelKeyBase64 = channelKeyBase64,
+            channelId = channelId,
+            keyEpoch = epoch,
+            sequenceHint = 0L
+        )
         val requestJson = JSONObject().apply {
             put("channel_id", channelId)
             put("request_epoch", epoch)
             put("ciphertext", encrypted.ciphertextBase64)
             put("nonce", encrypted.nonceBase64)
         }
-
         val body = requestJson.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url(relayUrl)
             .addHeader("Authorization", "Bearer $token")
             .post(body)
             .build()
-
-        try {
-            val response = httpClient.newCall(request).execute()
-            val channelLabel = prefs.activeChannelName ?: channelId
-            if (response.isSuccessful) {
-                Log.i(TAG, "Message successfully relayed to V2 channel $channelId (epoch $epoch)")
-                prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $channelLabel (epoch $epoch)")
-                Result.success()
-            } else if (response.code in 400..499) {
-                val errorMsg = "HTTP ${response.code}: ${response.message}"
-                val extraHint = if (response.code == 409) " (Lỗi epoch/replay - mở app đồng bộ)" else ""
-                Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg$extraHint). Dropping.")
-                prefs.addRelayLog(sender, "", "FAILED", "$errorMsg$extraHint")
-                Result.failure()
-            } else {
-                val errorMsg = "HTTP ${response.code}: ${response.message}"
-                Log.w(TAG, "Transient server error relaying ($errorMsg). Retrying...")
-                prefs.addRelayLog(sender, "", "RETRYING", errorMsg)
-                Result.retry()
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error during relay: ${e.message}", e)
-            prefs.addRelayLog(sender, "", "RETRYING", e.message)
-            Result.retry()
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error during relay: ${e.message}", e)
-            prefs.addRelayLog(sender, "", "FAILED", e.message)
-            Result.failure()
+        httpClient.newCall(request).execute().use { response ->
+            return SendResult(response.code, response.message, response.body?.string())
         }
     }
+
+    private fun parseJson(raw: String?): JSONObject? =
+        try { if (raw.isNullOrBlank()) null else JSONObject(raw) } catch (_: Exception) { null }
 
     companion object {
         private const val TAG = "OtpRelayWorker"
@@ -129,9 +200,11 @@ class OtpRelayWorker(
 
         const val KEY_MESSAGE_ID = "message_id"
         const val KEY_CHANNEL_ID = "channel_id"
+        /** Legacy (≤ v2.2): epoch captured at enqueue. Ignored — epoch is read from RelayChannelStore. */
         const val KEY_CHANNEL_EPOCH = "channel_epoch"
         const val KEY_MESSAGE_TEXT = "message_text"
         const val KEY_SENDER = "sender"
+        /** Legacy: base URL captured at enqueue. Ignored — read from OtpPreferences at run time. */
         const val KEY_API_BASE_URL = "api_base_url"
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.example.sms_navigator.data.OtpPreferences
+import com.example.sms_navigator.data.RelayChannelStore
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -14,7 +15,8 @@ class BootReceiver : BroadcastReceiver() {
         ) {
             Log.i(TAG, "Device rebooted. Initializing OTP Relay status...")
             val prefs = OtpPreferences(context)
-            Log.i(TAG, "Active channel: ${prefs.activeChannelId != null}")
+            val channels = RelayChannelStore(prefs).all()
+            Log.i(TAG, "Relay channels configured: ${channels.size}")
         }
     }
 

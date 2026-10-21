@@ -31,12 +31,14 @@ import '../services/impls/device_storage_service_impl.dart';
 import '../services/impls/fcm_notification_service_impl.dart';
 import '../services/impls/message_api_service_impl.dart';
 import '../services/impls/native_relay_service_impl.dart';
+import '../services/impls/relay_channel_bridge_impl.dart';
 import '../services/impls/pairing_api_service_impl.dart';
 import '../services/impls/startup_reconcile_service_impl.dart';
 import '../services/local_storage_service.dart';
 import '../services/message_api_service.dart';
 import '../services/native_relay_service.dart';
 import '../services/pairing_api_service.dart';
+import '../services/relay_channel_bridge.dart';
 import '../services/startup_reconcile_service.dart';
 import '../services/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
@@ -85,6 +87,9 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),
+        ),
+        RepositoryProvider<RelayChannelBridge>(
+          create: (_) => RelayChannelBridgeImpl(),
         ),
         RepositoryProvider<DeviceStorageService>(
           create: (context) =>
@@ -173,6 +178,7 @@ class AppBootstrap extends StatelessWidget {
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             deviceStorage: context.read<DeviceStorageService>(),
             whitelistRepository: context.read<WhitelistRepository>(),
+            relayBridge: context.read<RelayChannelBridge>(),
           ),
         ),
         RepositoryProvider<JoinChannelRepository>(
@@ -217,7 +223,7 @@ class AppBootstrap extends StatelessWidget {
             channelRepository: context.read<ChannelRepository>(),
             keyStore: context.read<ChannelKeyStore>(),
             deviceStorage: context.read<DeviceStorageService>(),
-            nativeRelayService: context.read<NativeRelayService>(),
+            relayBridge: context.read<RelayChannelBridge>(),
             whitelistRepository: context.read<WhitelistRepository>(),
           ),
         ),
