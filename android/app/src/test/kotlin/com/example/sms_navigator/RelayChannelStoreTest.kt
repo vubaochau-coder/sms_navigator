@@ -167,4 +167,53 @@ class RelayChannelStoreTest {
         assertEquals("k-a-2", store.get("a")?.activeKey)
         assertEquals(2, store.all().size)
     }
+
+    // ------------------------------------------------------------- outbox (2.1)
+
+    @Test
+    fun `outbox stores SMS text and sender only through the vault`() {
+        val id = store.putOutbox(ParkedMessage("m1", "a", "VCB", "Ma OTP 482913", parkedAt = now))
+
+        assertEquals("a|m1", id)
+        val raw = otpPrefs.prefs.getString("relay_outbox_v1", "")!!
+        assertTrue(raw.contains("enc:Ma OTP 482913"))
+        assertTrue(raw.contains("enc:VCB"))
+        assertFalse(raw.replace("enc:Ma OTP 482913", "").contains("482913"))
+
+        val back = store.getOutbox(id)!!
+        assertEquals("Ma OTP 482913", back.messageText)
+        assertEquals("VCB", back.sender)
+        assertEquals("a", back.channelId)
+        assertEquals("m1", back.messageId)
+    }
+
+    @Test
+    fun `outbox entries are removed explicitly and keyed per channel`() {
+        val a = store.putOutbox(ParkedMessage("m1", "a", "VCB", "x", parkedAt = now))
+        val b = store.putOutbox(ParkedMessage("m1", "b", "VCB", "x", parkedAt = now))
+        assertEquals(2, store.outboxCount())
+
+        store.removeOutbox(a)
+        assertNull(store.getOutbox(a))
+        assertEquals("x", store.getOutbox(b)?.messageText)
+    }
+
+    @Test
+    fun `outbox sweeps entries older than the TTL on write`() {
+        store.putOutbox(ParkedMessage("old", "a", "VCB", "old", parkedAt = now - RelayChannelStore.PARKED_TTL_MS - 1))
+        store.putOutbox(ParkedMessage("new", "a", "VCB", "new", parkedAt = now))
+
+        assertEquals(1, store.outboxCount())
+        assertNull(store.getOutbox("a|old"))
+    }
+
+    @Test
+    fun `outbox is capped to the newest entries`() {
+        for (i in 0 until RelayChannelStore.MAX_OUTBOX + 5) {
+            store.putOutbox(ParkedMessage("m$i", "a", "VCB", "t$i", parkedAt = now))
+        }
+        assertEquals(RelayChannelStore.MAX_OUTBOX, store.outboxCount())
+        assertNull(store.getOutbox("a|m0"))
+        assertEquals("t${RelayChannelStore.MAX_OUTBOX + 4}", store.getOutbox("a|m${RelayChannelStore.MAX_OUTBOX + 4}")?.messageText)
+    }
 }

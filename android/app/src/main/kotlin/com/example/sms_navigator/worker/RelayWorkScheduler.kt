@@ -7,14 +7,22 @@ import androidx.work.Data
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.sms_navigator.data.OtpPreferences
+import com.example.sms_navigator.data.ParkedMessage
+import com.example.sms_navigator.data.RelayChannelStore
 import java.util.concurrent.TimeUnit
 
 /**
  * Điểm duy nhất enqueue [OtpRelayWorker] — dùng chung cho SmsReceiver (SMS mới)
  * và RelayMethodChannel (gửi lại tin "parked" sau khi app đồng bộ key).
  *
- * Worker chỉ nhận channelId: key và epoch được đọc từ RelayChannelStore lúc
- * worker chạy, nên một rotation xảy ra sau khi enqueue vẫn dùng đúng key mới.
+ * Worker chỉ nhận channelId + outboxId: key và epoch được đọc từ
+ * RelayChannelStore lúc worker chạy, nên một rotation xảy ra sau khi enqueue
+ * vẫn dùng đúng key mới.
+ *
+ * Nội dung SMS **không** đi vào `inputData` (WorkManager lưu nó trong SQLite
+ * không mã hoá). Text + sender nằm trong outbox mã hoá của
+ * [RelayChannelStore] (BACKLOG 2.1).
  */
 object RelayWorkScheduler {
     const val TAG_RELAY = "otp_relay"
@@ -26,12 +34,11 @@ object RelayWorkScheduler {
         sender: String,
         messageText: String
     ) {
-        val inputData = Data.Builder()
-            .putString(OtpRelayWorker.KEY_MESSAGE_ID, messageId)
-            .putString(OtpRelayWorker.KEY_CHANNEL_ID, channelId)
-            .putString(OtpRelayWorker.KEY_MESSAGE_TEXT, messageText)
-            .putString(OtpRelayWorker.KEY_SENDER, sender)
-            .build()
+        val store = RelayChannelStore(OtpPreferences(context))
+        val outboxId = store.putOutbox(
+            ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
+        )
+        val inputData = buildInputData(messageId, channelId, outboxId)
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -46,4 +53,12 @@ object RelayWorkScheduler {
 
         WorkManager.getInstance(context).enqueue(request)
     }
+
+    /** Chỉ id — không bao giờ có nội dung SMS hay sender. */
+    internal fun buildInputData(messageId: String, channelId: String, outboxId: String): Data =
+        Data.Builder()
+            .putString(OtpRelayWorker.KEY_MESSAGE_ID, messageId)
+            .putString(OtpRelayWorker.KEY_CHANNEL_ID, channelId)
+            .putString(OtpRelayWorker.KEY_OUTBOX_ID, outboxId)
+            .build()
 }

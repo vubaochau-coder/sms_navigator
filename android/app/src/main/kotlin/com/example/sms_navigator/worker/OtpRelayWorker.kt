@@ -34,11 +34,23 @@ class OtpRelayWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val prefs = OtpPreferences(applicationContext)
         val store = RelayChannelStore(prefs)
+        val outboxId = inputData.getString(KEY_OUTBOX_ID)
+        val queued = outboxId?.let { store.getOutbox(it) }
 
-        val messageId = inputData.getString(KEY_MESSAGE_ID) ?: UUID.randomUUID().toString()
-        val channelId = inputData.getString(KEY_CHANNEL_ID)
-        val messageText = inputData.getString(KEY_MESSAGE_TEXT)
-        val sender = inputData.getString(KEY_SENDER) ?: "Unknown"
+        val result = relay(prefs, store, queued)
+
+        // Chỉ giữ nội dung khi còn retry; xong (gửi được / bỏ / đã park) thì xoá.
+        if (outboxId != null && result !is Result.Retry) store.removeOutbox(outboxId)
+        result
+    }
+
+    private fun relay(prefs: OtpPreferences, store: RelayChannelStore, queued: ParkedMessage?): Result {
+        val messageId = queued?.messageId?.takeIf { it.isNotBlank() }
+            ?: inputData.getString(KEY_MESSAGE_ID) ?: UUID.randomUUID().toString()
+        val channelId = inputData.getString(KEY_CHANNEL_ID) ?: queued?.channelId
+        // Legacy: job enqueue bởi bản cũ vẫn mang text/sender trong inputData.
+        val messageText = queued?.messageText ?: inputData.getString(KEY_MESSAGE_TEXT)
+        val sender = queued?.sender?.takeIf { it.isNotBlank() } ?: inputData.getString(KEY_SENDER) ?: "Unknown"
         val token = prefs.deviceToken
         val baseUrl = prefs.apiBaseUrl.trimEnd('/')
         val relayUrl = "$baseUrl/api/v2/channels/messages"
@@ -51,7 +63,7 @@ class OtpRelayWorker(
             }.joinToString(", ")
             Log.e(TAG, "Missing required parameters for V2 relay: $missing")
             prefs.addRelayLog(sender, "", "FAILED", "Missing config: $missing")
-            return@withContext Result.failure()
+            return Result.failure()
         }
 
         // Key + epoch are read at run time (not captured at enqueue) so a
@@ -60,7 +72,7 @@ class OtpRelayWorker(
         if (channel == null) {
             Log.w(TAG, "Channel $channelId is no longer relayed. Dropping messageId=$messageId.")
             prefs.addRelayLog(sender, "", "FAILED", "Kênh không còn được relay")
-            return@withContext Result.failure()
+            return Result.failure()
         }
         val label = channel.name.ifBlank { channelId }
         val parked = ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
@@ -69,14 +81,14 @@ class OtpRelayWorker(
         if (activeKey == null) {
             store.park(parked)
             prefs.addRelayLog(sender, "", "PARKED", "[$label] Chưa có khóa kênh — mở app để đồng bộ")
-            return@withContext Result.success()
+            return Result.success()
         }
 
         // Cap total retries so transient 5xx/network failures never retry forever.
         if (runAttemptCount > MAX_RETRY_ATTEMPTS) {
             Log.e(TAG, "Exceeded max retry attempts ($MAX_RETRY_ATTEMPTS) for messageId=$messageId. Dropping.")
             prefs.addRelayLog(sender, "", "FAILED", "Max retry attempts exceeded")
-            return@withContext Result.failure()
+            return Result.failure()
         }
 
         val payloadToEncrypt = JSONObject().apply {
@@ -94,18 +106,18 @@ class OtpRelayWorker(
             } catch (e: IOException) {
                 Log.e(TAG, "Network error during relay: ${e.message}", e)
                 prefs.addRelayLog(sender, "", "RETRYING", e.message)
-                return@withContext Result.retry()
+                return Result.retry()
             } catch (e: Exception) {
                 Log.e(TAG, "Relay failed for messageId=$messageId: ${e.message}", e)
                 prefs.addRelayLog(sender, "", "FAILED", "Crypto/IO error: ${e.message}")
-                return@withContext Result.failure()
+                return Result.failure()
             }
 
             when {
                 result.code in 200..299 -> {
                     Log.i(TAG, "Message relayed to V2 channel $channelId (epoch $epoch)")
                     prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (epoch $epoch)")
-                    return@withContext Result.success()
+                    return Result.success()
                 }
 
                 result.code == 409 -> {
@@ -114,7 +126,7 @@ class OtpRelayWorker(
                     if (errorCode == "REPLAY_DETECTED") {
                         // A previous attempt already landed (response lost) — done.
                         prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (đã nhận trước đó)")
-                        return@withContext Result.success()
+                        return Result.success()
                     }
                     if (errorCode == "EPOCH_OUTDATED") {
                         val serverEpoch = body?.optLong("current_epoch", 0L) ?: 0L
@@ -132,30 +144,30 @@ class OtpRelayWorker(
                         store.park(parked)
                         Log.w(TAG, "No key for server epoch $serverEpoch on $channelId. Parked messageId=$messageId.")
                         prefs.addRelayLog(sender, "", "PARKED", "[$label] Khóa kênh đã đổi — mở app để đồng bộ")
-                        return@withContext Result.success()
+                        return Result.success()
                     }
                     val errorMsg = "HTTP 409 ${errorCode.ifBlank { result.message }}"
                     prefs.addRelayLog(sender, "", "FAILED", errorMsg)
-                    return@withContext Result.failure()
+                    return Result.failure()
                 }
 
                 result.code in 400..499 -> {
                     val errorMsg = "HTTP ${result.code}: ${result.message}"
                     Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg). Dropping.")
                     prefs.addRelayLog(sender, "", "FAILED", errorMsg)
-                    return@withContext Result.failure()
+                    return Result.failure()
                 }
 
                 else -> {
                     val errorMsg = "HTTP ${result.code}: ${result.message}"
                     Log.w(TAG, "Transient server error relaying ($errorMsg). Retrying...")
                     prefs.addRelayLog(sender, "", "RETRYING", errorMsg)
-                    return@withContext Result.retry()
+                    return Result.retry()
                 }
             }
         }
-        // Every branch of the loop above returns; this line is never reached.
-        Result.failure()
+        // Every branch of the loop above returns; never reached.
+        return Result.failure()
     }
 
     private fun send(
@@ -202,7 +214,11 @@ class OtpRelayWorker(
         const val KEY_CHANNEL_ID = "channel_id"
         /** Legacy (≤ v2.2): epoch captured at enqueue. Ignored — epoch is read from RelayChannelStore. */
         const val KEY_CHANNEL_EPOCH = "channel_epoch"
+        /** Id trong outbox mã hoá của RelayChannelStore (2.1). */
+        const val KEY_OUTBOX_ID = "outbox_id"
+        /** Legacy (≤ 21/10/2026): nội dung SMS nằm thẳng trong inputData. Chỉ còn đọc để xử lý job cũ. */
         const val KEY_MESSAGE_TEXT = "message_text"
+        /** Legacy — xem [KEY_MESSAGE_TEXT]. */
         const val KEY_SENDER = "sender"
         /** Legacy: base URL captured at enqueue. Ignored — read from OtpPreferences at run time. */
         const val KEY_API_BASE_URL = "api_base_url"
