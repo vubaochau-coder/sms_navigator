@@ -8,7 +8,6 @@ import '../../core/models/pairing_session_model.dart';
 import '../../core/repositories/join_channel_repository.dart';
 import '../../core/repositories/qr_repository.dart';
 import '../../core/utils/toast_utils.dart';
-import '../../l10n/app_localizations.dart';
 import '../device/bloc/device_profile_cubit.dart';
 import 'bloc/join_bloc.dart';
 import '../../core/l10n/app_l10n.dart';
@@ -39,7 +38,8 @@ class JoinConfirmPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentDeviceName = context.watch<DeviceProfileCubit>().state.deviceName;
+    // read (không watch): tên chỉ dùng làm giá trị khởi tạo cho JoinBloc.
+    final currentDeviceName = context.read<DeviceProfileCubit>().state.deviceName;
     final initialName = currentDeviceName.isNotEmpty
         ? currentDeviceName
         : context.l10n.splashDefaultDeviceName;
@@ -101,7 +101,6 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -132,23 +131,31 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
         },
         builder: (context, state) {
           if (_parseError != null) {
-            return _buildErrorView(context, _parseError!);
+            return JoinErrorView(message: _parseError!);
           }
 
           return switch (state.phase) {
-            JoinPhase.resolving => _buildSkeletonView(context),
-            JoinPhase.resolveFailed => _buildErrorView(
-                context,
-                state.errorMessage ?? context.l10n.joinResolveFailedShort,
+            JoinPhase.resolving => const JoinSkeletonView(),
+            JoinPhase.resolveFailed => JoinErrorView(
+                message: state.errorMessage ?? context.l10n.joinResolveFailedShort,
               ),
-            _ => _buildReadyView(context, state, theme, l10n),
+            _ => JoinReadyView(state: state),
           };
         },
       ),
     );
   }
 
-  Widget _buildSkeletonView(BuildContext context) {
+
+
+}
+
+/// Shimmer trong lúc resolve thông tin kênh (luồng invite v4).
+class JoinSkeletonView extends StatelessWidget {
+  const JoinSkeletonView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
@@ -269,8 +276,16 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
       ),
     );
   }
+}
 
-  Widget _buildErrorView(BuildContext context, String message) {
+/// Lỗi không thể tiếp tục (mã sai định dạng, hết hạn, resolve thất bại).
+class JoinErrorView extends StatelessWidget {
+  const JoinErrorView({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -308,13 +323,19 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
       ),
     );
   }
+}
 
-  Widget _buildReadyView(
-    BuildContext context,
-    JoinState state,
-    ThemeData theme,
-    AppLocalizations l10n,
-  ) {
+/// Màn đã có thông tin kênh: xem lại và gửi yêu cầu tham gia.
+class JoinReadyView extends StatelessWidget {
+  const JoinReadyView({super.key, required this.state});
+
+  final JoinState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
     final channelName = state.channelName.isNotEmpty ? state.channelName : '—';
     final ownerName = state.ownerDeviceName.isNotEmpty ? state.ownerDeviceName : '—';
     final deviceName = state.deviceName.isNotEmpty ? state.deviceName : context.l10n.joinYourDeviceFallback;

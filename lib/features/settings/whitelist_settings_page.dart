@@ -79,6 +79,10 @@ class _WhitelistSettingsView extends StatelessWidget {
         label: Text(l10n.addWhitelistDialogTitle),
       ),
       body: BlocBuilder<WhitelistBloc, WhitelistState>(
+        // Các section con tự lắng nghe phần state của mình.
+        buildWhen: (previous, current) =>
+            previous.isLoading != current.isLoading ||
+            previous.blocksEverything != current.blocksEverything,
         builder: (context, state) {
           if (state.isLoading) {
             return const ShimmerLoadingList(
@@ -127,6 +131,7 @@ class _RelayLogSheet extends StatelessWidget {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.7;
 
     return BlocBuilder<WhitelistBloc, WhitelistState>(
+      buildWhen: (previous, current) => previous.recentLogs != current.recentLogs,
       builder: (context, state) {
         final logs = state.recentLogs;
         return ConstrainedBox(

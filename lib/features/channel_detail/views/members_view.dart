@@ -14,6 +14,9 @@ class MembersView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
+      buildWhen: (previous, current) =>
+          previous.members != current.members ||
+          previous.detail?.ownerDeviceId != current.detail?.ownerDeviceId,
       builder: (context, state) {
         final members = state.members;
         final ownerDeviceId = state.detail?.ownerDeviceId ?? '';

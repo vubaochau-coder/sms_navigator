@@ -16,6 +16,8 @@ class DeviceInfoCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocBuilder<DeviceProfileCubit, DeviceProfileState>(
+      buildWhen: (previous, current) =>
+          previous.deviceId != current.deviceId || previous.deviceName != current.deviceName,
       builder: (context, state) {
         final deviceId = state.deviceId;
         final displayId = deviceId.length > 20

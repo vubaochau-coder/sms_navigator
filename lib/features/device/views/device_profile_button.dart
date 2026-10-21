@@ -21,8 +21,11 @@ class DeviceProfileButton extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return BlocBuilder<DeviceProfileCubit, DeviceProfileState>(
+      buildWhen: (previous, current) => previous.deviceName != current.deviceName,
       builder: (context, profileState) {
         return BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
+          buildWhen: (previous, current) =>
+              previous.isAllCriticalStepsDone != current.isAllCriticalStepsDone,
           builder: (context, setupState) {
             final isAllOk = setupState.isAllCriticalStepsDone;
             final statusColor = isAllOk ? AppColors.success : AppColors.warning;

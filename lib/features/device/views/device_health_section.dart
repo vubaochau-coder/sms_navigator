@@ -17,6 +17,10 @@ class DeviceHealthSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
+      buildWhen: (previous, current) =>
+          previous.smsPermissionGranted != current.smsPermissionGranted ||
+          previous.batteryUnrestricted != current.batteryUnrestricted ||
+          previous.isAllCriticalStepsDone != current.isAllCriticalStepsDone,
       builder: (context, state) {
         final smsGranted = state.smsPermissionGranted == true;
         final batteryOk = state.batteryUnrestricted == true;
@@ -84,8 +88,7 @@ class DeviceHealthSection extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
-                    _buildStatusRow(
-                      context,
+                    DeviceHealthStatusRow(
                       isOk: smsGranted,
                       title: context.l10n.deviceHealthSmsPermission,
                       statusText: smsGranted ? context.l10n.deviceHealthGranted : context.l10n.deviceHealthNotGranted,
@@ -108,8 +111,7 @@ class DeviceHealthSection extends StatelessWidget {
                       height: 16,
                       color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                     ),
-                    _buildStatusRow(
-                      context,
+                    DeviceHealthStatusRow(
                       isOk: batteryOk,
                       title: context.l10n.deviceHealthBackground,
                       statusText: batteryOk
@@ -168,13 +170,25 @@ class DeviceHealthSection extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusRow(
-    BuildContext context, {
-    required bool isOk,
-    required String title,
-    required String statusText,
-    Widget? action,
-  }) {
+}
+
+/// Một dòng trạng thái (icon + tiêu đề + trạng thái + action tùy chọn).
+class DeviceHealthStatusRow extends StatelessWidget {
+  const DeviceHealthStatusRow({
+    super.key,
+    required this.isOk,
+    required this.title,
+    required this.statusText,
+    this.action,
+  });
+
+  final bool isOk;
+  final String title;
+  final String statusText;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
     final color = isOk ? AppColors.success : AppColors.warning;
     return Row(
       children: [

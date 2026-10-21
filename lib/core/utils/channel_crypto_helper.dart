@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -62,6 +63,25 @@ class EncryptedMessage extends Equatable {
 
   @override
   List<Object?> get props => [ciphertextBase64, nonceBase64];
+}
+
+/// Một tin cần giải mã trong lô — chỉ chứa dữ liệu thuần để gửi sang isolate.
+class MessageDecryptJob {
+  final String ciphertextBase64;
+  final String nonceBase64;
+  final String channelKeyBase64;
+  final String channelId;
+  final int keyEpoch;
+  final int sequenceHint;
+
+  const MessageDecryptJob({
+    required this.ciphertextBase64,
+    required this.nonceBase64,
+    required this.channelKeyBase64,
+    required this.channelId,
+    required this.keyEpoch,
+    this.sequenceHint = 0,
+  });
 }
 
 /// Lỗi mật mã của kênh: unwrap/mã hóa/giải mã thất bại (AAD sai, tag hỏng,
@@ -363,5 +383,45 @@ class ChannelCryptoHelper {
       aad: aad,
     );
     return utf8.decode(plainBytes);
+  }
+
+  /// Số tin tối thiểu để đáng tách sang isolate (spawn isolate tốn vài ms).
+  static const int backgroundBatchThreshold = 16;
+
+  /// Giải mã nhiều tin một lượt, giữ nguyên thứ tự; phần tử `null` = tin đó
+  /// giải mã thất bại (khóa sai, tag hỏng, dữ liệu méo…).
+  ///
+  /// AES-GCM của `cryptography` chạy bằng Dart thuần, nên lô lớn (tới 1.000
+  /// tin/ngày) được đưa sang isolate riêng để không làm giật UI.
+  Future<List<String?>> decryptMessages(List<MessageDecryptJob> jobs) {
+    if (jobs.isEmpty) return Future.value(const []);
+    if (jobs.length < backgroundBatchThreshold) return _decryptAll(jobs);
+    return decryptMessagesInBackground(jobs);
+  }
+
+  /// Bản chạy trong isolate. Static để closure không bắt `this` (chứa
+  /// [Random] không gửi được qua isolate).
+  static Future<List<String?>> decryptMessagesInBackground(List<MessageDecryptJob> jobs) {
+    return Isolate.run(() => _decryptAll(jobs));
+  }
+
+  static Future<List<String?>> _decryptAll(List<MessageDecryptJob> jobs) async {
+    final helper = ChannelCryptoHelper();
+    final results = <String?>[];
+    for (final job in jobs) {
+      try {
+        results.add(await helper.decryptMessage(
+          ciphertextBase64: job.ciphertextBase64,
+          nonceBase64: job.nonceBase64,
+          channelKeyBase64: job.channelKeyBase64,
+          channelId: job.channelId,
+          keyEpoch: job.keyEpoch,
+          sequenceHint: job.sequenceHint,
+        ));
+      } catch (_) {
+        results.add(null);
+      }
+    }
+    return results;
   }
 }

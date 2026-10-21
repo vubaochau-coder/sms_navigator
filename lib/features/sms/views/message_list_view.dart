@@ -14,6 +14,11 @@ class MessageListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SmsBloc, SmsState>(
+      // Chỉ dựng lại danh sách khi dữ liệu hiển thị đổi (không vì truncated / hasFetchedOnce).
+      buildWhen: (previous, current) =>
+          previous.isLoading != current.isLoading ||
+          previous.messages != current.messages ||
+          previous.selectedDate != current.selectedDate,
       builder: (context, state) {
         if (state.isLoading) {
           return const ShimmerLoadingList(
