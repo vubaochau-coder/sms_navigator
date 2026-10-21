@@ -22,6 +22,9 @@ class _FakeSecureStorageService implements SecureStorageService {
   Future<void> delete(String key) async {
     _data.remove(key);
   }
+
+  @override
+  Future<Map<String, String>> readAll() async => Map.of(_data);
 }
 
 void main() {

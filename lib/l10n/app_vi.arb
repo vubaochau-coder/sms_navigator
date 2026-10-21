@@ -826,5 +826,61 @@
       }
     }
   },
-  "splashStartupFailed": "Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại."
+  "splashStartupFailed": "Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.",
+  "backupSectionTitle": "SAO LƯU & KHÔI PHỤC",
+  "backupExportTitle": "Tạo bản sao lưu",
+  "backupExportSubtitle": "Lưu danh tính và khoá kênh ra file .smsnav để cài lại app hoặc chuyển máy",
+  "backupPassphraseTitle": "Đặt mật khẩu cho bản sao lưu",
+  "backupPassphraseMessage": "Bản sao lưu được mã hoá bằng mật khẩu này. Quên mật khẩu là không mở được file — hãy cất ở nơi an toàn.",
+  "backupExportWarning": "File chứa khoá giải mã mọi tin nhắn của bạn. Đừng gửi file kèm mật khẩu cho người khác.",
+  "backupPassphraseLabel": "Mật khẩu",
+  "backupPassphraseConfirmLabel": "Nhập lại mật khẩu",
+  "backupPassphraseTooShort": "Tối thiểu {min} ký tự",
+  "@backupPassphraseTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "backupPassphraseMismatch": "Mật khẩu nhập lại không khớp",
+  "backupShowPassphrase": "Hiện mật khẩu",
+  "backupHidePassphrase": "Ẩn mật khẩu",
+  "backupExportConfirm": "Tạo & lưu file",
+  "backupExporting": "Đang mã hoá bản sao lưu…",
+  "backupExportSuccess": "Đã lưu {fileName}",
+  "@backupExportSuccess": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestoreTitle": "Khôi phục từ bản sao lưu",
+  "backupRestoreIntro": "Chọn file .smsnav đã tạo trên máy cũ rồi nhập mật khẩu. Máy này sẽ dùng lại đúng danh tính, các kênh và khoá cũ.",
+  "backupRestoreOldDeviceWarning": "Sau khi khôi phục, đừng dùng app trên máy cũ nữa — hai máy chung một danh tính sẽ tranh nhau nhận thông báo và relay SMS.",
+  "backupPickFile": "Chọn file sao lưu",
+  "backupFileSelected": "Đã chọn file sao lưu",
+  "backupChangeFile": "Chọn file khác",
+  "backupRestoreAction": "Khôi phục",
+  "backupRestoring": "Đang giải mã và khôi phục…",
+  "backupRestoreSuccess": "Đã khôi phục danh tính và khoá của {count} kênh",
+  "@backupRestoreSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupErrorWrongPassphrase": "Sai mật khẩu, hoặc file đã bị chỉnh sửa.",
+  "backupErrorInvalidFile": "File này không phải bản sao lưu SMS Navigator hợp lệ.",
+  "backupErrorUnsupportedVersion": "Bản sao lưu được tạo bởi phiên bản app mới hơn. Hãy cập nhật app rồi thử lại.",
+  "backupErrorIncomplete": "Bản sao lưu thiếu dữ liệu danh tính.",
+  "backupErrorNotRegistered": "Thiết bị chưa đăng ký — chưa có gì để sao lưu.",
+  "backupErrorStorage": "Không đọc/ghi được file. Thử lại hoặc chọn vị trí khác.",
+  "splashSetupChoiceTitle": "Bạn muốn bắt đầu thế nào?",
+  "splashSetupNewDevice": "Thiết lập thiết bị mới",
+  "splashSetupNewDeviceSubtitle": "Tạo danh tính mới cho máy này",
+  "splashSetupRestore": "Khôi phục từ bản sao lưu",
+  "splashSetupRestoreSubtitle": "Dùng file .smsnav từ máy cũ"
 }

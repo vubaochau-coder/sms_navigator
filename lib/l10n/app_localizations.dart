@@ -1960,6 +1960,216 @@ abstract class AppLocalizations {
   /// **'Sao chép'**
   String get notificationCopyAction;
 
+  /// No description provided for @backupSectionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'SAO LƯU & KHÔI PHỤC'**
+  String get backupSectionTitle;
+
+  /// No description provided for @backupExportTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo bản sao lưu'**
+  String get backupExportTitle;
+
+  /// No description provided for @backupExportSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu danh tính và khoá kênh ra file .smsnav để cài lại app hoặc chuyển máy'**
+  String get backupExportSubtitle;
+
+  /// No description provided for @backupPassphraseTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt mật khẩu cho bản sao lưu'**
+  String get backupPassphraseTitle;
+
+  /// No description provided for @backupPassphraseMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản sao lưu được mã hoá bằng mật khẩu này. Quên mật khẩu là không mở được file — hãy cất ở nơi an toàn.'**
+  String get backupPassphraseMessage;
+
+  /// No description provided for @backupExportWarning.
+  ///
+  /// In vi, this message translates to:
+  /// **'File chứa khoá giải mã mọi tin nhắn của bạn. Đừng gửi file kèm mật khẩu cho người khác.'**
+  String get backupExportWarning;
+
+  /// No description provided for @backupPassphraseLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu'**
+  String get backupPassphraseLabel;
+
+  /// No description provided for @backupPassphraseConfirmLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập lại mật khẩu'**
+  String get backupPassphraseConfirmLabel;
+
+  /// No description provided for @backupPassphraseTooShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối thiểu {min} ký tự'**
+  String backupPassphraseTooShort(int min);
+
+  /// No description provided for @backupPassphraseMismatch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu nhập lại không khớp'**
+  String get backupPassphraseMismatch;
+
+  /// No description provided for @backupShowPassphrase.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hiện mật khẩu'**
+  String get backupShowPassphrase;
+
+  /// No description provided for @backupHidePassphrase.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ẩn mật khẩu'**
+  String get backupHidePassphrase;
+
+  /// No description provided for @backupExportConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo & lưu file'**
+  String get backupExportConfirm;
+
+  /// No description provided for @backupExporting.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang mã hoá bản sao lưu…'**
+  String get backupExporting;
+
+  /// No description provided for @backupExportSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã lưu {fileName}'**
+  String backupExportSuccess(String fileName);
+
+  /// No description provided for @backupRestoreTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khôi phục từ bản sao lưu'**
+  String get backupRestoreTitle;
+
+  /// No description provided for @backupRestoreIntro.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn file .smsnav đã tạo trên máy cũ rồi nhập mật khẩu. Máy này sẽ dùng lại đúng danh tính, các kênh và khoá cũ.'**
+  String get backupRestoreIntro;
+
+  /// No description provided for @backupRestoreOldDeviceWarning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sau khi khôi phục, đừng dùng app trên máy cũ nữa — hai máy chung một danh tính sẽ tranh nhau nhận thông báo và relay SMS.'**
+  String get backupRestoreOldDeviceWarning;
+
+  /// No description provided for @backupPickFile.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn file sao lưu'**
+  String get backupPickFile;
+
+  /// No description provided for @backupFileSelected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn file sao lưu'**
+  String get backupFileSelected;
+
+  /// No description provided for @backupChangeFile.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn file khác'**
+  String get backupChangeFile;
+
+  /// No description provided for @backupRestoreAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khôi phục'**
+  String get backupRestoreAction;
+
+  /// No description provided for @backupRestoring.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang giải mã và khôi phục…'**
+  String get backupRestoring;
+
+  /// No description provided for @backupRestoreSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã khôi phục danh tính và khoá của {count} kênh'**
+  String backupRestoreSuccess(int count);
+
+  /// No description provided for @backupErrorWrongPassphrase.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sai mật khẩu, hoặc file đã bị chỉnh sửa.'**
+  String get backupErrorWrongPassphrase;
+
+  /// No description provided for @backupErrorInvalidFile.
+  ///
+  /// In vi, this message translates to:
+  /// **'File này không phải bản sao lưu SMS Navigator hợp lệ.'**
+  String get backupErrorInvalidFile;
+
+  /// No description provided for @backupErrorUnsupportedVersion.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản sao lưu được tạo bởi phiên bản app mới hơn. Hãy cập nhật app rồi thử lại.'**
+  String get backupErrorUnsupportedVersion;
+
+  /// No description provided for @backupErrorIncomplete.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản sao lưu thiếu dữ liệu danh tính.'**
+  String get backupErrorIncomplete;
+
+  /// No description provided for @backupErrorNotRegistered.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị chưa đăng ký — chưa có gì để sao lưu.'**
+  String get backupErrorNotRegistered;
+
+  /// No description provided for @backupErrorStorage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không đọc/ghi được file. Thử lại hoặc chọn vị trí khác.'**
+  String get backupErrorStorage;
+
+  /// No description provided for @splashSetupChoiceTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn muốn bắt đầu thế nào?'**
+  String get splashSetupChoiceTitle;
+
+  /// No description provided for @splashSetupNewDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết lập thiết bị mới'**
+  String get splashSetupNewDevice;
+
+  /// No description provided for @splashSetupNewDeviceSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo danh tính mới cho máy này'**
+  String get splashSetupNewDeviceSubtitle;
+
+  /// No description provided for @splashSetupRestore.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khôi phục từ bản sao lưu'**
+  String get splashSetupRestore;
+
+  /// No description provided for @splashSetupRestoreSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dùng file .smsnav từ máy cũ'**
+  String get splashSetupRestoreSubtitle;
+
   /// No description provided for @relativeJustNow.
   ///
   /// In vi, this message translates to:

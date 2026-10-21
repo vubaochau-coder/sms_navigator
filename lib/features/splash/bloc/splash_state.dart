@@ -12,7 +12,11 @@ class SplashState extends Equatable {
   });
 
   bool get isLoading =>
-      status != SplashStatus.ready && status != SplashStatus.failure;
+      status != SplashStatus.ready &&
+      status != SplashStatus.failure &&
+      status != SplashStatus.awaitingSetupChoice;
+
+  bool get isAwaitingSetupChoice => status == SplashStatus.awaitingSetupChoice;
 
   bool get isReady => status == SplashStatus.ready;
 

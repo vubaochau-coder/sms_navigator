@@ -5,6 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
 import '../repositories/app_update_repository.dart';
+import '../repositories/backup_repository.dart';
+import '../repositories/impls/backup_repository_impl.dart';
+import '../services/impls/backup_file_service_impl.dart';
 import '../repositories/channel_repository.dart';
 import '../repositories/device_setup_repository.dart';
 import '../repositories/impls/app_update_repository_impl.dart';
@@ -131,6 +134,17 @@ class AppBootstrap extends StatelessWidget {
         RepositoryProvider<ChannelKeyStore>(
           create: (context) => ChannelKeyStoreImpl(
             cryptoHelper: context.read<ChannelCryptoHelper>(),
+          ),
+        ),
+
+        // Sao lưu & khôi phục (BACKLOG 1.1). Archive là cùng secure storage với
+        // ChannelKeyStore nhưng tách interface: chỉ backup mới đọc được mọi key.
+        RepositoryProvider<BackupRepository>(
+          create: (context) => BackupRepositoryImpl(
+            deviceStorage: context.read<DeviceStorageService>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            keyArchive: ChannelKeyStoreImpl(cryptoHelper: context.read<ChannelCryptoHelper>()),
+            fileService: BackupFileServiceImpl(),
           ),
         ),
 

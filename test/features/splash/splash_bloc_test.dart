@@ -205,7 +205,7 @@ void main() {
       reconcile = _FakeStartupReconcileService();
     });
 
-    SplashBloc buildBloc({NativeRelayService? nativeRelayService}) {
+    SplashBloc buildBloc({NativeRelayService? nativeRelayService, bool offerRestore = false}) {
       return SplashBloc(
         crashlyticsService: crashlytics,
         analyticsService: analytics,
@@ -217,8 +217,63 @@ void main() {
         nativeRelayService: nativeRelayService,
         platform: TargetPlatform.android,
         minDisplayDuration: Duration.zero,
+        offerRestoreOnFirstRun: offerRestore,
       );
     }
+
+    group('first-run setup choice (backup restore, 1.1)', () {
+      test('stops at awaitingSetupChoice instead of registering a new identity', () async {
+        final bloc = buildBloc(offerRestore: true);
+
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.status, SplashStatus.awaitingSetupChoice);
+        expect(bloc.state.isLoading, isFalse);
+        expect(bloc.state.isAwaitingSetupChoice, isTrue);
+        expect(deviceApi.registered, isFalse);
+        expect(reconcile.reconciled, isFalse);
+        await bloc.close();
+      });
+
+      test('SplashNewDeviceChosen registers and completes', () async {
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        bloc.add(const SplashNewDeviceChosen(defaultDeviceName: 'Test Phone'));
+        await pumpEventQueue();
+
+        expect(deviceApi.registered, isTrue);
+        expect(deviceApi.lastRegisteredName, 'Test Phone');
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+
+      test('after a restore (token now present) a retry verifies instead of registering', () async {
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        storage.deviceToken = 'restored_token';
+        bloc.add(const SplashRetried());
+        await pumpEventQueue();
+
+        expect(deviceApi.registered, isFalse);
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+
+      test('a registered device never sees the choice', () async {
+        storage.deviceToken = 'existing';
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+    });
 
     test('initial state has status initial and null error', () {
       final bloc = buildBloc();

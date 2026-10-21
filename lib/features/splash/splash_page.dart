@@ -12,6 +12,7 @@ import '../../core/services/device_storage_service.dart';
 import '../../core/services/fcm_notification_service.dart';
 import '../../core/services/native_relay_service.dart';
 import '../../core/services/startup_reconcile_service.dart';
+import '../backup/backup_restore_page.dart';
 import '../home/main_navigation_page.dart';
 import 'bloc/splash_bloc.dart';
 import 'bloc/splash_event.dart';
@@ -43,6 +44,7 @@ class SplashPage extends StatelessWidget {
           deviceApiService: ctx.read<DeviceApiService>(),
           startupReconcileService: ctx.read<StartupReconcileService>(),
           nativeRelayService: ctx.read<NativeRelayService>(),
+          offerRestoreOnFirstRun: true,
         );
         if (autoStart) {
           bloc.add(SplashStarted(
@@ -115,6 +117,8 @@ class _SplashViewState extends State<_SplashView>
         return l10n.splashCheckingIdentityKey;
       case SplashStatus.authenticatingDevice:
         return l10n.splashAuthenticatingDevice;
+      case SplashStatus.awaitingSetupChoice:
+        return l10n.splashSetupChoiceTitle;
       case SplashStatus.registeringDevice:
         return l10n.splashRegisteringDevice;
       case SplashStatus.syncingChannels:
@@ -202,8 +206,11 @@ class _SplashViewState extends State<_SplashView>
 
                     const Spacer(flex: 2),
 
-                    // Trạng thái tiến trình hoặc Khối báo lỗi
-                    if (!state.isFailure) ...[
+                    // Lần mở đầu: chọn thiết lập mới / khôi phục (BACKLOG 1.1),
+                    // trạng thái tiến trình, hoặc khối báo lỗi
+                    if (state.isAwaitingSetupChoice) ...[
+                      const _SetupChoice(),
+                    ] else if (!state.isFailure) ...[
                       SizedBox(
                         width: 28,
                         height: 28,
@@ -292,5 +299,108 @@ class _SplashViewState extends State<_SplashView>
         );
       },
     );
+  }
+}
+
+/// Lựa chọn ở lần mở đầu tiên: tạo danh tính mới hay khôi phục `.smsnav`.
+class _SetupChoice extends StatelessWidget {
+  const _SetupChoice();
+
+  Future<void> _restore(BuildContext context) async {
+    final bloc = context.read<SplashBloc>();
+    final defaultName = context.l10n.splashDefaultDeviceName;
+    final restored = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const BackupRestorePage()),
+    );
+    // Đã có device token từ bản sao lưu → chạy lại bootstrap (nhánh xác thực).
+    if (restored == true) bloc.add(SplashRetried(defaultDeviceName: defaultName));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.splashSetupChoiceTitle,
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        _ChoiceButton(
+          icon: Icons.add_moderator_rounded,
+          title: l10n.splashSetupNewDevice,
+          subtitle: l10n.splashSetupNewDeviceSubtitle,
+          primary: true,
+          onPressed: () => context.read<SplashBloc>().add(
+            SplashNewDeviceChosen(defaultDeviceName: l10n.splashDefaultDeviceName),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _ChoiceButton(
+          icon: Icons.settings_backup_restore_rounded,
+          title: l10n.splashSetupRestore,
+          subtitle: l10n.splashSetupRestoreSubtitle,
+          onPressed: () => _restore(context),
+        ),
+      ],
+    );
+  }
+}
+
+class _ChoiceButton extends StatelessWidget {
+  const _ChoiceButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onPressed,
+    this.primary = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onPressed;
+  final bool primary;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final foreground = primary ? colorScheme.onPrimary : colorScheme.primary;
+    final child = Row(
+      children: [
+        Icon(icon, color: foreground),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: foreground)),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 12, color: foreground.withValues(alpha: 0.8)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 14);
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+    return primary
+        ? FilledButton(
+            onPressed: onPressed,
+            style: FilledButton.styleFrom(padding: padding, shape: shape),
+            child: child,
+          )
+        : OutlinedButton(
+            onPressed: onPressed,
+            style: OutlinedButton.styleFrom(padding: padding, shape: shape),
+            child: child,
+          );
   }
 }
