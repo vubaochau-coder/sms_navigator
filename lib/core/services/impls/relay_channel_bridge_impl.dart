@@ -43,7 +43,7 @@ class RelayChannelBridgeImpl implements RelayChannelBridge {
       'channelId': channelId,
       'keyEpoch': keyEpoch,
       'channelKeyBase64': channelKeyBase64,
-      if (channelName != null) 'channelName': channelName,
+      'channelName': ?channelName,
     });
   }
 
