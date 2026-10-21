@@ -20,7 +20,7 @@ class DeviceInfoCard extends StatelessWidget {
         final deviceId = state.deviceId;
         final displayId = deviceId.length > 20
             ? '${deviceId.substring(0, 8)}...${deviceId.substring(deviceId.length - 6)}'
-            : (deviceId.isEmpty ? 'Chưa xác định' : deviceId);
+            : (deviceId.isEmpty ? context.l10n.deviceIdUnknown : deviceId);
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -79,7 +79,7 @@ class DeviceInfoCard extends StatelessWidget {
                       onTap: deviceId.isNotEmpty
                           ? () => ToastUtils.copyToClipboard(
                                 deviceId,
-                                successMessage: 'Đã sao chép ID thiết bị',
+                                successMessage: context.l10n.deviceIdCopied,
                               )
                           : null,
                       child: Padding(

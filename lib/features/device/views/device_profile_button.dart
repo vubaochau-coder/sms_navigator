@@ -7,6 +7,7 @@ import '../bloc/device_profile_state.dart';
 import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_state.dart';
 import '../device_profile_page.dart';
+import '../../../core/extensions/context_extensions.dart';
 
 /// Nút hiển thị thông tin thiết bị dạng icon gọn trên AppBar (không show tên).
 /// Chấm tròn nhỏ góc biểu tượng thể hiện trạng thái hoạt động (🟢 Xanh = Đầy đủ quyền, 🟠 Vàng = Cần chú ý).
@@ -29,7 +30,7 @@ class DeviceProfileButton extends StatelessWidget {
             return IconButton(
               tooltip: profileState.deviceName.isNotEmpty
                   ? profileState.deviceName
-                  : 'Thông tin & Thiết lập thiết bị',
+                  : context.l10n.deviceProfileTitle,
               onPressed: () {
                 final setupBloc = context.read<DeviceSetupBloc>();
                 final profileCubit = context.read<DeviceProfileCubit>();

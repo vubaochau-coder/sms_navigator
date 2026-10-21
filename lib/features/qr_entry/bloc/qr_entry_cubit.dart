@@ -21,7 +21,7 @@ class QrEntryCubit extends Cubit<QrEntryState> {
       final resolution = await _repository.resolve(code);
       if (isClosed) return;
       if (resolution is UnsupportedQrResolution) {
-        emit(const QrEntryState(
+        emit(QrEntryState(
           phase: QrEntryPhase.failed,
           errorMessage: QrErrorMessages.updateRequired,
           errorCode: 'UNSUPPORTED_QR_TYPE',

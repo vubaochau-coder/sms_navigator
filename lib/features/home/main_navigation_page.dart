@@ -17,6 +17,7 @@ import '../device/bloc/device_setup_event.dart';
 import '../device/bloc/device_setup_state.dart';
 import '../device/views/sms_permission_prompt_dialog.dart';
 import 'views/app_update_dialog.dart';
+import '../../core/extensions/context_extensions.dart';
 
 /// Main navigation (kiến trúc mới):
 /// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);
@@ -172,7 +173,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
         floatingActionButton: FloatingActionButton(
           heroTag: 'main_navigation_qr_scan_fab',
           onPressed: _openQrScanner,
-          tooltip: 'Quét mã mời',
+          tooltip: context.l10n.scanInviteTooltip,
           shape: const CircleBorder(),
           elevation: 8,
           backgroundColor: colorScheme.primary,
@@ -210,7 +211,7 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
                 Expanded(
                   child: _MainNavTab(
                     icon: Icons.hub_rounded,
-                    label: 'Kênh',
+                    label: context.l10n.channelPageTitle,
                     selected: _selectedIndex == 1,
                     onTap: () => _selectTab(1),
                   ),

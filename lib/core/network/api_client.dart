@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../errors/app_exceptions.dart';
 import '../utils/app_logger.dart';
+import '../l10n/app_l10n.dart';
 
 /// Cung cấp device token để đính kèm vào header Authorization.
 typedef DeviceTokenProvider = Future<String?> Function();
@@ -216,7 +217,7 @@ class ApiClient {
   AppException _handleDioError(DioException e) {
     if (e.type == DioExceptionType.cancel) {
       return RequestCancelledException(
-        e.message ?? 'Yêu cầu mạng đã bị hủy bỏ.',
+        e.message ?? AppL10n.current.networkRequestCancelled,
       );
     }
     if (e.type == DioExceptionType.connectionTimeout) {
@@ -225,7 +226,7 @@ class ApiClient {
         'Connection timed out (${connectTimeout.inSeconds}s) on ${e.requestOptions.uri}',
       );
       return NetworkException(
-        'Kết nối tới máy chủ quá thời gian chờ (${connectTimeout.inSeconds}s).',
+        AppL10n.current.networkConnectTimeout(connectTimeout.inSeconds),
       );
     }
     if (e.type == DioExceptionType.receiveTimeout ||
@@ -235,14 +236,14 @@ class ApiClient {
         'Request transfer timed out (${receiveTimeout.inSeconds}s) on ${e.requestOptions.uri}',
       );
       return NetworkException(
-        'Thời gian truyền dữ liệu với máy chủ quá hạn (${receiveTimeout.inSeconds}s).',
+        AppL10n.current.networkTransferTimeout(receiveTimeout.inSeconds),
       );
     }
     final response = e.response;
     if (response != null) {
       if (response.statusCode == 401) {
-        return const UnauthorizedException(
-          'Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).',
+        return UnauthorizedException(
+          AppL10n.current.networkUnauthorized,
         );
       }
       if ((response.statusCode ?? 0) >= 500) {
@@ -259,13 +260,13 @@ class ApiClient {
         if (err is String && err.isNotEmpty) errorCode = err;
       }
       return ApiException(
-        'Máy chủ trả về lỗi (HTTP ${response.statusCode}).',
+        AppL10n.current.networkServerError('${response.statusCode}'),
         statusCode: response.statusCode,
         errorCode: errorCode,
       );
     }
     AppLogger.w('ApiClient', 'Network error on ${e.requestOptions.uri}: ${e.message}');
-    return NetworkException('Không thể kết nối tới máy chủ: ${e.message}');
+    return NetworkException(AppL10n.current.networkUnreachable('${e.message}'));
   }
 
   static dynamic _sanitizeLogPayload(dynamic data) {

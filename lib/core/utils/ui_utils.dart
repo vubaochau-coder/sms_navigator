@@ -54,7 +54,7 @@ class UiUtils {
   static Future<void> copyToClipboard(
     String text, {
     BuildContext? context,
-    String successMessage = 'Đã sao chép vào bộ nhớ tạm',
+    String? successMessage,
   }) => ToastUtils.copyToClipboard(
     text,
     context: context,
@@ -82,7 +82,7 @@ class UiUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String buttonText = 'Đóng',
+    String? buttonText,
     IconData? icon,
     bool isMandatory = false,
     EdgeInsets? customInsetPadding,
@@ -100,8 +100,8 @@ class UiUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String positiveText = 'Xác nhận',
-    String negativeText = 'Hủy',
+    String? positiveText,
+    String? negativeText,
     bool isPositiveDestructive = false,
     bool swapButtonPositions = false,
     bool isMandatory = false,
@@ -124,8 +124,8 @@ class UiUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String confirmText = 'Xác nhận',
-    String cancelText = 'Hủy bỏ',
+    String? confirmText,
+    String? cancelText,
     bool isDestructive = false,
     IconData? icon,
   }) => DialogUtils.showConfirmDialog(
@@ -146,8 +146,8 @@ class UiUtils {
     String? initialValue,
     IconData? icon,
     int? maxLength,
-    String confirmText = 'Xác nhận',
-    String cancelText = 'Hủy bỏ',
+    String? confirmText,
+    String? cancelText,
     EdgeInsets? customInsetPadding,
     EdgeInsets? contentPadding,
   }) => DialogUtils.showInputDialog(

@@ -7,6 +7,7 @@ import '../../../core/repositories/sms_by_date_repository.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'sms_event.dart';
 import 'sms_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 export 'sms_event.dart';
 export 'sms_state.dart';
@@ -73,8 +74,8 @@ class SmsBloc extends Bloc<SmsEvent, SmsState> {
       }
 
       ToastUtils.showError(
-        'Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.',
-        title: 'Lỗi tải tin nhắn',
+        AppL10n.current.smsLoadError,
+        title: AppL10n.current.smsLoadErrorTitle,
       );
       emit(state.copyWith(isLoading: false));
     } finally {

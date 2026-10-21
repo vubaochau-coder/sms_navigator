@@ -6,6 +6,7 @@ import '../bloc/device_setup_bloc.dart';
 import '../bloc/device_setup_event.dart';
 import '../bloc/device_setup_state.dart';
 import '../device_setup_checklist_page.dart';
+import '../../../core/extensions/context_extensions.dart';
 
 /// Section hiển thị tình trạng thiết bị: Quyền đọc SMS, chạy ngầm & shortcut vào trang OEM checklist.
 class DeviceHealthSection extends StatelessWidget {
@@ -30,7 +31,7 @@ class DeviceHealthSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'TÌNH TRẠNG THIẾT BỊ',
+                    context.l10n.deviceHealthTitle,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -56,7 +57,7 @@ class DeviceHealthSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          allOk ? 'Sẵn sàng' : 'Cần chú ý',
+                          allOk ? context.l10n.deviceHealthReady : context.l10n.deviceHealthNeedsAttention,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -86,8 +87,8 @@ class DeviceHealthSection extends StatelessWidget {
                     _buildStatusRow(
                       context,
                       isOk: smsGranted,
-                      title: 'Quyền đọc SMS',
-                      statusText: smsGranted ? 'Đã cấp quyền' : 'Chưa cấp quyền',
+                      title: context.l10n.deviceHealthSmsPermission,
+                      statusText: smsGranted ? context.l10n.deviceHealthGranted : context.l10n.deviceHealthNotGranted,
                       action: !smsGranted
                           ? TextButton(
                               style: TextButton.styleFrom(
@@ -99,7 +100,7 @@ class DeviceHealthSection extends StatelessWidget {
                                     .read<DeviceSetupBloc>()
                                     .add(const DeviceSetupSmsPermissionRequested());
                               },
-                              child: const Text('Cấp ngay'),
+                              child: Text(context.l10n.deviceHealthGrantNow),
                             )
                           : null,
                     ),
@@ -110,10 +111,10 @@ class DeviceHealthSection extends StatelessWidget {
                     _buildStatusRow(
                       context,
                       isOk: batteryOk,
-                      title: 'Chạy ngầm & Tối ưu pin',
+                      title: context.l10n.deviceHealthBackground,
                       statusText: batteryOk
-                          ? 'Đã tắt hạn chế pin'
-                          : 'Có thể bị hệ điều hành tắt',
+                          ? context.l10n.deviceHealthBatteryUnrestricted
+                          : context.l10n.deviceHealthBatteryRestricted,
                     ),
                     Divider(
                       height: 16,
@@ -140,7 +141,7 @@ class DeviceHealthSection extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Chi tiết thiết lập thiết bị & cài đặt OEM',
+                                context.l10n.deviceHealthOemDetails,
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,

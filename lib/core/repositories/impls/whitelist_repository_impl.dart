@@ -6,6 +6,7 @@ import '../../services/channel_api_service.dart';
 import '../../services/native_relay_service.dart';
 import '../../utils/channel_crypto_helper.dart';
 import '../whitelist_repository.dart';
+import '../../l10n/app_l10n.dart';
 
 class WhitelistRepositoryImpl implements WhitelistRepository {
   final NativeRelayService nativeRelayService;
@@ -23,7 +24,7 @@ class WhitelistRepositoryImpl implements WhitelistRepository {
     try {
       return await nativeRelayService.getWhitelist(channelId);
     } catch (_) {
-      throw const ApiException('Không thể đọc cấu hình white-list');
+      throw ApiException(AppL10n.current.whitelistLoadFailed);
     }
   }
 

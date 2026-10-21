@@ -13,6 +13,7 @@ import 'views/scanner_controls.dart';
 import 'views/scanner_error_view.dart';
 import 'views/scanner_top_bar.dart';
 import 'views/scanner_viewfinder_overlay.dart';
+import '../../core/l10n/app_l10n.dart';
 
 export 'models/scan_qr_result.dart';
 export 'views/scanner_controls.dart';
@@ -116,7 +117,7 @@ class _QrScanPageState extends State<QrScanPage> {
     if (!mounted) return;
     final text = data?.text?.trim() ?? '';
     if (text.isEmpty) {
-      ToastUtils.showError('Bộ nhớ tạm không có mã nào để dán.');
+      ToastUtils.showError(AppL10n.current.scannerClipboardEmpty);
       return;
     }
     _handleRaw(text);
@@ -205,7 +206,7 @@ class ScannerPasteButton extends StatelessWidget {
         shape: const StadiumBorder(),
       ),
       icon: const Icon(Icons.content_paste_rounded, size: 18),
-      label: const Text('Dán mã'),
+      label: Text(context.l10n.scannerPasteAction),
     );
   }
 }

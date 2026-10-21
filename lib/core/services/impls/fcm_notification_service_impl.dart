@@ -9,6 +9,7 @@ import '../device_api_service.dart';
 import '../device_storage_service.dart';
 import '../fcm_notification_service.dart';
 import '../../utils/app_logger.dart';
+import '../../l10n/app_l10n.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -76,10 +77,10 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
       final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlugin != null) {
-        const androidChannel = AndroidNotificationChannel(
+        final androidChannel = AndroidNotificationChannel(
           'sms_navigator_otp_channel',
           'SMS Navigator',
-          description: 'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh',
+          description: AppL10n.current.notificationChannelDescription,
           importance: Importance.high,
         );
         await androidPlugin.createNotificationChannel(androidChannel);
@@ -135,7 +136,8 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   static BellNotificationContent resolveContent(RemoteMessage message) {
     // Ưu tiên tiêu đề/nội dung từ notification block của FCM nếu server đã định dạng
     String title = message.notification?.title ?? 'SMS Navigator';
-    String body = message.notification?.body ?? 'Có sự kiện mới trong kênh. Mở app để xem.';
+    final l10n = AppL10n.current;
+    String body = message.notification?.body ?? l10n.notificationDefaultBody;
 
     final kind = message.data['kind'];
     final channelName = message.data['channel_name'];
@@ -145,37 +147,37 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
     if (message.notification == null) {
       switch (kind) {
         case 'JOIN_REQUEST':
-          title = 'Yêu cầu tham gia kênh';
+          title = l10n.notificationJoinRequestTitle;
           if (requesterName != null && requesterName.isNotEmpty && channelName != null && channelName.isNotEmpty) {
-            body = '$requesterName muốn tham gia kênh "$channelName".';
+            body = l10n.notificationJoinRequestBody(requesterName, channelName);
           } else if (requesterName != null && requesterName.isNotEmpty) {
-            body = '$requesterName muốn tham gia kênh.';
+            body = l10n.notificationJoinRequestBodyNoChannel(requesterName);
           } else {
-            body = 'Có thiết bị mới xin tham gia. Mở app để duyệt.';
+            body = l10n.notificationJoinRequestBodyGeneric;
           }
           break;
         case 'APPROVED':
-          title = 'Yêu cầu đã được duyệt';
+          title = l10n.notificationApprovedTitle;
           if (channelName != null && channelName.isNotEmpty) {
-            body = 'Bạn đã được thêm vào kênh "$channelName". Mở app để xem tin nhắn SMS.';
+            body = l10n.notificationApprovedBody(channelName);
           } else {
-            body = 'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.';
+            body = l10n.notificationApprovedBodyGeneric;
           }
           break;
         case 'REVOKED':
-          title = 'Quyền truy cập đã bị thu hồi';
+          title = l10n.notificationRevokedTitle;
           if (channelName != null && channelName.isNotEmpty) {
-            body = 'Bạn không còn quyền truy cập kênh "$channelName".';
+            body = l10n.notificationRevokedBody(channelName);
           } else {
-            body = 'Bạn không còn quyền truy cập một kênh.';
+            body = l10n.notificationRevokedBodyGeneric;
           }
           break;
         case 'NEW_MESSAGE':
-          title = 'Tin nhắn SMS mới';
+          title = l10n.notificationNewMessageTitle;
           if (channelName != null && channelName.isNotEmpty) {
-            body = 'Có tin nhắn SMS mới từ kênh "$channelName". Chạm để xem.';
+            body = l10n.notificationNewMessageBody(channelName);
           } else {
-            body = 'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
+            body = l10n.notificationNewMessageBodyGeneric;
           }
           break;
       }
@@ -185,14 +187,14 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   }
 
   Future<void> _showBellNotification(RemoteMessage message) async {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'sms_navigator_otp_channel',
       'SMS Navigator',
-      channelDescription: 'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh',
+      channelDescription: AppL10n.current.notificationChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
     );
-    const details = NotificationDetails(android: androidDetails);
+    final details = NotificationDetails(android: androidDetails);
 
     final content = resolveContent(message);
 

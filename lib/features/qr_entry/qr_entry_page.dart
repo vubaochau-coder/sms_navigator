@@ -6,6 +6,7 @@ import '../../core/repositories/qr_repository.dart';
 import '../../core/utils/toast_utils.dart';
 import '../channel_join/join_confirm_page.dart';
 import 'bloc/qr_entry_cubit.dart';
+import '../../core/extensions/context_extensions.dart';
 
 export 'bloc/qr_entry_cubit.dart';
 
@@ -33,7 +34,7 @@ class QrEntryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mã kết nối')),
+      appBar: AppBar(title: Text(context.l10n.qrEntryTitle)),
       body: BlocConsumer<QrEntryCubit, QrEntryState>(
         listener: (context, state) {
           final resolution = state.resolution;
@@ -56,7 +57,7 @@ class QrEntryView extends StatelessWidget {
         builder: (context, state) {
           if (state.phase == QrEntryPhase.failed && !state.isAlreadyPending) {
             return QrEntryErrorView(
-              message: state.errorMessage ?? 'Không thể kiểm tra mã kết nối.',
+              message: state.errorMessage ?? context.l10n.qrEntryCheckFailedShort,
               onRetry: () => context.read<QrEntryCubit>().resolve(code),
             );
           }
@@ -72,13 +73,13 @@ class QrEntryLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Đang kiểm tra mã kết nối…'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(context.l10n.qrEntryChecking),
         ],
       ),
     );
@@ -120,10 +121,10 @@ class QrEntryErrorView extends StatelessWidget {
               children: [
                 FilledButton.tonal(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Quay lại'),
+                  child: Text(context.l10n.back),
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton(onPressed: onRetry, child: const Text('Thử lại')),
+                OutlinedButton(onPressed: onRetry, child: Text(context.l10n.retry)),
               ],
             ),
           ],

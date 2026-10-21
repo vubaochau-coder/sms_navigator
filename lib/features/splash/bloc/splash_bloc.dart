@@ -16,6 +16,7 @@ import '../../../core/services/startup_reconcile_service.dart';
 import '../../../core/utils/app_logger.dart';
 import 'splash_event.dart';
 import 'splash_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   final CrashlyticsService crashlyticsService;
@@ -183,12 +184,12 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
         userFriendlyMessage = error.message;
       } else if (error is ApiException) {
         userFriendlyMessage =
-            'Máy chủ đang gặp sự cố (HTTP ${error.statusCode ?? 'Unknown'}). Vui lòng thử lại sau.';
+            AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
       } else if (error is StateError) {
         userFriendlyMessage = error.message;
       } else {
         userFriendlyMessage =
-            'Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.';
+            AppL10n.current.splashStartupFailed;
       }
 
       emit(state.copyWith(

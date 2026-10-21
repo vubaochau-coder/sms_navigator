@@ -29,8 +29,8 @@ class ScannerErrorView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               isPermissionDenied
-                  ? 'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR'
-                  : 'Không thể khởi động máy ảnh: ${error.errorDetails?.message ?? error.errorCode.name}',
+                  ? context.l10n.scannerCameraPermissionRequired
+                  : context.l10n.scannerCameraStartFailed(error.errorDetails?.message ?? error.errorCode.name),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,

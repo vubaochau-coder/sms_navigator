@@ -6,6 +6,7 @@ import '../../../core/services/native_relay_service.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'device_profile_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 class DeviceProfileCubit extends Cubit<DeviceProfileState> {
   final DeviceStorageService _deviceStorage;
@@ -28,7 +29,7 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
       final name = await _deviceStorage.getDeviceName();
       var resolvedName = (name != null && name.trim().isNotEmpty) ? name.trim() : '';
 
-      if (resolvedName.isEmpty || resolvedName == 'Thiết bị của tôi') {
+      if (resolvedName.isEmpty || resolvedName == AppL10n.current.splashDefaultDeviceName) {
         try {
           final nativeName = await _nativeRelayService?.getDeviceName();
           if (nativeName != null && nativeName.trim().isNotEmpty) {
@@ -43,7 +44,7 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
         deviceId: id,
         deviceName: (resolvedName.isNotEmpty)
             ? resolvedName
-            : 'Thiết bị của tôi',
+            : AppL10n.current.splashDefaultDeviceName,
       ));
     } catch (_) {
       emit(state.copyWith(isLoading: false));
@@ -54,16 +55,16 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
     final trimmed = newName.trim();
     if (trimmed.isEmpty) return false;
     emit(state.copyWith(isRenaming: true));
-    DialogUtils.showLoading(message: 'Đang cập nhật tên thiết bị...');
+    DialogUtils.showLoading(message: AppL10n.current.deviceRenameLoading);
     try {
       await _channelRepository.renameDevice(trimmed);
       await _deviceStorage.saveDeviceName(trimmed);
       emit(state.copyWith(isRenaming: false, deviceName: trimmed));
-      ToastUtils.showSuccess('Đã cập nhật tên thiết bị');
+      ToastUtils.showSuccess(AppL10n.current.deviceRenameSuccess);
       return true;
     } catch (e) {
       emit(state.copyWith(isRenaming: false));
-      ToastUtils.showError('Không đổi được tên thiết bị. Thử lại sau.');
+      ToastUtils.showError(AppL10n.current.deviceRenameFailed);
       return false;
     } finally {
       DialogUtils.closeLoading();
@@ -72,17 +73,17 @@ class DeviceProfileCubit extends Cubit<DeviceProfileState> {
 
   /// Xóa toàn bộ thông tin định danh, token và cấu hình thiết bị trên máy.
   Future<bool> clearDeviceData() async {
-    DialogUtils.showLoading(message: 'Đang xóa dữ liệu thiết bị...');
+    DialogUtils.showLoading(message: AppL10n.current.deviceResetLoading);
     try {
       await _deviceStorage.clearAll();
       emit(state.copyWith(
         deviceId: '',
         deviceName: '',
       ));
-      ToastUtils.showSuccess('Đã xóa dữ liệu thiết bị');
+      ToastUtils.showSuccess(AppL10n.current.deviceResetSuccess);
       return true;
     } catch (e) {
-      ToastUtils.showError('Không thể xóa dữ liệu thiết bị. Thử lại sau.');
+      ToastUtils.showError(AppL10n.current.deviceResetFailed);
       return false;
     } finally {
       DialogUtils.closeLoading();

@@ -8,6 +8,7 @@ import '../../../core/services/channel_key_store.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'whitelist_event.dart';
 import 'whitelist_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
   final String channelId;
@@ -69,7 +70,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
         // Lỗi mạng nền khi reconcile — dùng cache local hiện có
       }
     } catch (e) {
-      ToastUtils.showError('Không thể đọc cấu hình white-list: $e');
+      ToastUtils.showError(AppL10n.current.whitelistLoadFailed);
       emit(state.copyWith(isLoading: false));
     }
   }
@@ -101,7 +102,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
   ) async {
     final address = event.address.trim();
     if (address.isEmpty) {
-      ToastUtils.showError('Địa chỉ không được để trống');
+      ToastUtils.showError(AppL10n.current.whitelistEmptyAddressError);
       return;
     }
 
@@ -109,7 +110,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
       (entry) => entry.address == address,
     );
     if (isDuplicate) {
-      ToastUtils.showError('Địa chỉ "$address" đã có trong danh sách');
+      ToastUtils.showError(AppL10n.current.whitelistDuplicateError(address));
       return;
     }
 
@@ -168,7 +169,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
       );
 
       if (channelKey == null || channelKey.isEmpty) {
-        ToastUtils.showError('Không tìm thấy khóa bảo mật kênh để mã hóa');
+        ToastUtils.showError(AppL10n.current.whitelistMissingChannelKey);
         emit(state.copyWith(isLoading: false));
         return;
       }
@@ -186,7 +187,7 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
       );
 
       if (!saved) {
-        ToastUtils.showError('Không thể lưu cấu hình white-list');
+        ToastUtils.showError(AppL10n.current.whitelistSaveFailed);
         emit(state.copyWith(isLoading: false));
         return;
       }
@@ -194,16 +195,16 @@ class WhitelistBloc extends Bloc<WhitelistEvent, WhitelistState> {
       emit(state.copyWith(isLoading: false, config: configToSave));
     } on ApiException catch (e) {
       if (e.statusCode == 409 || e.errorCode == 'STALE_WHITELIST') {
-        ToastUtils.showError('Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.');
+        ToastUtils.showError(AppL10n.current.whitelistConflict);
       } else {
-        ToastUtils.showError('Không thể lưu cấu hình (bắt buộc kết nối mạng): ${e.message}');
+        ToastUtils.showError(AppL10n.current.whitelistSaveRequiresNetwork(e.message));
       }
       emit(state.copyWith(isLoading: false));
     } on NetworkException catch (_) {
-      ToastUtils.showError('Không có kết nối mạng. Không thể lưu cấu hình white-list.');
+      ToastUtils.showError(AppL10n.current.whitelistSaveOffline);
       emit(state.copyWith(isLoading: false));
     } catch (e) {
-      ToastUtils.showError('Không thể lưu cấu hình white-list: $e');
+      ToastUtils.showError(AppL10n.current.whitelistSaveFailed);
       emit(state.copyWith(isLoading: false));
     }
   }

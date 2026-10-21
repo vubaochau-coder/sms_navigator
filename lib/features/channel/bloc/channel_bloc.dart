@@ -10,6 +10,7 @@ import '../../../core/services/sync_owner_relay_channel_use_case.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_event.dart';
 import 'channel_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 export 'channel_event.dart';
 export 'channel_state.dart';
@@ -74,13 +75,13 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
       _syncUseCase?.call().catchError((_) => false);
     } catch (error) {
       ToastUtils.showError(
-        'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.',
+        AppL10n.current.channelLoadFailed,
       );
       emit(
         state.copyWith(
           isLoading: false,
           errorMessage:
-              'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.',
+              AppL10n.current.channelLoadFailed,
         ),
       );
     }
@@ -103,11 +104,11 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
       );
       _syncUseCase?.call().catchError((_) => false);
     } catch (error) {
-      ToastUtils.showError('Không tạo được kênh. Thử lại sau.');
+      ToastUtils.showError(AppL10n.current.channelCreateFailed);
       emit(
         state.copyWith(
           isLoading: false,
-          errorMessage: 'Không tạo được kênh. Thử lại sau.',
+          errorMessage: AppL10n.current.channelCreateFailed,
         ),
       );
     }
@@ -122,11 +123,11 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
       await _repository.renameDevice(event.deviceName);
       emit(state.copyWith(isLoading: false));
     } catch (error) {
-      ToastUtils.showError('Không đổi được tên thiết bị. Thử lại sau.');
+      ToastUtils.showError(AppL10n.current.deviceRenameFailed);
       emit(
         state.copyWith(
           isLoading: false,
-          errorMessage: 'Không đổi được tên thiết bị. Thử lại sau.',
+          errorMessage: AppL10n.current.deviceRenameFailed,
         ),
       );
     }
@@ -144,11 +145,11 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
           .toList();
       emit(state.copyWith(pendingJoinRequests: updatedPending));
       ToastUtils.showSuccess(
-        event.successMessage ?? 'Đã hủy yêu cầu tham gia kênh',
+        event.successMessage ?? AppL10n.current.channelCancelRequestSuccess,
       );
     } catch (error) {
       ToastUtils.showError(
-        event.errorMessage ?? 'Không hủy được yêu cầu. Thử lại sau.',
+        event.errorMessage ?? AppL10n.current.channelCancelRequestFailed,
       );
     }
   }

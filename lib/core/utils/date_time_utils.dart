@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../l10n/app_l10n.dart';
 
 /// Bộ tiện ích định dạng ngày tháng và thời gian chung cho toàn bộ ứng dụng SMS Navigator.
 class DateTimeUtils {
@@ -58,15 +59,15 @@ class DateTimeUtils {
     final difference = now.difference(local);
 
     if (difference.inSeconds < 45) {
-      return 'Vừa xong';
+      return AppL10n.current.relativeJustNow;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} phút trước';
+      return AppL10n.current.relativeMinutesAgo(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return '${difference.inHours} giờ trước';
+      return AppL10n.current.relativeHoursAgo(difference.inHours);
     } else if (difference.inDays == 1) {
-      return 'Hôm qua ${formatTime(local)}';
+      return AppL10n.current.relativeYesterdayAt(formatTime(local));
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} ngày trước';
+      return AppL10n.current.relativeDaysAgo(difference.inDays);
     } else {
       return formatDate(local);
     }

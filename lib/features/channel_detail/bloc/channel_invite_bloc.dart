@@ -7,6 +7,7 @@ import '../../../core/repositories/channel_repository.dart';
 import '../../../core/utils/toast_utils.dart';
 import 'channel_invite_event.dart';
 import 'channel_invite_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 export 'channel_invite_event.dart';
 export 'channel_invite_state.dart';
@@ -78,7 +79,7 @@ class ChannelInviteBloc extends Bloc<ChannelInviteEvent, ChannelInviteState> {
       _activeSessions[state.channelId] = session;
       emit(state.copyWith(isLoading: false, session: session));
     } catch (error) {
-      const msg = 'Không tạo được mã mời. Thử lại sau.';
+      final msg = AppL10n.current.channelInviteCreateFailed;
       ToastUtils.showError(msg);
       emit(state.copyWith(isLoading: false, errorMessage: msg));
     }

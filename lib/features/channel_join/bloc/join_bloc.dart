@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/errors/app_exceptions.dart';
 import '../../../core/repositories/join_channel_repository.dart';
 import '../../../core/repositories/qr_repository.dart';
+import '../../../core/utils/qr_error_messages.dart';
 import 'join_event.dart';
 import 'join_state.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 export 'join_event.dart';
 export 'join_state.dart';
@@ -123,67 +125,21 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     return null;
   }
 
-  String _mapResolveError(Object error, String? code) {
-    if (code == 'REQUEST_ALREADY_PENDING') {
-      return 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
-    }
-    if (code == 'ALREADY_MEMBER') {
-      return 'Thiết bị của bạn đã là thành viên của kênh này.';
-    }
-    if (code == 'QR_EXPIRED') {
-      return 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (code == 'QR_ALREADY_USED') {
-      return 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (code == 'CHANNEL_NOT_ACTIVE') {
-      return 'Kênh này đã bị lưu trữ, không thể tham gia.';
-    }
-    final raw = error.toString();
-    if (raw.contains('REQUEST_ALREADY_PENDING')) {
-      return 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
-    }
-    if (raw.contains('ALREADY_MEMBER')) {
-      return 'Thiết bị của bạn đã là thành viên của kênh này.';
-    }
-    if (raw.contains('QR_EXPIRED') || raw.contains('410')) {
-      return 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (raw.contains('QR_ALREADY_USED') || raw.contains('409')) {
-      return 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    return 'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.';
-  }
+  String _mapResolveError(Object error, String? code) =>
+      _mapJoinError(error, code) ?? AppL10n.current.joinResolveFailed;
 
-  String _mapClaimError(Object error, String? code) {
-    if (code == 'REQUEST_ALREADY_PENDING') {
-      return 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
-    }
-    if (code == 'ALREADY_MEMBER') {
-      return 'Thiết bị của bạn đã là thành viên của kênh này.';
-    }
-    if (code == 'QR_EXPIRED') {
-      return 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (code == 'QR_ALREADY_USED') {
-      return 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (code == 'CHANNEL_NOT_ACTIVE') {
-      return 'Kênh này đã bị lưu trữ, không thể tham gia.';
-    }
+  String _mapClaimError(Object error, String? code) =>
+      _mapJoinError(error, code) ?? AppL10n.current.joinClaimFailed;
+
+  /// Mã lỗi server → thông điệp dùng chung; dò chuỗi cho lỗi không mang errorCode.
+  String? _mapJoinError(Object error, String? code) {
+    final byCode = QrErrorMessages.forCode(code);
+    if (byCode != null) return byCode;
     final raw = error.toString();
-    if (raw.contains('REQUEST_ALREADY_PENDING')) {
-      return 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
-    }
-    if (raw.contains('ALREADY_MEMBER')) {
-      return 'Thiết bị của bạn đã là thành viên của kênh này.';
-    }
-    if (raw.contains('QR_EXPIRED') || raw.contains('410')) {
-      return 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    if (raw.contains('QR_ALREADY_USED') || raw.contains('409')) {
-      return 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
-    }
-    return 'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.';
+    if (raw.contains('REQUEST_ALREADY_PENDING')) return QrErrorMessages.forCode('REQUEST_ALREADY_PENDING');
+    if (raw.contains('ALREADY_MEMBER')) return QrErrorMessages.forCode('ALREADY_MEMBER');
+    if (raw.contains('QR_EXPIRED') || raw.contains('410')) return QrErrorMessages.forCode('QR_EXPIRED');
+    if (raw.contains('QR_ALREADY_USED') || raw.contains('409')) return QrErrorMessages.forCode('QR_ALREADY_USED');
+    return null;
   }
 }

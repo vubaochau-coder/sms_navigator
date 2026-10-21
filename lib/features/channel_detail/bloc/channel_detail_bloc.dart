@@ -10,6 +10,7 @@ import '../../../core/utils/toast_utils.dart';
 import 'channel_detail_event.dart';
 import 'channel_detail_state.dart';
 import 'channel_invite_bloc.dart';
+import '../../../core/l10n/app_l10n.dart';
 
 export 'channel_detail_event.dart';
 export 'channel_detail_state.dart';
@@ -67,7 +68,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       await _refresh(emit);
     } catch (error) {
       ToastUtils.showError(
-        'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.',
+        AppL10n.current.channelDetailLoadFailed,
       );
       emit(state.copyWith(isLoading: false));
     }
@@ -84,7 +85,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       if (_syncUseCase != null) {
         await _syncUseCase(channelId: state.channelId, expectedEpoch: newEpoch);
       }
-      ToastUtils.showSuccess('Đã duyệt ${event.request.requesterDeviceName}.');
+      ToastUtils.showSuccess(AppL10n.current.channelDetailApproved(event.request.requesterDeviceName));
       emit(state.copyWith(isMutating: false));
     } catch (error) {
       // 409 MEMBERSHIP_CHANGED: state đã đổi → reload để Owner retry 1 chạm
@@ -92,7 +93,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
         await _refresh(emit);
       } catch (_) {}
       ToastUtils.showError(
-        'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.',
+        AppL10n.current.channelDetailApproveConflict,
       );
       emit(state.copyWith(isMutating: false));
     }
@@ -106,13 +107,13 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     try {
       await _repository.rejectRequest(event.request.requestId);
       await _refresh(emit);
-      ToastUtils.showSuccess('Đã từ chối ${event.request.requesterDeviceName}.');
+      ToastUtils.showSuccess(AppL10n.current.channelDetailRejected(event.request.requesterDeviceName));
       emit(state.copyWith(isMutating: false));
     } catch (error) {
       try {
         await _refresh(emit);
       } catch (_) {}
-      ToastUtils.showError('Không từ chối được: yêu cầu có thể đã được xử lý.');
+      ToastUtils.showError(AppL10n.current.channelDetailRejectFailed);
       emit(state.copyWith(isMutating: false));
     }
   }
@@ -128,13 +129,13 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       if (_syncUseCase != null) {
         await _syncUseCase(channelId: state.channelId, expectedEpoch: newEpoch);
       }
-      ToastUtils.showSuccess('Đã thu hồi thành viên và xoay khóa kênh.');
+      ToastUtils.showSuccess(AppL10n.current.channelDetailRevoked);
       emit(state.copyWith(isMutating: false));
     } catch (error) {
       try {
         await _refresh(emit);
       } catch (_) {}
-      ToastUtils.showError('Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.');
+      ToastUtils.showError(AppL10n.current.channelDetailRevokeConflict);
       emit(state.copyWith(isMutating: false));
     }
   }

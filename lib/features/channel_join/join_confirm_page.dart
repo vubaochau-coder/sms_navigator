@@ -11,6 +11,7 @@ import '../../core/utils/toast_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../device/bloc/device_profile_cubit.dart';
 import 'bloc/join_bloc.dart';
+import '../../core/l10n/app_l10n.dart';
 
 export 'bloc/join_bloc.dart';
 
@@ -84,11 +85,11 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
     }
     final invite = InvitePayload.tryParse(widget.inviteRaw ?? '');
     if (invite == null) {
-      _parseError = 'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
+      _parseError = AppL10n.current.joinInvalidQrFormat;
       return;
     }
     if (invite.isExpired) {
-      _parseError = 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
+      _parseError = AppL10n.current.joinErrorExpired;
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -110,22 +111,22 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
         listener: (context, state) {
           if (state.phase == JoinPhase.resolveFailed && state.isAlreadyPending) {
             ToastUtils.showInfo(
-              state.errorMessage ?? 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.',
+              state.errorMessage ?? context.l10n.joinErrorAlreadyPending,
             );
             Navigator.of(context).pop();
             return;
           }
 
           if (state.phase == JoinPhase.claimSuccess) {
-            final name = state.channelName.isNotEmpty ? state.channelName : 'kênh';
-            ToastUtils.showSuccess('Đã gửi yêu cầu tham gia $name');
+            final name = state.channelName.isNotEmpty ? state.channelName : context.l10n.joinChannelFallbackName;
+            ToastUtils.showSuccess(context.l10n.joinRequestSent(name));
             Navigator.of(context).pop();
             return;
           }
 
           if (state.phase == JoinPhase.claimFailed) {
             ToastUtils.showError(
-              state.errorMessage ?? 'Không gửi được yêu cầu. Vui lòng thử lại sau.',
+              state.errorMessage ?? context.l10n.joinClaimFailedRetry,
             );
           }
         },
@@ -138,7 +139,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
             JoinPhase.resolving => _buildSkeletonView(context),
             JoinPhase.resolveFailed => _buildErrorView(
                 context,
-                state.errorMessage ?? 'Không thể kiểm tra thông tin kênh.',
+                state.errorMessage ?? context.l10n.joinResolveFailedShort,
               ),
             _ => _buildReadyView(context, state, theme, l10n),
           };
@@ -257,10 +258,10 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
             ),
           ),
           const Spacer(),
-          const Center(
+          Center(
             child: Text(
-              'Đang tải thông tin kênh...',
-              style: TextStyle(color: Colors.grey),
+              context.l10n.joinLoadingChannelInfo,
+              style: const TextStyle(color: Colors.grey),
             ),
           ),
           const SizedBox(height: 24),
@@ -300,7 +301,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
             const SizedBox(height: 28),
             FilledButton.tonal(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Quay lại'),
+              child: Text(context.l10n.back),
             ),
           ],
         ),
@@ -316,7 +317,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
   ) {
     final channelName = state.channelName.isNotEmpty ? state.channelName : '—';
     final ownerName = state.ownerDeviceName.isNotEmpty ? state.ownerDeviceName : '—';
-    final deviceName = state.deviceName.isNotEmpty ? state.deviceName : 'Thiết bị của bạn';
+    final deviceName = state.deviceName.isNotEmpty ? state.deviceName : context.l10n.joinYourDeviceFallback;
 
     return SafeArea(
       child: Padding(

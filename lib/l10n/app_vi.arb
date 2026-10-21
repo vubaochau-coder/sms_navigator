@@ -25,8 +25,12 @@
   "copiedWithLabel": "Đã sao chép {label}: {value}",
   "@copiedWithLabel": {
     "placeholders": {
-      "label": { "type": "String" },
-      "value": { "type": "String" }
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
     }
   },
   "success": "Thành công",
@@ -45,14 +49,18 @@
   "confirmRevokeSenderMessage": "Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Bạn sẽ không nhận được OTP từ thiết bị này nữa.",
   "@confirmRevokeSenderMessage": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "confirmRevokeReceiverTitle": "Hủy kết nối thiết bị?",
   "confirmRevokeReceiverMessage": "Bạn có chắc chắn muốn ngắt kết nối với \"{name}\"? Thiết bị này sẽ không thể nhận OTP từ bạn nữa.",
   "@confirmRevokeReceiverMessage": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "relayEnabled": "Đã kích hoạt dịch vụ chuyển tiếp",
@@ -62,19 +70,25 @@
   "relayModeChanged": "Đã chuyển sang chế độ: {mode}",
   "@relayModeChanged": {
     "placeholders": {
-      "mode": { "type": "String" }
+      "mode": {
+        "type": "String"
+      }
     }
   },
   "addWhitelistSuccess": "Đã thêm địa chỉ {address} vào bộ lọc",
   "@addWhitelistSuccess": {
     "placeholders": {
-      "address": { "type": "String" }
+      "address": {
+        "type": "String"
+      }
     }
   },
   "removeWhitelistSuccess": "Đã xóa địa chỉ {address}",
   "@removeWhitelistSuccess": {
     "placeholders": {
-      "address": { "type": "String" }
+      "address": {
+        "type": "String"
+      }
     }
   },
   "addWhitelistHint": "Nhập đầu số hoặc brandname gửi tin (VD: VCB, BIDV, 1555). Địa chỉ được so khớp chính xác toàn phần, phân biệt hoa thường.",
@@ -91,7 +105,9 @@
   "serverSettingsSaved": "Đã lưu cấu hình server: {url}",
   "@serverSettingsSaved": {
     "placeholders": {
-      "url": { "type": "String" }
+      "url": {
+        "type": "String"
+      }
     }
   },
   "serverSettingsFailed": "Không thể lưu cấu hình. Thử lại sau.",
@@ -111,7 +127,9 @@
   "otpTodayWithDate": "Hôm nay, {date}",
   "@otpTodayWithDate": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "themeSwitchToLight": "Chuyển sang nền sáng",
@@ -119,7 +137,9 @@
   "otpCopiedMessage": "Đã sao chép mã OTP: {otp}",
   "@otpCopiedMessage": {
     "placeholders": {
-      "otp": { "type": "String" }
+      "otp": {
+        "type": "String"
+      }
     }
   },
   "otpSmsNotification": "THÔNG BÁO SMS",
@@ -128,15 +148,21 @@
   "otpEmptyInDate": "Không có mã OTP nào trong ngày {date}",
   "@otpEmptyInDate": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "otpEmptyGuide": "Các tin nhắn OTP hoặc SMS được relay trong ngày này sẽ xuất hiện tại đây. Bạn có thể chọn ngày khác trên thanh lịch phía trên.",
   "otpFilterDateWithCount": "Ngày: {date} ({count} tin)",
   "@otpFilterDateWithCount": {
     "placeholders": {
-      "date": { "type": "String" },
-      "count": { "type": "int" }
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "otpGroupByDevice": "Nhóm theo máy",
@@ -182,7 +208,9 @@
   "stepAutostartTitle": "3. Tự khởi chạy (Autostart) — {oem}",
   "@stepAutostartTitle": {
     "placeholders": {
-      "oem": { "type": "String" }
+      "oem": {
+        "type": "String"
+      }
     }
   },
   "stepBackgroundTitle": "3. Cho phép chạy nền & tự khởi chạy",
@@ -227,7 +255,9 @@
   "whitelistDuplicateError": "Địa chỉ \"{address}\" đã có trong danh sách",
   "@whitelistDuplicateError": {
     "placeholders": {
-      "address": { "type": "String" }
+      "address": {
+        "type": "String"
+      }
     }
   },
   "whitelistEmptyAddressError": "Địa chỉ không được để trống",
@@ -260,7 +290,9 @@
   "splashConnectionError": "Không thể kết nối hoặc xác thực thiết bị: {error}",
   "@splashConnectionError": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "splashRetry": "Thử lại",
@@ -271,28 +303,38 @@
   "smsEmptyInDate": "Ngày {date} chưa có tin nhắn SMS nào",
   "@smsEmptyInDate": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "smsDailyMessageCount": "Danh sách tin nhắn trong ngày ({count})",
   "@smsDailyMessageCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "smsDecryptError": "Không giải mã được tin này",
   "smsChannelPrefix": "Kênh: {channelName} · {time}",
   "@smsChannelPrefix": {
     "placeholders": {
-      "channelName": { "type": "String" },
-      "time": { "type": "String" }
+      "channelName": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "smsCopyTooltip": "Sao chép",
   "smsCopied": "Đã sao chép: {otp}",
   "@smsCopied": {
     "placeholders": {
-      "otp": { "type": "String" }
+      "otp": {
+        "type": "String"
+      }
     }
   },
   "smsLoadError": "Không tải được tin nhắn SMS của ngày này. Kiểm tra kết nối và thử lại.",
@@ -316,15 +358,23 @@
   "channelOwnerSubtitle": "{count} thành viên · epoch {epoch}",
   "@channelOwnerSubtitle": {
     "placeholders": {
-      "count": { "type": "int" },
-      "epoch": { "type": "int" }
+      "count": {
+        "type": "int"
+      },
+      "epoch": {
+        "type": "int"
+      }
     }
   },
   "channelMemberSubtitle": "Máy chủ: {ownerName} · {count} thành viên",
   "@channelMemberSubtitle": {
     "placeholders": {
-      "ownerName": { "type": "String" },
-      "count": { "type": "int" }
+      "ownerName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "joinPageTitle": "Tham gia kênh",
@@ -337,13 +387,17 @@
   "joinChannelLabel": "Kênh: {channelName}",
   "@joinChannelLabel": {
     "placeholders": {
-      "channelName": { "type": "String" }
+      "channelName": {
+        "type": "String"
+      }
     }
   },
   "joinOwnerLabel": "Chủ kênh: {ownerName}",
   "@joinOwnerLabel": {
     "placeholders": {
-      "ownerName": { "type": "String" }
+      "ownerName": {
+        "type": "String"
+      }
     }
   },
   "joinDeviceNameLabel": "Tên thiết bị của bạn",
@@ -354,7 +408,9 @@
   "joinWaitingApprovalChannelMessage": "Đã gửi yêu cầu tham gia \"{channelName}\". Chờ máy chủ (Owner) duyệt.",
   "@joinWaitingApprovalChannelMessage": {
     "placeholders": {
-      "channelName": { "type": "String" }
+      "channelName": {
+        "type": "String"
+      }
     }
   },
   "joinCancelRequestAction": "Hủy yêu cầu",
@@ -366,25 +422,33 @@
   "channelDetailOwnerServer": "Máy chủ (Owner): {ownerName}",
   "@channelDetailOwnerServer": {
     "placeholders": {
-      "ownerName": { "type": "String" }
+      "ownerName": {
+        "type": "String"
+      }
     }
   },
   "channelDetailMemberCount": "{count} thành viên",
   "@channelDetailMemberCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "channelDetailCurrentEpoch": "Epoch hiện tại: {epoch}",
   "@channelDetailCurrentEpoch": {
     "placeholders": {
-      "epoch": { "type": "int" }
+      "epoch": {
+        "type": "int"
+      }
     }
   },
   "channelDetailPendingRequestsTitle": "Yêu cầu chờ duyệt ({count})",
   "@channelDetailPendingRequestsTitle": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "channelDetailApproveTooltip": "Duyệt",
@@ -393,7 +457,9 @@
   "channelDetailApproveDialogMessage": "Duyệt \"{deviceName}\" sẽ tự động xoay khóa kênh và cấp khóa mới cho mọi thành viên.",
   "@channelDetailApproveDialogMessage": {
     "placeholders": {
-      "deviceName": { "type": "String" }
+      "deviceName": {
+        "type": "String"
+      }
     }
   },
   "channelDetailApproveConfirm": "Duyệt",
@@ -401,20 +467,26 @@
   "channelDetailRejectDialogMessage": "Từ chối \"{deviceName}\"? Mã QR đã dùng cho yêu cầu này sẽ không còn hiệu lực.",
   "@channelDetailRejectDialogMessage": {
     "placeholders": {
-      "deviceName": { "type": "String" }
+      "deviceName": {
+        "type": "String"
+      }
     }
   },
   "channelDetailRejectConfirm": "Từ chối",
   "channelDetailMembersTitle": "Thành viên ({count})",
   "@channelDetailMembersTitle": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "channelDetailMemberJoinedEpoch": "Tham gia epoch {epoch}",
   "@channelDetailMemberJoinedEpoch": {
     "placeholders": {
-      "epoch": { "type": "int" }
+      "epoch": {
+        "type": "int"
+      }
     }
   },
   "channelDetailMemberRevokedStatus": "Đã thu hồi",
@@ -424,7 +496,9 @@
   "channelDetailRevokeDialogMessage": "Thu hồi \"{deviceName}\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.",
   "@channelDetailRevokeDialogMessage": {
     "placeholders": {
-      "deviceName": { "type": "String" }
+      "deviceName": {
+        "type": "String"
+      }
     }
   },
   "channelDetailRevokeConfirm": "Thu hồi",
@@ -432,7 +506,9 @@
   "channelDetailInviteQrExpiresIn": "Mã QR hết hạn sau: {time}",
   "@channelDetailInviteQrExpiresIn": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "channelDetailInviteQrExpired": "Mã QR đã hết hạn. Hãy nhấn tạo lại mã bên dưới.",
@@ -449,7 +525,9 @@
   "channelPendingRequestsHeader": "Yêu cầu đang chờ duyệt ({count})",
   "@channelPendingRequestsHeader": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "channelPendingBadge": "Đang chờ duyệt",
@@ -461,5 +539,283 @@
   "updateForceNotice": "Bắt buộc cập nhật để tiếp tục sử dụng",
   "updateMissingUrlMessage": "Chưa có liên kết tải phiên bản mới",
   "updateInvalidUrlMessage": "Liên kết tải không hợp lệ",
-  "updateLaunchErrorMessage": "Không thể mở liên kết tải"
+  "updateLaunchErrorMessage": "Không thể mở liên kết tải",
+  "networkRequestCancelled": "Yêu cầu mạng đã bị hủy bỏ.",
+  "networkConnectTimeout": "Kết nối tới máy chủ quá thời gian chờ ({seconds}s).",
+  "@networkConnectTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "networkTransferTimeout": "Thời gian truyền dữ liệu với máy chủ quá hạn ({seconds}s).",
+  "@networkTransferTimeout": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "networkUnauthorized": "Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).",
+  "networkServerError": "Máy chủ trả về lỗi (HTTP {status}).",
+  "@networkServerError": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "networkUnreachable": "Không thể kết nối tới máy chủ: {detail}",
+  "@networkUnreachable": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "networkOffline": "Không kết nối được máy chủ. Kiểm tra mạng và thử lại.",
+  "notificationChannelDescription": "Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh",
+  "notificationDefaultBody": "Có sự kiện mới trong kênh. Mở app để xem.",
+  "notificationJoinRequestTitle": "Yêu cầu tham gia kênh",
+  "notificationJoinRequestBody": "{requesterName} muốn tham gia kênh \"{channelName}\".",
+  "@notificationJoinRequestBody": {
+    "placeholders": {
+      "requesterName": {
+        "type": "String"
+      },
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationJoinRequestBodyNoChannel": "{requesterName} muốn tham gia kênh.",
+  "@notificationJoinRequestBodyNoChannel": {
+    "placeholders": {
+      "requesterName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationJoinRequestBodyGeneric": "Có thiết bị mới xin tham gia. Mở app để duyệt.",
+  "notificationApprovedTitle": "Yêu cầu đã được duyệt",
+  "notificationApprovedBody": "Bạn đã được thêm vào kênh \"{channelName}\". Mở app để xem tin nhắn SMS.",
+  "@notificationApprovedBody": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationApprovedBodyGeneric": "Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.",
+  "notificationRevokedTitle": "Quyền truy cập đã bị thu hồi",
+  "notificationRevokedBody": "Bạn không còn quyền truy cập kênh \"{channelName}\".",
+  "@notificationRevokedBody": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationRevokedBodyGeneric": "Bạn không còn quyền truy cập một kênh.",
+  "notificationNewMessageTitle": "Tin nhắn SMS mới",
+  "notificationNewMessageBody": "Có tin nhắn SMS mới từ kênh \"{channelName}\". Chạm để xem.",
+  "@notificationNewMessageBody": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationNewMessageBodyGeneric": "Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.",
+  "relativeJustNow": "Vừa xong",
+  "relativeMinutesAgo": "{count} phút trước",
+  "@relativeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHoursAgo": "{count} giờ trước",
+  "@relativeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeYesterdayAt": "Hôm qua {time}",
+  "@relativeYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "relativeDaysAgo": "{count} ngày trước",
+  "@relativeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "qrUnsupportedFormat": "Mã QR không được hỗ trợ. Hãy quét mã mời từ SMS Navigator.",
+  "qrUpdateRequired": "Mã này cần phiên bản SMS Navigator mới hơn. Hãy cập nhật ứng dụng.",
+  "qrCheckFailed": "Không thể kiểm tra mã kết nối. Vui lòng thử lại sau.",
+  "qrNotFound": "Không tìm thấy mã mời. Hãy kiểm tra lại hoặc xin Chủ kênh mã mới.",
+  "qrRateLimited": "Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.",
+  "qrEntryTitle": "Mã kết nối",
+  "qrEntryChecking": "Đang kiểm tra mã kết nối…",
+  "qrEntryCheckFailedShort": "Không thể kiểm tra mã kết nối.",
+  "joinErrorAlreadyPending": "Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.",
+  "joinErrorAlreadyMember": "Thiết bị của bạn đã là thành viên của kênh này.",
+  "joinErrorExpired": "Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.",
+  "joinErrorUsed": "Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.",
+  "joinErrorChannelArchived": "Kênh này đã bị lưu trữ, không thể tham gia.",
+  "joinResolveFailed": "Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.",
+  "joinResolveFailedShort": "Không thể kiểm tra thông tin kênh.",
+  "joinClaimFailed": "Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.",
+  "joinClaimFailedRetry": "Không gửi được yêu cầu. Vui lòng thử lại sau.",
+  "joinInvalidQrFormat": "Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.",
+  "joinChannelFallbackName": "kênh",
+  "joinRequestSent": "Đã gửi yêu cầu tham gia {channelName}",
+  "@joinRequestSent": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "joinLoadingChannelInfo": "Đang tải thông tin kênh...",
+  "joinYourDeviceFallback": "Thiết bị của bạn",
+  "back": "Quay lại",
+  "copiedLabel": "Đã sao chép {label}",
+  "@copiedLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "statusPending": "Đang chờ",
+  "channelLoadFailed": "Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.",
+  "channelCreateFailed": "Không tạo được kênh. Thử lại sau.",
+  "deviceRenameFailed": "Không đổi được tên thiết bị. Thử lại sau.",
+  "channelDetailLoadFailed": "Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.",
+  "channelDetailApproved": "Đã duyệt {deviceName}.",
+  "@channelDetailApproved": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailApproveConflict": "Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.",
+  "channelDetailRejected": "Đã từ chối {deviceName}.",
+  "@channelDetailRejected": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailRejectFailed": "Không từ chối được: yêu cầu có thể đã được xử lý.",
+  "channelDetailRevoked": "Đã thu hồi thành viên và xoay khóa kênh.",
+  "channelDetailRevokeConflict": "Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.",
+  "channelInviteCreateFailed": "Không tạo được mã mời. Thử lại sau.",
+  "whitelistSectionTitle": "Bộ lọc tin nhắn (White-list)",
+  "whitelistConfigureButton": "Cấu hình",
+  "whitelistSectionOwnerDesc": "Thiết lập danh sách số điện thoại/Brandname được phép chuyển tiếp tin nhắn SMS và OTP qua kênh này.",
+  "whitelistSectionMemberDesc": "Kênh này được bảo vệ bởi bộ lọc của Chủ kênh. Tin nhắn SMS sẽ được chuyển tiếp theo cấu hình bảo mật đã duyệt.",
+  "whitelistVersionLabel": "Phiên bản bộ lọc: v{version}",
+  "@whitelistVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "whitelistFilterTitle": "Bộ lọc: {channelName}",
+  "@whitelistFilterTitle": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "whitelistMissingChannelKey": "Không tìm thấy khóa bảo mật kênh để mã hóa",
+  "whitelistConflict": "Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.",
+  "whitelistSaveRequiresNetwork": "Không thể lưu cấu hình (bắt buộc kết nối mạng): {detail}",
+  "@whitelistSaveRequiresNetwork": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "whitelistSaveOffline": "Không có kết nối mạng. Không thể lưu cấu hình bộ lọc.",
+  "relayLogTitle": "Nhật ký tiếp nhận SMS",
+  "relayLogDescription": "Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn (nếu không relay được).",
+  "relayLogEmpty": "Chưa có SMS nào được ghi nhận.",
+  "relayLogUnknownSender": "(không rõ số gửi)",
+  "relayLogDetected": "Nội dung phát hiện: {otp}",
+  "@relayLogDetected": {
+    "placeholders": {
+      "otp": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRenameLoading": "Đang cập nhật tên thiết bị...",
+  "deviceRenameSuccess": "Đã cập nhật tên thiết bị",
+  "deviceResetLoading": "Đang xóa dữ liệu thiết bị...",
+  "deviceResetSuccess": "Đã xóa dữ liệu thiết bị",
+  "deviceResetFailed": "Không thể xóa dữ liệu thiết bị. Thử lại sau.",
+  "deviceResetDialogTitle": "Xóa dữ liệu thiết bị?",
+  "deviceResetDialogMessage": "Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.",
+  "deviceResetConfirm": "Xóa dữ liệu",
+  "deviceResetTitle": "Xóa dữ liệu thiết bị",
+  "deviceResetSubtitle": "Xóa mã định danh, token và khôi phục cài đặt gốc",
+  "devicePreferencesTitle": "CÀI ĐẶT & TÙY CHỌN",
+  "themeModeLabel": "Chế độ hiển thị",
+  "themeSystem": "Hệ thống",
+  "themeLight": "Sáng",
+  "themeDark": "Tối",
+  "deviceSetupYourDevice": "thiết bị của bạn",
+  "deviceHealthTitle": "TÌNH TRẠNG THIẾT BỊ",
+  "deviceHealthReady": "Sẵn sàng",
+  "deviceHealthNeedsAttention": "Cần chú ý",
+  "deviceHealthSmsPermission": "Quyền đọc SMS",
+  "deviceHealthGranted": "Đã cấp quyền",
+  "deviceHealthNotGranted": "Chưa cấp quyền",
+  "deviceHealthGrantNow": "Cấp ngay",
+  "deviceHealthBackground": "Chạy ngầm & Tối ưu pin",
+  "deviceHealthBatteryUnrestricted": "Đã tắt hạn chế pin",
+  "deviceHealthBatteryRestricted": "Có thể bị hệ điều hành tắt",
+  "deviceHealthOemDetails": "Chi tiết thiết lập thiết bị & cài đặt OEM",
+  "deviceIdUnknown": "Chưa xác định",
+  "deviceIdCopied": "Đã sao chép ID thiết bị",
+  "scanInviteTooltip": "Quét mã mời",
+  "scannerPasteAction": "Dán mã",
+  "scannerClipboardEmpty": "Bộ nhớ tạm không có mã nào để dán.",
+  "scannerCameraPermissionRequired": "Ứng dụng cần quyền truy cập máy ảnh để quét mã QR",
+  "scannerCameraStartFailed": "Không thể khởi động máy ảnh: {detail}",
+  "@scannerCameraStartFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "splashServerError": "Máy chủ đang gặp sự cố (HTTP {status}). Vui lòng thử lại sau.",
+  "@splashServerError": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "splashStartupFailed": "Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại."
 }

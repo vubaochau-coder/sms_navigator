@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/ui_utils.dart';
+import '../extensions/context_extensions.dart';
 
 /// Dòng hiển thị nhãn và giá trị có nút copy nhanh tiện dụng
 class CopyableInfoRow extends StatelessWidget {
@@ -47,10 +48,10 @@ class CopyableInfoRow extends StatelessWidget {
             icon: const Icon(Icons.copy_rounded, size: 16),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            tooltip: 'Sao chép',
+            tooltip: context.l10n.copy,
             onPressed: () => UiUtils.copyToClipboard(
               value,
-              successMessage: copySuccessMessage ?? 'Đã sao chép $label',
+              successMessage: copySuccessMessage ?? context.l10n.copiedLabel(label),
             ),
           ),
         ],

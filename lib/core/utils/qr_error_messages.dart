@@ -1,32 +1,41 @@
 import '../errors/app_exceptions.dart';
+import '../l10n/app_l10n.dart';
 
-/// Thông điệp tiếng Việt cho lỗi QR / lời mời — dùng chung cho mọi màn hình.
+/// Thông điệp lỗi QR / lời mời dùng chung cho mọi màn hình (l10n).
 abstract final class QrErrorMessages {
-  static const String unsupportedFormat = 'Mã QR không được hỗ trợ. Hãy quét mã mời từ SMS Navigator.';
-  static const String updateRequired = 'Mã này cần phiên bản SMS Navigator mới hơn. Hãy cập nhật ứng dụng.';
+  static String get unsupportedFormat => AppL10n.current.qrUnsupportedFormat;
+  static String get updateRequired => AppL10n.current.qrUpdateRequired;
 
   static String? codeOf(Object error) => error is ApiException ? error.errorCode : null;
 
-  static String forError(Object error, {String fallback = 'Không thể kiểm tra mã kết nối. Vui lòng thử lại sau.'}) {
-    switch (codeOf(error)) {
+  /// Thông điệp cho mã lỗi server đã biết; `null` nếu không nhận ra.
+  static String? forCode(String? code) {
+    final l10n = AppL10n.current;
+    switch (code) {
       case 'REQUEST_ALREADY_PENDING':
-        return 'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.';
+        return l10n.joinErrorAlreadyPending;
       case 'ALREADY_MEMBER':
-        return 'Thiết bị của bạn đã là thành viên của kênh này.';
+        return l10n.joinErrorAlreadyMember;
       case 'QR_EXPIRED':
-        return 'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.';
+        return l10n.joinErrorExpired;
       case 'QR_ALREADY_USED':
-        return 'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.';
+        return l10n.joinErrorUsed;
       case 'CHANNEL_NOT_ACTIVE':
-        return 'Kênh này đã bị lưu trữ, không thể tham gia.';
+        return l10n.joinErrorChannelArchived;
       case 'NOT_FOUND':
-        return 'Không tìm thấy mã mời. Hãy kiểm tra lại hoặc xin Chủ kênh mã mới.';
+        return l10n.qrNotFound;
       case 'UNSUPPORTED_QR_TYPE':
-        return updateRequired;
+        return l10n.qrUpdateRequired;
       case 'RATE_LIMITED':
-        return 'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.';
+        return l10n.qrRateLimited;
     }
-    if (error is NetworkException) return 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.';
-    return fallback;
+    return null;
+  }
+
+  static String forError(Object error, {String? fallback}) {
+    final byCode = forCode(codeOf(error));
+    if (byCode != null) return byCode;
+    if (error is NetworkException) return AppL10n.current.networkOffline;
+    return fallback ?? AppL10n.current.qrCheckFailed;
   }
 }

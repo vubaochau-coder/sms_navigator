@@ -57,7 +57,7 @@ class PendingJoinRequestCard extends StatelessWidget {
                   if (request.ownerDeviceName.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'Chủ kênh: ${request.ownerDeviceName}',
+                      context.l10n.joinOwnerLabel(request.ownerDeviceName),
                       style: TextStyle(
                         fontSize: 12,
                         color: theme.colorScheme.onSurfaceVariant,

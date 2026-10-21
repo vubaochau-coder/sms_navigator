@@ -9,6 +9,7 @@ import '../../core/repositories/device_setup_repository.dart';
 import 'bloc/device_setup_bloc.dart';
 import 'bloc/device_setup_event.dart';
 import 'bloc/device_setup_state.dart';
+import '../../core/l10n/app_l10n.dart';
 
 class DeviceSetupChecklistPage extends StatelessWidget {
   const DeviceSetupChecklistPage({super.key});
@@ -67,7 +68,7 @@ class _DeviceSetupViewState extends State<_DeviceSetupView>
       case 'samsung':
         return 'Samsung (One UI)';
       default:
-        return 'thiết bị của bạn';
+        return AppL10n.current.deviceSetupYourDevice;
     }
   }
 

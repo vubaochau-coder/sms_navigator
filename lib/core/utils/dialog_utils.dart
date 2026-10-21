@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../navigation/app_navigator.dart';
+import '../l10n/app_l10n.dart';
 
 /// Tiện ích hiển thị Dialog / Alert thống nhất cho toàn bộ dự án
 class DialogUtils {
@@ -45,9 +46,9 @@ class DialogUtils {
   static const EdgeInsets defaultActionsPadding =
       EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 12.0);
 
-  static const String defaultConfirmText = 'Xác nhận';
-  static const String defaultCancelText = 'Hủy bỏ';
-  static const String defaultCloseText = 'Đóng';
+  static String get defaultConfirmText => AppL10n.current.confirm;
+  static String get defaultCancelText => AppL10n.current.cancel;
+  static String get defaultCloseText => AppL10n.current.close;
 
   /// Helper lấy BuildContext an toàn từ tham số hoặc [AppNavigator.currentContext]
   static BuildContext _resolveContext(BuildContext? context) {
@@ -272,11 +273,13 @@ class DialogUtils {
     String? initialValue,
     IconData? icon,
     int? maxLength,
-    String confirmText = defaultConfirmText,
-    String cancelText = defaultCancelText,
+    String? confirmText,
+    String? cancelText,
     EdgeInsets? customInsetPadding,
     EdgeInsets? contentPadding,
   }) {
+    confirmText ??= defaultConfirmText;
+    cancelText ??= defaultCancelText;
     final ctx = _resolveContext(context);
     final controller = TextEditingController(text: initialValue);
 
@@ -388,11 +391,12 @@ class DialogUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String buttonText = defaultCloseText,
+    String? buttonText,
     IconData? icon,
     bool isMandatory = false,
     EdgeInsets? customInsetPadding,
   }) async {
+    buttonText ??= defaultCloseText;
     final ctx = _resolveContext(context);
 
     final result = await showDialog<bool>(
@@ -477,14 +481,16 @@ class DialogUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String positiveText = defaultConfirmText,
-    String negativeText = defaultCancelText,
+    String? positiveText,
+    String? negativeText,
     bool isPositiveDestructive = false,
     bool swapButtonPositions = false,
     bool isMandatory = false,
     IconData? icon,
     EdgeInsets? customInsetPadding,
   }) async {
+    positiveText ??= defaultConfirmText;
+    negativeText ??= defaultCancelText;
     final ctx = _resolveContext(context);
 
     final result = await showDialog<bool?>(
@@ -594,8 +600,8 @@ class DialogUtils {
     BuildContext? context,
     required String title,
     required String message,
-    String confirmText = defaultConfirmText,
-    String cancelText = defaultCancelText,
+    String? confirmText,
+    String? cancelText,
     bool isDestructive = false,
     IconData? icon,
     EdgeInsets? customInsetPadding,

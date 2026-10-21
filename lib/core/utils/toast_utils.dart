@@ -5,6 +5,7 @@ import 'package:toastification/toastification.dart';
 import '../constants/app_colors.dart';
 
 import '../enums/toast_type.dart';
+import '../l10n/app_l10n.dart';
 
 export '../enums/toast_type.dart';
 
@@ -142,9 +143,9 @@ class ToastUtils {
   static Future<void> copyToClipboard(
     String text, {
     BuildContext? context,
-    String successMessage = 'Đã sao chép vào bộ nhớ tạm',
+    String? successMessage,
   }) async {
     await Clipboard.setData(ClipboardData(text: text));
-    showSuccess(successMessage);
+    showSuccess(successMessage ?? AppL10n.current.copiedToClipboard);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
+import '../l10n/app_l10n.dart';
 
 /// Huy hiệu hiển thị trạng thái linh hoạt (Active, Paused, Pending, Error, Success)
 class StatusBadge extends StatelessWidget {
@@ -13,33 +14,33 @@ class StatusBadge extends StatelessWidget {
     this.backgroundColor,
   });
 
-  factory StatusBadge.active({String label = 'Đang hoạt động'}) {
+  factory StatusBadge.active({String? label}) {
     return StatusBadge(
-      label: label,
+      label: label ?? AppL10n.current.statusOnline,
       color: AppColors.success,
       icon: Icons.check_circle_rounded,
     );
   }
 
-  factory StatusBadge.paused({String label = 'Đang tạm dừng'}) {
+  factory StatusBadge.paused({String? label}) {
     return StatusBadge(
-      label: label,
+      label: label ?? AppL10n.current.statusOffline,
       color: AppColors.warning,
       icon: Icons.pause_circle_filled_rounded,
     );
   }
 
-  factory StatusBadge.pending({String label = 'Đang chờ'}) {
+  factory StatusBadge.pending({String? label}) {
     return StatusBadge(
-      label: label,
+      label: label ?? AppL10n.current.statusPending,
       color: Colors.orange,
       icon: Icons.hourglass_top_rounded,
     );
   }
 
-  factory StatusBadge.error({String label = 'Lỗi'}) {
+  factory StatusBadge.error({String? label}) {
     return StatusBadge(
-      label: label,
+      label: label ?? AppL10n.current.error,
       color: AppColors.error,
       icon: Icons.error_rounded,
     );

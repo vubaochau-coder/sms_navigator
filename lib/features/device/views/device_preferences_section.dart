@@ -5,6 +5,8 @@ import '../../../core/theme/theme_cubit.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../splash/splash_page.dart';
 import '../bloc/device_profile_cubit.dart';
+import '../../../core/l10n/app_l10n.dart';
+import '../../../core/extensions/context_extensions.dart';
 
 /// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme) và Xóa dữ liệu thiết bị.
 class DevicePreferencesSection extends StatelessWidget {
@@ -13,11 +15,10 @@ class DevicePreferencesSection extends StatelessWidget {
   Future<void> _handleClearDeviceData(BuildContext context) async {
     final confirmed = await DialogUtils.showTwoOptionsDialog(
       context: context,
-      title: 'Xóa dữ liệu thiết bị?',
-      message:
-          'Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.',
-      positiveText: 'Xóa dữ liệu',
-      negativeText: 'Hủy bỏ',
+      title: AppL10n.current.deviceResetDialogTitle,
+      message: AppL10n.current.deviceResetDialogMessage,
+      positiveText: AppL10n.current.deviceResetConfirm,
+      negativeText: AppL10n.current.cancel,
       isPositiveDestructive: true,
     );
 
@@ -50,7 +51,7 @@ class DevicePreferencesSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: Text(
-            'CÀI ĐẶT & TÙY CHỌN',
+            context.l10n.devicePreferencesTitle,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -84,9 +85,9 @@ class DevicePreferencesSection extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Chế độ hiển thị',
-                          style: TextStyle(
+                        Text(
+                          context.l10n.themeModeLabel,
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -95,21 +96,21 @@ class DevicePreferencesSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     SegmentedButton<ThemeMode>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: ThemeMode.system,
-                          label: Text('Hệ thống', style: TextStyle(fontSize: 12)),
-                          icon: Icon(Icons.brightness_auto_rounded, size: 16),
+                          label: Text(context.l10n.themeSystem, style: const TextStyle(fontSize: 12)),
+                          icon: const Icon(Icons.brightness_auto_rounded, size: 16),
                         ),
                         ButtonSegment(
                           value: ThemeMode.light,
-                          label: Text('Sáng', style: TextStyle(fontSize: 12)),
-                          icon: Icon(Icons.light_mode_rounded, size: 16),
+                          label: Text(context.l10n.themeLight, style: const TextStyle(fontSize: 12)),
+                          icon: const Icon(Icons.light_mode_rounded, size: 16),
                         ),
                         ButtonSegment(
                           value: ThemeMode.dark,
-                          label: Text('Tối', style: TextStyle(fontSize: 12)),
-                          icon: Icon(Icons.dark_mode_rounded, size: 16),
+                          label: Text(context.l10n.themeDark, style: const TextStyle(fontSize: 12)),
+                          icon: const Icon(Icons.dark_mode_rounded, size: 16),
                         ),
                       ],
                       selected: {currentTheme},
@@ -131,7 +132,7 @@ class DevicePreferencesSection extends StatelessWidget {
                   color: colorScheme.error,
                 ),
                 title: Text(
-                  'Xóa dữ liệu thiết bị',
+                  context.l10n.deviceResetTitle,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -139,7 +140,7 @@ class DevicePreferencesSection extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  'Xóa mã định danh, token và khôi phục cài đặt gốc',
+                  context.l10n.deviceResetSubtitle,
                   style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.onSurfaceVariant,

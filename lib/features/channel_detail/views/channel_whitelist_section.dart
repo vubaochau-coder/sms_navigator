@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/channel_detail_model.dart';
 import '../../settings/whitelist_settings_page.dart';
 import '../bloc/channel_detail_bloc.dart';
+import '../../../core/extensions/context_extensions.dart';
 
 /// Card thông tin & Cấu hình White-list trong màn hình Chi tiết Kênh (v2.2).
 class ChannelWhitelistSection extends StatelessWidget {
@@ -36,7 +37,7 @@ class ChannelWhitelistSection extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Bộ lọc tin nhắn (White-list)',
+                        context.l10n.whitelistSectionTitle,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -49,7 +50,7 @@ class ChannelWhitelistSection extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
                         icon: const Icon(Icons.settings_outlined, size: 16),
-                        label: const Text('Cấu hình'),
+                        label: Text(context.l10n.whitelistConfigureButton),
                         onPressed: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute<void>(
@@ -72,8 +73,8 @@ class ChannelWhitelistSection extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   isOwner
-                      ? 'Thiết lập danh sách số điện thoại/Brandname được phép chuyển tiếp tin nhắn SMS và OTP qua kênh này.'
-                      : 'Kênh này được bảo vệ bởi bộ lọc của Chủ kênh. Tin nhắn SMS sẽ được chuyển tiếp theo cấu hình bảo mật đã duyệt.',
+                      ? context.l10n.whitelistSectionOwnerDesc
+                      : context.l10n.whitelistSectionMemberDesc,
                   style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.onSurfaceVariant,
@@ -89,7 +90,7 @@ class ChannelWhitelistSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'Phiên bản bộ lọc: v${detail.whitelist!.whitelistVersion}',
+                      context.l10n.whitelistVersionLabel(detail.whitelist!.whitelistVersion),
                       style: TextStyle(
                         fontSize: 11,
                         color: colorScheme.onSurfaceVariant,

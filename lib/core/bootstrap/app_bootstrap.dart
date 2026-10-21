@@ -51,6 +51,7 @@ import '../services/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
 import '../utils/channel_crypto_helper.dart';
 import '../../features/device/bloc/device_profile_cubit.dart';
+import '../l10n/app_l10n.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
 /// sử dụng [MultiRepositoryProvider] để làm phẳng cấu trúc lồng nhau.
@@ -236,7 +237,7 @@ class AppBootstrap extends StatelessWidget {
                   return nativeName.trim();
                 }
               } catch (_) {}
-              return 'Thiết bị của tôi';
+              return AppL10n.current.splashDefaultDeviceName;
             },
           ),
         ),

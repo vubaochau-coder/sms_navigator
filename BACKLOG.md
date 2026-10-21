@@ -2,98 +2,74 @@
 
 > Tài liệu gom toàn bộ nợ kỹ thuật + roadmap chưa triển khai của phía mobile.
 > Mục đã hoàn thành bị loại khỏi danh sách; hoàn thành mục nào thì xoá mục đó.
-> Cập nhật lần cuối: 07/10/2026.
+> Cập nhật lần cuối: 21/10/2026.
 
 ---
 
-## 1. QR đa năng + Startup Gate (roadmap — chưa triển khai)
+## 0. Việc dở dang của đợt cập nhật lớn (QR v3.3 + relay đa kênh)
 
-### Trạng thái đã xong (đừng làm lại)
-- In-app scanner + quét QR từ ảnh Gallery; deeplink ingress GĐ3.
-- Lộ trình bảo mật QR **GĐ0–GĐ4 hoàn tất** (ECDH, TTL 10 phút, one-time 409).
-- Xoá tàn dư V1 (pair/relay) khỏi app.
+Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque-qr` → `chore/l10n-backlog`
+(BE: `refactor/idempotent-rotation` → `feat/opaque-qr`). Còn lại:
 
-### Bước 1 — Tách điểm entry khỏi nghiệp vụ (chi phí thấp, đáng làm nhất)
-- Trên nền `qr_scan_page.dart`: thêm `QrParser` (URL-first, legacy-JSON fallback) + `QrHandlerRegistry`.
-- Handler đầu tiên: `PairingHandler` bọc luồng `PairingSubmitReceiverQrEvent` hiện có.
-- Không đụng BE. Scanner không còn biết gì về pairing.
-
-### Bước 2 — Dựng khung startup capability-based
-- `lib/core/startup/`: `CapabilitySet`, `StartupGate`, `StartupCoordinator`, `StartupBloc`, `PendingIntentStore`.
-- Gate đầu tiên: `MaintenanceGate` (+ `AuthenticationGate` nếu có auth).
-- Root app: `BlocListener<StartupBloc>` điều khiển màn blocker / ready.
-
-**Hợp đồng thiết kế cốt lõi (giữ nguyên khi implement):**
-- QR = URL opaque `https://<domain-đã-verify>/qr/v1/{key}`; BE resolve (`GET /qr/v1/{key}`) là source of truth; client chỉ parse cấu trúc URL.
-- `PendingIntentStore`: single-slot (latest wins), one-shot `consume()`, chỉ IntentRouter (sau `StartupReady`) được consume; EntryHandler chỉ save, không navigate.
-- Startup = vòng lặp capability fixpoint: gate khai báo `requires` theo **capability** (không theo gate khác); **"Gate detect, flow emit"** — gate chỉ trả `blocked(blockerId)`, fact mới do flow emit `StartupCapabilityAdded`.
-- Gate tương tác **không await UI** trong `evaluate()`; gate runtime check khai báo `requiresFreshCheck: true`.
-- Capability set **append-only** trong suốt startup; revoke/runtime concern không đưa vào startup model.
-- Priority chỉ là tie-breaker: field `order` cho thứ tự evaluate + chọn blocker hiển thị khi nhiều gate block cùng lúc.
-- Fixpoint driver dùng `droppable()` chống re-entrancy.
-
-### Bước 3 — Migrate QR sang URL opaque (phối hợp BE, xem BACKLOG của server)
-- Client: `PairingRepository` đổi sang resolve-based flow; **dọn shared secret khỏi QR** (`PairingPayloadModel.toQrData()` hiện còn nhúng secret) — chuyển sang exchange sau resolve.
-- Cấu hình App Links: `assetlinks.json` + intent filter `AndroidManifest.xml` (Universal Links/AASA nếu hỗ trợ iOS sau này).
-- Tương thích ngược: `QrParser.parse()` 3 nhánh — URL mới → resolve; legacy JSON → luồng cũ; khác → toast lỗi. Sau 1 release bỏ nhánh legacy.
-
-### Câu hỏi cần chốt trước khi làm
-1. Domain verify cho App Links (blocker hạ tầng Bước 3 — ảnh hưởng cả BE).
-2. Độ dài key: khuyến nghị 22 ký tự base64url ≈ 128-bit.
-3. Policy resolve fail: khuyến nghị retry inline cho 5xx, terminal cho 403/409/410.
-4. Giai đoạn tương thích QR legacy JSON: khuyến nghị 1 release (TTL QR chỉ 10 phút).
+| # | Hạng mục | Ghi chú | Ưu tiên |
+|---|---|---|---|
+| 0.1 | Chạy `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên các nhánh mới | Code được viết khi không có Flutter SDK — chưa compile | P0 |
+| 0.2 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) cho server; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
+| 0.3 | Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (không redirect) | Repo Worker nằm ngoài dự án | P0 |
+| 0.4 | iOS Universal Links: thêm capability Associated Domains (`applinks:<host>`) trong Xcode + `IOS_APP_IDS` cho server | Custom scheme `smsnavigator://` đã có | P1 |
+| 0.5 | Test thực tế ADB: cold start / mid-splash / warm start (ROADMAP_DEEPLINK_QR_V2 §6.2); 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal) | | P0 |
+| 0.6 | **Roadmap GĐ6 — clean-cut v4**: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
 
 ---
 
-## 2. TD-3 — Nợ kiến trúc phân tầng luồng khởi động (P3)
-
-- **Vấn đề**: `SplashBloc` inject trực tiếp 7 services (`CrashlyticsService`, `AnalyticsService`, `FcmNotificationService`, `DeviceStorageService`, `ChannelKeyStore`, `DeviceApiService`, `StartupReconcileService`) và điều phối 7 bước bootstrap trong BLoC; `SplashPage` đọc services từ Context để build BLoC.
-- **Tác động**: coupling cao, test setup dài (mock 7 service/test), thêm service mới phải sửa cả BLoC lẫn Page.
-- **Hướng xử lý**:
-  1. Xây `StartupRepository` (hoặc `BootstrapUseCase`): gom 7 bước vào `bootstrap({required String defaultDeviceName, CancelToken? cancelToken})`, chịu error mapping + observability. `SplashBloc` chỉ inject duy nhất repository này.
-  2. DI tại root (`main.dart`): khởi tạo `StartupRepository` + `SplashBloc` từ root, `SplashPage` thuần lắng nghe state.
-- Ghi chú: khi làm Bước 2 (startup gate), nên gộp refactor này vào cùng đợt.
-
----
-
-## 3. TD-4 — Widget test gọi HTTP thật tới Production Server (P2)
-
-- **Vấn đề**: widget test tích hợp (`widget_test.dart`, `MainNavigationPage`) mount cây khiến `SmsBloc`/`ChannelBloc` tự gọi `ApiClient` với baseUrl production (`https://sms-navigator-server.onrender.com`); log nhiễm `[API ERR] ... manually cancelled`, test phụ thuộc mạng + Render state.
-- **Hướng xử lý**:
-  1. `flutter_test_config.dart` toàn cục: `HttpOverrides.global` chặn mọi socket ngoài loopback khi test.
-  2. Test tích hợp lớn inject mock `ApiClient`/fake repository thay vì dùng production default.
-- Mục tiêu: CI hermetic, chạy offline hoàn toàn.
-
----
-
-## 4. Các tính năng & nợ kỹ thuật tồn đọng (Roadmap & Dự trù phát triển)
-
-### 4.1. Bổ sung tính năng mới (Dự trù phát triển)
+## 1. Tính năng mới
 
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
-| 4.1 | **Deeplink App (App Links & Custom Scheme)** | • Cấu hình Android App Links (`https://<domain>/join?token=...` qua `assetlinks.json`) và Custom Scheme (`smsnavigator://join?token=...`).<br>• Khi tap link mời từ tin nhắn/trình duyệt: tự động mở app, lưu vào `PendingIntentStore`. Sau khi Splash hoàn tất xác thực, điều hướng thẳng tới `JoinConfirmPage` kèm token đã parse mà không cần scan QR thủ công. | P1 |
-| 4.2 | **Export / Import Backup File (Khôi phục danh tính & Khóa)** | • **Vấn đề**: App hiện tại gỡ cài đặt là mất sạch X25519 Identity Key và Channel Keys, biến thành thiết bị mới toanh và mất quyền sở hữu/giải mã các kênh cũ.<br>• **Export**: Cho phép xuất file sao lưu `.smsnav` được mã hóa an toàn bằng mật khẩu người dùng (Passphrase → PBKDF2/Argon2 key derivation + AES-256-GCM), chứa Identity KeyPair, Channel Keys theo epoch, deviceId, deviceToken.<br>• **Import tại Splash Screen**: Khi mở app lần đầu trên máy mới (trước khi tự động sinh key mới và register), cung cấp tùy chọn: *"Thiết lập thiết bị mới"* hoặc *"Khôi phục từ bản sao lưu"*. Nhập mật khẩu giải mã file backup → nạp lại Identity Key & Session → verify token với server và khôi phục toàn bộ kênh. | P1 |
-| 4.3 | **Whitelist theo từng Channel (Bỏ whitelist chung)** | • **Vấn đề**: Hiện tại whitelist chỉ là cấu hình toàn cục cấp máy (`OtpPreferences`). Bất kỳ SMS nào lọt whitelist đều chỉ đẩy lên duy nhất 1 active channel.<br>• **Giải pháp**: Xóa bỏ whitelist chung. Mỗi kênh có cấu hình whitelist người gửi (`sender_whitelist`) độc lập (ví dụ: Kênh VCB chỉ nhận tin Vietcombank, Kênh OTP MXH nhận Telegram/Google).<br>• **Định tuyến tin nhắn Native**: Khi có SMS đến, Native `SmsReceiver` đối soát người gửi với whitelist của từng kênh mà máy đang làm Owner → mã hóa bằng Channel Key tương ứng và gửi đúng vào `channel_id` đó. Cho phép 1 máy quản lý chuyển tiếp cho nhiều kênh độc lập. | P1 |
-| 4.4 | **Đổi tên Kênh (Rename Channel)** | • **Bối cảnh**: Hiện tại app mới chỉ hỗ trợ đổi tên thiết bị (`PUT /api/v2/devices/name`), chưa hỗ trợ Owner đổi tên kênh sau khi tạo.<br>• **UI/UX**: Nút/Action "Đổi tên kênh" trong màn hình Chi tiết kênh (`ChannelDetailPage`) chỉ hiển thị cho Owner. Hiển thị dialog nhập tên kênh mới (validate độ dài 1–50 ký tự, chống khoảng trắng).<br>• **Luồng xử lý**: Gọi API `PUT /api/v2/channels/:channel_id/name` → cập nhật state `ChannelDetailBloc` và reload danh sách kênh (`ChannelBloc`). Đồng bộ cập nhật tên active channel trong `OtpPreferences` nếu đang là kênh chuyển tiếp SMS. | P2 |
-
-### 4.2. Roadmap P2 & Nợ kỹ thuật tồn đọng
-
-| # | Hạng mục | Chi tiết | Ưu tiên |
-|---|---|---|---|
-| 4.5 | FCM bell không refresh màn SMS đang mở | `SmsPage` chỉ load khi khởi tạo (`sms_page.dart`); không có wiring bell → `SmsBloc`. Wire channel event → `add(SmsLoadDataEvent())` để danh sách tự cập nhật realtime khi đang mở app | P1 |
-| 4.6 | Startup reconcile N+1 | `startup_reconcile_service_impl.dart` `_provisionChannelKeys()`: mỗi channel gọi riêng `getChannelDetail` + `provisionLatestForApproved` — batch hoá hoặc giới hạn scope | P2 |
-| 4.7 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Màn hình/tab xem lại các yêu cầu ghép đôi đã duyệt (`APPROVED`), từ chối (`REJECTED`) hoặc bị hủy (`CANCELLED`) (chuyển tiếp từ `MOBILE_FEATURES.md` mục 4.5) | P2 |
-| 4.8 | Quản lý vòng đời thành viên kênh (Member & Owner) | Member có tùy chọn tự rời kênh (`leave channel`); Owner có tùy chọn giải tán hoặc lưu trữ kênh (`archive channel`) (chuyển tiếp từ `MOBILE_FEATURES.md` mục 7.3) | P2 |
-| 4.9 | Offline Encrypted Cache tin nhắn (tuỳ chọn) | Hiện tại tin nhắn chỉ fetch online theo ngày từ server; cân nhắc mã hóa lưu trữ local (drift/hive) nếu cần xem lại tin nhắn khi mất mạng | P3 |
+| 1.1 | **Export / Import Backup (khôi phục danh tính & khóa)** | Gỡ app = mất X25519 identity key → Owner mất kênh vĩnh viễn (server chỉ giữ envelope wrap bằng key đó). Export file `.smsnav` mã hóa bằng passphrase (Argon2/PBKDF2 + AES-256-GCM) chứa identity keypair, channel keys theo epoch, deviceId, deviceToken. Splash lần đầu: *"Thiết lập thiết bị mới"* / *"Khôi phục từ bản sao lưu"*. Loại QR `BACKUP` của QR v3.3 có thể dùng để chuyển máy. | P1 |
+| 1.2 | **OTP hiển thị ngay trong thông báo** | Hiện thông báo chỉ "Có tin nhắn SMS mới" → member phải mở app, chọn ngày, chờ giải mã. FCM gửi data-only `{channel_id, sequence}` → app lấy ciphertext, giải mã cục bộ, hiện OTP + action **"Sao chép"**. Vẫn E2EE. Android trước (background handler); iOS cần Notification Service Extension. | P1 |
+| 1.3 | FCM bell refresh màn SMS đang mở | `SmsPage` chỉ load khi khởi tạo. Wire channel event → `SmsBloc.add(SmsLoadDataEvent())`. Làm cùng 1.2. | P1 |
+| 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE. | P2 |
+| 1.5 | Đổi tên kênh | Owner, dialog 1–50 ký tự, `PUT /api/v2/channels/name` (BE chưa có). Cập nhật `RelayChannelStore` qua `SyncOwnerRelayChannelUseCase`. | P2 |
+| 1.6 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Xem lại request `APPROVED` / `REJECTED` / `CANCELLED`. | P2 |
+| 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
 
 ---
 
-## 5. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
+## 2. Bảo mật native (Android)
 
+| # | Hạng mục | Chi tiết | Ưu tiên |
+|---|---|---|---|
+| 2.1 | Nội dung SMS nằm plaintext trong DB của WorkManager | `RelayWorkScheduler` đưa toàn văn SMS vào `inputData` (SQLite của WorkManager) cho tới khi worker xong (tối đa 5 lần retry). Chuyển sang lưu trong store mã hóa (như parked queue của `RelayChannelStore`), worker chỉ nhận `messageId`. | P1 |
+| 2.2 | Fallback lưu plaintext khi Keystore lỗi | `OtpPreferences` (device token) và `RelayChannelStore` (channel key) lưu thô nếu `SecureVault` ném lỗi. Ít nhất log/Crashlytics + cảnh báo; cân nhắc fail-closed. | P2 |
+
+---
+
+## 3. Nợ kỹ thuật
+
+| # | Hạng mục | Chi tiết | Ưu tiên |
+|---|---|---|---|
+| 3.1 | **TD-4 — Test hermetic** | Widget test tích hợp (`widget_test.dart`, `MainNavigationPage`) gọi `ApiClient` với baseUrl production. Thêm `flutter_test_config.dart` với `HttpOverrides.global` chặn socket ngoài loopback + inject fake repository. Điều kiện để chạy test trên CI. | P2 |
+| 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
+| 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
+| 3.4 | Startup reconcile N+1 | `startup_reconcile_service_impl.dart` `_provisionChannelKeys()` gọi `getChannelDetail` + `provisionLatestForApproved` từng kênh. `SyncOwnerRelayChannelUseCase` cũng gọi `getChannelDetail` mỗi kênh Owner (whitelist heal). Batch hoá. | P2 |
+| 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
+| 3.6 | Splash phân loại lỗi bằng nội dung chuỗi | `splash_page.dart` đoán lỗi mạng bằng `msg.contains('kết nối' / 'mạng')`. Chuyển sang loại lỗi trong state (`SplashFailureKind`). | P3 |
+| 3.7 | Giá trị mặc định tên thiết bị trùng l10n | `SplashStarted/SplashRetried.defaultDeviceName` và `DeviceProfileState.deviceName` còn hằng `'Thiết bị của tôi'` (bắt buộc `const`) — phải khớp `splashDefaultDeviceName`. | P3 |
+
+---
+
+## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
+
+- **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
+  - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.
+  - Universal Opaque QR v3.3: `QrLinkParser`, `QrIngressCubit` (pending deeplink one-shot), `QrEntryPage`, claim bằng `code`, App Links + custom scheme, nút "Dán mã" (không đọc clipboard tự động), Owner render `qr_url`.
+  - Whitelist theo từng kênh + định tuyến SMS native theo kênh (cũ: mục 4.3).
+  - Deeplink App Links & custom scheme (cũ: mục 4.1).
+  - Gom chuỗi hardcode về `app_vi.arb`; `AppL10n.current` cho BLoC/service/FCM background.
 - Kiến trúc V2 channel 1-to-N E2EE (đập bỏ V1 pairing/relay) — xem `../sms_navigator_server/SERVER_API_SPEC.md`.
 - Xoá toàn bộ tàn dư V1 + dead code (`isRelayEnabled`, method channel chết, banner orphan, endpoints V1).
-- FCM chuông V2: notification block đầy đủ cho `NEW_MESSAGE` / `JOIN_REQUEST` / `APPROVED` / `REVOKED` kèm `channel_name`.
+- FCM chuông V2: notification block cho `NEW_MESSAGE` / `JOIN_REQUEST` / `APPROVED` / `REVOKED` kèm `channel_name`.
 - Auto device name từ native (`Settings.Global.DEVICE_NAME` → `bluetooth_name` → `Build` fallback) + auto-heal máy cũ (`commit d2b2a14`).
-- Tối ưu UI Shimmer loading đồng bộ trên tất cả danh sách và phản hồi tức thì khi kéo pull-to-refresh (`commit dde4e5b`, `59c3fb6`).
-- Tự động đóng gói và phân phối release APK qua Firebase App Distribution (`scripts/distribute_android.sh`).
+- Shimmer loading đồng bộ + pull-to-refresh phản hồi tức thì (`commit dde4e5b`, `59c3fb6`).
+- Đóng gói & phân phối APK qua Firebase App Distribution (`scripts/distribute_android.sh`).

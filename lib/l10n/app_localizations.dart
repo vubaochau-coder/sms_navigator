@@ -1815,6 +1815,690 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không thể mở liên kết tải'**
   String get updateLaunchErrorMessage;
+
+  /// No description provided for @networkRequestCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu mạng đã bị hủy bỏ.'**
+  String get networkRequestCancelled;
+
+  /// No description provided for @networkConnectTimeout.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết nối tới máy chủ quá thời gian chờ ({seconds}s).'**
+  String networkConnectTimeout(int seconds);
+
+  /// No description provided for @networkTransferTimeout.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thời gian truyền dữ liệu với máy chủ quá hạn ({seconds}s).'**
+  String networkTransferTimeout(int seconds);
+
+  /// No description provided for @networkUnauthorized.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phiên xác thực thiết bị không hợp lệ hoặc đã hết hạn (401).'**
+  String get networkUnauthorized;
+
+  /// No description provided for @networkServerError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ trả về lỗi (HTTP {status}).'**
+  String networkServerError(String status);
+
+  /// No description provided for @networkUnreachable.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kết nối tới máy chủ: {detail}'**
+  String networkUnreachable(String detail);
+
+  /// No description provided for @networkOffline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.'**
+  String get networkOffline;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuông báo có yêu cầu duyệt / tin nhắn SMS mới / thay đổi kênh'**
+  String get notificationChannelDescription;
+
+  /// No description provided for @notificationDefaultBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có sự kiện mới trong kênh. Mở app để xem.'**
+  String get notificationDefaultBody;
+
+  /// No description provided for @notificationJoinRequestTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu tham gia kênh'**
+  String get notificationJoinRequestTitle;
+
+  /// No description provided for @notificationJoinRequestBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'{requesterName} muốn tham gia kênh "{channelName}".'**
+  String notificationJoinRequestBody(String requesterName, String channelName);
+
+  /// No description provided for @notificationJoinRequestBodyNoChannel.
+  ///
+  /// In vi, this message translates to:
+  /// **'{requesterName} muốn tham gia kênh.'**
+  String notificationJoinRequestBodyNoChannel(String requesterName);
+
+  /// No description provided for @notificationJoinRequestBodyGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có thiết bị mới xin tham gia. Mở app để duyệt.'**
+  String get notificationJoinRequestBodyGeneric;
+
+  /// No description provided for @notificationApprovedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu đã được duyệt'**
+  String get notificationApprovedTitle;
+
+  /// No description provided for @notificationApprovedBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã được thêm vào kênh "{channelName}". Mở app để xem tin nhắn SMS.'**
+  String notificationApprovedBody(String channelName);
+
+  /// No description provided for @notificationApprovedBodyGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã được thêm vào kênh. Mở app để bắt đầu nhận tin nhắn SMS.'**
+  String get notificationApprovedBodyGeneric;
+
+  /// No description provided for @notificationRevokedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền truy cập đã bị thu hồi'**
+  String get notificationRevokedTitle;
+
+  /// No description provided for @notificationRevokedBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn không còn quyền truy cập kênh "{channelName}".'**
+  String notificationRevokedBody(String channelName);
+
+  /// No description provided for @notificationRevokedBodyGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn không còn quyền truy cập một kênh.'**
+  String get notificationRevokedBodyGeneric;
+
+  /// No description provided for @notificationNewMessageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tin nhắn SMS mới'**
+  String get notificationNewMessageTitle;
+
+  /// No description provided for @notificationNewMessageBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có tin nhắn SMS mới từ kênh "{channelName}". Chạm để xem.'**
+  String notificationNewMessageBody(String channelName);
+
+  /// No description provided for @notificationNewMessageBodyGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.'**
+  String get notificationNewMessageBodyGeneric;
+
+  /// No description provided for @relativeJustNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vừa xong'**
+  String get relativeJustNow;
+
+  /// No description provided for @relativeMinutesAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} phút trước'**
+  String relativeMinutesAgo(int count);
+
+  /// No description provided for @relativeHoursAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} giờ trước'**
+  String relativeHoursAgo(int count);
+
+  /// No description provided for @relativeYesterdayAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm qua {time}'**
+  String relativeYesterdayAt(String time);
+
+  /// No description provided for @relativeDaysAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} ngày trước'**
+  String relativeDaysAgo(int count);
+
+  /// No description provided for @qrUnsupportedFormat.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR không được hỗ trợ. Hãy quét mã mời từ SMS Navigator.'**
+  String get qrUnsupportedFormat;
+
+  /// No description provided for @qrUpdateRequired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã này cần phiên bản SMS Navigator mới hơn. Hãy cập nhật ứng dụng.'**
+  String get qrUpdateRequired;
+
+  /// No description provided for @qrCheckFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kiểm tra mã kết nối. Vui lòng thử lại sau.'**
+  String get qrCheckFailed;
+
+  /// No description provided for @qrNotFound.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy mã mời. Hãy kiểm tra lại hoặc xin Chủ kênh mã mới.'**
+  String get qrNotFound;
+
+  /// No description provided for @qrRateLimited.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.'**
+  String get qrRateLimited;
+
+  /// No description provided for @qrEntryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã kết nối'**
+  String get qrEntryTitle;
+
+  /// No description provided for @qrEntryChecking.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang kiểm tra mã kết nối…'**
+  String get qrEntryChecking;
+
+  /// No description provided for @qrEntryCheckFailedShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kiểm tra mã kết nối.'**
+  String get qrEntryCheckFailedShort;
+
+  /// No description provided for @joinErrorAlreadyPending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã có yêu cầu tham gia kênh này đang chờ duyệt.'**
+  String get joinErrorAlreadyPending;
+
+  /// No description provided for @joinErrorAlreadyMember.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị của bạn đã là thành viên của kênh này.'**
+  String get joinErrorAlreadyMember;
+
+  /// No description provided for @joinErrorExpired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.'**
+  String get joinErrorExpired;
+
+  /// No description provided for @joinErrorUsed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.'**
+  String get joinErrorUsed;
+
+  /// No description provided for @joinErrorChannelArchived.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh này đã bị lưu trữ, không thể tham gia.'**
+  String get joinErrorChannelArchived;
+
+  /// No description provided for @joinResolveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.'**
+  String get joinResolveFailed;
+
+  /// No description provided for @joinResolveFailedShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể kiểm tra thông tin kênh.'**
+  String get joinResolveFailedShort;
+
+  /// No description provided for @joinClaimFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.'**
+  String get joinClaimFailed;
+
+  /// No description provided for @joinClaimFailedRetry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không gửi được yêu cầu. Vui lòng thử lại sau.'**
+  String get joinClaimFailedRetry;
+
+  /// No description provided for @joinInvalidQrFormat.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.'**
+  String get joinInvalidQrFormat;
+
+  /// No description provided for @joinChannelFallbackName.
+  ///
+  /// In vi, this message translates to:
+  /// **'kênh'**
+  String get joinChannelFallbackName;
+
+  /// No description provided for @joinRequestSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi yêu cầu tham gia {channelName}'**
+  String joinRequestSent(String channelName);
+
+  /// No description provided for @joinLoadingChannelInfo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tải thông tin kênh...'**
+  String get joinLoadingChannelInfo;
+
+  /// No description provided for @joinYourDeviceFallback.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị của bạn'**
+  String get joinYourDeviceFallback;
+
+  /// No description provided for @back.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quay lại'**
+  String get back;
+
+  /// No description provided for @copiedLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép {label}'**
+  String copiedLabel(String label);
+
+  /// No description provided for @statusPending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ'**
+  String get statusPending;
+
+  /// No description provided for @channelLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được danh sách kênh. Kiểm tra kết nối và thử lại.'**
+  String get channelLoadFailed;
+
+  /// No description provided for @channelCreateFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tạo được kênh. Thử lại sau.'**
+  String get channelCreateFailed;
+
+  /// No description provided for @deviceRenameFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không đổi được tên thiết bị. Thử lại sau.'**
+  String get deviceRenameFailed;
+
+  /// No description provided for @channelDetailLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được chi tiết kênh. Kiểm tra kết nối và thử lại.'**
+  String get channelDetailLoadFailed;
+
+  /// No description provided for @channelDetailApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã duyệt {deviceName}.'**
+  String channelDetailApproved(String deviceName);
+
+  /// No description provided for @channelDetailApproveConflict.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không duyệt được: trạng thái kênh đã thay đổi. Danh sách đã được làm mới, thử lại.'**
+  String get channelDetailApproveConflict;
+
+  /// No description provided for @channelDetailRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã từ chối {deviceName}.'**
+  String channelDetailRejected(String deviceName);
+
+  /// No description provided for @channelDetailRejectFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không từ chối được: yêu cầu có thể đã được xử lý.'**
+  String get channelDetailRejectFailed;
+
+  /// No description provided for @channelDetailRevoked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thu hồi thành viên và xoay khóa kênh.'**
+  String get channelDetailRevoked;
+
+  /// No description provided for @channelDetailRevokeConflict.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thu hồi được: trạng thái kênh đã thay đổi. Thử lại.'**
+  String get channelDetailRevokeConflict;
+
+  /// No description provided for @channelInviteCreateFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tạo được mã mời. Thử lại sau.'**
+  String get channelInviteCreateFailed;
+
+  /// No description provided for @whitelistSectionTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ lọc tin nhắn (White-list)'**
+  String get whitelistSectionTitle;
+
+  /// No description provided for @whitelistConfigureButton.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấu hình'**
+  String get whitelistConfigureButton;
+
+  /// No description provided for @whitelistSectionOwnerDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết lập danh sách số điện thoại/Brandname được phép chuyển tiếp tin nhắn SMS và OTP qua kênh này.'**
+  String get whitelistSectionOwnerDesc;
+
+  /// No description provided for @whitelistSectionMemberDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh này được bảo vệ bởi bộ lọc của Chủ kênh. Tin nhắn SMS sẽ được chuyển tiếp theo cấu hình bảo mật đã duyệt.'**
+  String get whitelistSectionMemberDesc;
+
+  /// No description provided for @whitelistVersionLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phiên bản bộ lọc: v{version}'**
+  String whitelistVersionLabel(int version);
+
+  /// No description provided for @whitelistFilterTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ lọc: {channelName}'**
+  String whitelistFilterTitle(String channelName);
+
+  /// No description provided for @whitelistMissingChannelKey.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy khóa bảo mật kênh để mã hóa'**
+  String get whitelistMissingChannelKey;
+
+  /// No description provided for @whitelistConflict.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấu hình đã thay đổi trên thiết bị khác. Vui lòng tải lại.'**
+  String get whitelistConflict;
+
+  /// No description provided for @whitelistSaveRequiresNetwork.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lưu cấu hình (bắt buộc kết nối mạng): {detail}'**
+  String whitelistSaveRequiresNetwork(String detail);
+
+  /// No description provided for @whitelistSaveOffline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có kết nối mạng. Không thể lưu cấu hình bộ lọc.'**
+  String get whitelistSaveOffline;
+
+  /// No description provided for @relayLogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhật ký tiếp nhận SMS'**
+  String get relayLogTitle;
+
+  /// No description provided for @relayLogDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn (nếu không relay được).'**
+  String get relayLogDescription;
+
+  /// No description provided for @relayLogEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có SMS nào được ghi nhận.'**
+  String get relayLogEmpty;
+
+  /// No description provided for @relayLogUnknownSender.
+  ///
+  /// In vi, this message translates to:
+  /// **'(không rõ số gửi)'**
+  String get relayLogUnknownSender;
+
+  /// No description provided for @relayLogDetected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nội dung phát hiện: {otp}'**
+  String relayLogDetected(String otp);
+
+  /// No description provided for @deviceRenameLoading.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang cập nhật tên thiết bị...'**
+  String get deviceRenameLoading;
+
+  /// No description provided for @deviceRenameSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã cập nhật tên thiết bị'**
+  String get deviceRenameSuccess;
+
+  /// No description provided for @deviceResetLoading.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang xóa dữ liệu thiết bị...'**
+  String get deviceResetLoading;
+
+  /// No description provided for @deviceResetSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xóa dữ liệu thiết bị'**
+  String get deviceResetSuccess;
+
+  /// No description provided for @deviceResetFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể xóa dữ liệu thiết bị. Thử lại sau.'**
+  String get deviceResetFailed;
+
+  /// No description provided for @deviceResetDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa dữ liệu thiết bị?'**
+  String get deviceResetDialogTitle;
+
+  /// No description provided for @deviceResetDialogMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Toàn bộ mã định danh, token xác thực và cấu hình trên thiết bị này sẽ bị xóa hoàn toàn khỏi máy.\n\nỨng dụng sẽ được khởi động lại từ đầu để bạn đăng ký mới.'**
+  String get deviceResetDialogMessage;
+
+  /// No description provided for @deviceResetConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa dữ liệu'**
+  String get deviceResetConfirm;
+
+  /// No description provided for @deviceResetTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa dữ liệu thiết bị'**
+  String get deviceResetTitle;
+
+  /// No description provided for @deviceResetSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa mã định danh, token và khôi phục cài đặt gốc'**
+  String get deviceResetSubtitle;
+
+  /// No description provided for @devicePreferencesTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'CÀI ĐẶT & TÙY CHỌN'**
+  String get devicePreferencesTitle;
+
+  /// No description provided for @themeModeLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chế độ hiển thị'**
+  String get themeModeLabel;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hệ thống'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sáng'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối'**
+  String get themeDark;
+
+  /// No description provided for @deviceSetupYourDevice.
+  ///
+  /// In vi, this message translates to:
+  /// **'thiết bị của bạn'**
+  String get deviceSetupYourDevice;
+
+  /// No description provided for @deviceHealthTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'TÌNH TRẠNG THIẾT BỊ'**
+  String get deviceHealthTitle;
+
+  /// No description provided for @deviceHealthReady.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sẵn sàng'**
+  String get deviceHealthReady;
+
+  /// No description provided for @deviceHealthNeedsAttention.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cần chú ý'**
+  String get deviceHealthNeedsAttention;
+
+  /// No description provided for @deviceHealthSmsPermission.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền đọc SMS'**
+  String get deviceHealthSmsPermission;
+
+  /// No description provided for @deviceHealthGranted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã cấp quyền'**
+  String get deviceHealthGranted;
+
+  /// No description provided for @deviceHealthNotGranted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa cấp quyền'**
+  String get deviceHealthNotGranted;
+
+  /// No description provided for @deviceHealthGrantNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp ngay'**
+  String get deviceHealthGrantNow;
+
+  /// No description provided for @deviceHealthBackground.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạy ngầm & Tối ưu pin'**
+  String get deviceHealthBackground;
+
+  /// No description provided for @deviceHealthBatteryUnrestricted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã tắt hạn chế pin'**
+  String get deviceHealthBatteryUnrestricted;
+
+  /// No description provided for @deviceHealthBatteryRestricted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có thể bị hệ điều hành tắt'**
+  String get deviceHealthBatteryRestricted;
+
+  /// No description provided for @deviceHealthOemDetails.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết thiết lập thiết bị & cài đặt OEM'**
+  String get deviceHealthOemDetails;
+
+  /// No description provided for @deviceIdUnknown.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa xác định'**
+  String get deviceIdUnknown;
+
+  /// No description provided for @deviceIdCopied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã sao chép ID thiết bị'**
+  String get deviceIdCopied;
+
+  /// No description provided for @scanInviteTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quét mã mời'**
+  String get scanInviteTooltip;
+
+  /// No description provided for @scannerPasteAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dán mã'**
+  String get scannerPasteAction;
+
+  /// No description provided for @scannerClipboardEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ nhớ tạm không có mã nào để dán.'**
+  String get scannerClipboardEmpty;
+
+  /// No description provided for @scannerCameraPermissionRequired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ứng dụng cần quyền truy cập máy ảnh để quét mã QR'**
+  String get scannerCameraPermissionRequired;
+
+  /// No description provided for @scannerCameraStartFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể khởi động máy ảnh: {detail}'**
+  String scannerCameraStartFailed(String detail);
+
+  /// No description provided for @splashServerError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ đang gặp sự cố (HTTP {status}). Vui lòng thử lại sau.'**
+  String splashServerError(String status);
+
+  /// No description provided for @splashStartupFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.'**
+  String get splashStartupFailed;
 }
 
 class _AppLocalizationsDelegate

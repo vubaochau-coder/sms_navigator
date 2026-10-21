@@ -14,6 +14,7 @@ import 'bloc/whitelist_bloc.dart';
 import 'bloc/whitelist_event.dart';
 import 'bloc/whitelist_state.dart';
 import 'views/whitelist_add_entry_dialog.dart';
+import '../../core/l10n/app_l10n.dart';
 
 /// Màn cấu hình Danh sách trắng SMS theo kênh (deny-by-default).
 class WhitelistSettingsPage extends StatelessWidget {
@@ -49,15 +50,15 @@ class _WhitelistSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final title = channelName != null && channelName!.trim().isNotEmpty
-        ? 'Bộ lọc: $channelName'
-        : 'Bộ lọc tin nhắn (White-list)';
+        ? l10n.whitelistFilterTitle(channelName!)
+        : l10n.whitelistSectionTitle;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         actions: [
           IconButton(
-            tooltip: 'Nhật ký tiếp nhận SMS',
+            tooltip: l10n.relayLogTitle,
             icon: const Icon(Icons.receipt_long_rounded),
             onPressed: () => _openRelayLogSheet(context),
           ),
@@ -106,7 +107,7 @@ class _WhitelistSettingsView extends StatelessWidget {
     bloc.add(const WhitelistLogsRefreshed());
     BottomSheetUtils.showAppBottomSheet<void>(
       context: context,
-      title: 'Nhật ký tiếp nhận SMS',
+      title: AppL10n.current.relayLogTitle,
       child: BlocProvider.value(
         value: bloc,
         child: const _RelayLogSheet(),
@@ -140,8 +141,7 @@ class _RelayLogSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        'Mỗi SMS tới sẽ được ghi lại tại đây kèm lý do bị chặn '
-                        '(nếu không relay được).',
+                        context.l10n.relayLogDescription,
                         style: TextStyle(
                           fontSize: 12,
                           color: colorScheme.onSurfaceVariant,
@@ -149,7 +149,7 @@ class _RelayLogSheet extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Làm mới',
+                      tooltip: context.l10n.refresh,
                       icon: const Icon(Icons.refresh_rounded),
                       onPressed: () => BlocProvider.of<WhitelistBloc>(context)
                           .add(const WhitelistLogsRefreshed()),
@@ -162,7 +162,7 @@ class _RelayLogSheet extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Center(
                     child: Text(
-                      'Chưa có SMS nào được ghi nhận.',
+                      context.l10n.relayLogEmpty,
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   ),
@@ -226,7 +226,7 @@ class _RelayLogTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        sender.isEmpty ? '(không rõ số gửi)' : sender,
+                        sender.isEmpty ? context.l10n.relayLogUnknownSender : sender,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -257,7 +257,7 @@ class _RelayLogTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
-                      'Nội dung phát hiện: $otp',
+                      context.l10n.relayLogDetected(otp),
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurfaceVariant,
