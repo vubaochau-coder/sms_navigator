@@ -9,12 +9,11 @@
 
 ## 0. Kiểm thử & phát hành
 
-Nhánh đang chờ merge (xếp chồng, merge theo thứ tự):
-`feat/otp-notification` → `feat/backup-and-secure-relay` (BE: `feat/otp-notification` → `chore/backlog-cleanup`).
+Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 1.2, 1.3, 1.1, 2.1 và dọn backlog).
 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
-| 0.1 | Chạy `flutter gen-l10n`, `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên hai nhánh trên | Dart được viết khi không có Flutter SDK — chưa compile. Kotlin JVM test (103) đã chạy xanh bằng stub; `BackupFileChannel`, `OtpRelayWorker`, `RelayWorkScheduler` cần Android SDK mới compile được | P0 |
+| 0.1 | Chạy `flutter gen-l10n`, `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên nhánh `feat/otp-notification` | Dart được viết khi không có Flutter SDK — chưa compile. Kotlin JVM test (103) đã chạy xanh bằng stub; `BackupFileChannel`, `OtpRelayWorker`, `RelayWorkScheduler` cần Android SDK mới compile được | P0 |
 | 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
 | 0.3 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) trên Render; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
 | 0.4 | Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (không redirect) | Repo Worker nằm ngoài dự án | P0 |
@@ -60,7 +59,7 @@ Nhánh đang chờ merge (xếp chồng, merge theo thứ tự):
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
-- **Nhánh `feat/backup-and-secure-relay`** (chưa merge):
+- **Nhánh `feat/otp-notification`** (chưa merge) — sao lưu & outbox native:
   - 1.1 Sao lưu / khôi phục: file `.smsnav` = AES-256-GCM, key từ PBKDF2-HMAC-SHA256 (310k vòng, salt 16B, chạy ngoài UI isolate), AAD `smsnav-backup|v1`. Chứa identity X25519, mọi channel key theo epoch, `device_id`, `device_token`, tên, server URL. Tạo ở **Hồ sơ thiết bị → Sao lưu**; khôi phục ở **Splash lần đầu** ("Thiết lập thiết bị mới" / "Khôi phục từ bản sao lưu"). Lưu/mở file qua Storage Access Framework (`BackupFileChannel.kt`, không thêm package, không cần quyền bộ nhớ). Ghi device token **sau cùng** khi khôi phục (bị kill giữa chừng → lần sau vẫn được mời khôi phục).
   - 2.1 SMS không còn nằm plaintext trong DB của WorkManager: text + sender vào outbox mã hoá của `RelayChannelStore`, worker chỉ nhận `outbox_id`; xoá khi job kết thúc, giữ khi retry; TTL 24h + giới hạn 200. Job do bản cũ enqueue vẫn chạy.
 - **Nhánh `feat/otp-notification`** (mobile + BE, chưa merge):
