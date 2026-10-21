@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/models/qr_resolution.dart';
 import '../../core/repositories/qr_repository.dart';
-import '../../core/utils/toast_utils.dart';
+import '../../core/ui/toast_utils.dart';
 import '../channel_join/join_confirm_page.dart';
 import 'bloc/qr_entry_cubit.dart';
 import '../../core/extensions/context_extensions.dart';

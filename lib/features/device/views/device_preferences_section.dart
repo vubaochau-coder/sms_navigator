@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/theme_cubit.dart';
-import '../../../core/utils/dialog_utils.dart';
+import '../../../core/ui/dialog_utils.dart';
 import '../../splash/splash_page.dart';
 import '../bloc/device_profile_cubit.dart';
 import '../../../core/l10n/app_l10n.dart';

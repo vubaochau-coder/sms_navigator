@@ -1,6 +1,7 @@
-import '../../storage/local_storage_service.dart';
-import '../../storage/secure_storage_service.dart';
-import '../../storage/storage_keys.dart';
+import '../local_storage_service.dart';
+import '../secure_storage_service.dart';
+import 'secure_storage_service_impl.dart';
+import '../../constants/storage_keys.dart';
 import '../device_storage_service.dart';
 
 class DeviceStorageServiceImpl implements DeviceStorageService {

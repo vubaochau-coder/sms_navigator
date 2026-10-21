@@ -12,7 +12,7 @@ import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/repositories/whitelist_repository.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/settings/whitelist_settings_page.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
 

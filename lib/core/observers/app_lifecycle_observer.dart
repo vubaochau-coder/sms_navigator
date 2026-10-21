@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../services/sync_owner_relay_channel_use_case.dart';
+import '../usecases/sync_owner_relay_channel_use_case.dart';
 import '../utils/app_logger.dart';
 
 /// Observer theo dõi vòng đời ứng dụng (Foreground / Background).

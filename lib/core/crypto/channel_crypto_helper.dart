@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:equatable/equatable.dart';
 
-import '../crypto/canonical_encoding.dart';
+import 'canonical_encoding.dart';
 
 /// Cặp khóa định danh X25519 của thiết bị (SRD 3.1).
 ///

@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/repositories/qr_repository.dart';
-import '../../../core/services/deep_link_service.dart';
-import '../../../core/utils/app_logger.dart';
-import '../../../core/utils/qr_link_parser.dart';
-import '../../../core/utils/qr_error_messages.dart';
+import '../../repositories/qr_repository.dart';
+import '../../services/deep_link_service.dart';
+import '../../utils/app_logger.dart';
+import '../../utils/qr_link_parser.dart';
+import '../../utils/qr_error_messages.dart';
 import 'qr_ingress_state.dart';
 
 export 'qr_ingress_state.dart';

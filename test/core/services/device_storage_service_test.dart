@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/services/impls/device_storage_service_impl.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
-import 'package:sms_navigator/core/storage/secure_storage_service.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
+import 'package:sms_navigator/core/services/secure_storage_service.dart';
 
 class _FakeSecureStorageService implements SecureStorageService {
   final Map<String, String> _data = {};

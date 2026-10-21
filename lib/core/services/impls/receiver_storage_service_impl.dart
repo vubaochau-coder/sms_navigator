@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import '../../models/received_otp_model.dart';
-import '../../storage/storage_keys.dart';
+import '../../constants/storage_keys.dart';
 import '../../utils/data_converter.dart';
 import '../local_storage_service.dart';
 import '../receiver_storage_service.dart';

@@ -11,7 +11,7 @@ import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
 import 'package:sms_navigator/core/services/native_relay_service.dart';
 import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
 

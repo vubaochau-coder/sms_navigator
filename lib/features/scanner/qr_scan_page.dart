@@ -7,7 +7,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/utils/qr_link_parser.dart';
-import '../../core/utils/toast_utils.dart';
+import '../../core/ui/toast_utils.dart';
 import 'models/scan_qr_result.dart';
 import 'views/scanner_controls.dart';
 import 'views/scanner_error_view.dart';

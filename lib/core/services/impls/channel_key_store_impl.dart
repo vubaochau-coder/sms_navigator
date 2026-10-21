@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import '../../storage/storage_keys.dart';
-import '../../utils/channel_crypto_helper.dart';
+import '../../constants/storage_keys.dart';
+import '../../crypto/channel_crypto_helper.dart';
 import '../channel_key_store.dart';
-import '../impls/secure_storage_service_impl.dart';
+import 'secure_storage_service_impl.dart';
 import '../secure_storage_service.dart';
 
 class ChannelKeyStoreImpl implements ChannelKeyStore {

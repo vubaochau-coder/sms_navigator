@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/models/pairing_session_model.dart';
 import '../../../core/repositories/channel_repository.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import 'channel_invite_event.dart';
 import 'channel_invite_state.dart';
 import '../../../core/l10n/app_l10n.dart';

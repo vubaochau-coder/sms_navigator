@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/services/device_storage_service.dart';
 import '../../../core/services/native_relay_service.dart';
-import '../../../core/utils/dialog_utils.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/dialog_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import 'device_profile_state.dart';
 import '../../../core/l10n/app_l10n.dart';
 

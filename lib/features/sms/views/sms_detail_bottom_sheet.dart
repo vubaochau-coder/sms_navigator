@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_message_model.dart';
-import '../../../core/utils/bottom_sheet_utils.dart';
+import '../../../core/ui/bottom_sheet_utils.dart';
 import '../../../core/utils/date_time_utils.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 
 /// BottomSheet hiển thị chi tiết tin nhắn SMS nhận được qua kênh E2EE.
 class SmsDetailBottomSheet extends StatelessWidget {

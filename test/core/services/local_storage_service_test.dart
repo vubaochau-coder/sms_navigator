@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
-import 'package:sms_navigator/core/storage/storage_keys.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
+import 'package:sms_navigator/core/services/impls/local_storage_service_impl.dart';
+import 'package:sms_navigator/core/constants/storage_keys.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

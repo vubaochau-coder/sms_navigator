@@ -11,7 +11,7 @@ import 'package:sms_navigator/core/services/device_api_service.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/pairing_api_service.dart';
 import 'package:sms_navigator/core/services/relay_channel_bridge.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 
 /// Records the order of side effects across key store, native bridge and server.
 final List<String> _events = [];

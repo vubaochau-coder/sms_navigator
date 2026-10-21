@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/models/app_update_info_model.dart';
 import 'package:sms_navigator/core/repositories/impls/app_update_repository_impl.dart';
 import 'package:sms_navigator/core/services/impls/app_update_service_impl.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -2,8 +2,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../models/app_update_info_model.dart';
-import '../../storage/local_storage_service.dart';
-import '../../storage/storage_keys.dart';
+import '../local_storage_service.dart';
+import '../../constants/storage_keys.dart';
 import '../../utils/app_logger.dart';
 import '../app_update_service.dart';
 

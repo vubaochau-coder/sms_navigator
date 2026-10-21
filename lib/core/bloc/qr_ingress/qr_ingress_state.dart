@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../core/utils/qr_link_parser.dart';
+import '../../utils/qr_link_parser.dart';
 
 /// Single-slot, one-shot pending QR (PendingIntentStore của roadmap v3.3 §3.6).
 ///

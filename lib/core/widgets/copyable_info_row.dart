@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../utils/ui_utils.dart';
+import '../ui/ui_utils.dart';
 import '../extensions/context_extensions.dart';
 
 /// Dòng hiển thị nhãn và giá trị có nút copy nhanh tiện dụng

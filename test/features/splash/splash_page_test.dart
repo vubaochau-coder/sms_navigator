@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/features/home/main_navigation_page.dart';
 import 'package:sms_navigator/features/splash/splash_page.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';

@@ -6,7 +6,7 @@ import 'core/constants/app_strings.dart';
 import 'core/navigation/app_navigator.dart';
 import 'core/observers/app_lifecycle_observer.dart';
 import 'core/services/analytics_service.dart';
-import 'core/services/sync_owner_relay_channel_use_case.dart';
+import 'core/usecases/sync_owner_relay_channel_use_case.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/splash/splash_page.dart';

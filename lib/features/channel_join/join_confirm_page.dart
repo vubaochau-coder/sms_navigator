@@ -7,7 +7,7 @@ import '../../core/models/invite_preview_model.dart';
 import '../../core/models/pairing_session_model.dart';
 import '../../core/repositories/join_channel_repository.dart';
 import '../../core/repositories/qr_repository.dart';
-import '../../core/utils/toast_utils.dart';
+import '../../core/ui/toast_utils.dart';
 import '../device/bloc/device_profile_cubit.dart';
 import 'bloc/join_bloc.dart';
 import '../../core/l10n/app_l10n.dart';

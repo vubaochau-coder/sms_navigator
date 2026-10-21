@@ -8,8 +8,8 @@ import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/relay_channel_bridge.dart';
-import 'package:sms_navigator/core/services/sync_owner_relay_channel_use_case.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/usecases/sync_owner_relay_channel_use_case.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 
 class FakeChannelRepository implements ChannelRepository {
   List<ChannelModel> channels = [];

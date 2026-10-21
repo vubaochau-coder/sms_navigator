@@ -1,6 +1,6 @@
 import 'package:permission_handler/permission_handler.dart' as ph;
 
-import '../../storage/storage_keys.dart';
+import '../../constants/storage_keys.dart';
 import '../device_setup_service.dart';
 import '../local_storage_service.dart';
 import '../native_relay_service.dart';

@@ -8,8 +8,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/repositories/channel_repository.dart';
-import '../../../core/utils/bottom_sheet_utils.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/bottom_sheet_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
 
 /// BottomSheet hiển thị mã QR mời tham gia kênh kèm bộ đếm ngược 10 phút.

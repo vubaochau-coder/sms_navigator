@@ -5,7 +5,7 @@ import '../../../core/models/whitelist_config_model.dart';
 import '../../../core/repositories/channel_repository.dart';
 import '../../../core/repositories/whitelist_repository.dart';
 import '../../../core/services/channel_key_store.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import 'whitelist_event.dart';
 import 'whitelist_state.dart';
 import '../../../core/l10n/app_l10n.dart';

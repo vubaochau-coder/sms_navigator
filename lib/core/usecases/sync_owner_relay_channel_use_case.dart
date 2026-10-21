@@ -5,7 +5,7 @@ import '../repositories/whitelist_repository.dart';
 import '../services/channel_key_store.dart';
 import '../services/device_storage_service.dart';
 import '../utils/app_logger.dart';
-import 'relay_channel_bridge.dart';
+import '../services/relay_channel_bridge.dart';
 
 /// Đồng bộ **toàn bộ** kênh Owner ACTIVE và Channel Key mới nhất xuống native
 /// relay, để `OtpRelayWorker` mã hóa đúng epoch ngay cả khi app bị kill.

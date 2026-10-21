@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/app_update_info_model.dart';
 import '../../../core/repositories/app_update_repository.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 
 class AppUpdateDialog extends StatelessWidget {
   final AppUpdateInfoModel updateInfo;

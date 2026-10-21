@@ -4,7 +4,7 @@ import '../../models/channel_detail_model.dart';
 import '../../models/whitelist_config_model.dart';
 import '../../services/channel_api_service.dart';
 import '../../services/native_relay_service.dart';
-import '../../utils/channel_crypto_helper.dart';
+import '../../crypto/channel_crypto_helper.dart';
 import '../whitelist_repository.dart';
 import '../../l10n/app_l10n.dart';
 

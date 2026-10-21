@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/core/utils/crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/crypto_helper.dart';
 
 void main() {
   group('encryptAesGcm256 / decryptAesGcm256 round-trip', () {

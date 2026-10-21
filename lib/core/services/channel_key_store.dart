@@ -1,4 +1,4 @@
-import '../utils/channel_crypto_helper.dart';
+import '../crypto/channel_crypto_helper.dart';
 
 /// Kho lưu trữ an toàn cho key material của kiến trúc Channel E2EE:
 /// - Identity key X25519 của thiết bị (SRD 3.1, reinstall = identity mới).

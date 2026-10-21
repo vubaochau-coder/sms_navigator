@@ -17,7 +17,7 @@ import '../../services/device_storage_service.dart';
 import '../../services/pairing_api_service.dart';
 import '../../services/relay_channel_bridge.dart';
 import '../../utils/app_logger.dart';
-import '../../utils/channel_crypto_helper.dart';
+import '../../crypto/channel_crypto_helper.dart';
 import '../channel_repository.dart';
 import '../whitelist_repository.dart';
 

@@ -5,7 +5,7 @@ import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_storage_service.dart';
 import '../../services/pairing_api_service.dart';
-import '../../utils/channel_crypto_helper.dart';
+import '../../crypto/channel_crypto_helper.dart';
 import '../join_channel_repository.dart';
 
 class JoinChannelRepositoryImpl implements JoinChannelRepository {

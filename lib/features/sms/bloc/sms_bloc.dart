@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/errors/app_exceptions.dart';
 import '../../../core/repositories/sms_by_date_repository.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import 'sms_event.dart';
 import 'sms_state.dart';
 import '../../../core/l10n/app_l10n.dart';

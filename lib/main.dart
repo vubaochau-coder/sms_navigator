@@ -8,7 +8,7 @@ import 'core/bloc/app_bloc_observer.dart';
 import 'core/bootstrap/app_bootstrap.dart';
 import 'core/services/crashlytics_service.dart';
 import 'core/services/fcm_notification_service.dart';
-import 'core/storage/local_storage_service.dart';
+import 'core/services/local_storage_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

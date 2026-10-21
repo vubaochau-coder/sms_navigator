@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/navigation/app_navigator.dart';
-import 'package:sms_navigator/core/utils/ui_utils.dart';
+import 'package:sms_navigator/core/ui/ui_utils.dart';
 import 'package:toastification/toastification.dart';
 
 void main() {

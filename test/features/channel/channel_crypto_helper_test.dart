@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
-import 'package:sms_navigator/core/utils/crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/crypto_helper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

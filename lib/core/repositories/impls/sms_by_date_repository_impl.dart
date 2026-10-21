@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import '../../models/channel_message_model.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/message_api_service.dart';
-import '../../utils/channel_crypto_helper.dart';
+import '../../crypto/channel_crypto_helper.dart';
 import '../sms_by_date_repository.dart';
 
 class SmsByDateRepositoryImpl implements SmsByDateRepository {

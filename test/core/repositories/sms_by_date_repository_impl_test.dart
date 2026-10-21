@@ -4,7 +4,7 @@ import 'package:sms_navigator/core/models/channel_message_model.dart';
 import 'package:sms_navigator/core/repositories/impls/sms_by_date_repository_impl.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
 import 'package:sms_navigator/core/services/message_api_service.dart';
-import 'package:sms_navigator/core/utils/channel_crypto_helper.dart';
+import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 
 class _KeyStore implements ChannelKeyStore {
   final Map<String, String> keys = {};

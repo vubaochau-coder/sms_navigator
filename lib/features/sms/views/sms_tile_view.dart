@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_message_model.dart';
 import '../../../core/utils/date_time_utils.dart';
-import '../../../core/utils/toast_utils.dart';
+import '../../../core/ui/toast_utils.dart';
 import 'sms_detail_bottom_sheet.dart';
 
 class SmsTileView extends StatelessWidget {

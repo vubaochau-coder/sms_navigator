@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/utils/date_time_utils.dart';
-import '../../../core/utils/dialog_utils.dart';
+import '../../../core/ui/dialog_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
 
 /// Widget hiển thị thông tin và hành động (Duyệt / Từ chối) của một yêu cầu kết nối kênh.

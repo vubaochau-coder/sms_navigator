@@ -114,6 +114,7 @@ Kiến trúc phân tầng rõ ràng, đảm bảo luồng dữ liệu một chi�
 - **Tuyệt đối cấm**:
   - Không gọi trực tiếp xuống Service hoặc gọi Firebase SDK.
   - Không giữ tham chiếu tới `BuildContext` hoặc Flutter Widgets trong BLoC.
+- **Được phép (có chủ đích)**: gọi `ToastUtils` / `DialogUtils` (`core/ui/`) để hiện toast hoặc loading dialog — đây là helper không cần context, dùng `AppNavigator.key`.
 
 ### 3.3. Tầng Data: Repository & Services (Tuân thủ Dependency Injection)
 Khối Data được tách thành 2 tầng con:
@@ -168,28 +169,46 @@ Mọi thiết kế class và module phải tuân thủ 5 nguyên tắc SOLID:
 
 ## 6. Tổ chức Code & Chuẩn mực Thiết kế Flutter
 
-### 6.1. Cấu trúc thư mục (Feature-first Structure)
+### 6.1. Cấu trúc thư mục (Core data + Feature UI)
+
+Tầng **Data dùng chung** (models, repositories, services) nằm ở `core/` vì một repository thường phục vụ nhiều feature (ví dụ `ChannelRepository` dùng ở Kênh, Chi tiết kênh, Splash, Relay). Mỗi feature chỉ chứa **UI + BLoC** của nó.
+
 ```
 lib/
-├── core/                        # Tài nguyên dùng chung toàn ứng dụng
-│   ├── constants/               # Hằng số (colors, strings, assets, keys)
-│   ├── di/                      # Thiết lập Dependency Injection (get_it / providers)
-│   ├── errors/                  # App exceptions & failures
-│   ├── theme/                   # App theme, styles
-│   └── utils/                   # Helpers, formatters, extensions
-├── features/                    # Các tính năng theo mô-đun (Feature-first)
+├── core/
+│   ├── bloc/            # BLoC/Cubit cấp app (QrIngressCubit, AppBlocObserver)
+│   ├── bootstrap/       # DI: RepositoryProvider / BlocProvider gốc (app_bootstrap.dart)
+│   ├── constants/       # Hằng số: endpoints, colors, dimens, storage_keys
+│   ├── crypto/          # Mật mã E2EE: ChannelCryptoHelper, CanonicalEncoding
+│   ├── enums/
+│   ├── errors/          # AppException & subclasses
+│   ├── extensions/      # context.l10n, context.theme…
+│   ├── l10n/            # AppL10n.current — l10n không cần BuildContext
+│   ├── models/          # DTO / model nghiệp vụ dùng chung
+│   ├── navigation/      # AppNavigator.key (navigator toàn cục)
+│   ├── network/         # ApiClient (Dio)
+│   ├── observers/       # AppLifecycleObserver…
+│   ├── repositories/    # Interface use case + impls/
+│   ├── services/        # Interface service (HTTP, platform, storage) + impls/
+│   ├── theme/
+│   ├── ui/              # Helper UI không cần context: ToastUtils, DialogUtils, BottomSheetUtils, UiUtils
+│   ├── usecases/        # Use case điều phối nhiều repository/service (SyncOwnerRelayChannelUseCase)
+│   ├── utils/           # Helper thuần (không UI, không I/O): logger, converter, date, parser
+│   └── widgets/         # Widget dùng chung
+├── features/
 │   └── <feature_name>/
-│       ├── presentation/        # Tầng UI & Controller
-│       │   ├── bloc/            # Bloc, Event, State
-│       │   ├── pages/           # Screens / Pages
-│       │   └── widgets/         # Widgets chỉ dùng riêng cho feature này
-│       └── data/                # Tầng Data
-│           ├── models/          # Data transfer objects / Models
-│           ├── repositories/    # Repository interfaces & implementations
-│           └── services/        # Services (Firebase, local storage, native SMS)
-├── app.dart                     # MaterialApp config, global providers, routes
-└── main.dart                    # Entry point, khởi tạo Firebase & DI
+│       ├── bloc/        # Bloc/Cubit + Event + State của feature
+│       ├── views/       # Widget con chỉ dùng trong feature
+│       ├── models/      # (tuỳ chọn) model chỉ dùng trong feature
+│       └── <feature>_page.dart
+├── l10n/                # app_vi.arb + file generated (flutter gen-l10n)
+├── app.dart
+└── main.dart
 ```
+
+- `test/` mirror đúng đường dẫn `lib/` (ví dụ `lib/core/crypto/x.dart` → `test/core/crypto/x_test.dart`).
+- **Không** tạo file chỉ để re-export (barrel/shim) lại file ở thư mục khác.
+- Chuỗi hiển thị nằm trong `lib/l10n/app_vi.arb`: widget dùng `context.l10n`, BLoC/service dùng `AppL10n.current`.
 
 ### 6.2. Chuẩn mực Flutter Widgets
 - **Khai báo `const`**: Đặt từ khóa `const` ở tất cả các constructor của Widget khi tham số là bất biến để tối ưu rendering.

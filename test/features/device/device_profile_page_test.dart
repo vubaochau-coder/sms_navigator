@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/repositories/device_setup_repository.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
-import 'package:sms_navigator/core/storage/local_storage_service.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/theme/theme_cubit.dart';
 import 'package:sms_navigator/features/device/bloc/device_profile_cubit.dart';
 import 'package:sms_navigator/features/device/bloc/device_setup_bloc.dart';

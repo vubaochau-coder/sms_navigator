@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/services/deep_link_service.dart';
 import 'package:sms_navigator/core/utils/qr_error_messages.dart';
 import 'package:sms_navigator/core/utils/qr_link_parser.dart';
-import 'package:sms_navigator/features/qr_entry/bloc/qr_ingress_cubit.dart';
+import 'package:sms_navigator/core/bloc/qr_ingress/qr_ingress_cubit.dart';
 
-import 'fake_qr_repository.dart';
+import '../../../features/qr_entry/fake_qr_repository.dart';
 
 class _FakeDeepLinks implements DeepLinkService {
   final controller = StreamController<Uri>.broadcast();
