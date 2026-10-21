@@ -234,9 +234,7 @@ class _SplashViewState extends State<_SplashView>
                       Builder(
                         builder: (context) {
                           final msg = state.errorMessage ?? '';
-                          final isNetwork = msg.toLowerCase().contains('kết nối') ||
-                              msg.toLowerCase().contains('mạng') ||
-                              msg.toLowerCase().contains('timeout');
+                          final isNetwork = state.failureKind == SplashFailureKind.network;
 
                           return Container(
                             padding: const EdgeInsets.all(16),

@@ -205,21 +205,26 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       );
 
       final String userFriendlyMessage;
+      final SplashFailureKind kind;
       if (error is NetworkException) {
         userFriendlyMessage = error.message;
+        kind = SplashFailureKind.network;
       } else if (error is ApiException) {
         userFriendlyMessage =
             AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
+        kind = SplashFailureKind.server;
       } else if (error is StateError) {
         userFriendlyMessage = error.message;
+        kind = SplashFailureKind.unknown;
       } else {
-        userFriendlyMessage =
-            AppL10n.current.splashStartupFailed;
+        userFriendlyMessage = AppL10n.current.splashStartupFailed;
+        kind = SplashFailureKind.unknown;
       }
 
       emit(state.copyWith(
         status: SplashStatus.failure,
         errorMessage: userFriendlyMessage,
+        failureKind: kind,
       ));
     }
   }

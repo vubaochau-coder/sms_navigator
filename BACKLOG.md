@@ -47,13 +47,9 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.1 | **TD-4 — Test hermetic** | Widget test tích hợp (`widget_test.dart`, `MainNavigationPage`) gọi `ApiClient` với baseUrl production. Thêm `flutter_test_config.dart` với `HttpOverrides.global` chặn socket ngoài loopback + inject fake repository. Điều kiện để chạy test trên CI. | P2 |
 | 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
 | 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
-| 3.4 | Startup reconcile N+1 | `startup_reconcile_service_impl.dart` `_provisionChannelKeys()` gọi `getChannelDetail` + `provisionLatestForApproved` từng kênh. `SyncOwnerRelayChannelUseCase` cũng gọi `getChannelDetail` mỗi kênh Owner (whitelist heal). Batch hoá. | P2 |
 | 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
-| 3.6 | Splash phân loại lỗi bằng nội dung chuỗi | `splash_page.dart` đoán lỗi mạng bằng `msg.contains('kết nối' / 'mạng')`. Chuyển sang loại lỗi trong state (`SplashFailureKind`). | P3 |
-| 3.7 | Giá trị mặc định tên thiết bị trùng l10n | `SplashStarted/SplashRetried/SplashNewDeviceChosen.defaultDeviceName` và `DeviceProfileState.deviceName` còn hằng `'Thiết bị của tôi'` (bắt buộc `const`) — phải khớp `splashDefaultDeviceName`. | P3 |
 
 ---
 
@@ -61,6 +57,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 - **Nhánh `feat/otp-notification`** (chưa merge) — sao lưu & outbox native:
   - 1.1 Sao lưu / khôi phục: file `.smsnav` = AES-256-GCM, key từ PBKDF2-HMAC-SHA256 (310k vòng, salt 16B, chạy ngoài UI isolate), AAD `smsnav-backup|v1`. Chứa identity X25519, mọi channel key theo epoch, `device_id`, `device_token`, tên, server URL. Tạo ở **Hồ sơ thiết bị → Sao lưu**; khôi phục ở **Splash lần đầu** ("Thiết lập thiết bị mới" / "Khôi phục từ bản sao lưu"). Lưu/mở file qua Storage Access Framework (`BackupFileChannel.kt`, không thêm package, không cần quyền bộ nhớ). Ghi device token **sau cùng** khi khôi phục (bị kill giữa chừng → lần sau vẫn được mời khôi phục).
+  - Nợ kỹ thuật (không đổi nghiệp vụ): 3.1 `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback (test không chạm server production); 3.4 startup reconcile bỏ qua kênh đã có key cho `current_epoch` (0 request), bỏ `getChannelDetail` trùng, không provision 2 lần kênh vừa duyệt, chạy song song tối đa 4 (`forEachBounded`) — sync whitelist của Owner cũng song song; 3.6 `SplashFailureKind` thay cho đoán lỗi qua chuỗi; 3.7 `AppStrings.defaultDeviceName` + test khớp l10n.
   - 2.1 SMS không còn nằm plaintext trong DB của WorkManager: text + sender vào outbox mã hoá của `RelayChannelStore`, worker chỉ nhận `outbox_id`; xoá khi job kết thúc, giữ khi retry; TTL 24h + giới hạn 200. Job do bản cũ enqueue vẫn chạy.
 - **Nhánh `feat/otp-notification`** (mobile + BE, chưa merge):
   - 1.2 OTP ngay trong thông báo (Android): BE gửi `NEW_MESSAGE` **data-only** kèm `sequence_number`, `sender_device_id` (vẫn không có ciphertext — I5); app gọi `GET /api/v2/channels/message` (§6.4), giải mã cục bộ, hiện "Mã OTP: …" + nút **"Sao chép"** (`OtpCodeExtractor` tách mã; không tách được thì chép cả tin). Lỗi bất kỳ → thông báo chung. Bỏ qua tin do chính máy relay. Màn hình khoá: `visibility: private`.

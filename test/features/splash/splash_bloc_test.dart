@@ -15,6 +15,7 @@ import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
+import 'package:sms_navigator/features/splash/bloc/splash_state.dart';
 
 class _FakeNativeRelayService implements NativeRelayService {
   _FakeNativeRelayService({this.deviceName});
@@ -366,6 +367,7 @@ void main() {
       expect(bloc.state.isFailure, isTrue);
       expect(bloc.state.status, SplashStatus.failure);
       expect(bloc.state.errorMessage, contains('Network connection timeout'));
+      expect(bloc.state.failureKind, SplashFailureKind.network);
       expect(states, isNot(contains(SplashStatus.ready)));
 
       await sub.cancel();
@@ -419,6 +421,7 @@ void main() {
 
       expect(bloc.state.isReady, isTrue);
       expect(bloc.state.errorMessage, isNull);
+      expect(bloc.state.failureKind, isNull);
 
       await bloc.close();
     });

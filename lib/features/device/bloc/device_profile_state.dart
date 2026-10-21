@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../core/constants/app_strings.dart';
+
 class DeviceProfileState extends Equatable {
   final String deviceName;
   final String deviceId;
@@ -7,7 +9,7 @@ class DeviceProfileState extends Equatable {
   final bool isRenaming;
 
   const DeviceProfileState({
-    this.deviceName = 'Thiết bị của tôi',
+    this.deviceName = AppStrings.defaultDeviceName,
     this.deviceId = '',
     this.isLoading = false,
     this.isRenaming = false,
