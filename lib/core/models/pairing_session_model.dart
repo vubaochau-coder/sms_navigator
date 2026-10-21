@@ -5,12 +5,17 @@ import 'package:equatable/equatable.dart';
 import '../utils/data_converter.dart';
 
 /// Phiên mời QR vừa tạo — `POST /api/v2/channels/sessions` (API spec §4.5).
-/// Server sinh sẵn [inviteUrl] format v4, TTL 10 phút, single-use.
+/// TTL 10 phút, single-use.
+///
+/// - [code] / [qrUrl]: Universal Opaque QR (roadmap v3.3) — link in vào QR.
+/// - [pairingToken] / [inviteUrl]: v4, chỉ còn trong giai đoạn chuyển tiếp.
 class PairingSessionModel extends Equatable {
   final String sessionId;
   final String pairingToken;
   final String expiresAt;
   final String inviteUrl;
+  final String code;
+  final String qrUrl;
   final DateTime? createdAt;
 
   const PairingSessionModel({
@@ -18,8 +23,14 @@ class PairingSessionModel extends Equatable {
     required this.pairingToken,
     required this.expiresAt,
     required this.inviteUrl,
+    this.code = '',
+    this.qrUrl = '',
     this.createdAt,
   });
+
+  /// Link để render QR / chia sẻ: ưu tiên opaque `qr_url`, fallback v4 khi
+  /// server chưa nâng cấp.
+  String get shareUrl => qrUrl.isNotEmpty ? qrUrl : inviteUrl;
 
   DateTime get effectiveCreatedAt =>
       createdAt ??
@@ -39,13 +50,15 @@ class PairingSessionModel extends Equatable {
       pairingToken: DataConverter.cvToString(map['pairing_token'], '')!,
       expiresAt: expiresAt,
       inviteUrl: DataConverter.cvToString(map['invite_url'], '')!,
+      code: DataConverter.cvToString(map['code'], '')!,
+      qrUrl: DataConverter.cvToString(map['qr_url'], '')!,
       createdAt:
           DateTime.tryParse(expiresAt)?.subtract(const Duration(minutes: 10)),
     );
   }
 
   @override
-  List<Object?> get props => [sessionId, pairingToken, expiresAt, inviteUrl, createdAt];
+  List<Object?> get props => [sessionId, pairingToken, expiresAt, inviteUrl, code, qrUrl, createdAt];
 }
 
 /// Invite URL v4 sau khi parse (SRD 3.4 — không chứa key/credential dài hạn):

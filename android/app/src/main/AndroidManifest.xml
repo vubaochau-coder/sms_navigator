@@ -39,6 +39,25 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Universal Opaque QR (ROADMAP_DEEPLINK_QR_V2 v3.3): verified
+                 HTTPS App Link. Host must match SERVER_BASE_URL on the server,
+                 which serves /.well-known/assetlinks.json for this package. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="sms-relay.hirusakunasaga.workers.dev"
+                    android:pathPrefix="/qr/"/>
+            </intent-filter>
+            <!-- Custom scheme fallback: smsnavigator://qr?code=<code> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="smsnavigator" android:host="qr"/>
+            </intent-filter>
         </activity>
 
         <!-- SMS BroadcastReceiver: Manifest-declared to wake up even if process is killed -->

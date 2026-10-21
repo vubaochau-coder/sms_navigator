@@ -32,6 +32,13 @@ import '../services/impls/fcm_notification_service_impl.dart';
 import '../services/impls/message_api_service_impl.dart';
 import '../services/impls/native_relay_service_impl.dart';
 import '../services/impls/relay_channel_bridge_impl.dart';
+import '../services/impls/app_links_deep_link_service.dart';
+import '../services/impls/qr_api_service_impl.dart';
+import '../repositories/impls/qr_repository_impl.dart';
+import '../repositories/qr_repository.dart';
+import '../services/deep_link_service.dart';
+import '../services/qr_api_service.dart';
+import '../../features/qr_entry/bloc/qr_ingress_cubit.dart';
 import '../services/impls/pairing_api_service_impl.dart';
 import '../services/impls/startup_reconcile_service_impl.dart';
 import '../services/local_storage_service.dart';
@@ -52,11 +59,16 @@ class AppBootstrap extends StatelessWidget {
   final LocalStorageService localStorageService;
   final bool initializeAsyncServices;
 
+  /// Gắn plugin deeplink (`app_links`). Bật ở app thật (main.dart); để tắt
+  /// trong widget test vì không có platform channel.
+  final bool enableDeepLinks;
+
   const AppBootstrap({
     super.key,
     required this.child,
     required this.localStorageService,
     this.initializeAsyncServices = false,
+    this.enableDeepLinks = false,
   });
 
   @override
@@ -158,6 +170,18 @@ class AppBootstrap extends StatelessWidget {
           create: (context) =>
               PairingApiServiceImpl(apiClient: context.read<ApiClient>()),
         ),
+        RepositoryProvider<QrApiService>(
+          create: (context) => QrApiServiceImpl(apiClient: context.read<ApiClient>()),
+        ),
+        RepositoryProvider<QrRepository>(
+          create: (context) => QrRepositoryImpl(
+            qrApiService: context.read<QrApiService>(),
+            deviceStorage: context.read<DeviceStorageService>(),
+          ),
+        ),
+        RepositoryProvider<DeepLinkService>(
+          create: (_) => AppLinksDeepLinkService(),
+        ),
         RepositoryProvider<MessageApiService>(
           create: (context) =>
               MessageApiServiceImpl(apiClient: context.read<ApiClient>()),
@@ -241,6 +265,16 @@ class AppBootstrap extends StatelessWidget {
               channelRepository: context.read<ChannelRepository>(),
               nativeRelayService: context.read<NativeRelayService>(),
             )..loadDeviceProfile(),
+          ),
+          // Cổng vào QR / deeplink (roadmap v3.3) — tạo ngay khi khởi động để
+          // không lỡ deeplink cold start. Plugin deeplink chỉ gắn khi chạy app
+          // thật (enableDeepLinks), không gắn trong widget test.
+          BlocProvider<QrIngressCubit>(
+            lazy: false,
+            create: (context) => QrIngressCubit(
+              repository: context.read<QrRepository>(),
+              deepLinks: enableDeepLinks ? context.read<DeepLinkService>() : null,
+            ),
           ),
         ],
         child: content,

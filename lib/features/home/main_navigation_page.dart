@@ -4,8 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/app_update_repository.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
+import '../../core/utils/qr_link_parser.dart';
+import '../../core/utils/toast_utils.dart';
 import '../channel/channel_page.dart';
 import '../channel_join/join_confirm_page.dart';
+import '../qr_entry/bloc/qr_ingress_cubit.dart';
+import '../qr_entry/qr_entry_page.dart';
 import '../scanner/qr_scan_page.dart';
 import '../sms/sms_page.dart';
 import '../device/bloc/device_setup_bloc.dart';
@@ -108,12 +112,26 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
       ),
     );
     if (!mounted || result == null) return;
+    // Mọi nguồn mã đi chung một cổng (roadmap v3.3 §1).
+    await context.read<QrIngressCubit>().submit(result.rawValue);
+  }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => JoinConfirmPage(inviteRaw: result.rawValue),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    // Deeplink đến lúc Splash còn chạy (cold start / mid-splash) đang chờ sẵn.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePendingQr());
+  }
+
+  void _consumePendingQr() {
+    if (!mounted) return;
+    final link = context.read<QrIngressCubit>().consume();
+    if (link == null) return;
+    final route = switch (link) {
+      OpaqueQrLink(:final code) => MaterialPageRoute<void>(builder: (_) => QrEntryPage(code: code)),
+      LegacyInviteLink(:final raw) => MaterialPageRoute<void>(builder: (_) => JoinConfirmPage(inviteRaw: raw)),
+    };
+    Navigator.of(context).push(route);
   }
 
   @override
@@ -121,12 +139,28 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
     final colorScheme = Theme.of(context).colorScheme;
     _runStartupReconcile();
     _checkAppUpdate();
-    return BlocListener<DeviceSetupBloc, DeviceSetupState>(
-      listener: (context, state) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _maybeShowSmsPermissionPrompt(state);
-        });
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<DeviceSetupBloc, DeviceSetupState>(
+          listener: (context, state) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _maybeShowSmsPermissionPrompt(state);
+            });
+          },
+        ),
+        BlocListener<QrIngressCubit, QrIngressState>(
+          listenWhen: (previous, current) =>
+              current.pending != null && current.pendingSeq != previous.pendingSeq,
+          listener: (context, state) => _consumePendingQr(),
+        ),
+        BlocListener<QrIngressCubit, QrIngressState>(
+          listenWhen: (previous, current) => current.rejectionSeq != previous.rejectionSeq,
+          listener: (context, state) {
+            final message = state.rejectionMessage;
+            if (message != null) ToastUtils.showError(message);
+          },
+        ),
+      ],
       child: Scaffold(
         body: IndexedStack(
           index: _selectedIndex,

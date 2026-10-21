@@ -9,6 +9,9 @@ export '../../../core/enums/join_phase.dart';
 class JoinState extends Equatable {
   final JoinPhase phase;
   final InvitePayload? invite;
+
+  /// Opaque QR code (v3.3). Khi có, claim gửi `code` thay cho [invite].
+  final String? code;
   final InvitePreviewModel? preview;
   final String deviceName;
   final String? requestId;
@@ -18,6 +21,7 @@ class JoinState extends Equatable {
   const JoinState({
     this.phase = JoinPhase.initial,
     this.invite,
+    this.code,
     this.preview,
     this.deviceName = '',
     this.requestId,
@@ -37,6 +41,7 @@ class JoinState extends Equatable {
   JoinState copyWith({
     JoinPhase? phase,
     InvitePayload? invite,
+    String? code,
     InvitePreviewModel? preview,
     String? deviceName,
     String? requestId,
@@ -47,6 +52,7 @@ class JoinState extends Equatable {
     return JoinState(
       phase: phase ?? this.phase,
       invite: invite ?? this.invite,
+      code: code ?? this.code,
       preview: preview ?? this.preview,
       deviceName: deviceName ?? this.deviceName,
       requestId: requestId ?? this.requestId,
@@ -59,6 +65,7 @@ class JoinState extends Equatable {
   List<Object?> get props => [
     phase,
     invite,
+    code,
     preview,
     deviceName,
     requestId,

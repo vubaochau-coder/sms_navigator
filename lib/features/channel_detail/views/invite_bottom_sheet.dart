@@ -286,7 +286,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                       ],
                     ),
                     child: QrImageView(
-                      data: session.inviteUrl,
+                      data: session.shareUrl,
                       size: 190,
                       backgroundColor: Colors.white,
                     ),
@@ -354,7 +354,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
                         child: FilledButton.icon(
                           onPressed: _isSaving
                               ? null
-                              : () => _saveQr(session.inviteUrl),
+                              : () => _saveQr(session.shareUrl),
                           icon: _isSaving
                               ? const SizedBox(
                                   width: 18,

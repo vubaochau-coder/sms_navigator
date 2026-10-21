@@ -33,6 +33,7 @@ Future<void> main() async {
   runApp(
     AppBootstrap(
       localStorageService: localStorage,
+      enableDeepLinks: true,
       child: const OtpRelayApp(),
     ),
   );

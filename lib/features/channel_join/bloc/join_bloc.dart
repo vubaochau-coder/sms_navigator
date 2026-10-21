@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/errors/app_exceptions.dart';
 import '../../../core/repositories/join_channel_repository.dart';
+import '../../../core/repositories/qr_repository.dart';
 import 'join_event.dart';
 import 'join_state.dart';
 
@@ -15,13 +16,31 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
   JoinBloc({
     required JoinChannelRepository repository,
     required String initialDeviceName,
+    QrRepository? qrRepository,
   }) : _repository = repository,
+       _qrRepository = qrRepository,
        super(JoinState(deviceName: initialDeviceName)) {
     on<JoinResolveStarted>(_onResolveStarted, transformer: restartable());
+    on<JoinInitializedWithPreview>(_onInitializedWithPreview);
     on<JoinSubmitted>(_onSubmitted, transformer: droppable());
   }
 
   final JoinChannelRepository _repository;
+  final QrRepository? _qrRepository;
+
+  void _onInitializedWithPreview(
+    JoinInitializedWithPreview event,
+    Emitter<JoinState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        phase: JoinPhase.ready,
+        code: event.code,
+        preview: event.preview,
+        clearError: true,
+      ),
+    );
+  }
 
   Future<void> _onResolveStarted(
     JoinResolveStarted event,
@@ -62,7 +81,10 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     Emitter<JoinState> emit,
   ) async {
     final invite = state.invite;
-    if (invite == null) return;
+    final code = state.code;
+    final qrRepository = _qrRepository;
+    final viaCode = code != null && qrRepository != null;
+    if (!viaCode && invite == null) return;
 
     emit(
       state.copyWith(
@@ -73,10 +95,9 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     );
 
     try {
-      final result = await _repository.claim(
-        invite: invite,
-        deviceName: event.deviceName,
-      );
+      final result = viaCode
+          ? await qrRepository!.claimPairing(code: code!, deviceName: event.deviceName)
+          : await _repository.claim(invite: invite!, deviceName: event.deviceName);
       emit(
         state.copyWith(
           phase: JoinPhase.claimSuccess,

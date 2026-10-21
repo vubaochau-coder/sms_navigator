@@ -29,6 +29,9 @@ class ApiEndpoints {
   static const String pairingRejectV2 = '/api/v2/pairing/requests/reject';
   static const String pairingCancelV2 = '/api/v2/pairing/requests/cancel';
 
+  // --- Universal Opaque QR (roadmap v3.3) ---
+  static const String qrResolveV2 = '/api/v2/qr/resolve';
+
   // --- Messages v2 (channel-agnostic day fetch) ---
   static const String messagesByDateV2 = '/api/v2/messages';
 }

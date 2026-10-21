@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/models/invite_preview_model.dart';
 import '../../core/models/pairing_session_model.dart';
 import '../../core/repositories/join_channel_repository.dart';
+import '../../core/repositories/qr_repository.dart';
 import '../../core/utils/toast_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../device/bloc/device_profile_cubit.dart';
@@ -18,9 +20,21 @@ export 'bloc/join_bloc.dart';
 /// 3. Bấm [Gửi yêu cầu kết nối] -> claim QR;
 /// 4. Thành công hoặc đã có pending request -> Toast & pop về Tab Kênh.
 class JoinConfirmPage extends StatelessWidget {
-  const JoinConfirmPage({super.key, required this.inviteRaw});
+  /// Invite v4 (giai đoạn chuyển tiếp — gỡ ở roadmap GĐ6).
+  const JoinConfirmPage({super.key, required String this.inviteRaw})
+    : code = null,
+      preview = null;
 
-  final String inviteRaw;
+  /// Universal Opaque QR (v3.3): preview đã resolve sẵn, claim bằng [code].
+  const JoinConfirmPage.fromQr({
+    super.key,
+    required String this.code,
+    required InvitePreviewModel this.preview,
+  }) : inviteRaw = null;
+
+  final String? inviteRaw;
+  final String? code;
+  final InvitePreviewModel? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +47,19 @@ class JoinConfirmPage extends StatelessWidget {
       create: (context) => JoinBloc(
         repository: context.read<JoinChannelRepository>(),
         initialDeviceName: initialName,
+        qrRepository: code != null ? context.read<QrRepository>() : null,
       ),
-      child: JoinConfirmView(inviteRaw: inviteRaw),
+      child: JoinConfirmView(inviteRaw: inviteRaw, code: code, preview: preview),
     );
   }
 }
 
 class JoinConfirmView extends StatefulWidget {
-  const JoinConfirmView({super.key, required this.inviteRaw});
+  const JoinConfirmView({super.key, this.inviteRaw, this.code, this.preview});
 
-  final String inviteRaw;
+  final String? inviteRaw;
+  final String? code;
+  final InvitePreviewModel? preview;
 
   @override
   State<JoinConfirmView> createState() => _JoinConfirmViewState();
@@ -58,7 +75,14 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
   }
 
   void _initInvite() {
-    final invite = InvitePayload.tryParse(widget.inviteRaw);
+    final code = widget.code;
+    final preview = widget.preview;
+    if (code != null && preview != null) {
+      // Universal Opaque QR: preview đã có, vào thẳng ready.
+      context.read<JoinBloc>().add(JoinInitializedWithPreview(preview: preview, code: code));
+      return;
+    }
+    final invite = InvitePayload.tryParse(widget.inviteRaw ?? '');
     if (invite == null) {
       _parseError = 'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
       return;

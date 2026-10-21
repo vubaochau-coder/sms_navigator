@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/extensions/context_extensions.dart';
-import '../../core/models/pairing_session_model.dart';
+import '../../core/utils/qr_link_parser.dart';
 import '../../core/utils/toast_utils.dart';
 import 'models/scan_qr_result.dart';
 import 'views/scanner_controls.dart';
@@ -37,9 +38,10 @@ class QrScanPage extends StatefulWidget {
   final MobileScannerController? _controllerOverride;
   final ImagePicker? _imagePickerOverride;
 
-  /// Validator mặc định cho định dạng QR của ứng dụng (lời mời tham gia kênh).
+  /// Validator mặc định: kiểm tra cấu trúc mã của app (opaque QR v3.3 hoặc
+  /// invite v4 chuyển tiếp). Host của link https được kiểm tra ở QrIngressCubit.
   static bool defaultValidator(String raw) {
-    return InvitePayload.tryParse(raw) != null;
+    return QrLinkParser.parse(raw) != null;
   }
 
   @override
@@ -106,6 +108,20 @@ class _QrScanPageState extends State<QrScanPage> {
     }
   }
 
+  /// "Dán mã" (roadmap v3.3 §3.6): chỉ đọc clipboard khi người dùng chủ động
+  /// bấm — không có listener tự động.
+  Future<void> _pasteFromClipboard() async {
+    if (_isProcessing) return;
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (!mounted) return;
+    final text = data?.text?.trim() ?? '';
+    if (text.isEmpty) {
+      ToastUtils.showError('Bộ nhớ tạm không có mã nào để dán.');
+      return;
+    }
+    _handleRaw(text);
+  }
+
   void _scheduleResume() {
     _resumeTimer?.cancel();
     _resumeTimer = Timer(const Duration(seconds: 2), () {
@@ -153,9 +169,16 @@ class _QrScanPageState extends State<QrScanPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ScannerTopBar(onBack: () => Navigator.pop(context)),
-              ScannerControls(
-                controller: _controller,
-                onPickFromGallery: _pickAndScanFromGallery,
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ScannerPasteButton(onPressed: _pasteFromClipboard),
+                  const SizedBox(height: 12),
+                  ScannerControls(
+                    controller: _controller,
+                    onPickFromGallery: _pickAndScanFromGallery,
+                  ),
+                ],
               ),
             ],
           ),
@@ -165,3 +188,24 @@ class _QrScanPageState extends State<QrScanPage> {
   }
 }
 
+/// Nút "Dán mã" cho trường hợp nhận link / mã qua chat.
+class ScannerPasteButton extends StatelessWidget {
+  const ScannerPasteButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.white.withValues(alpha: 0.15),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        shape: const StadiumBorder(),
+      ),
+      icon: const Icon(Icons.content_paste_rounded, size: 18),
+      label: const Text('Dán mã'),
+    );
+  }
+}
