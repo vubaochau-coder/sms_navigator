@@ -98,7 +98,7 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
 
     try {
       final result = viaCode
-          ? await qrRepository!.claimPairing(code: code!, deviceName: event.deviceName)
+          ? await qrRepository.claimPairing(code: code, deviceName: event.deviceName)
           : await _repository.claim(invite: invite!, deviceName: event.deviceName);
       emit(
         state.copyWith(

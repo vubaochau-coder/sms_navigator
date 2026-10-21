@@ -278,8 +278,8 @@ class DialogUtils {
     EdgeInsets? customInsetPadding,
     EdgeInsets? contentPadding,
   }) {
-    confirmText ??= defaultConfirmText;
-    cancelText ??= defaultCancelText;
+    final String confirmLabel = confirmText ?? defaultConfirmText;
+    final String cancelLabel = cancelText ?? defaultCancelText;
     final ctx = _resolveContext(context);
     final controller = TextEditingController(text: initialValue);
 
@@ -345,7 +345,7 @@ class DialogUtils {
               ),
               onPressed: () => Navigator.of(dialogContext).pop(null),
               child: Text(
-                cancelText,
+                cancelLabel,
                 style: TextStyle(
                   color: Theme.of(dialogContext)
                       .colorScheme
@@ -373,7 +373,7 @@ class DialogUtils {
                 }
               },
               child: Text(
-                confirmText,
+                confirmLabel,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -396,7 +396,7 @@ class DialogUtils {
     bool isMandatory = false,
     EdgeInsets? customInsetPadding,
   }) async {
-    buttonText ??= defaultCloseText;
+    final String buttonLabel = buttonText ?? defaultCloseText;
     final ctx = _resolveContext(context);
 
     final result = await showDialog<bool>(
@@ -457,7 +457,7 @@ class DialogUtils {
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(true),
                 child: Text(
-                  buttonText,
+                  buttonLabel,
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -489,8 +489,8 @@ class DialogUtils {
     IconData? icon,
     EdgeInsets? customInsetPadding,
   }) async {
-    positiveText ??= defaultConfirmText;
-    negativeText ??= defaultCancelText;
+    final String positiveLabel = positiveText ?? defaultConfirmText;
+    final String negativeLabel = negativeText ?? defaultCancelText;
     final ctx = _resolveContext(context);
 
     final result = await showDialog<bool?>(
@@ -504,7 +504,7 @@ class DialogUtils {
           ),
           onPressed: () => Navigator.of(dialogContext).pop(false),
           child: Text(
-            negativeText,
+            negativeLabel,
             style: TextStyle(
               color: Theme.of(
                 dialogContext,
@@ -529,7 +529,7 @@ class DialogUtils {
           ),
           onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(
-            positiveText,
+            positiveLabel,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         );
