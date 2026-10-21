@@ -1074,6 +1074,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
 
   @override
+  String notificationOtpTitle(String code) {
+    return 'Mã OTP: $code';
+  }
+
+  @override
+  String get notificationCopyAction => 'Sao chép';
+
+  @override
   String get relativeJustNow => 'Vừa xong';
 
   @override

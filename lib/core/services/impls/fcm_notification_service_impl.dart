@@ -4,65 +4,61 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../crashlytics_service.dart';
+import '../../l10n/app_l10n.dart';
+import '../../models/channel_event.dart';
+import '../../notifications/local_notification_presenter.dart';
+import '../../notifications/new_message_notifier.dart';
+import '../../notifications/notification_content.dart';
+import '../../ui/toast_utils.dart';
+import '../../usecases/resolve_incoming_message_use_case.dart';
+import '../../utils/app_logger.dart';
 import '../device_api_service.dart';
 import '../device_storage_service.dart';
 import '../fcm_notification_service.dart';
-import '../../utils/app_logger.dart';
-import '../../l10n/app_l10n.dart';
 
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  try {
-    debugPrint('Received background FCM message: ${message.messageId}');
-  } catch (error, stack) {
-    CrashlyticsService.instance.recordError(
-      error,
-      stack,
-      reason: 'FCM background handler failed for message ${message.messageId}',
-    );
-  }
-}
+export '../../notifications/fcm_background_handler.dart' show firebaseMessagingBackgroundHandler;
+export '../../notifications/notification_content.dart' show BellNotificationContent;
 
-class BellNotificationContent {
-  const BellNotificationContent({required this.title, required this.body});
+/// Sao chép chuỗi + báo cho người dùng (inject được để kiểm thử).
+typedef CopyToClipboard = Future<void> Function(String text);
 
-  final String title;
-  final String body;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BellNotificationContent &&
-          runtimeType == other.runtimeType &&
-          title == other.title &&
-          body == other.body;
-
-  @override
-  int get hashCode => Object.hash(title, body);
-}
+Future<void> _defaultCopy(String text) =>
+    ToastUtils.copyToClipboard(text, successMessage: AppL10n.current.smsCopied(text));
 
 class FcmNotificationServiceImpl implements FcmNotificationService {
   FcmNotificationServiceImpl({
     required DeviceStorageService deviceStorageService,
     required DeviceApiService deviceApiService,
+    ResolveIncomingMessageUseCase? resolveIncomingMessage,
+    LocalNotificationPresenter? presenter,
+    CopyToClipboard? copyToClipboard,
   }) : _deviceStorage = deviceStorageService,
-       _deviceApi = deviceApiService;
+       _deviceApi = deviceApiService,
+       _presenter = presenter ?? LocalNotificationPresenter(),
+       _copy = copyToClipboard ?? _defaultCopy {
+    final resolve = resolveIncomingMessage;
+    _newMessageNotifier = resolve == null
+        ? null
+        : NewMessageNotifier(
+            resolveIncomingMessage: resolve,
+            deviceStorage: deviceStorageService,
+            presenter: _presenter,
+          );
+  }
 
   final DeviceStorageService _deviceStorage;
   final DeviceApiService _deviceApi;
+  final LocalNotificationPresenter _presenter;
+  final CopyToClipboard _copy;
+  late final NewMessageNotifier? _newMessageNotifier;
 
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
-  StreamSubscription<String>? _tokenRefreshSubscription;
-  void Function()? _channelEventListener;
+  final StreamController<ChannelEvent> _events = StreamController<ChannelEvent>.broadcast();
+  final List<StreamSubscription<Object?>> _subscriptions = [];
 
   bool _initialized = false;
 
   @override
-  void setChannelEventListener(void Function() listener) {
-    _channelEventListener = listener;
-  }
+  Stream<ChannelEvent> get channelEvents => _events.stream;
 
   @override
   Future<void> initialize() async {
@@ -70,34 +66,36 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
     _initialized = true;
 
     try {
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const initSettings = InitializationSettings(android: androidSettings);
-      await _localNotifications.initialize(settings: initSettings);
-
-      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      if (androidPlugin != null) {
-        final androidChannel = AndroidNotificationChannel(
-          'sms_navigator_otp_channel',
-          'SMS Navigator',
-          description: AppL10n.current.notificationChannelDescription,
-          importance: Importance.high,
-        );
-        await androidPlugin.createNotificationChannel(androidChannel);
-      }
+      await _presenter.initialize(onResponse: handleNotificationResponse);
 
       await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
       );
-      FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed);
-
-      FirebaseMessaging.onMessage.listen(_showBellNotification);
+      _subscriptions
+        ..add(FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed))
+        ..add(FirebaseMessaging.onMessage.listen(handleForegroundMessage))
+        // Chạm vào banner do OS hiện (iOS / notification block)
+        ..add(FirebaseMessaging.onMessageOpenedApp.listen(_onSystemNotificationOpened));
 
       unawaited(FirebaseMessaging.instance.requestPermission());
+      unawaited(_handleLaunchFromNotification());
     } catch (error, stack) {
       AppLogger.w('FcmNotificationService', 'Initialize failed', error, stack);
+    }
+  }
+
+  /// App được mở từ trạng thái tắt hẳn bằng một thông báo.
+  Future<void> _handleLaunchFromNotification() async {
+    try {
+      final response = await _presenter.launchResponse();
+      if (response != null) await handleNotificationResponse(response);
+
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial != null) _onSystemNotificationOpened(initial);
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'Launch details failed', error, stack);
     }
   }
 
@@ -133,94 +131,76 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   }
 
   @visibleForTesting
-  static BellNotificationContent resolveContent(RemoteMessage message) {
-    // Ưu tiên tiêu đề/nội dung từ notification block của FCM nếu server đã định dạng
-    String title = message.notification?.title ?? 'SMS Navigator';
-    final l10n = AppL10n.current;
-    String body = message.notification?.body ?? l10n.notificationDefaultBody;
+  static BellNotificationContent resolveContent(RemoteMessage message) =>
+      BellNotificationContent.fromRemoteMessage(message);
 
-    final kind = message.data['kind'];
-    final channelName = message.data['channel_name'];
-    final requesterName = message.data['requester_device_name'];
+  /// FCM khi app đang mở: báo cho màn hình làm mới ngay, rồi hiện thông báo
+  /// (OTP nếu là `NEW_MESSAGE`, ngược lại là thông báo chung).
+  @visibleForTesting
+  Future<void> handleForegroundMessage(RemoteMessage message) async {
+    final event = ChannelEvent.fromData(message.data);
+    _emit(event);
 
-    // Nếu không có notification block thì tự dựng nội dung từ data payload
-    if (message.notification == null) {
-      switch (kind) {
-        case 'JOIN_REQUEST':
-          title = l10n.notificationJoinRequestTitle;
-          if (requesterName != null && requesterName.isNotEmpty && channelName != null && channelName.isNotEmpty) {
-            body = l10n.notificationJoinRequestBody(requesterName, channelName);
-          } else if (requesterName != null && requesterName.isNotEmpty) {
-            body = l10n.notificationJoinRequestBodyNoChannel(requesterName);
-          } else {
-            body = l10n.notificationJoinRequestBodyGeneric;
-          }
-          break;
-        case 'APPROVED':
-          title = l10n.notificationApprovedTitle;
-          if (channelName != null && channelName.isNotEmpty) {
-            body = l10n.notificationApprovedBody(channelName);
-          } else {
-            body = l10n.notificationApprovedBodyGeneric;
-          }
-          break;
-        case 'REVOKED':
-          title = l10n.notificationRevokedTitle;
-          if (channelName != null && channelName.isNotEmpty) {
-            body = l10n.notificationRevokedBody(channelName);
-          } else {
-            body = l10n.notificationRevokedBodyGeneric;
-          }
-          break;
-        case 'NEW_MESSAGE':
-          title = l10n.notificationNewMessageTitle;
-          if (channelName != null && channelName.isNotEmpty) {
-            body = l10n.notificationNewMessageBody(channelName);
-          } else {
-            body = l10n.notificationNewMessageBodyGeneric;
-          }
-          break;
+    final fallback = BellNotificationContent.fromRemoteMessage(message);
+    final notifier = _newMessageNotifier;
+    try {
+      if (event.kind == ChannelEventKind.newMessage && notifier != null) {
+        await notifier.handle(event, fallback: fallback);
+      } else {
+        await _presenter.showBell(fallback);
+      }
+    } catch (error, stack) {
+      AppLogger.w('FcmNotificationService', 'Show notification failed', error, stack);
+    }
+  }
+
+  /// Chạm vào thông báo cục bộ hoặc bấm "Sao chép".
+  @visibleForTesting
+  Future<void> handleNotificationResponse(NotificationResponse response) async {
+    final payload = NotificationPayload.decode(response.payload);
+    if (payload == null) return;
+
+    if (response.actionId == LocalNotificationPresenter.copyActionId) {
+      final text = payload.copyText;
+      if (text != null && text.isNotEmpty) {
+        try {
+          await _copy(text);
+        } catch (error, stack) {
+          AppLogger.w('FcmNotificationService', 'Copy OTP failed', error, stack);
+        }
       }
     }
 
-    return BellNotificationContent(title: title, body: body);
+    _emit(ChannelEvent(
+      kind: ChannelEventKind.newMessage,
+      channelId: payload.channelId,
+      sequenceNumber: payload.sequenceNumber,
+      openedFromNotification: true,
+    ));
   }
 
-  Future<void> _showBellNotification(RemoteMessage message) async {
-    final androidDetails = AndroidNotificationDetails(
-      'sms_navigator_otp_channel',
-      'SMS Navigator',
-      channelDescription: AppL10n.current.notificationChannelDescription,
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    final details = NotificationDetails(android: androidDetails);
+  void _onSystemNotificationOpened(RemoteMessage message) {
+    final event = ChannelEvent.fromData(message.data);
+    _emit(ChannelEvent(
+      kind: event.kind,
+      channelId: event.channelId,
+      channelName: event.channelName,
+      sequenceNumber: event.sequenceNumber,
+      senderDeviceId: event.senderDeviceId,
+      openedFromNotification: true,
+    ));
+  }
 
-    final content = resolveContent(message);
-
-    try {
-      await _localNotifications.show(
-        id: DateTime.now().millisecondsSinceEpoch % 0x7fffffff,
-        title: content.title,
-        body: content.body,
-        notificationDetails: details,
-      );
-    } catch (error, stack) {
-      AppLogger.w(
-        'FcmNotificationService',
-        'Show bell notification failed',
-        error,
-        stack,
-      );
-    }
-
-    try {
-      _channelEventListener?.call();
-    } catch (_) {}
+  void _emit(ChannelEvent event) {
+    if (!_events.isClosed) _events.add(event);
   }
 
   @override
   void dispose() {
-    _tokenRefreshSubscription?.cancel();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    _events.close();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/enums/splash_status.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/services/analytics_service.dart';
@@ -84,7 +85,7 @@ class _FakeFcmService implements FcmNotificationService {
   }
 
   @override
-  void setChannelEventListener(void Function() listener) {}
+  Stream<ChannelEvent> get channelEvents => const Stream.empty();
 
   @override
   void dispose() {}

@@ -1,7 +1,13 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_navigator/core/models/channel_event.dart';
+import 'package:sms_navigator/core/models/channel_message_model.dart';
+import 'package:sms_navigator/core/notifications/local_notification_presenter.dart';
+import 'package:sms_navigator/core/notifications/notification_content.dart';
 import 'package:sms_navigator/core/services/device_api_service.dart';
+import 'package:sms_navigator/core/usecases/resolve_incoming_message_use_case.dart';
 import 'package:sms_navigator/core/services/impls/device_storage_service_impl.dart';
 import 'package:sms_navigator/core/services/impls/fcm_notification_service_impl.dart';
 import 'package:sms_navigator/core/services/local_storage_service.dart';
@@ -16,6 +22,40 @@ class _MockDeviceApiService implements DeviceApiService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakePresenter implements LocalNotificationPresenter {
+  final List<OtpNotificationContent> otps = [];
+  final List<BellNotificationContent> bells = [];
+
+  @override
+  Future<void> showOtp(OtpNotificationContent content) async => otps.add(content);
+
+  @override
+  Future<void> showBell(BellNotificationContent content, {int? id, NotificationPayload? payload}) async =>
+      bells.add(content);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
+class _FakeResolve implements ResolveIncomingMessageUseCase {
+  @override
+  Future<ChannelMessageModel> call({required String channelId, required int sequenceNumber}) async =>
+      ChannelMessageModel(
+        messageId: '',
+        channelId: channelId,
+        channelName: 'Kênh nhà',
+        sequenceNumber: sequenceNumber,
+        keyEpoch: 1,
+        ciphertext: 'c',
+        nonce: 'n',
+        sender: 'VCB',
+        decryptedOtp: 'Ma OTP 482913',
+      );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
 }
 
 void main() {
@@ -50,6 +90,72 @@ void main() {
 
       service.dispose();
       expect(service, isNotNull);
+    });
+
+    group('OTP notification + auto refresh (1.2 / 1.3)', () {
+      late _FakePresenter presenter;
+      late List<String> copied;
+      late FcmNotificationServiceImpl service;
+
+      setUp(() async {
+        final localStorage = await LocalStorageService.create();
+        presenter = _FakePresenter();
+        copied = [];
+        service = FcmNotificationServiceImpl(
+          deviceStorageService: DeviceStorageServiceImpl(localStorage),
+          deviceApiService: _MockDeviceApiService(),
+          resolveIncomingMessage: _FakeResolve(),
+          presenter: presenter,
+          copyToClipboard: (text) async => copied.add(text),
+        );
+      });
+
+      tearDown(() => service.dispose());
+
+      test('foreground NEW_MESSAGE → emits a channel event and shows the OTP', () async {
+        final events = <ChannelEvent>[];
+        service.channelEvents.listen(events.add);
+
+        await service.handleForegroundMessage(const RemoteMessage(
+          data: {'kind': 'NEW_MESSAGE', 'channel_id': 'ch-1', 'sequence_number': '7', 'sender_device_id': 'owner-1'},
+        ));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(events.single.kind, ChannelEventKind.newMessage);
+        expect(events.single.sequenceNumber, 7);
+        expect(presenter.otps.single.title, 'Mã OTP: 482913');
+        expect(presenter.bells, isEmpty);
+      });
+
+      test('foreground non-message event → generic bell', () async {
+        await service.handleForegroundMessage(const RemoteMessage(data: {'kind': 'APPROVED'}));
+        expect(presenter.bells.single.title, 'Yêu cầu đã được duyệt');
+        expect(presenter.otps, isEmpty);
+      });
+
+      test('"Sao chép" action copies the code and asks screens to refresh', () async {
+        final events = <ChannelEvent>[];
+        service.channelEvents.listen(events.add);
+
+        await service.handleNotificationResponse(NotificationResponse(
+          notificationResponseType: NotificationResponseType.selectedNotificationAction,
+          actionId: LocalNotificationPresenter.copyActionId,
+          payload: const NotificationPayload(channelId: 'ch-1', sequenceNumber: 7, copyText: '482913').encode(),
+        ));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(copied, ['482913']);
+        expect(events.single.openedFromNotification, isTrue);
+        expect(events.single.channelId, 'ch-1');
+      });
+
+      test('plain tap refreshes but does not copy', () async {
+        await service.handleNotificationResponse(NotificationResponse(
+          notificationResponseType: NotificationResponseType.selectedNotification,
+          payload: const NotificationPayload(channelId: 'ch-1', sequenceNumber: 7, copyText: '482913').encode(),
+        ));
+        expect(copied, isEmpty);
+      });
     });
 
     group('resolveContent notification test matrix', () {

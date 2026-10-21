@@ -628,6 +628,15 @@
     }
   },
   "notificationNewMessageBodyGeneric": "Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.",
+  "notificationOtpTitle": "Mã OTP: {code}",
+  "@notificationOtpTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationCopyAction": "Sao chép",
   "relativeJustNow": "Vừa xong",
   "relativeMinutesAgo": "{count} phút trước",
   "@relativeMinutesAgo": {

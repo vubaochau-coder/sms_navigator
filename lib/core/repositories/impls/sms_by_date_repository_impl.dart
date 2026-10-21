@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../models/channel_event.dart';
 import '../../models/channel_message_model.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/message_api_service.dart';
@@ -11,13 +12,20 @@ class SmsByDateRepositoryImpl implements SmsByDateRepository {
     required MessageApiService messageApiService,
     required ChannelKeyStore keyStore,
     required ChannelCryptoHelper cryptoHelper,
+    Stream<ChannelEvent> channelEvents = const Stream.empty(),
   }) : _messageApi = messageApiService,
        _keyStore = keyStore,
-       _crypto = cryptoHelper;
+       _crypto = cryptoHelper,
+       _channelEvents = channelEvents;
 
   final MessageApiService _messageApi;
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
+  final Stream<ChannelEvent> _channelEvents;
+
+  @override
+  Stream<ChannelEvent> get messageChanges =>
+      _channelEvents.where((event) => event.affectsMessages);
 
   @override
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchByDate({

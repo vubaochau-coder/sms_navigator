@@ -57,4 +57,21 @@ class MessageApiServiceImpl implements MessageApiService {
     final truncated = map['truncated'] == true;
     return (messages: messages, truncated: truncated);
   }
+
+  @override
+  Future<ChannelMessageModel> fetchMessage({
+    required String channelId,
+    required int sequenceNumber,
+    CancelToken? cancelToken,
+  }) async {
+    final res = await apiClient.get(
+      ApiEndpoints.channelMessageV2,
+      queryParameters: <String, String>{
+        'channel_id': channelId,
+        'sequence_number': sequenceNumber.toString(),
+      },
+      cancelToken: cancelToken,
+    );
+    return ChannelMessageModel.fromMap(_asMap(_asMap(res)['message']));
+  }
 }

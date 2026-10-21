@@ -27,8 +27,6 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
 | 1.1 | **Export / Import Backup (khôi phục danh tính & khóa)** | Gỡ app = mất X25519 identity key → Owner mất kênh vĩnh viễn (server chỉ giữ envelope wrap bằng key đó). Export file `.smsnav` mã hóa bằng passphrase (Argon2/PBKDF2 + AES-256-GCM) chứa identity keypair, channel keys theo epoch, deviceId, deviceToken. Splash lần đầu: *"Thiết lập thiết bị mới"* / *"Khôi phục từ bản sao lưu"*. Loại QR `BACKUP` của QR v3.3 có thể dùng để chuyển máy. | P1 |
-| 1.2 | **OTP hiển thị ngay trong thông báo** | Hiện thông báo chỉ "Có tin nhắn SMS mới" → member phải mở app, chọn ngày, chờ giải mã. FCM gửi data-only `{channel_id, sequence}` → app lấy ciphertext, giải mã cục bộ, hiện OTP + action **"Sao chép"**. Vẫn E2EE. Android trước (background handler); iOS cần Notification Service Extension. | P1 |
-| 1.3 | FCM bell refresh màn SMS đang mở | `SmsPage` chỉ load khi khởi tạo. Wire channel event → `SmsBloc.add(SmsLoadDataEvent())`. Làm cùng 1.2. | P1 |
 | 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE. | P2 |
 | 1.5 | Đổi tên kênh | Owner, dialog 1–50 ký tự, `PUT /api/v2/channels/name` (BE chưa có). Cập nhật `RelayChannelStore` qua `SyncOwnerRelayChannelUseCase`. | P2 |
 | 1.6 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Xem lại request `APPROVED` / `REJECTED` / `CANCELLED`. | P2 |
@@ -60,6 +58,12 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 ---
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
+
+- **Nhánh `feat/otp-notification`** (mobile + BE, chưa merge):
+  - 1.2 OTP ngay trong thông báo (Android): BE gửi `NEW_MESSAGE` **data-only** kèm `sequence_number`, `sender_device_id` (vẫn không có ciphertext — I5); app gọi `GET /api/v2/channels/message` (§6.4), giải mã cục bộ, hiện "Mã OTP: …" + nút **"Sao chép"** (`OtpCodeExtractor` tách mã; không tách được thì chép cả tin). Lỗi bất kỳ → thông báo chung. Bỏ qua tin do chính máy relay. Màn hình khoá: `visibility: private`.
+  - 1.3 `SmsPage` tự làm mới ngầm (không shimmer, không toast lỗi) khi có `NEW_MESSAGE` (chỉ khi đang xem hôm nay), `APPROVED` / `REVOKED` (mọi ngày), khi chạm thông báo, và khi app quay lại foreground.
+  - `FcmNotificationService.channelEvents` (Stream) thay cho `setChannelEventListener`.
+  - Còn lại: iOS cần Notification Service Extension để hiện OTP (hiện vẫn là banner chung).
 
 - **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.

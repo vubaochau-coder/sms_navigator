@@ -1,13 +1,15 @@
-export 'impls/fcm_notification_service_impl.dart'
-    show firebaseMessagingBackgroundHandler;
+import '../models/channel_event.dart';
 
-/// FCM chỉ là chuông (API spec §7, I5/N8):
-/// - Data message KHÔNG chứa ciphertext/key — mất FCM vô hại vì app luôn
-///   reconcile khi mở;
-/// - Tap chuông → mở app → người dùng tự vào màn OTP hôm nay / màn kênh.
+export '../notifications/fcm_background_handler.dart' show firebaseMessagingBackgroundHandler;
+
+/// FCM "chuông" (API spec §7) + thông báo cục bộ.
 abstract class FcmNotificationService {
   Future<void> initialize();
   Future<void> syncToken();
-  void setChannelEventListener(void Function() listener);
+
+  /// Sự kiện kênh (broadcast): chuông FCM khi app đang mở, và thao tác chạm /
+  /// "Sao chép" trên thông báo. Màn hình dùng để tự làm mới (MOBILE_FEATURES 1.3).
+  Stream<ChannelEvent> get channelEvents;
+
   void dispose();
 }

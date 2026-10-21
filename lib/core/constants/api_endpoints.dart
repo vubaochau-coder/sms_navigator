@@ -19,6 +19,9 @@ class ApiEndpoints {
   static const String channelRequestsV2 = '/api/v2/channels/requests';
   static const String channelKeyEnvelopeV2 = '/api/v2/channels/key-envelope';
   static const String channelMessagesV2 = '/api/v2/channels/messages';
+
+  /// Một tin theo (channel_id, sequence_number) — cho thông báo OTP (§6.4).
+  static const String channelMessageV2 = '/api/v2/channels/message';
   static const String channelRevokeV2 = '/api/v2/channels/revoke';
   static const String channelWhitelistV2 = '/api/v2/channels/whitelist';
 

@@ -1948,6 +1948,18 @@ abstract class AppLocalizations {
   /// **'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.'**
   String get notificationNewMessageBodyGeneric;
 
+  /// No description provided for @notificationOtpTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP: {code}'**
+  String notificationOtpTitle(String code);
+
+  /// No description provided for @notificationCopyAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao chép'**
+  String get notificationCopyAction;
+
   /// No description provided for @relativeJustNow.
   ///
   /// In vi, this message translates to:
