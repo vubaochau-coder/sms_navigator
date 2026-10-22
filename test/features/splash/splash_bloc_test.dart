@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/repositories/impls/startup_repository_impl.dart';
 import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/enums/splash_status.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
@@ -208,15 +209,17 @@ void main() {
 
     SplashBloc buildBloc({NativeRelayService? nativeRelayService, bool offerRestore = false}) {
       return SplashBloc(
-        crashlyticsService: crashlytics,
-        analyticsService: analytics,
-        fcmService: fcm,
-        deviceStorageService: storage,
-        keyStore: keyStore,
-        deviceApiService: deviceApi,
-        startupReconcileService: reconcile,
-        nativeRelayService: nativeRelayService,
-        platform: TargetPlatform.android,
+        startupRepository: StartupRepositoryImpl(
+          crashlyticsService: crashlytics,
+          analyticsService: analytics,
+          fcmService: fcm,
+          deviceStorageService: storage,
+          keyStore: keyStore,
+          deviceApiService: deviceApi,
+          startupReconcileService: reconcile,
+          nativeRelayService: nativeRelayService,
+          platform: TargetPlatform.android,
+        ),
         minDisplayDuration: Duration.zero,
         offerRestoreOnFirstRun: offerRestore,
       );

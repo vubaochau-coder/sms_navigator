@@ -37,7 +37,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
 | 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
 | 3.10 | Nâng Gradle / AGP / Kotlin | Flutter cảnh báo sắp ngừng hỗ trợ Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20 → cần Gradle ≥ 9.1, AGP ≥ 9.0.1, Kotlin ≥ 2.3.20. Nâng trên nhánh riêng, chạy đủ test + build APK release và kiểm tra chữ ký không đổi | P3 |
 
@@ -57,6 +56,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
   - Xử lý 401 tập trung: `ApiClient.onUnauthorized` → `DeviceSessionRecovery` (đăng ký lại cùng device_id, cập nhật native, retry 1 lần); worker native park SMS khi 401 — cũ: mục 3.2.
   - Tuỳ chọn "Thông báo cả tin máy này chuyển tiếp" (mặc định tắt) trong trang thiết bị, áp dụng cả foreground lẫn background handler — cũ: mục 1.8.
   - Cache tin nhắn offline: lưu ciphertext (E2EE at rest) 14 ngày, mất mạng thì giải mã lại bản lưu và hiện "Ngoại tuyến — đang xem bản lưu lúc …" — cũ: mục 1.7.
+  - TD-3: luồng khởi động tách vào `StartupRepository`/`StartupRepositoryImpl`; `SplashBloc` chỉ phụ thuộc repository (3.3).
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

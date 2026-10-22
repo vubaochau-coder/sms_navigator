@@ -171,3 +171,14 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Ngày chưa từng mở → máy bay → toast lỗi như cũ.
 - [ ] Rời 1 kênh → máy bay → tin của kênh đó không còn trong bản lưu.
 
+
+## P3-3 · Tách luồng khởi động vào `StartupRepository` (BACKLOG 3.3)
+
+**Rà soát**
+- [ ] `StartupRepository.bootstrap(...)` trả `Stream<SplashStatus>` theo đúng thứ tự cũ: initializingServices → checkingIdentityKey → authenticatingDevice → (awaitingSetupChoice **hoặc** registeringDevice) → syncingChannels → ready. Thuần di chuyển code — không đổi logic bước nào (auto-heal tên máy, reconcile, đồng bộ native relay).
+- [ ] `SplashBloc` chỉ còn phụ thuộc `StartupRepository`; giữ min display, ánh xạ lỗi → `SplashFailureKind`, ghi Crashlytics qua `recordFailure`.
+- [ ] `SplashPage` dựng `StartupRepositoryImpl` từ các service trong context (không thêm provider mới).
+
+**Kiểm thử**
+- [ ] `splash_bloc_test.dart` (giữ nguyên kịch bản, chỉ đổi cách dựng bloc).
+- [ ] Trên máy: cài mới (thấy lựa chọn Khôi phục / Máy mới), mở lại app đã đăng ký, mở khi mất mạng → nút Thử lại.
