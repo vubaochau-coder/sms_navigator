@@ -93,11 +93,14 @@ class SmsTileView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 6),
-                          // Hàng tiếp theo: Nội dung tin nhắn (size 14)
+                          // Hàng tiếp theo: Nội dung tin nhắn (size 14), tối đa 2 dòng —
+                          // bottom sheet chi tiết hiện đầy đủ.
                           Text(
                             hasContent
                                 ? message.decryptedOtp!
                                 : context.l10n.smsDecryptError,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
                               height: 1.4,

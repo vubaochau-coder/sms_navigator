@@ -209,3 +209,12 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Máy local: `flutter clean && flutter build apk --release` với `key.properties` thật → `./scripts/print_android_sha256.sh` vẫn ra `94:74:…:AD:A2` (✅) → cài **đè** lên bản 1.1.0 đang chạy được (không phải gỡ).
 - [ ] Android Studio: Sync project không lỗi (có thể cần cập nhật AS lên bản hỗ trợ AGP 9).
 - [ ] Smoke: nhận SMS OTP → relay (WorkManager + native) chạy bình thường; Crashlytics vẫn nhận mapping/báo cáo.
+
+## Bổ sung A · Tin SMS trên danh sách tối đa 2 dòng
+
+**Rà soát**
+- [ ] `SmsTileView`: nội dung `maxLines: 2` + `ellipsis`; bottom sheet chi tiết (`SelectableText`) vẫn hiện đầy đủ.
+
+**Kiểm thử**
+- [ ] Unit: `test/features/sms/views/sms_tile_view_test.dart`.
+- [ ] Trên máy: tin dài (thông báo ngân hàng nhiều dòng) → trên danh sách chỉ 2 dòng + "…"; chạm → đọc đủ, bôi chọn được; nút sao chép vẫn chép **toàn bộ** nội dung.
