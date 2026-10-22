@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
+import '../repositories/activity_repository.dart';
+import '../repositories/impls/activity_repository_impl.dart';
+import '../services/impls/channel_activity_log_store_impl.dart';
 import '../repositories/app_update_repository.dart';
 import '../repositories/backup_repository.dart';
 import '../repositories/impls/backup_repository_impl.dart';
+import '../services/message_cache_store.dart';
+import '../services/device_session_recovery.dart';
 import '../services/impls/backup_file_service_impl.dart';
 import '../repositories/channel_repository.dart';
 import '../repositories/device_setup_repository.dart';
@@ -45,19 +50,22 @@ import '../services/deep_link_service.dart';
 import '../services/qr_api_service.dart';
 import '../bloc/qr_ingress/qr_ingress_cubit.dart';
 import '../services/impls/pairing_api_service_impl.dart';
+import '../services/impls/remote_config_startup_gate.dart';
 import '../services/impls/startup_reconcile_service_impl.dart';
+import '../services/startup_gate.dart';
 import '../services/local_storage_service.dart';
 import '../services/message_api_service.dart';
 import '../services/native_relay_service.dart';
 import '../services/pairing_api_service.dart';
 import '../services/relay_channel_bridge.dart';
 import '../services/startup_reconcile_service.dart';
+import '../usecases/report_vault_fallback_use_case.dart';
 import '../usecases/resolve_incoming_message_use_case.dart';
+import '../usecases/sync_channel_keys_use_case.dart';
 import '../usecases/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
 import '../crypto/channel_crypto_helper.dart';
 import '../../features/device/bloc/device_profile_cubit.dart';
-import '../l10n/app_l10n.dart';
 import '../models/channel_event.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
@@ -105,6 +113,9 @@ class AppBootstrap extends StatelessWidget {
             localStorage: context.read<LocalStorageService>(),
           ),
         ),
+        RepositoryProvider<StartupGate>(
+          create: (_) => RemoteConfigStartupGate(),
+        ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),
         ),
@@ -145,18 +156,28 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             keyArchive: ChannelKeyStoreImpl(cryptoHelper: context.read<ChannelCryptoHelper>()),
             fileService: BackupFileServiceImpl(),
+            localStorage: context.read<LocalStorageService>(),
           ),
         ),
 
         // 5. Device (register v2 + setup checklist)
         RepositoryProvider<DeviceApiService>(
-          create: (context) => DeviceApiServiceImpl(
-            apiClient: context.read<ApiClient>(),
-            storageService: context.read<DeviceStorageService>(),
-            publicKeyProvider: () async =>
-                (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
-                    .publicKeyBase64,
-          ),
+          lazy: false,
+          create: (context) {
+            final apiClient = context.read<ApiClient>();
+            final storage = context.read<DeviceStorageService>();
+            final deviceApi = DeviceApiServiceImpl(
+              apiClient: apiClient,
+              storageService: storage,
+              publicKeyProvider: () async =>
+                  (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
+                      .publicKeyBase64,
+            );
+            // BACKLOG 3.2: 401 → báo phiên đã mất (KHÔNG tự đăng ký lại cùng
+            // device_id — FLOW_AUDIT S1); Splash lần mở sau cho khôi phục/thiết lập lại.
+            apiClient.onUnauthorized = DeviceSessionRecovery(storage: storage).call;
+            return deviceApi;
+          },
         ),
         RepositoryProvider<DeviceSetupRepository>(
           create: (context) => DeviceSetupRepositoryImpl(
@@ -199,11 +220,21 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // FCM chuông (API spec §7) + thông báo OTP đã giải mã (MOBILE_FEATURES 1.2)
+        // Key của mọi epoch, một request (SRD §8.4 — FLOW_AUDIT K1/K2)
+        RepositoryProvider<SyncChannelKeysUseCase>(
+          create: (context) => SyncChannelKeysUseCase(
+            channelApiService: context.read<ChannelApiService>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            deviceStorage: context.read<DeviceStorageService>(),
+            cryptoHelper: context.read<ChannelCryptoHelper>(),
+          ),
+        ),
         RepositoryProvider<ResolveIncomingMessageUseCase>(
           create: (context) => ResolveIncomingMessageUseCase(
             messageApiService: context.read<MessageApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
         RepositoryProvider<FcmNotificationService>(
@@ -211,6 +242,7 @@ class AppBootstrap extends StatelessWidget {
             deviceStorageService: context.read<DeviceStorageService>(),
             deviceApiService: context.read<DeviceApiService>(),
             resolveIncomingMessage: context.read<ResolveIncomingMessageUseCase>(),
+            preferences: context.read<LocalStorageService>(),
           ),
           dispose: (service) => service.dispose(),
         ),
@@ -248,25 +280,25 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             channelEvents: context.read<FcmNotificationService>().channelEvents,
+            cache: MessageCacheStore(context.read<LocalStorageService>()),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
+        ),
+        // Không lazy: phải nghe sự kiện kênh ngay từ đầu để ghi cho tab Hoạt động
+        RepositoryProvider<ActivityRepository>(
+          lazy: false,
+          create: (context) => ActivityRepositoryImpl(
+            nativeRelayService: context.read<NativeRelayService>(),
+            logStore: ChannelActivityLogStoreImpl(context.read<LocalStorageService>()),
+            channelEvents: context.read<FcmNotificationService>().channelEvents,
+          ),
+          dispose: (repository) => (repository as ActivityRepositoryImpl).dispose(),
         ),
         RepositoryProvider<StartupReconcileService>(
           create: (context) => StartupReconcileServiceImpl(
-            deviceApiService: context.read<DeviceApiService>(),
             deviceStorage: context.read<DeviceStorageService>(),
             keyStore: context.read<ChannelKeyStore>(),
-            channelRepository: context.read<ChannelRepository>(),
-            joinRepository: context.read<JoinChannelRepository>(),
-            deviceNameProvider: () async {
-              try {
-                final nativeName =
-                    await context.read<NativeRelayService>().getDeviceName();
-                if (nativeName != null && nativeName.trim().isNotEmpty) {
-                  return nativeName.trim();
-                }
-              } catch (_) {}
-              return AppL10n.current.splashDefaultDeviceName;
-            },
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
 
@@ -278,6 +310,7 @@ class AppBootstrap extends StatelessWidget {
             deviceStorage: context.read<DeviceStorageService>(),
             relayBridge: context.read<RelayChannelBridge>(),
             whitelistRepository: context.read<WhitelistRepository>(),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
       ],
@@ -338,6 +371,11 @@ class _AsyncServicesInitializerState extends State<_AsyncServicesInitializer> {
     analytics.initialize();
     fcm.initialize();
     fcm.syncToken();
+    // BACKLOG 2.2: Keystore fallback của native → Crashlytics + cảnh báo
+    ReportVaultFallbackUseCase(
+      nativeRelay: context.read<NativeRelayService>(),
+      crashlytics: crashlytics,
+    )().catchError((Object _) => null);
     _channelEventSubscription = fcm.channelEvents.listen((_) {
       syncRelay().catchError((_) => false);
     });

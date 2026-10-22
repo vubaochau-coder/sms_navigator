@@ -74,6 +74,22 @@ class ChannelApiServiceImpl implements ChannelApiService {
   }
 
   @override
+  Future<List<ChannelKeyEnvelopesModel>> listKeyEnvelopes({String? channelId}) async {
+    final data = _asMap(
+      await apiClient.get(
+        ApiEndpoints.keyEnvelopesV2,
+        queryParameters: {'channel_id': ?channelId},
+      ),
+    );
+    final raw = data['channels'];
+    if (raw is! List) return const [];
+    return [
+      for (final item in raw)
+        if (item is Map) ChannelKeyEnvelopesModel.fromMap(Map<String, dynamic>.from(item)),
+    ];
+  }
+
+  @override
   Future<KeyEnvelopeModel> getKeyEnvelope({
     required String channelId,
     int? epoch,
@@ -106,6 +122,37 @@ class ChannelApiServiceImpl implements ChannelApiService {
         },
       ),
     );
+  }
+
+  @override
+  Future<void> renameChannel({required String channelId, required String name}) async {
+    await apiClient.put(
+      ApiEndpoints.channelNameV2,
+      body: <String, dynamic>{'channel_id': channelId, 'name': name},
+    );
+  }
+
+  @override
+  Future<void> leaveChannel({required String channelId}) async {
+    await apiClient.post(ApiEndpoints.channelLeaveV2, body: <String, dynamic>{'channel_id': channelId});
+  }
+
+  @override
+  Future<Map<String, dynamic>> rotateChannel({
+    required String channelId,
+    required Map<String, dynamic> package,
+  }) async {
+    return _asMap(
+      await apiClient.post(
+        ApiEndpoints.channelRotateV2,
+        body: <String, dynamic>{'channel_id': channelId, 'package': package},
+      ),
+    );
+  }
+
+  @override
+  Future<void> archiveChannel({required String channelId}) async {
+    await apiClient.post(ApiEndpoints.channelArchiveV2, body: <String, dynamic>{'channel_id': channelId});
   }
 
   @override

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/ui/bottom_sheet_utils.dart';
-import '../../core/utils/data_converter.dart';
-import '../../core/utils/date_time_utils.dart';
 import '../../core/widgets/app_common_widgets.dart';
+import '../../core/widgets/relay_log_tile.dart';
 import '../../core/widgets/shimmer_loading.dart';
+import '../../core/models/relay_log_entry.dart';
 import '../../core/models/whitelist_config_model.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/repositories/whitelist_repository.dart';
@@ -179,112 +179,13 @@ class _RelayLogSheet extends StatelessWidget {
                     itemCount: logs.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (context, index) =>
-                        _RelayLogTile(log: logs[index]),
+                        RelayLogTile(entry: RelayLogEntry.fromMap(logs[index])),
                   ),
                 ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _RelayLogTile extends StatelessWidget {
-  const _RelayLogTile({required this.log});
-
-  final Map<String, dynamic> log;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final sender = DataConverter.cvToString(log['sender']) ?? '';
-    final otp = DataConverter.cvToString(log['otp']) ?? '';
-    final status = DataConverter.cvToString(log['status']) ?? '';
-    final error = DataConverter.cvToString(log['error']) ?? '';
-    final dt = DataConverter.cvToDateTime(log['timestamp']);
-    final formattedTime = (dt != null && dt.millisecondsSinceEpoch > 0)
-        ? DateTimeUtils.formatDate(dt, pattern: 'HH:mm:ss · dd/MM/yyyy')
-        : '';
-
-    final (Color color, IconData icon) = switch (status) {
-      'SUCCESS' => (Colors.green.shade700, Icons.check_circle_outline_rounded),
-      'ENQUEUED' => (Colors.blue.shade700, Icons.schedule_send_rounded),
-      'RETRYING' => (Colors.orange.shade800, Icons.refresh_rounded),
-      'FAILED' => (colorScheme.error, Icons.error_outline_rounded),
-      'BLOCKED' => (Colors.purple.shade700, Icons.block_rounded),
-      _ => (colorScheme.onSurfaceVariant, Icons.remove_circle_outline_rounded),
-    };
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        sender.isEmpty ? context.l10n.relayLogUnknownSender : sender,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      status,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                      ),
-                    ),
-                  ],
-                ),
-                if (formattedTime.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      formattedTime,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                if (otp.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      context.l10n.relayLogDetected(otp),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                if (error.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      error,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

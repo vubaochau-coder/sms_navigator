@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../../constants/storage_keys.dart';
 import '../../crypto/backup_crypto.dart';
 import '../../crypto/channel_crypto_helper.dart';
 import '../../models/backup_payload.dart';
 import '../../services/backup_file_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_storage_service.dart';
+import '../../services/local_storage_service.dart';
 import '../backup_repository.dart';
 
 class BackupRepositoryImpl implements BackupRepository {
@@ -15,15 +17,18 @@ class BackupRepositoryImpl implements BackupRepository {
     required ChannelKeyStore keyStore,
     required ChannelKeyArchive keyArchive,
     required BackupFileService fileService,
+    LocalStorageService? localStorage,
     BackupCrypto? backupCrypto,
     DateTime Function()? clock,
-  }) : _deviceStorage = deviceStorage,
+  }) : _localStorage = localStorage,
+       _deviceStorage = deviceStorage,
        _keyStore = keyStore,
        _keyArchive = keyArchive,
        _files = fileService,
        _crypto = backupCrypto ?? BackupCrypto(),
        _now = clock ?? DateTime.now;
 
+  final LocalStorageService? _localStorage;
   final DeviceStorageService _deviceStorage;
   final ChannelKeyStore _keyStore;
   final ChannelKeyArchive _keyArchive;
@@ -63,6 +68,7 @@ class BackupRepositoryImpl implements BackupRepository {
     final fileName = backupFileName(payload.createdAt);
     final saved = await _files.saveFile(fileName: fileName, bytes: bytes);
     if (!saved) throw const BackupException(BackupFailure.cancelled, 'Save cancelled');
+    await _remember(payload);
 
     return BackupSummary(
       deviceName: payload.deviceName,
@@ -104,12 +110,30 @@ class BackupRepositoryImpl implements BackupRepository {
     final serverUrl = payload.serverUrl;
     if (serverUrl != null && serverUrl.trim().isNotEmpty) await _deviceStorage.saveServerUrl(serverUrl);
     await _deviceStorage.saveDeviceToken(payload.deviceToken);
+    // Máy vừa khôi phục đã có bản sao lưu chứa đúng các kênh này.
+    await _remember(payload);
 
     return BackupSummary(
       deviceName: payload.deviceName,
       channelCount: payload.channelCount,
       createdAt: payload.createdAt,
     );
+  }
+
+  @override
+  BackupRecord? lastBackupRecord() {
+    final raw = _localStorage?.getString(StorageKeys.lastBackupRecord);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return BackupRecord.fromJson(jsonDecode(raw));
+    } on FormatException {
+      return null;
+    }
+  }
+
+  Future<void> _remember(BackupPayload payload) async {
+    final record = BackupRecord(at: payload.createdAt, channelIds: payload.channelKeys.keys.toSet());
+    await _localStorage?.setString(StorageKeys.lastBackupRecord, jsonEncode(record.toJson()));
   }
 
   /// `sms-navigator-20261022-0415.smsnav` (giờ máy).

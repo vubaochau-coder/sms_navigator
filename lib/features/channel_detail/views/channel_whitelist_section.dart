@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/models/channel_detail_model.dart';
+import '../../../core/models/whitelist_config_model.dart';
+import '../../../core/widgets/whitelist_pills.dart';
 import '../../settings/whitelist_settings_page.dart';
 import '../bloc/channel_detail_bloc.dart';
 import '../../../core/extensions/context_extensions.dart';
@@ -12,10 +13,13 @@ class ChannelWhitelistSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ChannelDetailBloc, ChannelDetailState, ChannelDetailModel?>(
-      selector: (state) => state.detail,
-      builder: (context, detail) {
+    return BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
+      buildWhen: (previous, current) =>
+          previous.detail != current.detail || previous.whitelist != current.whitelist,
+      builder: (context, state) {
+        final detail = state.detail;
         if (detail == null) return const SizedBox.shrink();
+        final whitelist = state.whitelist;
 
         final colorScheme = Theme.of(context).colorScheme;
         final textTheme = Theme.of(context).textTheme;
@@ -83,6 +87,10 @@ class ChannelWhitelistSection extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
+                if (whitelist != null) ...[
+                  const SizedBox(height: 10),
+                  ChannelWhitelistEntries(config: whitelist),
+                ],
                 if (detail.whitelist != null) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -107,5 +115,28 @@ class ChannelWhitelistSection extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// Danh sách đầy đủ người gửi trong white-list (chỉ xem) — Owner sửa qua nút "Cấu hình".
+class ChannelWhitelistEntries extends StatelessWidget {
+  const ChannelWhitelistEntries({super.key, required this.config});
+
+  final WhitelistConfigModel config;
+
+  @override
+  Widget build(BuildContext context) {
+    final isEmpty = config.entries.isEmpty && config.mode == WhitelistMode.explicit;
+    if (isEmpty) {
+      return Text(
+        context.l10n.whitelistNoSenders,
+        style: TextStyle(
+          fontSize: 12,
+          fontStyle: FontStyle.italic,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+    return WhitelistPills(config: config, showOtpMarker: true);
   }
 }

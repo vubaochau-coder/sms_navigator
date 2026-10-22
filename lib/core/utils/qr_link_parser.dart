@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../models/pairing_session_model.dart';
-
 /// Kết quả phân tích một chuỗi QR / deeplink thô.
 sealed class QrLink extends Equatable {
   const QrLink();
@@ -17,24 +15,14 @@ class OpaqueQrLink extends QrLink {
   List<Object?> get props => [code];
 }
 
-/// Invite v4 `smsnavigator://pair?v=4&…` — chỉ còn trong giai đoạn chuyển
-/// tiếp (QR do app Owner bản cũ sinh ra). Gỡ ở roadmap GĐ6.
-class LegacyInviteLink extends QrLink {
-  final String raw;
-
-  const LegacyInviteLink(this.raw);
-
-  @override
-  List<Object?> get props => [raw];
-}
-
 /// Parser thuần (không I/O) cho mọi nguồn mã: camera, ảnh, deeplink, dán tay.
 ///
 /// Nhận:
 /// - `https://<host được phép>/qr/<code>` (App Links / Universal Links);
 /// - `smsnavigator://qr?code=<code>`;
-/// - `<code>` trần (22 ký tự base64url) khi người dùng dán / nhập tay;
-/// - invite v4 (chuyển tiếp).
+/// - `<code>` trần (22 ký tự base64url) khi người dùng dán / nhập tay.
+///
+/// Invite v4 `smsnavigator://pair?v=4…` không còn được nhận (roadmap GĐ6).
 ///
 /// Link https chỉ được chấp nhận khi host nằm trong [allowedHosts] — chặn mã
 /// trỏ tới domain giả mạo. Khi [allowedHosts] rỗng (ví dụ validator của
@@ -69,8 +57,6 @@ abstract final class QrLinkParser {
       final code = segments[1];
       return codePattern.hasMatch(code) ? OpaqueQrLink(code) : null;
     }
-
-    if (InvitePayload.tryParse(value) != null) return LegacyInviteLink(value);
 
     return null;
   }

@@ -5,6 +5,7 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/usecases/sync_owner_relay_channel_use_case.dart';
 import 'bloc/channel_detail_bloc.dart';
+import 'views/channel_detail_menu_button.dart';
 import 'views/channel_detail_shimmer_view.dart';
 import 'views/channel_summary_view.dart';
 import 'views/channel_whitelist_section.dart';
@@ -12,6 +13,8 @@ import 'views/invite_bottom_sheet.dart';
 import 'views/members_view.dart';
 import 'views/pending_requests_view.dart';
 
+export 'request_history_page.dart';
+export 'views/channel_detail_menu_button.dart';
 export 'views/channel_detail_shimmer_view.dart';
 export 'views/channel_summary_view.dart';
 export 'views/channel_whitelist_section.dart';
@@ -49,7 +52,10 @@ class _ChannelDetailPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Scaffold(
+    return BlocListener<ChannelDetailBloc, ChannelDetailState>(
+      listenWhen: (previous, current) => !previous.isClosed && current.isClosed,
+      listener: (context, _) => Navigator.of(context).maybePop(),
+      child: Scaffold(
       appBar: AppBar(
         title: BlocSelector<ChannelDetailBloc, ChannelDetailState, String?>(
           selector: (state) => state.detail?.name,
@@ -67,6 +73,7 @@ class _ChannelDetailPageView extends StatelessWidget {
               );
             },
           ),
+          const ChannelDetailMenuButton(),
         ],
       ),
       body: BlocSelector<ChannelDetailBloc, ChannelDetailState, bool>(
@@ -106,6 +113,7 @@ class _ChannelDetailPageView extends StatelessWidget {
             ),
           );
         },
+      ),
       ),
     );
   }

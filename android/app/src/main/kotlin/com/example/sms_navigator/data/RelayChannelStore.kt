@@ -363,8 +363,14 @@ class RelayChannelStore(
     }
 
     // Cùng chính sách với OtpPreferences: nếu Keystore lỗi thì lưu thô thay vì
-    // làm hỏng relay (một số ROM có Keystore không ổn định).
-    private fun encrypt(value: String): String = try { vault.encrypt(value) } catch (_: Exception) { value }
+    // làm hỏng relay (một số ROM có Keystore không ổn định) — và ghi lại để Dart
+    // báo Crashlytics + cảnh báo (BACKLOG 2.2).
+    private fun encrypt(value: String): String = try {
+        vault.encrypt(value)
+    } catch (e: Exception) {
+        VaultFallbackLog.record(prefs, "relay_store", e)
+        value
+    }
     private fun decryptOrNull(value: String?): String? {
         if (value.isNullOrEmpty()) return null
         return try { vault.decrypt(value) } catch (_: Exception) { value }

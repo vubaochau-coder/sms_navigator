@@ -36,8 +36,11 @@ class DeviceApiServiceImpl implements DeviceApiService {
       throw StateError('Chưa có identity key — không thể đăng ký thiết bị.');
     }
 
-    final existingId = await storageService.getDeviceId();
-    final deviceId = (_isValidUuid(existingId) ? existingId : null) ?? _generateUuidV4();
+    // Luôn là device_id MỚI: hàm này chỉ chạy khi máy không có token hợp lệ,
+    // và server từ chối đăng ký lại một device_id đã có nếu không kèm token
+    // của chính nó (409 DEVICE_EXISTS — FLOW_AUDIT S1). device_id cũ còn sót
+    // (vd. khôi phục bị ngắt giữa chừng) vì thế không dùng lại được.
+    final deviceId = _generateUuidV4();
 
     final body = <String, dynamic>{
       'device_id': deviceId,
@@ -114,20 +117,6 @@ class DeviceApiServiceImpl implements DeviceApiService {
     } on UnauthorizedException {
       return false;
     }
-  }
-
-  bool _isValidUuid(String? id) {
-    if (id == null || id.length != 36) return false;
-    if (id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-') return false;
-    for (var i = 0; i < 36; i++) {
-      if (i == 8 || i == 13 || i == 18 || i == 23) continue;
-      final code = id.codeUnitAt(i);
-      final isHex = (code >= 48 && code <= 57) ||
-          (code >= 65 && code <= 70) ||
-          (code >= 97 && code <= 102);
-      if (!isHex) return false;
-    }
-    return true;
   }
 
   String _generateUuidV4() {

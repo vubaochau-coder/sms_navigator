@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/constants/storage_keys.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/models/channel_message_model.dart';
 import 'package:sms_navigator/core/notifications/local_notification_presenter.dart';
@@ -131,4 +133,70 @@ void main() {
     expect(presenter.bells, isEmpty);
     expect(presenter.otps, isEmpty);
   });
+
+  test('with "notify own relayed" switched on, the relaying device gets the OTP too (1.8)', () async {
+    storage.deviceId = 'owner-1';
+    resolve.result = _decrypted('Ma OTP 482913');
+    final prefs = _Prefs()..data[StorageKeys.notifyOwnRelayedMessages] = true;
+    final notifyOwn = NewMessageNotifier(
+      resolveIncomingMessage: resolve,
+      deviceStorage: storage,
+      presenter: presenter,
+      preferences: prefs,
+    );
+
+    expect(await notifyOwn.handle(_event, fallback: _fallback), NewMessageNotifyOutcome.otpShown);
+    expect(presenter.otps.single.code, '482913');
+  });
+
+  group('placeholderFirst (background isolate)', () {
+    test('generic bell first, then the OTP replaces it under the same id', () async {
+      resolve.result = _decrypted('Ma OTP 482913');
+
+      final outcome = await notifier.handle(_event, fallback: _fallback, placeholderFirst: true);
+
+      expect(outcome, NewMessageNotifyOutcome.otpShown);
+      final (content, id, payload) = presenter.bells.single;
+      expect(content, _fallback);
+      expect(id, notificationIdFor('ch-1', 7));
+      expect(payload, const NotificationPayload(channelId: 'ch-1', sequenceNumber: 7));
+      expect(presenter.otps.single.id, id);
+    });
+
+    test('resolve failure keeps the placeholder and does not alert twice', () async {
+      resolve.error = Exception('timeout');
+
+      final outcome = await notifier.handle(_event, fallback: _fallback, placeholderFirst: true);
+
+      expect(outcome, NewMessageNotifyOutcome.fallbackShown);
+      expect(presenter.bells, hasLength(1));
+      expect(presenter.otps, isEmpty);
+    });
+
+    test('own relayed message still shows nothing', () async {
+      storage.deviceId = 'owner-1';
+      expect(
+        await notifier.handle(_event, fallback: _fallback, placeholderFirst: true),
+        NewMessageNotifyOutcome.skippedOwnMessage,
+      );
+      expect(presenter.bells, isEmpty);
+    });
+  });
+}
+
+class _Prefs implements LocalStorageService {
+  final Map<String, Object> data = {};
+
+  @override
+  String? getString(String key) => data[key] as String?;
+  @override
+  Future<void> setString(String key, String value) async => data[key] = value;
+  @override
+  bool? getBool(String key) => data[key] as bool?;
+  @override
+  Future<void> setBool(String key, bool value) async => data[key] = value;
+  @override
+  Future<void> remove(String key) async => data.remove(key);
+  @override
+  Future<void> reload() async {}
 }

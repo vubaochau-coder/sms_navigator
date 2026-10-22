@@ -1154,23 +1154,12 @@ class AppLocalizationsVi extends AppLocalizations {
       'Kênh này đã bị lưu trữ, không thể tham gia.';
 
   @override
-  String get joinResolveFailed =>
-      'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.';
-
-  @override
-  String get joinResolveFailedShort => 'Không thể kiểm tra thông tin kênh.';
-
-  @override
   String get joinClaimFailed =>
       'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.';
 
   @override
   String get joinClaimFailedRetry =>
       'Không gửi được yêu cầu. Vui lòng thử lại sau.';
-
-  @override
-  String get joinInvalidQrFormat =>
-      'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
 
   @override
   String get joinChannelFallbackName => 'kênh';
@@ -1536,4 +1525,223 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get splashSetupRestoreSubtitle => 'Dùng file .smsnav từ máy cũ';
+
+  @override
+  String get channelDetailMoreTooltip => 'Tùy chọn kênh';
+
+  @override
+  String get channelRenameAction => 'Đổi tên kênh';
+
+  @override
+  String get channelRenameConfirm => 'Lưu';
+
+  @override
+  String channelRenameSuccess(String channelName) {
+    return 'Đã đổi tên kênh thành \"$channelName\".';
+  }
+
+  @override
+  String get channelRenameFailed =>
+      'Không đổi được tên kênh. Vui lòng thử lại.';
+
+  @override
+  String get channelLeaveAction => 'Rời kênh';
+
+  @override
+  String get channelLeaveConfirmTitle => 'Rời kênh này?';
+
+  @override
+  String channelLeaveConfirmMessage(String channelName) {
+    return 'Bạn sẽ không nhận và không xem được tin nhắn của \"$channelName\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.';
+  }
+
+  @override
+  String channelLeaveSuccess(String channelName) {
+    return 'Đã rời kênh \"$channelName\".';
+  }
+
+  @override
+  String get channelLeaveFailed => 'Không rời được kênh. Vui lòng thử lại.';
+
+  @override
+  String get channelArchiveAction => 'Giải tán kênh';
+
+  @override
+  String get channelArchiveConfirmTitle => 'Giải tán kênh?';
+
+  @override
+  String channelArchiveConfirmMessage(String channelName) {
+    return 'Kênh \"$channelName\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.';
+  }
+
+  @override
+  String channelArchiveSuccess(String channelName) {
+    return 'Đã giải tán kênh \"$channelName\".';
+  }
+
+  @override
+  String get channelArchiveFailed =>
+      'Không giải tán được kênh. Vui lòng thử lại.';
+
+  @override
+  String get requestHistoryAction => 'Lịch sử yêu cầu';
+
+  @override
+  String get requestHistoryTitle => 'Lịch sử yêu cầu kết nối';
+
+  @override
+  String get requestHistoryEmpty => 'Chưa có yêu cầu nào được xử lý.';
+
+  @override
+  String get requestHistoryLoadMore => 'Xem thêm';
+
+  @override
+  String get requestHistoryLoadFailed => 'Không tải được lịch sử yêu cầu.';
+
+  @override
+  String get requestHistoryRetry => 'Thử lại';
+
+  @override
+  String get requestStatusApproved => 'Đã duyệt';
+
+  @override
+  String get requestStatusRejected => 'Đã từ chối';
+
+  @override
+  String get requestStatusCancelled => 'Đã huỷ';
+
+  @override
+  String get backupReminderTitle => 'Chưa sao lưu khóa kênh';
+
+  @override
+  String get backupReminderMessage =>
+      'Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.';
+
+  @override
+  String get backupReminderAction => 'Sao lưu ngay';
+
+  @override
+  String get backupReminderLater => 'Để sau';
+
+  @override
+  String get vaultFallbackWarning =>
+      'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.';
+
+  @override
+  String get sessionRecoveryFailed =>
+      'Máy chủ không còn chấp nhận phiên của thiết bị này. Mở lại ứng dụng để khôi phục từ bản sao lưu hoặc thiết lập như máy mới.';
+
+  @override
+  String get notifyOwnRelayedTitle => 'Thông báo cả tin máy này chuyển tiếp';
+
+  @override
+  String get notifyOwnRelayedSubtitle =>
+      'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.';
+
+  @override
+  String smsOfflineCached(String time) {
+    return 'Ngoại tuyến — đang xem bản lưu lúc $time';
+  }
+
+  @override
+  String get splashMaintenanceDefault =>
+      'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.';
+
+  @override
+  String get whitelistPillAllSenders => 'Mọi người gửi';
+
+  @override
+  String whitelistPillOverflow(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get whitelistPillOtpAllowed => 'Được gửi OTP';
+
+  @override
+  String get whitelistNoSenders => 'Chưa có người gửi nào trong bộ lọc';
+
+  @override
+  String get deviceTabTitle => 'Thiết bị';
+
+  @override
+  String get relayStatusSuccess => 'Đã chuyển tiếp';
+
+  @override
+  String get relayStatusEnqueued => 'Đang gửi';
+
+  @override
+  String get relayStatusRetrying => 'Đang thử lại';
+
+  @override
+  String get relayStatusParked => 'Chờ mở app';
+
+  @override
+  String get relayStatusFailed => 'Lỗi';
+
+  @override
+  String get relayStatusBlocked => 'Bị lọc';
+
+  @override
+  String get relayStatusSkipped => 'Bỏ qua';
+
+  @override
+  String get relayStatusUnknown => 'Không rõ';
+
+  @override
+  String get activityTabTitle => 'Hoạt động';
+
+  @override
+  String get activityFilterAll => 'Tất cả';
+
+  @override
+  String get activityFilterRelay => 'SMS chuyển tiếp';
+
+  @override
+  String get activityFilterChannels => 'Kênh';
+
+  @override
+  String get activityEmptyTitle => 'Chưa có hoạt động';
+
+  @override
+  String get activityEmptyMessage =>
+      'SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.';
+
+  @override
+  String get activityUnknownChannel => '(không rõ tên)';
+
+  @override
+  String activityJoinRequest(String device, String channel) {
+    return '$device xin tham gia kênh \"$channel\"';
+  }
+
+  @override
+  String activityJoinRequestAnonymous(String channel) {
+    return 'Có yêu cầu tham gia kênh \"$channel\"';
+  }
+
+  @override
+  String activityApproved(String channel) {
+    return 'Bạn đã được duyệt vào kênh \"$channel\"';
+  }
+
+  @override
+  String activityRevoked(String channel) {
+    return 'Bạn đã bị thu hồi quyền ở kênh \"$channel\"';
+  }
+
+  @override
+  String activityArchived(String channel) {
+    return 'Kênh \"$channel\" đã bị giải tán';
+  }
+
+  @override
+  String activityMemberLeft(String device, String channel) {
+    return '$device đã rời kênh \"$channel\"';
+  }
+
+  @override
+  String activityMemberLeftAnonymous(String channel) {
+    return 'Một thành viên đã rời kênh \"$channel\"';
+  }
 }

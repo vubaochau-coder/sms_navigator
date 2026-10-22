@@ -1,33 +1,21 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/enums/splash_status.dart';
 import '../../../core/errors/app_exceptions.dart';
-import '../../../core/services/analytics_service.dart';
-import '../../../core/services/channel_key_store.dart';
-import '../../../core/services/crashlytics_service.dart';
-import '../../../core/services/device_api_service.dart';
-import '../../../core/services/device_storage_service.dart';
-import '../../../core/services/fcm_notification_service.dart';
-import '../../../core/services/native_relay_service.dart';
-import '../../../core/services/startup_reconcile_service.dart';
+import '../../../core/repositories/startup_repository.dart';
+import '../../../core/services/startup_gate.dart';
 import '../../../core/utils/app_logger.dart';
 import 'splash_event.dart';
 import 'splash_state.dart';
 import '../../../core/l10n/app_l10n.dart';
 
+/// Màn khởi động: chỉ còn phụ thuộc [StartupRepository] (BACKLOG 3.3) — bloc
+/// lo thời gian hiển thị tối thiểu, lựa chọn thiết lập / khôi phục và thông
+/// điệp lỗi; các bước khởi động nằm trong repository.
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
-  final CrashlyticsService crashlyticsService;
-  final AnalyticsService analyticsService;
-  final FcmNotificationService fcmService;
-  final DeviceStorageService deviceStorageService;
-  final ChannelKeyStore keyStore;
-  final DeviceApiService deviceApiService;
-  final StartupReconcileService startupReconcileService;
-  final NativeRelayService? nativeRelayService;
-  final TargetPlatform platform;
+  final StartupRepository startupRepository;
   final Duration minDisplayDuration;
 
   /// Bản cài chưa đăng ký → dừng ở [SplashStatus.awaitingSetupChoice] để
@@ -39,19 +27,10 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   bool _newDeviceConfirmed = false;
 
   SplashBloc({
-    required this.crashlyticsService,
-    required this.analyticsService,
-    required this.fcmService,
-    required this.deviceStorageService,
-    required this.keyStore,
-    required this.deviceApiService,
-    required this.startupReconcileService,
-    this.nativeRelayService,
-    TargetPlatform? platform,
+    required this.startupRepository,
     this.minDisplayDuration = const Duration(milliseconds: 1200),
     this.offerRestoreOnFirstRun = false,
-  }) : platform = platform ?? defaultTargetPlatform,
-       super(const SplashState()) {
+  }) : super(const SplashState()) {
     on<SplashStarted>(_onStarted, transformer: droppable());
     on<SplashRetried>(_onRetried, transformer: restartable());
     on<SplashNewDeviceChosen>(_onNewDeviceChosen, transformer: droppable());
@@ -104,90 +83,22 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     required Emitter<SplashState> emit,
   }) async {
     final stopwatch = Stopwatch()..start();
-
-    emit(state.copyWith(
-      status: SplashStatus.initializingServices,
-      clearError: true,
-    ));
+    emit(state.copyWith(status: SplashStatus.initializingServices, clearError: true));
 
     try {
-      // 1. Dịch vụ báo cáo & telemetry
-      await crashlyticsService.initialize();
-      analyticsService.initialize();
-
-      // 2. Dịch vụ chuông FCM
-      await fcmService.initialize();
-
-      // 3. Khởi tạo & kiểm tra cặp khóa định danh thiết bị (Identity Key)
-      emit(state.copyWith(status: SplashStatus.checkingIdentityKey));
-      await keyStore.getOrCreateIdentityKeyPair();
-
-      // 4. Kiểm tra trạng thái đăng ký thiết bị với máy chủ
-      emit(state.copyWith(status: SplashStatus.authenticatingDevice));
-      final deviceToken = await deviceStorageService.getDeviceToken();
-      if (deviceToken == null || deviceToken.isEmpty) {
-        if (offerRestoreOnFirstRun && !_newDeviceConfirmed) {
-          emit(state.copyWith(status: SplashStatus.awaitingSetupChoice));
-          return;
-        }
-        final resolvedName = await _resolveDeviceName(defaultDeviceName);
-        emit(state.copyWith(status: SplashStatus.registeringDevice));
-        await deviceApiService.registerDevice(
-          deviceName: resolvedName,
-          platform: platform == TargetPlatform.iOS ? 'ios' : 'android',
-          cancelToken: _cancelToken,
-        );
-      } else {
-        final isValid = await deviceApiService.verifyDeviceToken(
-          cancelToken: _cancelToken,
-        );
-        if (!isValid) {
-          AppLogger.w(
-            'SplashBloc',
-            'Device token không hợp lệ (401), tiến hành đăng ký mới thiết bị',
-          );
-          await deviceStorageService.clearDeviceToken();
-          final resolvedName = await _resolveDeviceName(defaultDeviceName);
-          emit(state.copyWith(status: SplashStatus.registeringDevice));
-          await deviceApiService.registerDevice(
-            deviceName: resolvedName,
-            platform: platform == TargetPlatform.iOS ? 'ios' : 'android',
-            cancelToken: _cancelToken,
-          );
-        } else {
-          // Auto-heal: Nếu tên hiện tại đang là fallback mặc định ("Thiết bị của tôi"),
-          // thử tự động đồng bộ tên thật từ hệ thống native.
-          await _tryAutoHealDeviceName(defaultDeviceName);
-        }
+      await for (final status in startupRepository.bootstrap(
+        defaultDeviceName: defaultDeviceName,
+        offerSetupChoice: offerRestoreOnFirstRun && !_newDeviceConfirmed,
+        cancelToken: _cancelToken,
+      )) {
+        if (status == SplashStatus.ready) break;
+        emit(state.copyWith(status: status));
+        if (status == SplashStatus.awaitingSetupChoice) return;
       }
 
-      // 5. Đồng bộ FCM token chuông (best-effort)
-      try {
-        await fcmService.syncToken();
-      } catch (e, stack) {
-        AppLogger.w('SplashBloc', 'FCM syncToken error', e, stack);
-        await analyticsService.logEvent(
-          'splash_fcm_sync_failed',
-          parameters: <String, Object>{'error': e.toString()},
-        );
-      }
-
-      // 6. Startup reconcile các kênh & quyền truy cập (best-effort)
-      emit(state.copyWith(status: SplashStatus.syncingChannels));
-      try {
-        await startupReconcileService.reconcile();
-      } catch (e, stack) {
-        AppLogger.w('SplashBloc', 'Startup reconcile error', e, stack);
-        await analyticsService.logEvent(
-          'splash_reconcile_failed',
-          parameters: <String, Object>{'error': e.toString()},
-        );
-      }
-
-      // 7. Đảm bảo thời gian hiển thị tối thiểu để animation hiển thị chỉn chu
+      // Đảm bảo thời gian hiển thị tối thiểu để animation hiển thị chỉn chu
       if (minDisplayDuration > Duration.zero) {
-        final elapsed = stopwatch.elapsedMilliseconds;
-        final remaining = minDisplayDuration.inMilliseconds - elapsed;
+        final remaining = minDisplayDuration.inMilliseconds - stopwatch.elapsedMilliseconds;
         if (remaining > 0) {
           await Future<void>.delayed(Duration(milliseconds: remaining));
         }
@@ -196,13 +107,16 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       emit(state.copyWith(status: SplashStatus.ready));
     } on RequestCancelledException {
       AppLogger.d('SplashBloc', 'Bootstrap was cancelled for retry');
+    } on StartupBlockedException catch (blocked) {
+      // Bảo trì có chủ đích (BACKLOG 3.5) — không phải lỗi, không ghi Crashlytics
+      emit(state.copyWith(
+        status: SplashStatus.failure,
+        errorMessage: blocked.message.isNotEmpty ? blocked.message : AppL10n.current.splashMaintenanceDefault,
+        failureKind: SplashFailureKind.maintenance,
+      ));
     } catch (error, stack) {
       AppLogger.e('SplashBloc', 'Bootstrap error', error, stack);
-      await crashlyticsService.recordError(
-        error,
-        stack,
-        reason: 'Bootstrap error',
-      );
+      await startupRepository.recordFailure(error, stack);
 
       final String userFriendlyMessage;
       final SplashFailureKind kind;
@@ -210,8 +124,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
         userFriendlyMessage = error.message;
         kind = SplashFailureKind.network;
       } else if (error is ApiException) {
-        userFriendlyMessage =
-            AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
+        userFriendlyMessage = AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
         kind = SplashFailureKind.server;
       } else if (error is StateError) {
         userFriendlyMessage = error.message;
@@ -226,40 +139,6 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
         errorMessage: userFriendlyMessage,
         failureKind: kind,
       ));
-    }
-  }
-
-  Future<String> _resolveDeviceName(String fallbackName) async {
-    try {
-      final nativeName = await nativeRelayService?.getDeviceName();
-      if (nativeName != null && nativeName.trim().isNotEmpty) {
-        return nativeName.trim();
-      }
-    } catch (e) {
-      AppLogger.w('SplashBloc', 'Lỗi khi lấy tên thiết bị từ native', e);
-    }
-    return fallbackName;
-  }
-
-  Future<void> _tryAutoHealDeviceName(String defaultFallbackName) async {
-    try {
-      final currentName = await deviceStorageService.getDeviceName();
-      final isDefaultOrEmpty = currentName == null ||
-          currentName.trim().isEmpty ||
-          currentName.trim() == defaultFallbackName;
-
-      if (isDefaultOrEmpty) {
-        final nativeName = await nativeRelayService?.getDeviceName();
-        if (nativeName != null &&
-            nativeName.trim().isNotEmpty &&
-            nativeName.trim() != defaultFallbackName) {
-          final trimmed = nativeName.trim();
-          await deviceApiService.updateDeviceName(trimmed);
-          AppLogger.i('SplashBloc', 'Tự động cập nhật tên thiết bị thành: $trimmed');
-        }
-      }
-    } catch (e) {
-      AppLogger.w('SplashBloc', 'Không thể tự động đồng bộ tên thiết bị', e);
     }
   }
 }

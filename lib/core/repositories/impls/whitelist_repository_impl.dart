@@ -59,9 +59,8 @@ class WhitelistRepositoryImpl implements WhitelistRepository {
   }
 
   @override
-  Future<WhitelistConfigModel?> syncWhitelistFromServer({
+  Future<WhitelistConfigModel?> decryptWhitelist({
     required String channelId,
-    required int keyEpoch,
     required String channelKeyBase64,
     required ChannelWhitelistBlobModel blob,
   }) async {
@@ -71,13 +70,32 @@ class WhitelistRepositoryImpl implements WhitelistRepository {
         nonceBase64: blob.nonce,
         channelKeyBase64: channelKeyBase64,
         channelId: channelId,
-        keyEpoch: keyEpoch,
+        keyEpoch: blob.keyEpoch,
         sequenceHint: 0,
       );
       final decodedMap = jsonDecode(decryptedJson) as Map<String, dynamic>;
-      final config = WhitelistConfigModel.fromJson(decodedMap).copyWith(
+      return WhitelistConfigModel.fromJson(decodedMap).copyWith(
         version: blob.whitelistVersion,
       );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<WhitelistConfigModel?> syncWhitelistFromServer({
+    required String channelId,
+    required int keyEpoch,
+    required String channelKeyBase64,
+    required ChannelWhitelistBlobModel blob,
+  }) async {
+    final config = await decryptWhitelist(
+      channelId: channelId,
+      channelKeyBase64: channelKeyBase64,
+      blob: blob,
+    );
+    if (config == null) return null;
+    try {
       await nativeRelayService.setWhitelist(channelId, config);
       return config;
     } catch (_) {

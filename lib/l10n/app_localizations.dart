@@ -2068,18 +2068,6 @@ abstract class AppLocalizations {
   /// **'Kênh này đã bị lưu trữ, không thể tham gia.'**
   String get joinErrorChannelArchived;
 
-  /// No description provided for @joinResolveFailed.
-  ///
-  /// In vi, this message translates to:
-  /// **'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.'**
-  String get joinResolveFailed;
-
-  /// No description provided for @joinResolveFailedShort.
-  ///
-  /// In vi, this message translates to:
-  /// **'Không thể kiểm tra thông tin kênh.'**
-  String get joinResolveFailedShort;
-
   /// No description provided for @joinClaimFailed.
   ///
   /// In vi, this message translates to:
@@ -2091,12 +2079,6 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không gửi được yêu cầu. Vui lòng thử lại sau.'**
   String get joinClaimFailedRetry;
-
-  /// No description provided for @joinInvalidQrFormat.
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.'**
-  String get joinInvalidQrFormat;
 
   /// No description provided for @joinChannelFallbackName.
   ///
@@ -2721,6 +2703,372 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Dùng file .smsnav từ máy cũ'**
   String get splashSetupRestoreSubtitle;
+
+  /// No description provided for @channelDetailMoreTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tùy chọn kênh'**
+  String get channelDetailMoreTooltip;
+
+  /// No description provided for @channelRenameAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên kênh'**
+  String get channelRenameAction;
+
+  /// No description provided for @channelRenameConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get channelRenameConfirm;
+
+  /// No description provided for @channelRenameSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đổi tên kênh thành \"{channelName}\".'**
+  String channelRenameSuccess(String channelName);
+
+  /// No description provided for @channelRenameFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không đổi được tên kênh. Vui lòng thử lại.'**
+  String get channelRenameFailed;
+
+  /// No description provided for @channelLeaveAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rời kênh'**
+  String get channelLeaveAction;
+
+  /// No description provided for @channelLeaveConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rời kênh này?'**
+  String get channelLeaveConfirmTitle;
+
+  /// No description provided for @channelLeaveConfirmMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn sẽ không nhận và không xem được tin nhắn của \"{channelName}\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.'**
+  String channelLeaveConfirmMessage(String channelName);
+
+  /// No description provided for @channelLeaveSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã rời kênh \"{channelName}\".'**
+  String channelLeaveSuccess(String channelName);
+
+  /// No description provided for @channelLeaveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không rời được kênh. Vui lòng thử lại.'**
+  String get channelLeaveFailed;
+
+  /// No description provided for @channelArchiveAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giải tán kênh'**
+  String get channelArchiveAction;
+
+  /// No description provided for @channelArchiveConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giải tán kênh?'**
+  String get channelArchiveConfirmTitle;
+
+  /// No description provided for @channelArchiveConfirmMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh \"{channelName}\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.'**
+  String channelArchiveConfirmMessage(String channelName);
+
+  /// No description provided for @channelArchiveSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã giải tán kênh \"{channelName}\".'**
+  String channelArchiveSuccess(String channelName);
+
+  /// No description provided for @channelArchiveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không giải tán được kênh. Vui lòng thử lại.'**
+  String get channelArchiveFailed;
+
+  /// No description provided for @requestHistoryAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử yêu cầu'**
+  String get requestHistoryAction;
+
+  /// No description provided for @requestHistoryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử yêu cầu kết nối'**
+  String get requestHistoryTitle;
+
+  /// No description provided for @requestHistoryEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có yêu cầu nào được xử lý.'**
+  String get requestHistoryEmpty;
+
+  /// No description provided for @requestHistoryLoadMore.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem thêm'**
+  String get requestHistoryLoadMore;
+
+  /// No description provided for @requestHistoryLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được lịch sử yêu cầu.'**
+  String get requestHistoryLoadFailed;
+
+  /// No description provided for @requestHistoryRetry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get requestHistoryRetry;
+
+  /// No description provided for @requestStatusApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã duyệt'**
+  String get requestStatusApproved;
+
+  /// No description provided for @requestStatusRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã từ chối'**
+  String get requestStatusRejected;
+
+  /// No description provided for @requestStatusCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã huỷ'**
+  String get requestStatusCancelled;
+
+  /// No description provided for @backupReminderTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa sao lưu khóa kênh'**
+  String get backupReminderTitle;
+
+  /// No description provided for @backupReminderMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.'**
+  String get backupReminderMessage;
+
+  /// No description provided for @backupReminderAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao lưu ngay'**
+  String get backupReminderAction;
+
+  /// No description provided for @backupReminderLater.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get backupReminderLater;
+
+  /// No description provided for @vaultFallbackWarning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.'**
+  String get vaultFallbackWarning;
+
+  /// No description provided for @sessionRecoveryFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ không còn chấp nhận phiên của thiết bị này. Mở lại ứng dụng để khôi phục từ bản sao lưu hoặc thiết lập như máy mới.'**
+  String get sessionRecoveryFailed;
+
+  /// No description provided for @notifyOwnRelayedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo cả tin máy này chuyển tiếp'**
+  String get notifyOwnRelayedTitle;
+
+  /// No description provided for @notifyOwnRelayedSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.'**
+  String get notifyOwnRelayedSubtitle;
+
+  /// No description provided for @smsOfflineCached.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngoại tuyến — đang xem bản lưu lúc {time}'**
+  String smsOfflineCached(String time);
+
+  /// No description provided for @splashMaintenanceDefault.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.'**
+  String get splashMaintenanceDefault;
+
+  /// No description provided for @whitelistPillAllSenders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mọi người gửi'**
+  String get whitelistPillAllSenders;
+
+  /// No description provided for @whitelistPillOverflow.
+  ///
+  /// In vi, this message translates to:
+  /// **'+{count}'**
+  String whitelistPillOverflow(int count);
+
+  /// No description provided for @whitelistPillOtpAllowed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Được gửi OTP'**
+  String get whitelistPillOtpAllowed;
+
+  /// No description provided for @whitelistNoSenders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có người gửi nào trong bộ lọc'**
+  String get whitelistNoSenders;
+
+  /// No description provided for @deviceTabTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị'**
+  String get deviceTabTitle;
+
+  /// No description provided for @relayStatusSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chuyển tiếp'**
+  String get relayStatusSuccess;
+
+  /// No description provided for @relayStatusEnqueued.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get relayStatusEnqueued;
+
+  /// No description provided for @relayStatusRetrying.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang thử lại'**
+  String get relayStatusRetrying;
+
+  /// No description provided for @relayStatusParked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ mở app'**
+  String get relayStatusParked;
+
+  /// No description provided for @relayStatusFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi'**
+  String get relayStatusFailed;
+
+  /// No description provided for @relayStatusBlocked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bị lọc'**
+  String get relayStatusBlocked;
+
+  /// No description provided for @relayStatusSkipped.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ qua'**
+  String get relayStatusSkipped;
+
+  /// No description provided for @relayStatusUnknown.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không rõ'**
+  String get relayStatusUnknown;
+
+  /// No description provided for @activityTabTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoạt động'**
+  String get activityTabTitle;
+
+  /// No description provided for @activityFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get activityFilterAll;
+
+  /// No description provided for @activityFilterRelay.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS chuyển tiếp'**
+  String get activityFilterRelay;
+
+  /// No description provided for @activityFilterChannels.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh'**
+  String get activityFilterChannels;
+
+  /// No description provided for @activityEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có hoạt động'**
+  String get activityEmptyTitle;
+
+  /// No description provided for @activityEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.'**
+  String get activityEmptyMessage;
+
+  /// No description provided for @activityUnknownChannel.
+  ///
+  /// In vi, this message translates to:
+  /// **'(không rõ tên)'**
+  String get activityUnknownChannel;
+
+  /// No description provided for @activityJoinRequest.
+  ///
+  /// In vi, this message translates to:
+  /// **'{device} xin tham gia kênh \"{channel}\"'**
+  String activityJoinRequest(String device, String channel);
+
+  /// No description provided for @activityJoinRequestAnonymous.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có yêu cầu tham gia kênh \"{channel}\"'**
+  String activityJoinRequestAnonymous(String channel);
+
+  /// No description provided for @activityApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã được duyệt vào kênh \"{channel}\"'**
+  String activityApproved(String channel);
+
+  /// No description provided for @activityRevoked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã bị thu hồi quyền ở kênh \"{channel}\"'**
+  String activityRevoked(String channel);
+
+  /// No description provided for @activityArchived.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh \"{channel}\" đã bị giải tán'**
+  String activityArchived(String channel);
+
+  /// No description provided for @activityMemberLeft.
+  ///
+  /// In vi, this message translates to:
+  /// **'{device} đã rời kênh \"{channel}\"'**
+  String activityMemberLeft(String device, String channel);
+
+  /// No description provided for @activityMemberLeftAnonymous.
+  ///
+  /// In vi, this message translates to:
+  /// **'Một thành viên đã rời kênh \"{channel}\"'**
+  String activityMemberLeftAnonymous(String channel);
 }
 
 class _AppLocalizationsDelegate

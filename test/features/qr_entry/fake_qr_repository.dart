@@ -6,7 +6,9 @@ class FakeQrRepository implements QrRepository {
   Set<String> hosts = {'sms-relay.hirusakunasaga.workers.dev'};
   Object? resolveError;
   QrResolution? resolution;
+  Object? claimError;
   final List<String> claimedCodes = [];
+  final List<String> claimedNames = [];
 
   @override
   Future<Set<String>> allowedLinkHosts() async => hosts;
@@ -21,6 +23,9 @@ class FakeQrRepository implements QrRepository {
   @override
   Future<ClaimRequestResultModel> claimPairing({required String code, required String deviceName}) async {
     claimedCodes.add(code);
+    claimedNames.add(deviceName);
+    final error = claimError;
+    if (error != null) throw error;
     return ClaimRequestResultModel(
       requestId: 'req-1',
       channelId: 'ch-1',

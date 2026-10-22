@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
+import '../../models/vault_fallback_report.dart';
 import '../../models/whitelist_config_model.dart';
 import '../../utils/data_converter.dart';
 import '../native_relay_service.dart';
@@ -94,6 +95,16 @@ class NativeRelayServiceImpl implements NativeRelayService {
       return success ?? false;
     } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  Future<VaultFallbackReport?> takeVaultFallbackReport() async {
+    try {
+      final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('takeVaultFallbackReport');
+      return VaultFallbackReport.fromMap(DataConverter.cvToMap<String, dynamic>(raw));
+    } catch (_) {
+      return null;
     }
   }
 

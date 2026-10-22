@@ -4,6 +4,8 @@ import '../enums/channel_role.dart';
 
 export '../enums/channel_role.dart';
 import '../utils/data_converter.dart';
+import 'channel_detail_model.dart';
+import 'whitelist_config_model.dart';
 
 ChannelRole channelRoleFromRaw(String? raw) =>
     raw == 'OWNER' ? ChannelRole.owner : ChannelRole.member;
@@ -20,6 +22,20 @@ class ChannelModel extends Equatable {
   final int myJoinedEpoch;
   final String ownerDeviceName;
 
+  /// Blob white-list E2EE từ `GET /channels` (null: chưa cấu hình / server cũ).
+  final ChannelWhitelistBlobModel? whitelistBlob;
+
+  /// White-list đã giải mã để hiện pill trên danh sách — do repository gắn vào.
+  final WhitelistConfigModel? whitelist;
+
+  /// Owner: có member tự rời mà chưa xoay khoá. `null` = server cũ chưa trả
+  /// field này (danh sách khi đó cũng chưa chắc có whitelist) → caller phải
+  /// đọc `GET /channels/detail` như trước.
+  final bool? rotationPending;
+
+  /// Danh sách đã mang đủ `whitelist` + `rotation_pending` — không cần detail.
+  bool get hasRelayMetadata => rotationPending != null;
+
   const ChannelModel({
     required this.channelId,
     required this.name,
@@ -30,11 +46,34 @@ class ChannelModel extends Equatable {
     this.memberCount = 1,
     this.myJoinedEpoch = 1,
     this.ownerDeviceName = '',
+    this.whitelistBlob,
+    this.whitelist,
+    this.rotationPending,
   });
 
   bool get isOwner => role == ChannelRole.owner;
 
+  ChannelModel copyWith({WhitelistConfigModel? whitelist}) {
+    return ChannelModel(
+      channelId: channelId,
+      name: name,
+      role: role,
+      status: status,
+      currentEpoch: currentEpoch,
+      membershipVersion: membershipVersion,
+      memberCount: memberCount,
+      myJoinedEpoch: myJoinedEpoch,
+      ownerDeviceName: ownerDeviceName,
+      whitelistBlob: whitelistBlob,
+      whitelist: whitelist ?? this.whitelist,
+      rotationPending: rotationPending,
+    );
+  }
+
   factory ChannelModel.fromMap(Map<String, dynamic> map) {
+    final rawWhitelist = map['whitelist'] is Map
+        ? Map<String, dynamic>.from(map['whitelist'] as Map)
+        : null;
     return ChannelModel(
       channelId: DataConverter.cvToString(map['channel_id'], '')!,
       name: DataConverter.cvToString(map['name'], '')!,
@@ -45,6 +84,8 @@ class ChannelModel extends Equatable {
       memberCount: DataConverter.cvToInt(map['member_count'], 0)!,
       myJoinedEpoch: DataConverter.cvToInt(map['my_joined_epoch'], 1)!,
       ownerDeviceName: DataConverter.cvToString(map['owner_device_name'], '')!,
+      whitelistBlob: rawWhitelist != null ? ChannelWhitelistBlobModel.fromMap(rawWhitelist) : null,
+      rotationPending: map.containsKey('rotation_pending') ? map['rotation_pending'] == true : null,
     );
   }
 
@@ -59,5 +100,8 @@ class ChannelModel extends Equatable {
     memberCount,
     myJoinedEpoch,
     ownerDeviceName,
+    whitelistBlob,
+    whitelist,
+    rotationPending,
   ];
 }

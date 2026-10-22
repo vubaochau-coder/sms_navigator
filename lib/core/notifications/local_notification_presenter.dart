@@ -86,6 +86,8 @@ class LocalNotificationPresenter {
           priority: Priority.high,
           color: AppColors.primary,
           category: AndroidNotificationCategory.message,
+          // Thường thay thế thông báo chung vừa hiện (cùng id) → không kêu/rung lần 2.
+          onlyAlertOnce: true,
           // Màn hình khoá an toàn chỉ hiện "có nội dung bị ẩn", không lộ OTP.
           visibility: NotificationVisibility.private,
           subText: content.channelName,

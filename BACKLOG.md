@@ -9,14 +9,32 @@
 
 ## 0. Kiểm thử & phát hành
 
-Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 1.2, 1.3, 1.1, 2.1 và dọn backlog).
+`feat/otp-notification` đã merge `main` (mobile PR #5, BE PR #1), máy test đang chạy 1.1.0+21.
+Nhánh đang mở: `fix/fast-otp-notification` (mobile: hiện thông báo chung ngay rồi thay bằng OTP — chưa compile/test; BE: chỉ backlog).
 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
 | 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
 | 0.3b | Chuyển các máy sang keystore release: cài **1.0.1+19** (nhánh `release/1.0.1-export`, luôn ký debug key cũ → cài đè, giữ dữ liệu) → **Sao lưu** → gỡ app → cài **1.1.0 (build ≥ 20, mới nhất là +21 có icon mới)** (`main`, ký release keystore) → **Khôi phục** | Máy build bản 1.0.1 phải là máy đã build bản đang cài (cùng `~/.android/debug.keystore`), nếu không cài đè sẽ báo `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Keystore release: `./scripts/create_release_keystore.sh`, nhớ sao lưu `.jks` + `android/key.properties` | P0 |
 | 0.5 | Test thực tế trên máy | Deeplink cold start / mid-splash / warm start; 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal); OTP trong thông báo khi app bị vuốt tắt; **sao lưu → gỡ app → cài lại → khôi phục** (Owner relay tiếp được, Member đọc được tin cũ) | P0 |
-| 0.6 | Roadmap GĐ6 — clean-cut v4: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
+
+---
+
+## A. Lệch thiết kế & luồng chưa tối ưu (phát hiện 22/10 khi test OTP trên máy thật)
+
+Kết quả rà soát đầy đủ: `docs/FLOW_AUDIT.md`. Bối cảnh: test 1.1.0+21 — tin relay tới server đúng lúc (không phải server ngủ) nhưng thông báo trên máy receiver tới rất chậm. Truy nguyên ra một chuỗi chỗ code **không làm đúng như thiết kế** hoặc làm nhiều request hơn cần thiết. Làm A8 trước để không phát hiện lẻ tẻ như lần này.
+
+| # | Hạng mục | Chi tiết & hướng xử lý | Ưu tiên |
+|---|---|---|---|
+| A3 | Member còn lại không được báo khi kênh rotate | Approve chỉ bắn `APPROVED` cho requester, revoke chỉ bắn `REVOKED` cho người bị thu hồi. Cân nhắc bell `KEY_ROTATED` (data-only, kèm `channel_id`, `epoch`) cho mọi member ACTIVE còn lại → app lấy key ngay (BE BACKLOG A2). Nếu đã có A1 + A2 thì đây là tối ưu, không bắt buộc. | P2 |
+| A5 | Đưa ciphertext vào FCM (chờ quyết định) | Bỏ vòng `GET /channels/message` → OTP hiện gần như ngay khi FCM tới. Vẫn E2EE (chỉ `ciphertext/nonce/key_epoch`), nhưng **phá bất biến I5** (spec §7, SRD) và Google giữ ciphertext trong TTL. Payload FCM tối đa 4 KB → tin quá dài thì bỏ ciphertext, app quay về cách cũ. Cần chủ dự án quyết bỏ I5 trước. | P2 |
+| A6 | Đo & giảm độ trễ thông báo end-to-end | Đã thêm log `Placeholder shown after …ms` / `OTP shown after …ms` (nhánh `fix/fast-otp-notification`). Còn lại: (1) so mốc thời gian Render (`POST /channels/messages` → `NEW_MESSAGE bells` → `GET /channels/message`) với logcat để biết chậm ở FCM hay ở app; (2) worker relay của Owner chưa `setExpedited` → có thể bị hoãn khi Doze; (3) checklist thiết bị nên hướng dẫn **cả máy receiver** tắt tối ưu pin / bật Autostart (hiện chỉ nhấn mạnh cho Owner). | P1 |
+| A7 | Hai máy chung một danh tính sau khi khôi phục | Máy cũ còn cài app sẽ ghi đè FCM token (và vẫn relay) mỗi lần mở → thông báo đi về máy mở app gần nhất. Cần cơ chế "bị thay thế": khôi phục → BE cấp `device_token` mới / tăng `token_generation`, máy cũ nhận 401 → báo "Thiết bị này đã được khôi phục trên máy khác" (liên quan 3.2). | P2 |
+| A8 | ~~Rà soát toàn bộ luồng so với thiết kế~~ | **Xong** — xem `docs/FLOW_AUDIT.md`. Phát hiện mới ghi thành A9–A15 dưới đây; lỗi C1 (thông báo luôn rơi về nội dung chung do AAD lệch sequence) đã sửa trên `fix/fast-otp-notification`. | — |
+| A10 | KL10 không được thực thi (C2) | AAD tin nhắn luôn `seq = 0` vì Owner mã hoá trước khi server cấp sequence → server có thể nhân bản / gán lại ciphertext cũ. Đề xuất: bộ đếm `client_seq` phía Owner (native, lưu trong `RelayChannelStore`) đưa vào AAD `sms-navigator-msg-v2`; giải mã cả v1 cho tin cũ. Cần quyết định thiết kế (FLOW_AUDIT §5) + sửa SRD §7.1. | P1 |
+| A13 | Key material chưa được dọn (R1, R2) | (1) Bị thu hồi (`REVOKED` / 403) → gọi `purgeChannelKeys` (hiện không ai gọi) + bỏ kênh khỏi native relay, đúng bảng lỗi spec §2. (2) Rotate bị từ chối 4xx → xoá cả key epoch N+1 trong key store Dart (cần `deleteChannelKey(channelId, epoch)`), không chỉ native. | P1 |
+| A14 | Tạo kênh không idempotent (C3) | Mất mạng sau khi server đã tạo → thử lại sinh UUID mới → kênh trùng. Giữ nguyên `channel_id` + key cho lần thử lại; server trả `409 CHANNEL_ID_TAKEN` → coi như đã tạo (kiểm `GET /channels`). | P2 |
+| A15 | Chuông `JOIN_REQUEST` không làm mới màn duyệt của Owner (U2) | `ChannelEvent.affectsMessages` chỉ phục vụ màn SMS; thêm luồng sự kiện cho màn chi tiết kênh / danh sách yêu cầu. | P3 |
 
 ---
 
@@ -24,12 +42,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
-| 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE (BE BACKLOG 2.2). | P2 |
-| 1.5 | Đổi tên kênh | Owner, dialog 1–50 ký tự, `PUT /api/v2/channels/name` (BE BACKLOG 2.1, chưa có). Cập nhật `RelayChannelStore` qua `SyncOwnerRelayChannelUseCase`. | P2 |
-| 1.6 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Xem lại request `APPROVED` / `REJECTED` / `CANCELLED`. | P2 |
-| 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
-| 1.8 | Bỏ thông báo cho chính máy relay có thể cấu hình | 1.2 bỏ qua `NEW_MESSAGE` do chính máy gửi (Owner đã có SMS gốc). Nếu cần: thêm tuỳ chọn bật lại. | P3 |
-| 1.9 | Nhắc tạo bản sao lưu | Owner chưa từng sao lưu (hoặc vừa tạo/tham gia kênh mới sau lần sao lưu cuối) → banner nhắc. Bản sao lưu cũ không chứa key của epoch mới, nhưng vẫn khôi phục được danh tính → `StartupReconcile` tự lấy lại envelope epoch mới. | P2 |
 
 ---
 
@@ -37,7 +49,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 2.2 | Fallback lưu plaintext khi Keystore lỗi | `OtpPreferences` (device token) và `RelayChannelStore` (channel key, parked queue, outbox SMS) lưu thô nếu `SecureVault` ném lỗi. Ít nhất log/Crashlytics + cảnh báo; cân nhắc fail-closed. | P2 |
 
 ---
 
@@ -45,17 +56,32 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
-| 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
-| 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
-| 3.8 | **`distribute.yml` ký APK sai key** | Workflow chạy khi push tag `v*` / bấm tay: runner không có `android/key.properties` → ký bằng debug key **mới sinh mỗi lần chạy** → APK không cài đè được lên 1.1.0 (khác chữ ký) và App Links mất `verified`. Trước khi dùng lại: thêm secret `ANDROID_KEYSTORE_BASE64` + mật khẩu, bước giải mã ra `.jks` và ghi `key.properties`, rồi kiểm tra chữ ký bằng `scripts/print_android_sha256.sh` (phải ✅). Tới lúc đó: **chỉ phát hành bằng `scripts/distribute_android.sh` trên máy build** | P1 |
-| 3.9 | CI cho pull request | Chưa có workflow chạy khi mở PR (chỉ có `distribute.yml`). Thêm job `pull_request`: `flutter analyze`, `flutter test`, `flutter build apk --config-only` + `cd android && ./gradlew :app:testDebugUnitTest`. Ghim cùng Flutter với máy dev (`distribute.yml` đang ghim 3.47.5). Lý do: đợt 22/10 có code chưa từng compile nằm trên nhánh và một widget test hỏng | P1 |
-| 3.10 | Nâng Gradle / AGP / Kotlin | Flutter cảnh báo sắp ngừng hỗ trợ Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20 → cần Gradle ≥ 9.1, AGP ≥ 9.0.1, Kotlin ≥ 2.3.20. Nâng trên nhánh riêng, chạy đủ test + build APK release và kiểm tra chữ ký không đổi | P3 |
+| 3.11 | Chuyển sang Built-in Kotlin (AGP 9) | Sau 3.10 Flutter cảnh báo app còn áp `kotlin-android` (KGP) và các plugin `firebase_*`, `shared_preferences_android` cũng vậy → sẽ lỗi build ở bản Flutter sau. Đang giữ `android.builtInKotlin=false` / `android.newDsl=false`. Làm khi các plugin ra bản hỗ trợ: bỏ plugin KGP, bật 2 cờ, nâng plugin. | P3 |
 
 ---
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
+- **PR #3 `feat/backlog-sweep`** — sửa theo rà soát A8 (`docs/FLOW_AUDIT.md`):
+  - **S1 / A9** — không còn đăng ký lại cùng `device_id` sau 401: `registerDevice` luôn sinh `device_id` mới; Splash gặp 401 → bỏ token, đưa về lựa chọn "Khôi phục / Thiết lập mới"; `DeviceSessionRecovery` chỉ báo người dùng, không gọi server. Đi cùng BE A7 (409 `DEVICE_EXISTS`).
+  - **A1 / A2 / A4 / A11** — `SyncChannelKeysUseCase` + `GET /key-envelopes`: giữ key **mọi** epoch (SRD §8.4) bằng 1 request; thông báo thiếu key của epoch tin → lấy ngay rồi giải mã; màn SMS gặp tin thiếu key → đồng bộ 1 lần rồi giải mã lại (phủ "được duyệt khi đang mở app"); epoch trước lúc tham gia được nhớ để không gọi lại.
+  - **A12** — reconcile single-flight + 30 s, không còn lấy lại key cho mọi request APPROVED; sync relay single-flight + 10 s, dùng `whitelist` + `rotation_pending` từ `GET /channels` (không đọc detail từng kênh), thiếu key Owner → key sync 1 request.
+- **Nhánh `fix/fast-otp-notification`** (đã gộp vào PR #3): sửa **C1** — thông báo giải mã với `sequenceHint = 0` như Owner mã hoá (trước đó truyền `sequence_number` thật → AAD lệch → mọi thông báo rơi về nội dung chung); rà soát A8 → `docs/FLOW_AUDIT.md`; isolate nền hiện **ngay** thông báo chung khi nhận `NEW_MESSAGE` data-only rồi thay bằng OTP (cùng id, `onlyAlertOnce`); timeout request nền 10 s; Firebase chỉ khởi tạo khi cần ghi Crashlytics; log thời gian.
+- **Nhánh `feat/backlog-sweep`** (xem `REVIEW_BACKLOG.md` để kiểm thử):
+  - `distribute.yml` ký bằng release keystore từ GitHub Secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`), dừng nếu thiếu secret, kiểm tra chữ ký APK trước khi upload; thêm `flutter analyze`, ghim Flutter 3.47.7 — cũ: mục 3.8.
+  - CI pull request `.github/workflows/ci.yml`: kiểm l10n đã sinh, `flutter analyze`, `flutter test`, Kotlin `:app:testDebugUnitTest` — cũ: mục 3.9.
+  - Clean-cut v4 phía app: gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted`, resolve/claim bằng token; chỉ còn luồng opaque QR (`QrEntryPage` → `JoinConfirmPage.fromQr`) — cũ: mục 0.6. Phát hành sau force update `app_update_min_build` = 20 và BE clean-cut.
+  - Đổi tên kênh (Owner): menu ⋮ trên chi tiết kênh → dialog → `PUT /channels/name` → refresh + đồng bộ tên xuống native relay — cũ: mục 1.5.
+  - Rời kênh (member) / giải tán kênh (owner) từ menu ⋮; Owner tự xoay khóa khi có member rời (`rotation_pending` trong `SyncOwnerRelayChannelUseCase`); danh sách kênh tự làm mới khi quay về — cũ: mục 1.4.
+  - Lịch sử yêu cầu kết nối đã xử lý (Owner): menu ⋮ → màn lịch sử, phân trang "Xem thêm" — cũ: mục 1.6.
+  - Nhắc sao lưu: banner trên tab Kênh khi có kênh chưa nằm trong bản sao lưu / khôi phục gần nhất, "Để sau" 3 ngày — cũ: mục 1.9.
+  - Keystore lỗi: native ghi lại mỗi lần lưu thô (`VaultFallbackLog`), app báo Crashlytics non-fatal + cảnh báo lúc khởi động (vẫn fail-open để relay không dừng) — cũ: mục 2.2.
+  - Xử lý 401 tập trung: `ApiClient.onUnauthorized` → `DeviceSessionRecovery` (đăng ký lại cùng device_id, cập nhật native, retry 1 lần); worker native park SMS khi 401 — cũ: mục 3.2.
+  - Tuỳ chọn "Thông báo cả tin máy này chuyển tiếp" (mặc định tắt) trong trang thiết bị, áp dụng cả foreground lẫn background handler — cũ: mục 1.8.
+  - Cache tin nhắn offline: lưu ciphertext (E2EE at rest) 14 ngày, mất mạng thì giải mã lại bản lưu và hiện "Ngoại tuyến — đang xem bản lưu lúc …" — cũ: mục 1.7.
+  - TD-3: luồng khởi động tách vào `StartupRepository`/`StartupRepositoryImpl`; `SplashBloc` chỉ phụ thuộc repository (3.3).
+  - Startup gate: `StartupGate`/`RemoteConfigStartupGate` (`maintenance_enabled`, `maintenance_message`, fail-open) chặn khởi động khi bảo trì; CapabilitySet/StartupCoordinator bỏ — chưa có nhu cầu (3.5).
+  - Gradle 9.1.0 / AGP 9.0.1 / Kotlin 2.3.20; `kotlinOptions` → `kotlin { compilerOptions }`. APK release: chữ ký và manifest không đổi (3.10).
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

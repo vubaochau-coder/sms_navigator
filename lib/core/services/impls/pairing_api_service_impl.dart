@@ -1,7 +1,7 @@
 import '../../constants/api_endpoints.dart';
-import '../../models/invite_preview_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../models/request_history_result.dart';
 import '../../network/api_client.dart';
 import '../../utils/data_converter.dart';
 import '../pairing_api_service.dart';
@@ -34,42 +34,6 @@ class PairingApiServiceImpl implements PairingApiService {
   }
 
   @override
-  Future<InvitePreviewModel> resolveSession({
-    required String sessionId,
-    required String pairingToken,
-  }) async {
-    final data = _asMap(
-      await apiClient.post(
-        ApiEndpoints.channelSessionsResolveV2,
-        body: <String, dynamic>{
-          'session_id': sessionId,
-          'pairing_token': pairingToken,
-        },
-      ),
-    );
-    return InvitePreviewModel.fromMap(data);
-  }
-
-  @override
-  Future<ClaimRequestResultModel> claimPairingRequest({
-    required String sessionId,
-    required String pairingToken,
-    required String deviceName,
-  }) async {
-    final data = _asMap(
-      await apiClient.post(
-        ApiEndpoints.pairingClaimV2,
-        body: <String, dynamic>{
-          'session_id': sessionId,
-          'pairing_token': pairingToken,
-          'device_name': deviceName,
-        },
-      ),
-    );
-    return ClaimRequestResultModel.fromMap(data);
-  }
-
-  @override
   Future<List<PairingRequestModel>> listMyRequests() async {
     final data = _asMap(await apiClient.get(ApiEndpoints.pairingMineV2));
     return _asListOfMaps(data['requests'])
@@ -91,6 +55,29 @@ class PairingApiServiceImpl implements PairingApiService {
     return _asListOfMaps(data['requests'])
         .map(PairingRequestModel.fromMap)
         .toList();
+  }
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory({
+    required String channelId,
+    String? before,
+    int limit = 30,
+  }) async {
+    final data = _asMap(
+      await apiClient.get(
+        ApiEndpoints.channelRequestsV2,
+        queryParameters: {
+          'channel_id': channelId,
+          'status': 'HISTORY',
+          'limit': '$limit',
+          'before': ?before,
+        },
+      ),
+    );
+    return RequestHistoryResult(
+      items: _asListOfMaps(data['requests']).map(PairingRequestModel.fromMap).toList(),
+      nextBefore: DataConverter.cvToString(data['next_before']),
+    );
   }
 
   @override

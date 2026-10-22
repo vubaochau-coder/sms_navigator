@@ -25,4 +25,7 @@ class LocalStorageServiceImpl implements LocalStorageService {
 
   @override
   Future<void> remove(String key) => _prefs.remove(key);
+
+  @override
+  Future<void> reload() => _prefs.reload();
 }

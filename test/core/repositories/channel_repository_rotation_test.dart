@@ -78,6 +78,7 @@ class _ChannelApi implements ChannelApiService {
   final String ownerPk;
   final List<Map<String, dynamic>> revokePackages = [];
   List<Object> revokeOutcomes = [];
+  List<ChannelMemberModel> extraMembers = [];
 
   @override
   Future<ChannelDetailModel> getChannelDetail({required String channelId}) async =>
@@ -92,6 +93,7 @@ class _ChannelApi implements ChannelApiService {
   @override
   Future<List<ChannelMemberModel>> getChannelMembers({required String channelId}) async => [
         ChannelMemberModel(deviceId: ownerId, deviceName: 'Owner', publicKey: ownerPk),
+        ...extraMembers,
       ];
 
   @override
@@ -184,6 +186,19 @@ void main() {
     expect(channelApi.revokePackages[1], channelApi.revokePackages[0]);
     expect(_events.last, 'native.promote:3');
     expect(_events, isNot(contains('native.discard:3')));
+  });
+
+  test('revoke: the new key is wrapped for {Owner} ∪ remaining — never for the revoked device', () async {
+    final crypto = ChannelCryptoHelper();
+    channelApi.extraMembers = [
+      ChannelMemberModel(deviceId: 'm-1', deviceName: 'Revoked', publicKey: (await crypto.generateX25519IdentityKeyPair()).publicKeyBase64),
+      ChannelMemberModel(deviceId: 'm-2', deviceName: 'Stays', publicKey: (await crypto.generateX25519IdentityKeyPair()).publicKeyBase64),
+    ];
+
+    await repo.revokeMembers(channelId: 'ch-1', revokeDeviceIds: ['m-1']);
+
+    final envelopes = (channelApi.revokePackages.single['envelopes'] as List).cast<Map<String, dynamic>>();
+    expect(envelopes.map((e) => e['device_id']).toSet(), {'owner-1', 'm-2'});
   });
 
   test('revoke: definitive 4xx → staged key is discarded', () async {

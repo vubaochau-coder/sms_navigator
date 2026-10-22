@@ -1,3 +1,4 @@
+import '../models/vault_fallback_report.dart';
 import '../models/whitelist_config_model.dart';
 
 abstract class NativeRelayService {
@@ -19,4 +20,7 @@ abstract class NativeRelayService {
   Future<Map<String, dynamic>> getAggressiveRomInfo();
   Future<String?> getDeviceName();
   Future<bool> openAutostartSettings();
+
+  /// Lấy rồi xoá báo cáo SecureVault fallback của native (null = không có).
+  Future<VaultFallbackReport?> takeVaultFallbackReport();
 }

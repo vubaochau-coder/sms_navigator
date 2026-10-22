@@ -1,6 +1,6 @@
-import '../models/invite_preview_model.dart';
 import '../models/pairing_request_model.dart';
 import '../models/pairing_session_model.dart';
+import '../models/request_history_result.dart';
 
 /// Service API Ghép đôi (BE: PairingV2Controller, API spec §5).
 abstract class PairingApiService {
@@ -8,22 +8,18 @@ abstract class PairingApiService {
     required String channelId,
   });
 
-  Future<InvitePreviewModel> resolveSession({
-    required String sessionId,
-    required String pairingToken,
-  });
-
-  Future<ClaimRequestResultModel> claimPairingRequest({
-    required String sessionId,
-    required String pairingToken,
-    required String deviceName,
-  });
-
   Future<List<PairingRequestModel>> listMyRequests();
 
   Future<List<PairingRequestModel>> listChannelRequests({
     required String channelId,
     String status = 'PENDING',
+  });
+
+  /// Request đã xử lý (APPROVED / REJECTED / CANCELLED), phân trang theo [before].
+  Future<RequestHistoryResult> listRequestHistory({
+    required String channelId,
+    String? before,
+    int limit = 30,
   });
 
   Future<Map<String, dynamic>> approvePairingRequest({

@@ -5,7 +5,9 @@ import '../models/channel_message_model.dart';
 
 abstract class SmsByDateRepository {
   /// Fetch + decrypt từng tin theo ngày (tz_offset = phút so với UTC).
-  Future<({List<ChannelMessageModel> messages, bool truncated})> fetchByDate({
+  /// Mất mạng mà có bản lưu → trả bản lưu với [cachedAt] = lúc lưu (BACKLOG 1.7);
+  /// [cachedAt] null = dữ liệu mới từ server.
+  Future<({List<ChannelMessageModel> messages, bool truncated, DateTime? cachedAt})> fetchByDate({
     required DateTime date,
     int tzOffsetMinutes = 0,
     CancelToken? cancelToken,

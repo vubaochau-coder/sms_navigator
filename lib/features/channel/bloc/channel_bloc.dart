@@ -47,7 +47,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
   ) async {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
-      final channelsFuture = _repository.listChannels();
+      final channelsFuture = _repository.listChannelsWithWhitelist();
       bool requestsFailed = false;
       final requestsFuture = _joinRepository != null
           ? _joinRepository.listMyRequests().catchError((_) {
@@ -94,7 +94,7 @@ class ChannelBloc extends Bloc<ChannelEvent, ChannelState> {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
       await _repository.createChannel(event.name);
-      final channels = await _repository.listChannels();
+      final channels = await _repository.listChannelsWithWhitelist();
       emit(
         state.copyWith(
           isLoading: false,

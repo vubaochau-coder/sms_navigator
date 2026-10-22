@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/repositories/sms_by_date_repository.dart';
-import '../device/views/device_profile_button.dart';
 import 'bloc/sms_bloc.dart';
 import 'views/calendar_card_view.dart';
 import 'views/message_list_view.dart';
@@ -60,9 +59,6 @@ class _SmsViewState extends State<_SmsView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.smsPageTitle),
-        actions: const [
-          DeviceProfileButton(),
-        ],
       ),
       body: Column(
         children: const [

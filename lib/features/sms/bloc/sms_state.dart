@@ -13,12 +13,16 @@ class SmsState extends Equatable {
   final bool truncated;
   final bool hasFetchedOnce;
 
+  /// Không null = đang xem bản lưu offline lưu lúc này (BACKLOG 1.7).
+  final DateTime? cachedAt;
+
   const SmsState({
     required this.selectedDate,
     this.isLoading = false,
     this.messages = const [],
     this.truncated = false,
     this.hasFetchedOnce = false,
+    this.cachedAt,
   });
 
   bool get isEmpty => !isLoading && messages.isEmpty;
@@ -29,6 +33,7 @@ class SmsState extends Equatable {
     List<ChannelMessageModel>? messages,
     bool? truncated,
     bool? hasFetchedOnce,
+    DateTime? Function()? cachedAt,
   }) {
     return SmsState(
       selectedDate: selectedDate ?? this.selectedDate,
@@ -36,6 +41,7 @@ class SmsState extends Equatable {
       messages: messages ?? this.messages,
       truncated: truncated ?? this.truncated,
       hasFetchedOnce: hasFetchedOnce ?? this.hasFetchedOnce,
+      cachedAt: cachedAt != null ? cachedAt() : this.cachedAt,
     );
   }
 
@@ -46,5 +52,6 @@ class SmsState extends Equatable {
     messages,
     truncated,
     hasFetchedOnce,
+    cachedAt,
   ];
 }

@@ -152,7 +152,8 @@ class OtpPreferences(
             }
             val encrypted = try {
                 SecureVault.encryptToBase64(value)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                VaultFallbackLog.record(prefs, "device_token", e)
                 value
             }
             prefs.edit().putString(KEY_DEVICE_TOKEN, encrypted).apply()
@@ -186,7 +187,8 @@ class OtpPreferences(
             }
             val encrypted = try {
                 SecureVault.encryptToBase64(value)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                VaultFallbackLog.record(prefs, "legacy_channel_key", e)
                 value
             }
             prefs.edit().putString(KEY_ACTIVE_CHANNEL_KEY, encrypted).apply()

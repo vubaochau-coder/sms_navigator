@@ -19,9 +19,9 @@ class _MockChannelRepository implements ChannelRepository {
     }
     return PairingSessionModel(
       sessionId: 'ses_$createCallCount',
-      pairingToken: 'tok_$createCallCount',
       expiresAt: DateTime.now().add(const Duration(minutes: 10)).toIso8601String(),
-      inviteUrl: 'smsnav://invite/v4?s=ses_$createCallCount',
+      code: 'code_$createCallCount',
+      qrUrl: 'https://host/qr/code_$createCallCount',
     );
   }
 }

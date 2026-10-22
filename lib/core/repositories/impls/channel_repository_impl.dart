@@ -8,6 +8,7 @@ import '../../models/channel_model.dart';
 import '../../models/key_envelope_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../models/request_history_result.dart';
 import '../../errors/app_exceptions.dart';
 import '../../models/whitelist_config_model.dart';
 import '../../services/channel_api_service.dart';
@@ -73,6 +74,47 @@ class ChannelRepositoryImpl implements ChannelRepository {
   Future<List<ChannelModel>> listChannels() => _channelApi.listChannels();
 
   @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() async {
+    final channels = await listChannels();
+    return Future.wait(channels.map((channel) async {
+      final whitelist = await readWhitelist(
+        channelId: channel.channelId,
+        isOwner: channel.isOwner,
+        blob: channel.whitelistBlob,
+      );
+      return whitelist == null ? channel : channel.copyWith(whitelist: whitelist);
+    }));
+  }
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async {
+    final whitelistRepo = _whitelistRepository;
+    if (whitelistRepo == null) return null;
+    try {
+      if (blob != null) {
+        final key = await _keyStore.getChannelKey(channelId: channelId, epoch: blob.keyEpoch);
+        if (key != null && key.isNotEmpty) {
+          final config = await whitelistRepo.decryptWhitelist(
+            channelId: channelId,
+            channelKeyBase64: key,
+            blob: blob,
+          );
+          if (config != null) return config;
+        }
+      }
+      // Server chưa trả blob (bản cũ) / giải mã lỗi → Owner vẫn còn cache native
+      return isOwner ? await whitelistRepo.getWhitelist(channelId) : null;
+    } catch (e) {
+      AppLogger.w('ChannelRepository', 'Cannot read whitelist of $channelId', e);
+      return null;
+    }
+  }
+
+  @override
   Future<ChannelDetailModel> getChannelDetail(String channelId) =>
       _channelApi.getChannelDetail(channelId: channelId);
 
@@ -83,6 +125,10 @@ class ChannelRepositoryImpl implements ChannelRepository {
   @override
   Future<List<PairingRequestModel>> listPendingRequests(String channelId) =>
       _pairingApi.listChannelRequests(channelId: channelId);
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory(String channelId, {String? before}) =>
+      _pairingApi.listRequestHistory(channelId: channelId, before: before);
 
   Future<_MutationSnapshot> _loadSnapshot(String channelId) async {
     final detail = await _channelApi.getChannelDetail(channelId: channelId);
@@ -323,6 +369,70 @@ class ChannelRepositoryImpl implements ChannelRepository {
   // ----------------------------------------------- T4 — revoke (auto-rotate)
 
   @override
+  Future<void> renameChannel({required String channelId, required String name}) =>
+      _channelApi.renameChannel(channelId: channelId, name: name);
+
+  @override
+  Future<void> leaveChannel(String channelId) async {
+    await _channelApi.leaveChannel(channelId: channelId);
+    // KL12: không còn là member → xoá key material của kênh trên máy.
+    await _keyStore.purgeChannelKeys(channelId);
+  }
+
+  @override
+  Future<void> archiveChannel(String channelId) => _channelApi.archiveChannel(channelId: channelId);
+
+  @override
+  Future<int> rotateChannelKey(String channelId) async {
+    final identity = await _requireIdentity();
+    final deviceId = await _requireDeviceId();
+    final snapshot = await _loadSnapshot(channelId);
+    final detail = snapshot.detail;
+
+    final newEpoch = detail.currentEpoch + 1;
+    final channelKey = _crypto.generateChannelKeyBase64();
+
+    // {Owner} ∪ ACTIVE — người đã rời có status REVOKED nên không có ở đây.
+    final publicKeyByDeviceId = <String, String>{
+      for (final member in snapshot.activeMembers)
+        if (member.publicKey.isNotEmpty) member.deviceId: member.publicKey,
+    };
+    publicKeyByDeviceId[deviceId] = identity.publicKeyBase64;
+
+    final envelopes = await _buildEnvelopes(
+      channelId: channelId,
+      keyEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+      ownerPrivateKeyBase64: identity.privateKeyBase64,
+      publicKeyByDeviceId: publicKeyByDeviceId,
+    );
+
+    // Built once: retries must resend the byte-identical package.
+    final package = PackageModel(
+      baseEpoch: detail.currentEpoch,
+      baseMembershipVersion: detail.membershipVersion,
+      envelopes: envelopes,
+    ).toMap();
+
+    final committedEpoch = await _rotate(
+      channelId: channelId,
+      channelName: detail.name,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+      commit: () => _channelApi.rotateChannel(channelId: channelId, package: package),
+    );
+
+    await _reEncryptWhitelistAfterRotation(
+      channelId: channelId,
+      detail: detail,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+    );
+
+    return committedEpoch;
+  }
+
+  @override
   Future<int> revokeMembers({
     required String channelId,
     required List<String> revokeDeviceIds,
@@ -335,9 +445,12 @@ class ChannelRepositoryImpl implements ChannelRepository {
     final newEpoch = detail.currentEpoch + 1;
     final channelKey = _crypto.generateChannelKeyBase64();
 
+    // Envelope set = {Owner} ∪ ACTIVE còn lại — KHÔNG wrap key mới cho máy bị
+    // thu hồi (server cũng từ chối với 422 PACKAGE_INCOMPLETE).
+    final revoked = revokeDeviceIds.toSet();
     final publicKeyByDeviceId = <String, String>{
       for (final member in snapshot.activeMembers)
-        if (member.publicKey.isNotEmpty) member.deviceId: member.publicKey,
+        if (member.publicKey.isNotEmpty && !revoked.contains(member.deviceId)) member.deviceId: member.publicKey,
     };
     publicKeyByDeviceId[deviceId] = identity.publicKeyBase64;
 

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/repositories/impls/startup_repository_impl.dart';
 import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/enums/splash_status.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
@@ -11,11 +12,13 @@ import 'package:sms_navigator/core/services/device_api_service.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/fcm_notification_service.dart';
 import 'package:sms_navigator/core/services/native_relay_service.dart';
+import 'package:sms_navigator/core/services/startup_gate.dart';
 import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_state.dart';
+import 'package:sms_navigator/core/l10n/app_l10n.dart';
 
 class _FakeNativeRelayService implements NativeRelayService {
   _FakeNativeRelayService({this.deviceName});
@@ -206,17 +209,24 @@ void main() {
       reconcile = _FakeStartupReconcileService();
     });
 
-    SplashBloc buildBloc({NativeRelayService? nativeRelayService, bool offerRestore = false}) {
+    SplashBloc buildBloc({
+      NativeRelayService? nativeRelayService,
+      bool offerRestore = false,
+      StartupGate? startupGate,
+    }) {
       return SplashBloc(
-        crashlyticsService: crashlytics,
-        analyticsService: analytics,
-        fcmService: fcm,
-        deviceStorageService: storage,
-        keyStore: keyStore,
-        deviceApiService: deviceApi,
-        startupReconcileService: reconcile,
-        nativeRelayService: nativeRelayService,
-        platform: TargetPlatform.android,
+        startupRepository: StartupRepositoryImpl(
+          crashlyticsService: crashlytics,
+          analyticsService: analytics,
+          fcmService: fcm,
+          deviceStorageService: storage,
+          keyStore: keyStore,
+          deviceApiService: deviceApi,
+          startupReconcileService: reconcile,
+          nativeRelayService: nativeRelayService,
+          startupGate: startupGate,
+          platform: TargetPlatform.android,
+        ),
         minDisplayDuration: Duration.zero,
         offerRestoreOnFirstRun: offerRestore,
       );
@@ -353,6 +363,20 @@ void main() {
       await bloc.close();
     });
 
+    test('401 with the setup choice enabled: token dropped, no silent re-register (FLOW_AUDIT S1)', () async {
+      storage.deviceToken = 'invalid_device_token';
+      deviceApi.tokenValid = false;
+      final bloc = buildBloc(offerRestore: true);
+
+      bloc.add(const SplashStarted());
+      await pumpEventQueue();
+
+      expect(bloc.state.status, SplashStatus.awaitingSetupChoice);
+      expect(deviceApi.registered, isFalse);
+      expect(storage.deviceToken, isNull);
+      await bloc.close();
+    });
+
     test('SplashStarted blocks and emits failure when token verification fails due to network error', () async {
       storage.deviceToken = 'any_token';
       deviceApi.verifyShouldThrow = true;
@@ -456,5 +480,62 @@ void main() {
 
       await bloc.close();
     });
+    group('startup gate (maintenance, 3.5)', () {
+      test('blocked gate stops before any API call and shows the remote message', () async {
+        final gate = _FakeStartupGate(const StartupGateResult.maintenance('Bảo trì tới 22h'));
+        final bloc = buildBloc(startupGate: gate);
+
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.status, SplashStatus.failure);
+        expect(bloc.state.failureKind, SplashFailureKind.maintenance);
+        expect(bloc.state.errorMessage, 'Bảo trì tới 22h');
+        expect(deviceApi.registered, isFalse);
+        expect(reconcile.reconciled, isFalse);
+        expect(crashlytics.recordedErrors, isEmpty);
+        await bloc.close();
+      });
+
+      test('empty remote message falls back to the default text', () async {
+        final bloc = buildBloc(startupGate: _FakeStartupGate(const StartupGateResult.maintenance('')));
+
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.errorMessage, AppL10n.current.splashMaintenanceDefault);
+        await bloc.close();
+      });
+
+      test('retry proceeds once the gate opens', () async {
+        final gate = _FakeStartupGate(const StartupGateResult.maintenance('x'));
+        final bloc = buildBloc(startupGate: gate);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+        expect(bloc.state.failureKind, SplashFailureKind.maintenance);
+
+        gate.result = const StartupGateResult.open();
+        bloc.add(const SplashRetried());
+        await pumpEventQueue();
+
+        expect(bloc.state.status, SplashStatus.ready);
+        expect(bloc.state.failureKind, isNull);
+        expect(gate.checks, 2);
+        await bloc.close();
+      });
+    });
   });
+}
+
+class _FakeStartupGate implements StartupGate {
+  _FakeStartupGate(this.result);
+
+  StartupGateResult result;
+  int checks = 0;
+
+  @override
+  Future<StartupGateResult> check() async {
+    checks++;
+    return result;
+  }
 }

@@ -1,0 +1,86 @@
+name: CI
+
+# Chạy cho mọi pull request và push lên main: analyze + Flutter test + unit
+# test Kotlin. Không cần secret (không build bản release).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    name: Analyze & Flutter test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+      # Generated l10n is committed; fail if it drifted from app_vi.arb
+      - name: Check generated l10n is up to date
+        run: |
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n
+      # Lỗi hiện thành annotation trên PR (đọc được cả khi không mở log)
+      - name: flutter analyze
+        run: |
+          set +e
+          flutter analyze > analyze.txt 2>&1
+          status=$?
+          cat analyze.txt
+          grep -E '^\s*(error|warning|info) • ' analyze.txt | head -50 | sed 's/^ *//; s/^/::error::/'
+          exit $status
+      - name: flutter test
+        if: success() || failure()
+        run: |
+          set +e
+          flutter test --reporter expanded > test.txt 2>&1
+          status=$?
+          cat test.txt
+          if [ $status -ne 0 ]; then
+            grep -E '\[E\]|Error:|Expected:|Actual:|^\s+Which:|Some tests failed|error •' test.txt | head -60 | sed 's/^ *//; s/^/::error::/'
+          fi
+          exit $status
+
+  android-unit:
+    name: Kotlin unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+      # gradlew is not committed (Flutter convention) — this generates it
+      - run: flutter build apk --config-only
+      - name: ./gradlew :app:testDebugUnitTest
+        working-directory: android
+        run: |
+          set +e
+          ./gradlew :app:testDebugUnitTest --no-daemon > gradle.txt 2>&1
+          status=$?
+          cat gradle.txt
+          if [ $status -ne 0 ]; then
+            # Lỗi compile Kotlin ("e: file:///…") + test hỏng → annotation
+            grep -E '^e: |FAILED|What went wrong|BUILD FAILED|error:|Exception|expected:' gradle.txt | head -40 | sed 's/^/::error::/'
+          fi
+          exit $status

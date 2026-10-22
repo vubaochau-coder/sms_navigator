@@ -683,11 +683,8 @@
   "joinErrorExpired": "Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.",
   "joinErrorUsed": "Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.",
   "joinErrorChannelArchived": "Kênh này đã bị lưu trữ, không thể tham gia.",
-  "joinResolveFailed": "Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.",
-  "joinResolveFailedShort": "Không thể kiểm tra thông tin kênh.",
   "joinClaimFailed": "Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.",
   "joinClaimFailedRetry": "Không gửi được yêu cầu. Vui lòng thử lại sau.",
-  "joinInvalidQrFormat": "Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.",
   "joinChannelFallbackName": "kênh",
   "joinRequestSent": "Đã gửi yêu cầu tham gia {channelName}",
   "@joinRequestSent": {
@@ -882,5 +879,170 @@
   "splashSetupNewDevice": "Thiết lập thiết bị mới",
   "splashSetupNewDeviceSubtitle": "Tạo danh tính mới cho máy này",
   "splashSetupRestore": "Khôi phục từ bản sao lưu",
-  "splashSetupRestoreSubtitle": "Dùng file .smsnav từ máy cũ"
+  "splashSetupRestoreSubtitle": "Dùng file .smsnav từ máy cũ",
+  "channelDetailMoreTooltip": "Tùy chọn kênh",
+  "channelRenameAction": "Đổi tên kênh",
+  "channelRenameConfirm": "Lưu",
+  "channelRenameSuccess": "Đã đổi tên kênh thành \"{channelName}\".",
+  "@channelRenameSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelRenameFailed": "Không đổi được tên kênh. Vui lòng thử lại.",
+  "channelLeaveAction": "Rời kênh",
+  "channelLeaveConfirmTitle": "Rời kênh này?",
+  "channelLeaveConfirmMessage": "Bạn sẽ không nhận và không xem được tin nhắn của \"{channelName}\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.",
+  "@channelLeaveConfirmMessage": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelLeaveSuccess": "Đã rời kênh \"{channelName}\".",
+  "@channelLeaveSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelLeaveFailed": "Không rời được kênh. Vui lòng thử lại.",
+  "channelArchiveAction": "Giải tán kênh",
+  "channelArchiveConfirmTitle": "Giải tán kênh?",
+  "channelArchiveConfirmMessage": "Kênh \"{channelName}\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.",
+  "@channelArchiveConfirmMessage": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelArchiveSuccess": "Đã giải tán kênh \"{channelName}\".",
+  "@channelArchiveSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelArchiveFailed": "Không giải tán được kênh. Vui lòng thử lại.",
+  "requestHistoryAction": "Lịch sử yêu cầu",
+  "requestHistoryTitle": "Lịch sử yêu cầu kết nối",
+  "requestHistoryEmpty": "Chưa có yêu cầu nào được xử lý.",
+  "requestHistoryLoadMore": "Xem thêm",
+  "requestHistoryLoadFailed": "Không tải được lịch sử yêu cầu.",
+  "requestHistoryRetry": "Thử lại",
+  "requestStatusApproved": "Đã duyệt",
+  "requestStatusRejected": "Đã từ chối",
+  "requestStatusCancelled": "Đã huỷ",
+  "backupReminderTitle": "Chưa sao lưu khóa kênh",
+  "backupReminderMessage": "Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.",
+  "backupReminderAction": "Sao lưu ngay",
+  "backupReminderLater": "Để sau",
+  "vaultFallbackWarning": "Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.",
+  "sessionRecoveryFailed": "Máy chủ không còn chấp nhận phiên của thiết bị này. Mở lại ứng dụng để khôi phục từ bản sao lưu hoặc thiết lập như máy mới.",
+  "notifyOwnRelayedTitle": "Thông báo cả tin máy này chuyển tiếp",
+  "notifyOwnRelayedSubtitle": "Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.",
+  "smsOfflineCached": "Ngoại tuyến — đang xem bản lưu lúc {time}",
+  "@smsOfflineCached": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "splashMaintenanceDefault": "Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.",
+  "whitelistPillAllSenders": "Mọi người gửi",
+  "whitelistPillOverflow": "+{count}",
+  "@whitelistPillOverflow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whitelistPillOtpAllowed": "Được gửi OTP",
+  "whitelistNoSenders": "Chưa có người gửi nào trong bộ lọc",
+  "deviceTabTitle": "Thiết bị",
+  "relayStatusSuccess": "Đã chuyển tiếp",
+  "relayStatusEnqueued": "Đang gửi",
+  "relayStatusRetrying": "Đang thử lại",
+  "relayStatusParked": "Chờ mở app",
+  "relayStatusFailed": "Lỗi",
+  "relayStatusBlocked": "Bị lọc",
+  "relayStatusSkipped": "Bỏ qua",
+  "relayStatusUnknown": "Không rõ",
+  "activityTabTitle": "Hoạt động",
+  "activityFilterAll": "Tất cả",
+  "activityFilterRelay": "SMS chuyển tiếp",
+  "activityFilterChannels": "Kênh",
+  "activityEmptyTitle": "Chưa có hoạt động",
+  "activityEmptyMessage": "SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.",
+  "activityUnknownChannel": "(không rõ tên)",
+  "activityJoinRequest": "{device} xin tham gia kênh \"{channel}\"",
+  "@activityJoinRequest": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityJoinRequestAnonymous": "Có yêu cầu tham gia kênh \"{channel}\"",
+  "@activityJoinRequestAnonymous": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityApproved": "Bạn đã được duyệt vào kênh \"{channel}\"",
+  "@activityApproved": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityRevoked": "Bạn đã bị thu hồi quyền ở kênh \"{channel}\"",
+  "@activityRevoked": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityArchived": "Kênh \"{channel}\" đã bị giải tán",
+  "@activityArchived": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityMemberLeft": "{device} đã rời kênh \"{channel}\"",
+  "@activityMemberLeft": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityMemberLeftAnonymous": "Một thành viên đã rời kênh \"{channel}\"",
+  "@activityMemberLeftAnonymous": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  }
 }

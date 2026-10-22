@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../core/models/invite_preview_model.dart';
-import '../../../core/models/pairing_session_model.dart';
 
 abstract class JoinEvent extends Equatable {
   const JoinEvent();
@@ -9,17 +8,6 @@ abstract class JoinEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
-
-/// Bắt đầu resolve session từ mã mời đã quét.
-class JoinResolveStarted extends JoinEvent {
-  final InvitePayload invite;
-
-  const JoinResolveStarted(this.invite);
-
-  @override
-  List<Object?> get props => [invite];
-}
-
 
 /// Mở từ Universal Opaque QR: preview đã có sẵn từ `GET /qr/resolve`
 /// (roadmap v3.3 §3.4) → vào thẳng trạng thái ready, không resolve lại.

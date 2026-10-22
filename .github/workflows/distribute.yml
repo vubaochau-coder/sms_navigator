@@ -1,5 +1,16 @@
 name: Distribute to Firebase App Tester
 
+# Ký bằng release keystore lấy từ GitHub Secrets — KHÔNG BAO GIỜ bằng debug key
+# của runner (mỗi lần chạy một key mới → APK không cài đè được, App Links hỏng).
+#
+# Secrets cần có (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 của file .jks
+#                              (macOS: base64 -i ~/.android/sms-navigator-release.jks | pbcopy)
+#   ANDROID_KEYSTORE_PASSWORD  storePassword trong android/key.properties (= keyPassword)
+#   ANDROID_KEY_ALIAS          keyAlias (mặc định "upload")
+#   FIREBASE_SERVICE_ACCOUNT_CREDENTIALS
+# Thiếu keystore → job dừng trước khi build.
+
 on:
   push:
     tags:
@@ -33,18 +44,49 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.5'
+          flutter-version: '3.47.7'
           channel: 'stable'
           cache: true
 
+      - name: Restore release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Thiếu secret ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD — không build bản ký debug key."
+            exit 1
+          fi
+          KEYSTORE="$RUNNER_TEMP/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          {
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyPassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=${KEY_ALIAS:-upload}"
+            echo "storeFile=$KEYSTORE"
+          } > android/key.properties
+
       - name: Install Dependencies
         run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
 
       - name: Run Tests
         run: flutter test
 
       - name: Build Release APK
         run: flutter build apk --release
+
+      - name: Verify APK is signed with the release keystore
+        run: |
+          OUTPUT="$(./scripts/print_android_sha256.sh build/app/outputs/flutter-apk/app-release.apk)"
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -q '✅ APK ký bằng release keystore' || {
+            echo "::error::APK không ký bằng release keystore — dừng phát hành."
+            exit 1
+          }
 
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -54,3 +96,7 @@ jobs:
           groups: ${{ github.event.inputs.tester_group || 'internal-dev' }}
           releaseNotes: ${{ github.event.inputs.release_notes || github.event.head_commit.message }}
           file: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" android/key.properties

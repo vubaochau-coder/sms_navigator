@@ -21,6 +21,10 @@ class ChannelDetailModel extends Equatable {
   final int myProvisionedEpoch;
   final ChannelWhitelistBlobModel? whitelist;
 
+  /// Một member đã tự rời mà chưa xoay khóa (`POST /channels/leave`) — Owner
+  /// app tự gọi `POST /channels/rotate` (xem SyncOwnerRelayChannelUseCase).
+  final bool rotationPending;
+
   const ChannelDetailModel({
     required this.channelId,
     required this.name,
@@ -37,9 +41,11 @@ class ChannelDetailModel extends Equatable {
     this.myJoinedEpoch = 1,
     this.myProvisionedEpoch = 1,
     this.whitelist,
+    this.rotationPending = false,
   });
 
   bool get isOwner => myRole == ChannelRole.owner;
+  bool get isArchived => status == 'ARCHIVED';
 
   factory ChannelDetailModel.fromMap(Map<String, dynamic> map) {
     final channel = DataConverter.cvToMap<String, dynamic>(map['channel']);
@@ -67,6 +73,7 @@ class ChannelDetailModel extends Equatable {
       whitelist: rawWhitelist != null
           ? ChannelWhitelistBlobModel.fromMap(rawWhitelist)
           : null,
+      rotationPending: DataConverter.cvToBool(map['rotation_pending'], false)!,
     );
   }
 
@@ -87,6 +94,7 @@ class ChannelDetailModel extends Equatable {
     myJoinedEpoch,
     myProvisionedEpoch,
     whitelist,
+    rotationPending,
   ];
 }
 

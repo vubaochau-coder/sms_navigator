@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/repositories/backup_repository.dart';
 import '../../core/repositories/channel_repository.dart';
 import '../../core/repositories/join_channel_repository.dart';
+import '../../core/services/local_storage_service.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../../core/usecases/sync_owner_relay_channel_use_case.dart';
 import '../../core/ui/dialog_utils.dart';
-import '../device/views/device_profile_button.dart';
+import '../backup/bloc/backup_reminder_cubit.dart';
+import '../backup/views/backup_reminder_banner.dart';
 import 'bloc/channel_bloc.dart';
 import 'views/channel_list_view.dart';
 
@@ -19,29 +22,49 @@ class ChannelPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        StartupReconcileService? reconcile;
-        try {
-          reconcile = context.read<StartupReconcileService>();
-        } catch (_) {
-          reconcile = null;
-        }
-        SyncOwnerRelayChannelUseCase? syncUseCase;
-        try {
-          syncUseCase = context.read<SyncOwnerRelayChannelUseCase>();
-        } catch (_) {
-          syncUseCase = null;
-        }
-        return ChannelBloc(
-          repository: context.read<ChannelRepository>(),
-          joinRepository: context.read<JoinChannelRepository>(),
-          reconcileService: reconcile,
-          syncUseCase: syncUseCase,
-        )..add(const ChannelLoadDataEvent());
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: _createChannelBloc),
+        BlocProvider(create: _createReminder),
+      ],
       child: const _ChannelPageView(),
     );
+  }
+
+  static BackupReminderCubit _createReminder(BuildContext context) {
+    T? optional<T>() {
+      try {
+        return context.read<T>();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    return BackupReminderCubit(
+      backupRepository: optional<BackupRepository>(),
+      localStorage: optional<LocalStorageService>(),
+    );
+  }
+
+  static ChannelBloc _createChannelBloc(BuildContext context) {
+    StartupReconcileService? reconcile;
+    try {
+      reconcile = context.read<StartupReconcileService>();
+    } catch (_) {
+      reconcile = null;
+    }
+    SyncOwnerRelayChannelUseCase? syncUseCase;
+    try {
+      syncUseCase = context.read<SyncOwnerRelayChannelUseCase>();
+    } catch (_) {
+      syncUseCase = null;
+    }
+    return ChannelBloc(
+      repository: context.read<ChannelRepository>(),
+      joinRepository: context.read<JoinChannelRepository>(),
+      reconcileService: reconcile,
+      syncUseCase: syncUseCase,
+    )..add(const ChannelLoadDataEvent());
   }
 }
 
@@ -57,9 +80,6 @@ class _ChannelPageView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.channelPageTitle),
-          actions: const [
-            DeviceProfileButton(),
-          ],
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.channelOwnedSectionTitle),
@@ -67,11 +87,26 @@ class _ChannelPageView extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
-          children: [
-            OwnedChannelListView(),
-            JoinedChannelListView(),
-          ],
+        body: BlocListener<ChannelBloc, ChannelState>(
+          listenWhen: (previous, current) =>
+              previous.ownedChannels != current.ownedChannels || previous.joinedChannels != current.joinedChannels,
+          listener: (context, state) => context.read<BackupReminderCubit>().update([
+            for (final channel in state.ownedChannels) channel.channelId,
+            for (final channel in state.joinedChannels) channel.channelId,
+          ]),
+          child: const Column(
+            children: [
+              BackupReminderBanner(),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    OwnedChannelListView(),
+                    JoinedChannelListView(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 24),

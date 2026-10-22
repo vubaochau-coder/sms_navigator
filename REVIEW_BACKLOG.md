@@ -1,0 +1,277 @@
+# REVIEW BACKLOG — kiểm thử & rà soát nhánh `feat/backlog-sweep` (Mobile)
+
+> Mỗi mục ứng với **một commit** trên nhánh (theo thứ tự ưu tiên P1 → P3).
+> Tick khi đã rà soát code **và** test trên máy. Mục nào có ⚠️ cần quyết định / phối hợp trước khi merge.
+> Nhánh tách từ `feat/otp-notification` — merge PR #1 trước, rồi rebase/merge nhánh này.
+> BE tương ứng: `sms_navigator_server` nhánh `feat/backlog-sweep` (file `REVIEW_BACKLOG.md` cùng tên).
+
+---
+
+## P1-1 · `distribute.yml` ký bằng release keystore (BACKLOG 3.8)
+
+**Rà soát**
+- [ ] Workflow dừng ngay nếu thiếu `ANDROID_KEYSTORE_BASE64` / `ANDROID_KEYSTORE_PASSWORD` (không bao giờ build bản ký debug key của runner).
+- [ ] Keystore giải mã vào `$RUNNER_TEMP`, xoá ở bước cuối (`if: always()`); không bị upload làm artifact.
+- [ ] Flutter ghim `3.47.7` (cùng bản dev đã test).
+
+**Kiểm thử**
+- [ ] Thêm 3 secret (`base64 -i ~/.android/sms-navigator-release.jks | pbcopy`, mật khẩu trong `android/key.properties`, alias `upload`).
+- [ ] Chạy tay workflow (Actions → *Distribute to Firebase App Tester* → Run workflow) trên một nhánh test → bước *Verify APK…* in `✅ APK ký bằng release keystore`.
+- [ ] Bản tải từ App Tester **cài đè** được lên 1.1.0 đang có (không phải gỡ) và `pm get-app-links` vẫn `verified`.
+- [ ] Xoá tạm 1 secret → job đỏ ở bước *Restore release keystore*.
+
+## P1-2 · CI cho pull request (BACKLOG 3.9)
+
+**Rà soát**
+- [ ] `.github/workflows/ci.yml` chạy cho mọi `pull_request` + push `main`; không dùng secret.
+- [ ] Job `flutter`: `gen-l10n` + `git diff --exit-code lib/l10n` (bắt l10n đã commit bị cũ), `analyze`, `test`.
+- [ ] Job `android-unit`: `flutter build apk --config-only` sinh `gradlew`, rồi `:app:testDebugUnitTest`.
+
+**Kiểm thử**
+- [ ] Mở PR của nhánh này → 2 job xanh.
+- [ ] (Tuỳ chọn) Settings → Branches → bảo vệ `main`, bắt buộc 2 check `Analyze & Flutter test`, `Kotlin unit tests`.
+
+## P1-3 · Clean-cut v4 phía app (BACKLOG 0.6)
+
+⚠️ **Thứ tự phát hành bắt buộc**: (1) mọi máy đã lên **1.1.0+20** → (2) Remote Config `app_update_min_build` = **20** (force update) → (3) deploy BE "clean-cut v4" → (4) phát bản app có commit này. Đảo thứ tự → máy cũ không join được kênh.
+
+**Rà soát**
+- [ ] Đã gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted`, `JoinPhase.resolving/resolveFailed`, `JoinSkeletonView`/`JoinErrorView`, `JoinChannelRepository.resolveInvite/claim`, `PairingApiService.resolveSession/claimPairingRequest`, endpoint `channelSessionsResolveV2`.
+- [ ] `PairingSessionModel` chỉ còn `code`/`qrUrl` (`shareUrl == qrUrl`); bỏ qua `pairing_token`/`invite_url` nếu server cũ còn trả.
+- [ ] `JoinBloc` bắt buộc `QrRepository`; `JoinConfirmPage` chỉ còn `.fromQr` (preview do `QrEntryPage` resolve).
+- [ ] QR v4 (`smsnavigator://pair?v=4…`) giờ bị từ chối với toast "Mã QR này không được SMS Navigator hỗ trợ".
+- [ ] Gỡ 3 chuỗi l10n không dùng (`joinResolveFailed`, `joinResolveFailedShort`, `joinInvalidQrFormat`).
+
+**Kiểm thử**
+- [ ] Owner tạo QR → Member quét bằng camera / chọn ảnh / bấm link / dán mã → màn xác nhận → gửi yêu cầu → Owner duyệt.
+- [ ] Quét QR v4 cũ (ảnh chụp từ bản ≤ 1.0.x) → toast không hỗ trợ, không crash.
+- [ ] Claim lỗi (mã đã dùng / hết hạn) → toast đúng thông điệp, ở lại màn xác nhận.
+
+## P2-1 · Đổi tên kênh (BACKLOG 1.5)
+
+Cần BE `PUT /api/v2/channels/name` (BE REVIEW_BACKLOG P2-1) đã deploy.
+
+**Rà soát**
+- [ ] Menu "⋮" mới trên AppBar chi tiết kênh (`ChannelDetailMenuButton`) — chỉ Owner thấy; các mục sau (lịch sử, lưu trữ, rời kênh) cũng nằm ở đây.
+- [ ] Dialog dùng `DialogUtils.showInputDialog`, điền sẵn tên hiện tại, tối đa 100 ký tự (giống tạo kênh).
+- [ ] `ChannelDetailRenamed`: bỏ qua tên rỗng/không đổi; thành công → refresh + `SyncOwnerRelayChannelUseCase()` để native relay cập nhật tên trong log.
+
+**Kiểm thử**
+- [ ] Owner: ⋮ → Đổi tên kênh → Lưu → tiêu đề AppBar + danh sách kênh đổi tên; toast "Đã đổi tên kênh thành …".
+- [ ] Member mở cùng kênh (kéo để làm mới) → thấy tên mới.
+- [ ] Gửi 1 SMS sau khi đổi tên → log relay trên máy Owner hiện "Kênh: <tên mới>".
+- [ ] Tắt mạng rồi đổi tên → toast lỗi, tên cũ giữ nguyên.
+
+## Fix · Thu hồi thành viên luôn thất bại (phát hiện khi làm P2-2)
+
+`ChannelRepositoryImpl.revokeMembers` wrap key epoch mới cho **mọi** member ACTIVE, kể cả máy đang bị thu hồi → server trả `422 PACKAGE_INCOMPLETE` ("Unexpected: [máy bị thu hồi]") → nút Thu hồi luôn báo lỗi xung đột. (Nhờ server chặn nên key mới không lộ cho máy bị thu hồi.)
+
+**Rà soát**
+- [ ] Envelope set khi revoke = {Owner} ∪ ACTIVE − `revokeDeviceIds`.
+- [ ] Test mới trong `channel_repository_rotation_test.dart` kiểm đúng tập device id.
+
+**Kiểm thử**
+- [ ] Trên máy thật: Owner thu hồi 1 member → thành công, member đó nhận thông báo, các member còn lại vẫn đọc được tin mới.
+- [ ] ⚠️ Nên cherry-pick commit này sang `feat/otp-notification` / bản 1.1.x vì lỗi có ở bản đang phát hành.
+
+## P2-2 · Rời kênh / giải tán kênh (BACKLOG 1.4)
+
+Cần BE `POST /channels/leave|rotate|archive` (BE REVIEW_BACKLOG P2-2). Xem phần **Thiết kế** ở BE — leave không đổi epoch, Owner tự rotate.
+
+**Rà soát**
+- [ ] Menu ⋮: Owner = Đổi tên + **Giải tán kênh** (đỏ); Member = **Rời kênh** (đỏ). Cả hai qua `DialogUtils.showConfirmDialog(isDestructive: true)`.
+- [ ] `ChannelRepositoryImpl.leaveChannel` purge key của kênh sau khi server xác nhận; `archiveChannel` rồi `SyncOwnerRelayChannelUseCase()` để native bỏ kênh.
+- [ ] `rotateChannelKey` dùng chung `_rotate` (lưu + stage key trước, retry đúng package, discard khi 4xx) + re-encrypt whitelist.
+- [ ] `SyncOwnerRelayChannelUseCase` gặp `rotation_pending` → rotate trước khi snapshot; lỗi thì giữ epoch cũ, thử lại lần sync sau. Kích hoạt khi: khởi động, resume, **mọi FCM foreground** (kể cả `MEMBER_LEFT`). App bị kill → rotate ở lần mở kế tiếp (relay vẫn chạy ở epoch cũ trong lúc chờ).
+- [ ] `ChannelDetailState.isClosed` → màn chi tiết tự `maybePop`; `ChannelCardView` refresh danh sách khi quay về.
+- [ ] `ChannelEventKind.memberLeft` (`MEMBER_LEFT`).
+
+**Kiểm thử**
+- [ ] Member: ⋮ → Rời kênh → xác nhận → về danh sách, kênh biến mất; SMS mới của kênh không còn hiện.
+- [ ] Owner (app mở): nhận thông báo "X đã rời kênh" → epoch tăng 1 (xem tiêu đề thẻ kênh) → member còn lại vẫn đọc tin mới.
+- [ ] Owner (app đã vuốt tắt) khi member rời → SMS vẫn relay; mở app → tự rotate.
+- [ ] Owner: ⋮ → Giải tán kênh → member (cả bản 1.1.0) nhận "Kênh đã giải tán", kênh biến mất ở cả hai bên; SMS khớp whitelist kênh đó không còn relay.
+- [ ] Tắt mạng rồi rời / giải tán → toast lỗi, ở lại màn chi tiết.
+
+## P2-3 · Lịch sử yêu cầu kết nối (BACKLOG 1.6)
+
+Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
+
+**Rà soát**
+- [ ] Menu ⋮ (Owner) → "Lịch sử yêu cầu" → `RequestHistoryPage`: tên máy, thời điểm xử lý, nhãn Đã duyệt / Đã từ chối / Đã huỷ.
+- [ ] `RequestHistoryCubit`: trang 30 mục, "Xem thêm" theo `next_before`, kéo để làm mới, màn lỗi có nút Thử lại.
+- [ ] Model `RequestHistoryResult` (tên khác màn `RequestHistoryPage` để tránh trùng).
+
+**Kiểm thử**
+- [ ] Owner duyệt 1, từ chối 1; member huỷ 1 → lịch sử hiện đủ 3, mới nhất trên cùng.
+- [ ] Kênh chưa có request đã xử lý → màn trống "Chưa có yêu cầu nào được xử lý."
+
+## P2-4 · Nhắc tạo bản sao lưu (BACKLOG 1.9)
+
+**Rà soát**
+- [ ] `BackupRepositoryImpl` ghi `BackupRecord {at, channels}` vào `LocalStorageService` sau **export thành công** và sau **restore** (máy khôi phục coi như đã có bản sao lưu); huỷ hộp thoại lưu → không ghi.
+- [ ] `BackupReminderCubit`: nhắc khi có ≥1 kênh **và** (chưa từng sao lưu **hoặc** có kênh chưa nằm trong bản gần nhất). Chỉ so **tập kênh**, không so epoch (key epoch mới tự lấy lại từ envelope).
+- [ ] "Để sau" ẩn 3 ngày (`backup_reminder_snoozed_until`); "Sao lưu ngay" mở trang thiết bị, quay về thì đánh giá lại.
+- [ ] Banner (`MaterialBanner`) nằm trên tab Kênh, phía trên 2 tab danh sách.
+- [ ] ⚠️ Máy đang dùng (đã có kênh) sẽ thấy banner ngay sau khi cập nhật, vì trước đây chưa từng ghi lại lần sao lưu — đúng ý đồ (đã sao lưu ở 1.0.1 thì bấm Sao lưu lại một lần).
+
+**Kiểm thử**
+- [ ] Cài mới, tạo kênh → banner hiện. Sao lưu → quay lại → banner ẩn.
+- [ ] Tham gia thêm 1 kênh → banner hiện lại.
+- [ ] Bấm "Để sau" → ẩn; chỉnh giờ máy +3 ngày → hiện lại.
+- [ ] Khôi phục từ bản sao lưu trên máy mới → không hiện banner (trừ khi đã có kênh mới sau bản đó).
+
+## P2-5 · Keystore lỗi → không còn lưu thô âm thầm (BACKLOG 2.2)
+
+**Quyết định** ⚠️: giữ **fail-open** (lưu thô khi `SecureVault` lỗi) vì fail-closed làm dừng hẳn relay trên ROM có Keystore chập chờn — nhưng mỗi lần đều được ghi lại, báo Crashlytics và cảnh báo người dùng. Nếu muốn fail-closed cho riêng nội dung SMS, đổi `RelayChannelStore.encrypt` ở chỗ gọi outbox/parked.
+
+**Rà soát**
+- [ ] Kotlin `VaultFallbackLog`: đếm + site + lỗi + thời điểm trong SharedPreferences; ghi ở `OtpPreferences` (device token, legacy channel key) và `RelayChannelStore.encrypt` (channel key, outbox, parked). `Log.w` được bọc try (JVM test).
+- [ ] MethodChannel `takeVaultFallbackReport` = lấy rồi xoá.
+- [ ] Dart `ReportVaultFallbackUseCase` chạy 1 lần trong `_AsyncServicesInitializer`: Crashlytics non-fatal (`reason: secure_vault_fallback`) + toast cảnh báo.
+- [ ] Không có báo cáo → im lặng; báo cáo đã gửi không lặp lại.
+
+**Kiểm thử**
+- [ ] Unit: `VaultFallbackLogTest` (Kotlin), `report_vault_fallback_use_case_test.dart`.
+- [ ] (Khó tái hiện trên máy thường) Trên thiết bị/emulator: xoá alias `otp_relay_master_key` trong Keystore bằng debugger → nhận 1 SMS → mở app → toast cảnh báo + event trên Crashlytics.
+
+## P2-6 · Xử lý 401 tập trung (BACKLOG 3.2)
+
+**Rà soát**
+- [ ] `ApiClient.onUnauthorized` (gắn trong `AppBootstrap`, provider `DeviceApiService` giờ `lazy: false`): 401 trên request đã xác thực (không phải `/devices/register`, chưa retry) → `DeviceSessionRecovery` → retry **1 lần** với token mới; vẫn 401 → `UnauthorizedException` như cũ.
+- [ ] `DeviceSessionRecovery` (đã đổi ở `305a918`, FLOW_AUDIT S1): **không** đăng ký lại nữa — 401 giữa phiên chỉ báo 1 lần / 30 s "mở lại app", không gửi lại request. Máy chưa từng đăng ký → bỏ qua.
+- [ ] Native `OtpRelayWorker`: 401 → **park** SMS (trước đây bỏ hẳn), gửi lại khi app sync xong.
+- [ ] Splash gặp 401 → xoá token → hiện lựa chọn **Khôi phục từ bản sao lưu** / **Thiết lập như máy mới** (`device_id` + danh tính mới, phải xin vào kênh lại). Đăng ký luôn dùng `device_id` mới.
+
+**Kiểm thử**
+- [ ] Unit: `api_client_unauthorized_test.dart`, `device_session_recovery_test.dart`.
+- [ ] Trên máy: sửa `device_token` trong SharedPreferences (adb/root) thành chuỗi sai → đang mở app: toast "mở lại app" đúng 1 lần; mở lại app → màn chọn Khôi phục / Máy mới.
+- [ ] Tắt mạng trong lúc 401 → toast "Phiên của thiết bị đã hết hạn…" chỉ 1 lần.
+
+## P3-1 · Tuỳ chọn thông báo cho chính máy relay (BACKLOG 1.8)
+
+**Rà soát**
+- [ ] `StorageKeys.notifyOwnRelayedMessages` (mặc định **tắt** = hành vi hiện tại). `NewMessageNotifier` đọc qua `preferences` ở cả foreground (`FcmNotificationServiceImpl`) và background isolate (`fcm_background_handler` tạo `LocalStorageService` riêng → đọc giá trị mới nhất từ đĩa).
+- [ ] Công tắc trong "Cài đặt & tuỳ chọn" của trang thiết bị (`NotifyOwnRelayedTile`, ẩn nếu không có LocalStorageService).
+
+**Kiểm thử**
+- [ ] Máy Owner: bật công tắc → nhận 1 SMS OTP → máy Owner cũng hiện thông báo OTP. Tắt → không hiện.
+- [ ] Thử khi app bị vuốt tắt (background isolate).
+
+## P3-2 · Cache tin nhắn offline (BACKLOG 1.7)
+
+**Rà soát**
+- [ ] `MessageCacheStore` lưu **đúng payload E2EE** (`toCipherMap`: ciphertext, nonce, epoch, metadata) — không bao giờ lưu nội dung đã giải mã; giữ 14 ngày xem gần nhất (`sms_cache_v1_*` trong SharedPreferences).
+- [ ] `SmsByDateRepositoryImpl`: online → lưu cache rồi giải mã; `NetworkException` + có bản lưu → giải mã lại bản lưu, **bỏ** tin không giải mã được (kênh đã rời / bị thu hồi → key đã purge), trả `cachedAt`. Lỗi khác (4xx/5xx) vẫn ném như cũ.
+- [ ] `SmsState.cachedAt` → dòng "Ngoại tuyến — đang xem bản lưu lúc …" trên danh sách.
+- [ ] ⚠️ Kênh Owner đã **giải tán** vẫn còn key trên máy Owner → tin cũ của kênh đó vẫn hiện trong bản lưu offline của Owner tới khi bị đẩy khỏi 14 ngày. Chấp nhận được (là tin của chính Owner).
+
+**Kiểm thử**
+- [ ] Mở tab SMS hôm nay (có mạng) → bật máy bay → kéo làm mới → vẫn thấy tin + dòng ngoại tuyến.
+- [ ] Ngày chưa từng mở → máy bay → toast lỗi như cũ.
+- [ ] Rời 1 kênh → máy bay → tin của kênh đó không còn trong bản lưu.
+
+
+## P3-3 · Tách luồng khởi động vào `StartupRepository` (BACKLOG 3.3)
+
+**Rà soát**
+- [ ] `StartupRepository.bootstrap(...)` trả `Stream<SplashStatus>` theo đúng thứ tự cũ: initializingServices → checkingIdentityKey → authenticatingDevice → (awaitingSetupChoice **hoặc** registeringDevice) → syncingChannels → ready. Thuần di chuyển code — không đổi logic bước nào (auto-heal tên máy, reconcile, đồng bộ native relay).
+- [ ] `SplashBloc` chỉ còn phụ thuộc `StartupRepository`; giữ min display, ánh xạ lỗi → `SplashFailureKind`, ghi Crashlytics qua `recordFailure`.
+- [ ] `SplashPage` dựng `StartupRepositoryImpl` từ các service trong context (không thêm provider mới).
+
+**Kiểm thử**
+- [ ] `splash_bloc_test.dart` (giữ nguyên kịch bản, chỉ đổi cách dựng bloc).
+- [ ] Trên máy: cài mới (thấy lựa chọn Khôi phục / Máy mới), mở lại app đã đăng ký, mở khi mất mạng → nút Thử lại.
+
+## P3-4 · Cổng khởi động / bảo trì (BACKLOG 3.5)
+
+**Rà soát**
+- [ ] Phạm vi cố ý thu gọn: chỉ một `StartupGate` (bảo trì) chạy trong `StartupRepositoryImpl` ngay sau khi khởi tạo FCM, **trước mọi gọi API**. Không làm `CapabilitySet` / `StartupCoordinator` — chưa có nhu cầu thật, cổng cập nhật bắt buộc đã có ở `AppUpdateService` (home).
+- [ ] `RemoteConfigStartupGate` đọc `maintenance_enabled` (bool) + `maintenance_message` (string). **Fail-open**: Firebase chưa init / fetch lỗi / quá 4s → mở cổng (fetch lỗi vẫn dùng giá trị đã kích hoạt lần trước). `minimumFetchInterval` 1 phút → bấm Thử lại liên tục không bị throttle tới server.
+- [ ] Bị chặn → `StartupBlockedException` → `SplashFailureKind.maintenance` (icon công trường, nút Thử lại), **không** ghi Crashlytics. Message rỗng → `splashMaintenanceDefault`.
+- [ ] ⚠️ Chỉ chặn ở màn khởi động; app đang mở không bị đá ra. Relay SMS chạy native vẫn tiếp tục (đúng ý: bảo trì UI/server, không làm mất OTP — tin sẽ vào outbox và gửi lại).
+
+**Kiểm thử**
+- [ ] Unit: nhóm `startup gate (maintenance, 3.5)` trong `splash_bloc_test.dart`.
+- [ ] Firebase Console → Remote Config: thêm `maintenance_enabled=true`, `maintenance_message="Bảo trì tới 22h"` → Publish → mở lại app → thấy thông điệp; tắt cờ → Thử lại (sau ≥ 1 phút) → vào app.
+- [ ] Bật máy bay + cờ đang bật từ lần trước → vẫn thấy bảo trì (giá trị cache); xoá dữ liệu app + máy bay → lỗi mạng như cũ (fail-open).
+
+## P3-5 · Nâng Gradle 9.1.0 / AGP 9.0.1 / Kotlin 2.3.20 (BACKLOG 3.10)
+
+**Rà soát**
+- [ ] `gradle-wrapper.properties` → 9.1.0; `settings.gradle.kts` → AGP 9.0.1, KGP 2.3.20. `google-services` 4.4.2 / `crashlytics` 3.0.3 giữ nguyên (build OK).
+- [ ] Kotlin 2.3 nâng `kotlinOptions { jvmTarget }` thành **lỗi** → chuyển sang `kotlin { compilerOptions { jvmTarget = JVM_17 } }` (cùng target 17 như cũ).
+- [ ] Giữ `android.builtInKotlin=false`, `android.newDsl=false` (cờ của Flutter migrator) — bật lên phải bỏ KGP ở app **và** chờ plugin firebase/shared_preferences hỗ trợ → tách thành BACKLOG 3.11.
+- [ ] Đã kiểm trong container (cùng 1 debug keystore): APK release trước/sau có **cùng SHA-256 chữ ký** và `AndroidManifest.xml` (aapt2 xmltree) **giống hệt**; versionCode 20, minSdk 24, targetSdk 36. 105 test Kotlin + 388 test Flutter pass.
+- [ ] CI dùng JDK 17 (đủ cho Gradle 9 / AGP 9).
+
+**Kiểm thử**
+- [ ] Máy local: `flutter clean && flutter build apk --release` với `key.properties` thật → `./scripts/print_android_sha256.sh` vẫn ra `94:74:…:AD:A2` (✅) → cài **đè** lên bản 1.1.0 đang chạy được (không phải gỡ).
+- [ ] Android Studio: Sync project không lỗi (có thể cần cập nhật AS lên bản hỗ trợ AGP 9).
+- [ ] Smoke: nhận SMS OTP → relay (WorkManager + native) chạy bình thường; Crashlytics vẫn nhận mapping/báo cáo.
+
+## Bổ sung A · Tin SMS trên danh sách tối đa 2 dòng
+
+**Rà soát**
+- [ ] `SmsTileView`: nội dung `maxLines: 2` + `ellipsis`; bottom sheet chi tiết (`SelectableText`) vẫn hiện đầy đủ.
+
+**Kiểm thử**
+- [ ] Unit: `test/features/sms/views/sms_tile_view_test.dart`.
+- [ ] Trên máy: tin dài (thông báo ngân hàng nhiều dòng) → trên danh sách chỉ 2 dòng + "…"; chạm → đọc đủ, bôi chọn được; nút sao chép vẫn chép **toàn bộ** nội dung.
+
+## Bổ sung B · Pill white-list trên thẻ kênh + danh sách trong chi tiết kênh
+
+**Rà soát**
+- [ ] BE: `GET /channels` trả thêm `whitelist` (blob E2EE y hệt `/channels/detail`, server không đọc) — commit `8470af8` trên BE `feat/backlog-sweep`. App cũ bỏ qua field này.
+- [ ] `ChannelRepository.listChannelsWithWhitelist()` giải mã blob bằng channel key (keystore) — **không** ghi native cache. Owner fallback cache native khi server chưa trả blob (BE chưa deploy). Lỗi / thiếu key → kênh không có pill, danh sách vẫn tải.
+- [ ] `WhitelistPillData.fromConfig`: chế độ "Nhận từ mọi địa chỉ" là pill "Mọi người gửi" đứng đầu; tối đa 3 pill, vượt quá → 2 pill + "+N" (N = số còn lại).
+- [ ] Chi tiết kênh: `ChannelWhitelistEntries` hiện **đủ** danh sách (chỉ xem) cho cả Owner lẫn Member, 🔑 = được gửi OTP; danh sách trống → "Chưa có người gửi nào trong bộ lọc". Owner vẫn sửa qua nút "Cấu hình".
+- [x] Đã quyết định: Member được xem danh sách white-list — không lộ thêm gì vì tin SMS trên tab SMS vốn đã hiện brandname / SĐT người gửi.
+
+**Kiểm thử**
+- [ ] Unit: `channel_repository_whitelist_test.dart`, `whitelist_pills_test.dart`; BE: `channel-whitelist.test.ts` (list có blob).
+- [ ] Owner cấu hình 5 địa chỉ → tab Kênh: 2 pill + "+3"; chi tiết: đủ 5, địa chỉ có OTP có 🔑.
+- [ ] Member (cùng kênh) thấy đúng như trên sau khi kéo làm mới.
+- [ ] Bật "Nhận từ mọi địa chỉ" → pill đầu "Mọi người gửi".
+- [ ] App mới + BE cũ (chưa deploy): Owner vẫn thấy pill (từ cache), Member chưa thấy — bình thường.
+
+## Bổ sung C · Tab "Thiết bị"
+
+**Rà soát**
+- [ ] `HomeTabCubit` (enum `HomeTab`) thay `_selectedIndex` của `MainNavigationPage`; tab giữ trạng thái qua `IndexedStack`.
+- [ ] `DeviceProfilePage` thành tab thứ 3 (sau FAB QR). Nút điện thoại trên AppBar của tab SMS / Kênh (`DeviceProfileButton`) bị **gỡ** — chấm trạng thái xanh/cam chuyển xuống icon tab.
+- [ ] Banner nhắc sao lưu vẫn mở `DeviceProfilePage` bằng push (quay lại đúng chỗ cũ + kiểm tra lại nhắc nhở) — chủ ý.
+
+**Kiểm thử**
+- [ ] `widget_test.dart` (tab Thiết bị), `home_tab_cubit_test.dart`.
+- [ ] Trên máy: tắt quyền SMS → chấm cam trên tab Thiết bị; cấp lại → xanh. Đổi tên máy, sao lưu, đổi giao diện ngay trong tab.
+
+## Bổ sung D · Tab "Hoạt động"
+
+**Rà soát**
+- [ ] Thanh điều hướng: SMS · Kênh · (QR) · **Hoạt động** · Thiết bị. Mở tab → tự tải lại; có nút làm mới + kéo để làm mới; lọc Tất cả / SMS chuyển tiếp / Kênh.
+- [ ] Nguồn 1 — nhật ký relay native (`getRecentLogs`, 30 mục, chỉ có trên máy relay). Trạng thái hiện tiếng Việt (Đã chuyển tiếp / Đang gửi / Đang thử lại / Chờ mở app / Lỗi / Bị lọc / Bỏ qua). `RelayLogTile` dùng chung với trang Bộ lọc.
+- [ ] Nguồn 2 — sự kiện kênh (`ChannelActivityLogStore`, SharedPreferences, 50 mục): xin tham gia (kèm tên máy), được duyệt, bị thu hồi, kênh bị giải tán (`REVOKED` + `reason=ARCHIVED`), thành viên rời (kèm tên máy). **Không** ghi tin nhắn mới (đã có tab SMS) và thao tác chạm thông báo (tránh trùng).
+- [ ] Ghi ở cả hai nơi: isolate chính (`ActivityRepositoryImpl` nghe `channelEvents`, provider `lazy: false`) và isolate FCM nền (`firebaseMessagingBackgroundHandler` ghi **trước** khi kiểm tra notification block — chuông của server luôn có notification block). Đọc luôn `reload()` SharedPreferences để thấy dữ liệu isolate nền vừa ghi.
+- [ ] ⚠️ Chỉ ghi các sự kiện **từ lúc cài bản này**; đổi tên kênh không có chuông FCM nên không xuất hiện. Hai isolate cùng ghi đúng lúc có thể mất 1 sự kiện (chỉ ảnh hưởng hiển thị).
+
+**Kiểm thử**
+- [ ] Unit: `channel_activity_log_store_test.dart`, `activity_test.dart` (repo, cubit, page), `widget_test.dart`.
+- [ ] Máy Owner: nhận 1 SMS OTP + 1 SMS từ đầu số không có trong bộ lọc → tab Hoạt động có "Đã chuyển tiếp" và "Bị lọc".
+- [ ] Máy khác xin vào kênh khi app Owner **đã vuốt tắt** → mở app → tab Hoạt động có "… xin tham gia kênh …".
+- [ ] Member rời kênh / Owner duyệt / thu hồi / giải tán → máy liên quan thấy dòng tương ứng.
+
+## Bổ sung E · Sửa theo rà soát luồng (`docs/FLOW_AUDIT.md`, merge từ `fix/fast-otp-notification` + commit sau đó)
+
+**Rà soát**
+- [ ] C1 (`dbbddd3`): thông báo giải mã với `sequenceHint = 0` như Owner mã hoá — trước đó **mọi** thông báo rơi về nội dung chung.
+- [ ] `f85856d`: isolate nền hiện ngay thông báo chung rồi thay bằng OTP (cùng id, `onlyAlertOnce`); timeout 10 s.
+- [ ] S1 (`305a918` + BE `0068a6c`): không còn tự đăng ký lại cùng `device_id`; BE trả `409 DEVICE_EXISTS` nếu thiếu token hiện tại. ⚠️ **Breaking với app ≤ 21**: máy cũ nào bị mất token (401) sẽ kẹt ở Splash (đăng ký lại cùng id → 409) cho tới khi lên bản mới — chỉ xảy ra khi token bị thay (khôi phục cùng bản sao lưu lên máy khác).
+- [ ] K1–K3 (`2f7c9e1` + BE `62f6de9`): giữ key **mọi** epoch qua `GET /api/v2/key-envelopes` (SRD §8.4); thông báo / màn SMS thiếu key → tự lấy rồi giải mã lại.
+- [ ] P1/P2 (`32c0cb7` + BE `5283583`): sync relay của Owner không còn đọc detail từng kênh; single-flight.
+- [ ] Ghép với tab Hoạt động: `fcm_background_handler` vừa ghi sự kiện kênh (Bổ sung D) vừa hiện thông báo chung ngay — kiểm tra thứ tự không làm chậm thông báo.
+
+**Kiểm thử**
+- [ ] App vuốt tắt → nhận OTP → thông báo chung hiện ngay, vài giây sau đổi thành mã OTP + nút Sao chép.
+- [ ] Member không mở app qua 2 lần xoay khoá → mở app → tin của **cả** các epoch giữa vẫn đọc được.
+- [ ] Gửi `POST /devices/register` với `device_id` của máy khác (không token) → 409.

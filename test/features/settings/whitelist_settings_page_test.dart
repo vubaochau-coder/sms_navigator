@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/request_history_result.dart';
 import 'package:sms_navigator/core/models/channel_detail_model.dart';
 import 'package:sms_navigator/core/models/channel_member_model.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
@@ -39,6 +40,13 @@ class _FakeWhitelistRepository implements WhitelistRepository {
   }
 
   @override
+  Future<WhitelistConfigModel?> decryptWhitelist({
+    required String channelId,
+    required String channelKeyBase64,
+    required ChannelWhitelistBlobModel blob,
+  }) async => stored;
+
+  @override
   Future<WhitelistConfigModel?> syncWhitelistFromServer({
     required String channelId,
     required int keyEpoch,
@@ -66,6 +74,16 @@ class _FakeChannelRepository implements ChannelRepository {
   }
 
   @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() => listChannels();
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async => null;
+
+  @override
   Future<List<ChannelModel>> listChannels() async => [];
   @override
   Future<List<ChannelMemberModel>> getMembers(String channelId) async => [];
@@ -85,6 +103,22 @@ class _FakeChannelRepository implements ChannelRepository {
   Future<int?> provisionLatestChannelKey({required String channelId, required String ownerPublicKeyBase64}) async => null;
   @override
   Future<void> renameDevice(String deviceName) async {}
+
+  @override
+  Future<void> renameChannel({required String channelId, required String name}) async {}
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory(String channelId, {String? before}) async =>
+      const RequestHistoryResult();
+
+  @override
+  Future<void> leaveChannel(String channelId) async {}
+
+  @override
+  Future<void> archiveChannel(String channelId) async {}
+
+  @override
+  Future<int> rotateChannelKey(String channelId) async => 1;
 }
 
 class _FakeChannelKeyStore implements ChannelKeyStore {
@@ -207,7 +241,7 @@ void main() {
 
       expect(find.text('Nhật ký tiếp nhận SMS'), findsOneWidget);
       expect(find.text('SSO'), findsOneWidget);
-      expect(find.text('FAILED'), findsOneWidget);
+      expect(find.text('Lỗi'), findsOneWidget);
       expect(find.text('HTTP 401: Unauthorized'), findsOneWidget);
       expect(find.text('Nội dung phát hiện: 123456'), findsOneWidget);
     });

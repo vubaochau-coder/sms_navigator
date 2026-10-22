@@ -15,15 +15,21 @@ class ApiEndpoints {
   static const String channelDetailV2 = '/api/v2/channels/detail';
   static const String channelMembersV2 = '/api/v2/channels/members';
   static const String channelSessionsV2 = '/api/v2/channels/sessions';
-  static const String channelSessionsResolveV2 = '/api/v2/channels/sessions/resolve';
   static const String channelRequestsV2 = '/api/v2/channels/requests';
   static const String channelKeyEnvelopeV2 = '/api/v2/channels/key-envelope';
+
+  /// Mọi envelope của máy này, gom theo kênh (§6.1b).
+  static const String keyEnvelopesV2 = '/api/v2/key-envelopes';
   static const String channelMessagesV2 = '/api/v2/channels/messages';
 
   /// Một tin theo (channel_id, sequence_number) — cho thông báo OTP (§6.4).
   static const String channelMessageV2 = '/api/v2/channels/message';
   static const String channelRevokeV2 = '/api/v2/channels/revoke';
   static const String channelWhitelistV2 = '/api/v2/channels/whitelist';
+  static const String channelNameV2 = '/api/v2/channels/name';
+  static const String channelLeaveV2 = '/api/v2/channels/leave';
+  static const String channelRotateV2 = '/api/v2/channels/rotate';
+  static const String channelArchiveV2 = '/api/v2/channels/archive';
 
   // --- Pairing v2 ---
   static const String pairingClaimV2 = '/api/v2/pairing/requests';

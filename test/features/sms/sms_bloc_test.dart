@@ -19,11 +19,13 @@ class _FakeSmsByDateRepository implements SmsByDateRepository {
   @override
   Stream<ChannelEvent> get messageChanges => changes.stream;
 
+  DateTime? returnCachedAt;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  Future<({List<ChannelMessageModel> messages, bool truncated})> fetchByDate({
+  Future<({List<ChannelMessageModel> messages, bool truncated, DateTime? cachedAt})> fetchByDate({
     required DateTime date,
     int tzOffsetMinutes = 0,
     CancelToken? cancelToken,
@@ -32,7 +34,7 @@ class _FakeSmsByDateRepository implements SmsByDateRepository {
     if (shouldFail) throw Exception('Fetch failed');
     lastFetchedDate = date;
     lastTzOffset = tzOffsetMinutes;
-    return (messages: returnMessages, truncated: returnTruncated);
+    return (messages: returnMessages, truncated: returnTruncated, cachedAt: returnCachedAt);
   }
 }
 
@@ -227,5 +229,18 @@ void main() {
       await autoBloc.close();
       expect(repo.changes.hasListener, isFalse);
     });
+  });
+
+  test('offline result from the cache sets cachedAt; a fresh load clears it (1.7)', () async {
+    final savedAt = DateTime(2026, 10, 22, 8, 30);
+    repository.returnCachedAt = savedAt;
+    bloc.add(const SmsLoadDataEvent());
+    await pumpEventQueue();
+    expect(bloc.state.cachedAt, savedAt);
+
+    repository.returnCachedAt = null;
+    bloc.add(const SmsLoadDataEvent());
+    await pumpEventQueue();
+    expect(bloc.state.cachedAt, isNull);
   });
 }

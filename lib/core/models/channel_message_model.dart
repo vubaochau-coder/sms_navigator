@@ -58,6 +58,21 @@ class ChannelMessageModel extends Equatable {
     );
   }
 
+  /// Chỉ phần **đã mã hoá** (giống payload server) — dùng cho cache offline
+  /// (BACKLOG 1.7). Không bao giờ chứa nội dung đã giải mã.
+  Map<String, dynamic> toCipherMap() => {
+    'message_id': messageId,
+    'channel_id': channelId,
+    'channel_name': channelName,
+    'sequence_number': sequenceNumber,
+    'key_epoch': keyEpoch,
+    'ciphertext': ciphertext,
+    'nonce': nonce,
+    'sender_device_id': senderDeviceId,
+    if (sentAt != null) 'sent_at': sentAt!.toUtc().toIso8601String(),
+    if (serverReceivedAt != null) 'server_received_at': serverReceivedAt!.toUtc().toIso8601String(),
+  };
+
   ChannelMessageModel copyWithDecrypted(String otp) {
     String? extractedSender;
     String cleanOtp = otp;

@@ -7,6 +7,7 @@ import 'package:sms_navigator/core/models/channel_message_model.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
 import 'package:sms_navigator/core/services/message_api_service.dart';
 import 'package:sms_navigator/core/usecases/resolve_incoming_message_use_case.dart';
+import 'package:sms_navigator/core/usecases/sync_channel_keys_use_case.dart';
 
 class _MessageApi implements MessageApiService {
   ChannelMessageModel? message;
@@ -39,6 +40,24 @@ class _KeyStore implements ChannelKeyStore {
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
 }
 
+/// Giả lập server có envelope của epoch còn thiếu.
+class _Sync implements SyncChannelKeysUseCase {
+  _Sync(this.keyStore);
+  final _KeyStore keyStore;
+  final Map<String, String> provides = {};
+  final List<String?> calls = [];
+
+  @override
+  Future<ChannelKeySyncResult> call({String? channelId}) async {
+    calls.add(channelId);
+    keyStore.keys.addAll(provides);
+    return ChannelKeySyncResult(added: provides.length);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
 void main() {
   final crypto = ChannelCryptoHelper();
   late _MessageApi api;
@@ -52,7 +71,7 @@ void main() {
       channelKeyBase64: key,
       channelId: 'ch-1',
       keyEpoch: epoch,
-      sequenceHint: 9,
+      // Đúng như OtpRelayWorker: mã hoá trước khi server cấp sequence → hint 0.
     );
     return ChannelMessageModel(
       messageId: '',
@@ -77,7 +96,7 @@ void main() {
     );
   });
 
-  test('fetches exactly that message and decrypts the relay JSON payload', () async {
+  test('decrypts a message the Owner sealed before the server assigned sequence 9', () async {
     api.message = await encrypted(jsonEncode({'sender': 'VCB', 'fullMessage': 'Ma OTP 482913'}));
 
     final result = await resolve(channelId: 'ch-1', sequenceNumber: 9);
@@ -105,5 +124,36 @@ void main() {
   test('network errors propagate so the caller can fall back', () async {
     api.error = Exception('offline');
     await expectLater(resolve(channelId: 'ch-1', sequenceNumber: 9), throwsException);
+  });
+
+  test('missing key for the epoch → syncs that channel once, then decrypts (FLOW_AUDIT K2)', () async {
+    api.message = await encrypted('Ma OTP 482913', epoch: 5); // channel rotated to 5, app not opened yet
+    final sync = _Sync(keyStore)..provides['ch-1#5'] = key;
+    final healing = ResolveIncomingMessageUseCase(
+      messageApiService: api,
+      keyStore: keyStore,
+      cryptoHelper: crypto,
+      syncChannelKeys: sync,
+    );
+
+    final result = await healing(channelId: 'ch-1', sequenceNumber: 9);
+
+    expect(sync.calls, ['ch-1']);
+    expect(result.decryptFailed, isFalse);
+    expect(result.decryptedOtp, 'Ma OTP 482913');
+  });
+
+  test('key sync that brings nothing → decryptFailed, no throw', () async {
+    api.message = await encrypted('x', epoch: 7);
+    final sync = _Sync(keyStore);
+    final healing = ResolveIncomingMessageUseCase(
+      messageApiService: api,
+      keyStore: keyStore,
+      cryptoHelper: crypto,
+      syncChannelKeys: sync,
+    );
+
+    expect((await healing(channelId: 'ch-1', sequenceNumber: 9)).decryptFailed, isTrue);
+    expect(sync.calls, hasLength(1));
   });
 }
