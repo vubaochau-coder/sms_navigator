@@ -47,7 +47,6 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.1 | **TD-4 — Test hermetic** | Widget test tích hợp (`widget_test.dart`, `MainNavigationPage`) gọi `ApiClient` với baseUrl production. Thêm `flutter_test_config.dart` với `HttpOverrides.global` chặn socket ngoài loopback + inject fake repository. Điều kiện để chạy test trên CI. | P2 |
 | 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
 | 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
 | 3.4 | Startup reconcile N+1 | `startup_reconcile_service_impl.dart` `_provisionChannelKeys()` gọi `getChannelDetail` + `provisionLatestForApproved` từng kênh. `SyncOwnerRelayChannelUseCase` cũng gọi `getChannelDetail` mỗi kênh Owner (whitelist heal). Batch hoá. | P2 |
@@ -63,6 +62,7 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
   - Đã chạy `flutter analyze` (sạch), `flutter test` (271/271), `:app:testDebugUnitTest` (99/99) — cũ: mục 0.1.
   - Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.3.
   - SMS relay không còn nằm plaintext trong DB WorkManager: nội dung + sender ghi mã hóa vào outbox `RelayChannelStore`, worker chỉ nhận `messageId`/`channelId`, xóa khi xong; parked queue mã hóa cả sender (cũ: mục 2.1).
+  - Test hermetic (cũ: mục 3.1 / TD-4): `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback (kể cả qua proxy), có test bảo vệ. `testWidgets` vốn đã được `TestWidgetsFlutterBinding` trả 400 cho mọi HTTP; đo thực tế: không test `test()` nào tạo `HttpClient`.
   - Release signing đọc `android/key.properties` (fallback debug key) + `scripts/print_android_sha256.sh`.
 - **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.
