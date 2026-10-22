@@ -52,7 +52,7 @@ void main() {
       channelKeyBase64: key,
       channelId: 'ch-1',
       keyEpoch: epoch,
-      sequenceHint: 9,
+      // Đúng như OtpRelayWorker: mã hoá trước khi server cấp sequence → hint 0.
     );
     return ChannelMessageModel(
       messageId: '',
@@ -77,7 +77,7 @@ void main() {
     );
   });
 
-  test('fetches exactly that message and decrypts the relay JSON payload', () async {
+  test('decrypts a message the Owner sealed before the server assigned sequence 9', () async {
     api.message = await encrypted(jsonEncode({'sender': 'VCB', 'fullMessage': 'Ma OTP 482913'}));
 
     final result = await resolve(channelId: 'ch-1', sequenceNumber: 9);

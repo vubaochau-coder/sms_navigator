@@ -47,7 +47,10 @@ class ResolveIncomingMessageUseCase {
         channelKeyBase64: key,
         channelId: message.channelId,
         keyEpoch: message.keyEpoch,
-        sequenceHint: message.sequenceNumber,
+        // KHÔNG truyền sequence_number: Owner (OtpRelayWorker) mã hoá trước khi
+        // server cấp sequence nên AAD luôn dùng sequenceHint = 0 — giống
+        // SmsByDateRepository. Truyền sequence thật → AAD lệch → luôn giải mã
+        // thất bại (lỗi của 1.2, xem docs/FLOW_AUDIT.md).
       );
       return message.copyWithDecrypted(plaintext);
     } catch (_) {

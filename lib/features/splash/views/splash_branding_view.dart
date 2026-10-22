@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/extensions/context_extensions.dart';
+import '../../../core/widgets/app_logo_glyph.dart';
 
 /// Phần hiển thị thương hiệu ứng dụng (Logo Hero có animation pulse, Tên ứng dụng & Phụ đề).
 class SplashBrandingView extends StatefulWidget {
@@ -84,10 +85,12 @@ class _SplashBrandingViewState extends State<SplashBrandingView>
                 ),
               ],
             ),
-            child: Icon(
-              Icons.sms_rounded,
-              size: 52,
-              color: colorScheme.onPrimary,
+            child: Center(
+              child: AppLogoGlyph(
+                size: 64,
+                bubbleColor: colorScheme.onPrimary,
+                arrowColor: colorScheme.primary,
+              ),
             ),
           ),
         ),
