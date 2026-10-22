@@ -23,7 +23,7 @@ Nhánh đang mở: `fix/fast-otp-notification` (mobile: hiện thông báo chung
 
 ## A. Lệch thiết kế & luồng chưa tối ưu (phát hiện 22/10 khi test OTP trên máy thật)
 
-Bối cảnh: test 1.1.0+21 — tin relay tới server đúng lúc (không phải server ngủ) nhưng thông báo trên máy receiver tới rất chậm. Truy nguyên ra một chuỗi chỗ code **không làm đúng như thiết kế** hoặc làm nhiều request hơn cần thiết. Làm A8 trước để không phát hiện lẻ tẻ như lần này.
+Kết quả rà soát đầy đủ: `docs/FLOW_AUDIT.md`. Bối cảnh: test 1.1.0+21 — tin relay tới server đúng lúc (không phải server ngủ) nhưng thông báo trên máy receiver tới rất chậm. Truy nguyên ra một chuỗi chỗ code **không làm đúng như thiết kế** hoặc làm nhiều request hơn cần thiết. Làm A8 trước để không phát hiện lẻ tẻ như lần này.
 
 | # | Hạng mục | Chi tiết & hướng xử lý | Ưu tiên |
 |---|---|---|---|
@@ -34,7 +34,14 @@ Bối cảnh: test 1.1.0+21 — tin relay tới server đúng lúc (không phả
 | A5 | Đưa ciphertext vào FCM (chờ quyết định) | Bỏ vòng `GET /channels/message` → OTP hiện gần như ngay khi FCM tới. Vẫn E2EE (chỉ `ciphertext/nonce/key_epoch`), nhưng **phá bất biến I5** (spec §7, SRD) và Google giữ ciphertext trong TTL. Payload FCM tối đa 4 KB → tin quá dài thì bỏ ciphertext, app quay về cách cũ. Cần chủ dự án quyết bỏ I5 trước. | P2 |
 | A6 | Đo & giảm độ trễ thông báo end-to-end | Đã thêm log `Placeholder shown after …ms` / `OTP shown after …ms` (nhánh `fix/fast-otp-notification`). Còn lại: (1) so mốc thời gian Render (`POST /channels/messages` → `NEW_MESSAGE bells` → `GET /channels/message`) với logcat để biết chậm ở FCM hay ở app; (2) worker relay của Owner chưa `setExpedited` → có thể bị hoãn khi Doze; (3) checklist thiết bị nên hướng dẫn **cả máy receiver** tắt tối ưu pin / bật Autostart (hiện chỉ nhấn mạnh cho Owner). | P1 |
 | A7 | Hai máy chung một danh tính sau khi khôi phục | Máy cũ còn cài app sẽ ghi đè FCM token (và vẫn relay) mỗi lần mở → thông báo đi về máy mở app gần nhất. Cần cơ chế "bị thay thế": khôi phục → BE cấp `device_token` mới / tăng `token_generation`, máy cũ nhận 401 → báo "Thiết bị này đã được khôi phục trên máy khác" (liên quan 3.2). | P2 |
-| A8 | **Rà soát toàn bộ luồng so với thiết kế** | Viết `docs/FLOW_AUDIT.md`: với từng luồng — relay SMS (native), tạo kênh, mời/claim/duyệt/từ chối, thu hồi + rotate, đồng bộ khi mở app, thông báo (foreground/background), màn SMS theo ngày, whitelist, deeplink/QR, sao lưu/khôi phục — ghi **hành vi thực tế đọc từ code** (request nào, theo thứ tự nào, lỗi thì sao) rồi đối chiếu bất biến trong SRD/spec (I*, KL*, N*, T*). Mỗi chỗ lệch → một mục backlog + test hợp đồng giữ đúng hành vi. Kèm số request mỗi luồng để tìm N+1 còn sót. | P0 |
+| A8 | ~~Rà soát toàn bộ luồng so với thiết kế~~ | **Xong** — xem `docs/FLOW_AUDIT.md`. Phát hiện mới ghi thành A9–A15 dưới đây; lỗi C1 (thông báo luôn rơi về nội dung chung do AAD lệch sequence) đã sửa trên `fix/fast-otp-notification`. | — |
+| A9 | **P0 — Chiếm quyền thiết bị (S1)** | Phần mobile của BE A7: 401 khi mở app **không** tự đăng ký lại cùng `device_id` nữa → cho chọn "Khôi phục từ bản sao lưu" hoặc "Thiết lập như máy mới" (`device_id` + danh tính mới, join lại — SRD §8.2). Gộp với 3.2. Phải phát hành cùng lúc với BE A7 (BE chặn re-register → app cũ sẽ kẹt ở 401). | P0 |
+| A10 | KL10 không được thực thi (C2) | AAD tin nhắn luôn `seq = 0` vì Owner mã hoá trước khi server cấp sequence → server có thể nhân bản / gán lại ciphertext cũ. Đề xuất: bộ đếm `client_seq` phía Owner (native, lưu trong `RelayChannelStore`) đưa vào AAD `sms-navigator-msg-v2`; giải mã cả v1 cho tin cũ. Cần quyết định thiết kế (FLOW_AUDIT §5) + sửa SRD §7.1. | P1 |
+| A11 | Được duyệt khi đang mở app không lấy key (K3) | Sự kiện `APPROVED` chỉ làm mới màn SMS. Sửa: `APPROVED` (và `KEY_ROTATED` nếu có — A3) → lấy key ngay qua A4; màn SMS gặp tin thiếu key cũng kích hoạt lấy key rồi giải mã lại. | P1 |
+| A12 | Mở app ≈ 28 request, tối thiểu ~5 (P1, P2) | Reconcile chạy 3 lần (Splash, `MainNavigationPage`, tab Kênh), sync relay 2 lần (`app.dart`, tab Kênh), `GET /channels` ~6 lần; `_syncJoinRequests` lấy lại key cho **mọi** request APPROVED trong lịch sử mỗi lần chạy (2 request/request); mỗi lần quay lại foreground đọc `GET /channels/detail` từng kênh Owner chỉ để lấy whitelist. Sửa: một `StartupCoordinator` chạy reconcile + sync **một lần** mỗi phiên, chia sẻ kết quả `GET /channels`; bỏ `_syncJoinRequests` khi đã có A4; sync khi resume chỉ đọc detail khi `whitelist_version` (thêm vào `GET /channels`) đổi. Bảng đếm chi tiết: FLOW_AUDIT §3 F5. | P1 |
+| A13 | Key material chưa được dọn (R1, R2) | (1) Bị thu hồi (`REVOKED` / 403) → gọi `purgeChannelKeys` (hiện không ai gọi) + bỏ kênh khỏi native relay, đúng bảng lỗi spec §2. (2) Rotate bị từ chối 4xx → xoá cả key epoch N+1 trong key store Dart (cần `deleteChannelKey(channelId, epoch)`), không chỉ native. | P1 |
+| A14 | Tạo kênh không idempotent (C3) | Mất mạng sau khi server đã tạo → thử lại sinh UUID mới → kênh trùng. Giữ nguyên `channel_id` + key cho lần thử lại; server trả `409 CHANNEL_ID_TAKEN` → coi như đã tạo (kiểm `GET /channels`). | P2 |
+| A15 | Chuông `JOIN_REQUEST` không làm mới màn duyệt của Owner (U2) | `ChannelEvent.affectsMessages` chỉ phục vụ màn SMS; thêm luồng sự kiện cho màn chi tiết kênh / danh sách yêu cầu. | P3 |
 
 ---
 
@@ -74,7 +81,7 @@ Bối cảnh: test 1.1.0+21 — tin relay tới server đúng lúc (không phả
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
-- **Nhánh `fix/fast-otp-notification`** (chưa merge, chưa compile): isolate nền hiện **ngay** thông báo chung khi nhận `NEW_MESSAGE` data-only rồi thay bằng OTP (cùng id, `onlyAlertOnce`); timeout request nền 10 s; Firebase chỉ khởi tạo khi cần ghi Crashlytics; log thời gian.
+- **Nhánh `fix/fast-otp-notification`** (chưa merge, chưa compile): sửa **C1** — thông báo giải mã với `sequenceHint = 0` như Owner mã hoá (trước đó truyền `sequence_number` thật → AAD lệch → mọi thông báo rơi về nội dung chung); rà soát A8 → `docs/FLOW_AUDIT.md`; isolate nền hiện **ngay** thông báo chung khi nhận `NEW_MESSAGE` data-only rồi thay bằng OTP (cùng id, `onlyAlertOnce`); timeout request nền 10 s; Firebase chỉ khởi tạo khi cần ghi Crashlytics; log thời gian.
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 
