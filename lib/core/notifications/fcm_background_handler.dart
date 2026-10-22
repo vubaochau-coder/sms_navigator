@@ -18,19 +18,14 @@ import 'notification_content.dart';
 /// widget tree nên tự dựng các dependency cần thiết).
 ///
 /// - Có notification block → OS đã tự hiện banner, không làm gì thêm.
-/// - Data-only `NEW_MESSAGE` (Android, API spec §7) → tải tin (§6.4), giải mã
-///   bằng key trên máy và hiện OTP + nút "Sao chép"; lỗi → thông báo chung.
+/// - Data-only `NEW_MESSAGE` (Android, API spec §7) → hiện **ngay** thông báo
+///   chung, rồi tải tin (§6.4), giải mã bằng key trên máy và thay bằng OTP +
+///   nút "Sao chép" (cùng id). Lỗi / quá hạn → thông báo chung giữ nguyên.
 /// - Data-only kind khác → thông báo chung.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     if (message.notification != null) return;
-
-    try {
-      if (Firebase.apps.isEmpty) await Firebase.initializeApp();
-    } catch (_) {
-      // Crashlytics chỉ là phụ — thiếu Firebase vẫn hiện được thông báo.
-    }
 
     final presenter = LocalNotificationPresenter();
     await presenter.initialize();
@@ -43,15 +38,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
 
     final notifier = await _buildNotifier(presenter);
-    await notifier.handle(event, fallback: fallback);
+    await notifier.handle(event, fallback: fallback, placeholderFirst: true);
   } catch (error, stack) {
-    CrashlyticsService.instance.recordError(
+    // Firebase chỉ cần cho Crashlytics → khởi tạo lúc có lỗi, không làm chậm
+    // đường hiện thông báo.
+    try {
+      if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+    } catch (_) {}
+    await CrashlyticsService.instance.recordError(
       error,
       stack,
       reason: 'FCM background handler failed for message ${message.messageId}',
     );
   }
 }
+
+const Duration _backgroundRequestTimeout = Duration(seconds: 10);
 
 Future<NewMessageNotifier> _buildNotifier(LocalNotificationPresenter presenter) async {
   final localStorage = await LocalStorageService.create();
@@ -60,6 +62,9 @@ Future<NewMessageNotifier> _buildNotifier(LocalNotificationPresenter presenter) 
   final apiClient = ApiClient(
     serverUrlProvider: deviceStorage.getServerUrl,
     tokenProvider: deviceStorage.getDeviceToken,
+    // Android chỉ cho tác vụ FCM nền chạy ngắn; quá hạn thì thông báo chung
+    // (đã hiện sẵn) vẫn ở đó.
+    requestTimeout: _backgroundRequestTimeout,
   );
   return NewMessageNotifier(
     resolveIncomingMessage: ResolveIncomingMessageUseCase(

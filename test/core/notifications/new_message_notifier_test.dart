@@ -131,4 +131,38 @@ void main() {
     expect(presenter.bells, isEmpty);
     expect(presenter.otps, isEmpty);
   });
+
+  group('placeholderFirst (background isolate)', () {
+    test('generic bell first, then the OTP replaces it under the same id', () async {
+      resolve.result = _decrypted('Ma OTP 482913');
+
+      final outcome = await notifier.handle(_event, fallback: _fallback, placeholderFirst: true);
+
+      expect(outcome, NewMessageNotifyOutcome.otpShown);
+      final (content, id, payload) = presenter.bells.single;
+      expect(content, _fallback);
+      expect(id, notificationIdFor('ch-1', 7));
+      expect(payload, const NotificationPayload(channelId: 'ch-1', sequenceNumber: 7));
+      expect(presenter.otps.single.id, id);
+    });
+
+    test('resolve failure keeps the placeholder and does not alert twice', () async {
+      resolve.error = Exception('timeout');
+
+      final outcome = await notifier.handle(_event, fallback: _fallback, placeholderFirst: true);
+
+      expect(outcome, NewMessageNotifyOutcome.fallbackShown);
+      expect(presenter.bells, hasLength(1));
+      expect(presenter.otps, isEmpty);
+    });
+
+    test('own relayed message still shows nothing', () async {
+      storage.deviceId = 'owner-1';
+      expect(
+        await notifier.handle(_event, fallback: _fallback, placeholderFirst: true),
+        NewMessageNotifyOutcome.skippedOwnMessage,
+      );
+      expect(presenter.bells, isEmpty);
+    });
+  });
 }
