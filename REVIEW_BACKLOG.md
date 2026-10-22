@@ -139,13 +139,13 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 
 **Rà soát**
 - [ ] `ApiClient.onUnauthorized` (gắn trong `AppBootstrap`, provider `DeviceApiService` giờ `lazy: false`): 401 trên request đã xác thực (không phải `/devices/register`, chưa retry) → `DeviceSessionRecovery` → retry **1 lần** với token mới; vẫn 401 → `UnauthorizedException` như cũ.
-- [ ] `DeviceSessionRecovery`: đăng ký lại với **cùng** `device_id` + public key (server ghi đè `token_hash`, giữ membership/envelope), đẩy token mới xuống native (`setCredentials`); single-flight; lỗi → toast 1 lần + nghỉ 30 s; máy chưa từng đăng ký → bỏ qua (Splash lo).
+- [ ] `DeviceSessionRecovery` (đã đổi ở `305a918`, FLOW_AUDIT S1): **không** đăng ký lại nữa — 401 giữa phiên chỉ báo 1 lần / 30 s "mở lại app", không gửi lại request. Máy chưa từng đăng ký → bỏ qua.
 - [ ] Native `OtpRelayWorker`: 401 → **park** SMS (trước đây bỏ hẳn), gửi lại khi app sync xong.
-- [ ] ⚠️ Khi nào 401 xảy ra thật: token bị thay do máy khác khôi phục **cùng bản sao lưu** (cùng `device_id`) và đăng ký lại → hai máy sẽ "giành" token của nhau. Không nên khôi phục 1 bản sao lưu lên 2 máy đang chạy cùng lúc — cân nhắc thêm cảnh báo ở màn khôi phục.
+- [ ] Splash gặp 401 → xoá token → hiện lựa chọn **Khôi phục từ bản sao lưu** / **Thiết lập như máy mới** (`device_id` + danh tính mới, phải xin vào kênh lại). Đăng ký luôn dùng `device_id` mới.
 
 **Kiểm thử**
 - [ ] Unit: `api_client_unauthorized_test.dart`, `device_session_recovery_test.dart`.
-- [ ] Trên máy: sửa `device_token` trong SharedPreferences (adb/root) thành chuỗi sai → mở tab Kênh → danh sách vẫn tải (log "Re-registered … after a 401").
+- [ ] Trên máy: sửa `device_token` trong SharedPreferences (adb/root) thành chuỗi sai → đang mở app: toast "mở lại app" đúng 1 lần; mở lại app → màn chọn Khôi phục / Máy mới.
 - [ ] Tắt mạng trong lúc 401 → toast "Phiên của thiết bị đã hết hạn…" chỉ 1 lần.
 
 ## P3-1 · Tuỳ chọn thông báo cho chính máy relay (BACKLOG 1.8)
@@ -260,3 +260,18 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Máy Owner: nhận 1 SMS OTP + 1 SMS từ đầu số không có trong bộ lọc → tab Hoạt động có "Đã chuyển tiếp" và "Bị lọc".
 - [ ] Máy khác xin vào kênh khi app Owner **đã vuốt tắt** → mở app → tab Hoạt động có "… xin tham gia kênh …".
 - [ ] Member rời kênh / Owner duyệt / thu hồi / giải tán → máy liên quan thấy dòng tương ứng.
+
+## Bổ sung E · Sửa theo rà soát luồng (`docs/FLOW_AUDIT.md`, merge từ `fix/fast-otp-notification` + commit sau đó)
+
+**Rà soát**
+- [ ] C1 (`dbbddd3`): thông báo giải mã với `sequenceHint = 0` như Owner mã hoá — trước đó **mọi** thông báo rơi về nội dung chung.
+- [ ] `f85856d`: isolate nền hiện ngay thông báo chung rồi thay bằng OTP (cùng id, `onlyAlertOnce`); timeout 10 s.
+- [ ] S1 (`305a918` + BE `0068a6c`): không còn tự đăng ký lại cùng `device_id`; BE trả `409 DEVICE_EXISTS` nếu thiếu token hiện tại. ⚠️ **Breaking với app ≤ 21**: máy cũ nào bị mất token (401) sẽ kẹt ở Splash (đăng ký lại cùng id → 409) cho tới khi lên bản mới — chỉ xảy ra khi token bị thay (khôi phục cùng bản sao lưu lên máy khác).
+- [ ] K1–K3 (`2f7c9e1` + BE `62f6de9`): giữ key **mọi** epoch qua `GET /api/v2/key-envelopes` (SRD §8.4); thông báo / màn SMS thiếu key → tự lấy rồi giải mã lại.
+- [ ] P1/P2 (`32c0cb7` + BE `5283583`): sync relay của Owner không còn đọc detail từng kênh; single-flight.
+- [ ] Ghép với tab Hoạt động: `fcm_background_handler` vừa ghi sự kiện kênh (Bổ sung D) vừa hiện thông báo chung ngay — kiểm tra thứ tự không làm chậm thông báo.
+
+**Kiểm thử**
+- [ ] App vuốt tắt → nhận OTP → thông báo chung hiện ngay, vài giây sau đổi thành mã OTP + nút Sao chép.
+- [ ] Member không mở app qua 2 lần xoay khoá → mở app → tin của **cả** các epoch giữa vẫn đọc được.
+- [ ] Gửi `POST /devices/register` với `device_id` của máy khác (không token) → 409.
