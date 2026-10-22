@@ -1630,4 +1630,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get sessionRecoveryFailed =>
       'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.';
+
+  @override
+  String get notifyOwnRelayedTitle => 'Thông báo cả tin máy này chuyển tiếp';
+
+  @override
+  String get notifyOwnRelayedSubtitle =>
+      'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.';
 }

@@ -226,6 +226,7 @@ class AppBootstrap extends StatelessWidget {
             deviceStorageService: context.read<DeviceStorageService>(),
             deviceApiService: context.read<DeviceApiService>(),
             resolveIncomingMessage: context.read<ResolveIncomingMessageUseCase>(),
+            preferences: context.read<LocalStorageService>(),
           ),
           dispose: (service) => service.dispose(),
         ),

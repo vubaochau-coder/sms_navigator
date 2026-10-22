@@ -1,5 +1,7 @@
+import '../constants/storage_keys.dart';
 import '../models/channel_event.dart';
 import '../services/device_storage_service.dart';
+import '../services/local_storage_service.dart';
 import '../usecases/resolve_incoming_message_use_case.dart';
 import '../utils/app_logger.dart';
 import 'local_notification_presenter.dart';
@@ -19,13 +21,16 @@ class NewMessageNotifier {
     required ResolveIncomingMessageUseCase resolveIncomingMessage,
     required DeviceStorageService deviceStorage,
     required LocalNotificationPresenter presenter,
+    LocalStorageService? preferences,
   }) : _resolve = resolveIncomingMessage,
        _deviceStorage = deviceStorage,
-       _presenter = presenter;
+       _presenter = presenter,
+       _preferences = preferences;
 
   final ResolveIncomingMessageUseCase _resolve;
   final DeviceStorageService _deviceStorage;
   final LocalNotificationPresenter _presenter;
+  final LocalStorageService? _preferences;
 
   Future<NewMessageNotifyOutcome> handle(
     ChannelEvent event, {
@@ -35,7 +40,9 @@ class NewMessageNotifier {
     final sequenceNumber = event.sequenceNumber;
 
     final sender = event.senderDeviceId;
-    if (sender != null) {
+    // BACKLOG 1.8: mặc định bỏ qua tin do chính máy này relay (đã có SMS gốc).
+    final notifyOwn = _preferences?.getBool(StorageKeys.notifyOwnRelayedMessages) ?? false;
+    if (sender != null && !notifyOwn) {
       final myDeviceId = await _deviceStorage.getDeviceId();
       if (myDeviceId != null && myDeviceId == sender) {
         return NewMessageNotifyOutcome.skippedOwnMessage;

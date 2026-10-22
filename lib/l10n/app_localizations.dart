@@ -2883,6 +2883,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.'**
   String get sessionRecoveryFailed;
+
+  /// No description provided for @notifyOwnRelayedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo cả tin máy này chuyển tiếp'**
+  String get notifyOwnRelayedTitle;
+
+  /// No description provided for @notifyOwnRelayedSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.'**
+  String get notifyOwnRelayedSubtitle;
 }
 
 class _AppLocalizationsDelegate

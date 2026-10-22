@@ -29,6 +29,10 @@ abstract final class StorageKeys {
   // --- App Update ---
   static const String lastDismissedAppUpdateBuild = 'last_dismissed_app_update_build';
 
+  // --- Notifications (BACKLOG 1.8) ---
+  /// Bật = máy relay vẫn hiện thông báo OTP cho tin do chính nó gửi lên.
+  static const String notifyOwnRelayedMessages = 'notify_own_relayed_messages';
+
   // --- Backup reminder (BACKLOG 1.9) ---
   /// JSON `{at, channels}` của lần sao lưu / khôi phục gần nhất.
   static const String lastBackupRecord = 'backup_last_record';

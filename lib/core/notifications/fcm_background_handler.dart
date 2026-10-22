@@ -69,5 +69,6 @@ Future<NewMessageNotifier> _buildNotifier(LocalNotificationPresenter presenter) 
     ),
     deviceStorage: deviceStorage,
     presenter: presenter,
+    preferences: localStorage,
   );
 }

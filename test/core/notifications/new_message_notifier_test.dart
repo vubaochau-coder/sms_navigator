@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/constants/storage_keys.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/models/channel_message_model.dart';
 import 'package:sms_navigator/core/notifications/local_notification_presenter.dart';
@@ -131,4 +133,34 @@ void main() {
     expect(presenter.bells, isEmpty);
     expect(presenter.otps, isEmpty);
   });
+
+  test('with "notify own relayed" switched on, the relaying device gets the OTP too (1.8)', () async {
+    storage.deviceId = 'owner-1';
+    resolve.result = _decrypted('Ma OTP 482913');
+    final prefs = _Prefs()..data[StorageKeys.notifyOwnRelayedMessages] = true;
+    final notifyOwn = NewMessageNotifier(
+      resolveIncomingMessage: resolve,
+      deviceStorage: storage,
+      presenter: presenter,
+      preferences: prefs,
+    );
+
+    expect(await notifyOwn.handle(_event, fallback: _fallback), NewMessageNotifyOutcome.otpShown);
+    expect(presenter.otps.single.code, '482913');
+  });
+}
+
+class _Prefs implements LocalStorageService {
+  final Map<String, Object> data = {};
+
+  @override
+  String? getString(String key) => data[key] as String?;
+  @override
+  Future<void> setString(String key, String value) async => data[key] = value;
+  @override
+  bool? getBool(String key) => data[key] as bool?;
+  @override
+  Future<void> setBool(String key, bool value) async => data[key] = value;
+  @override
+  Future<void> remove(String key) async => data.remove(key);
 }

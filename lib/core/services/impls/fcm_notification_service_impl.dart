@@ -15,6 +15,7 @@ import '../../utils/app_logger.dart';
 import '../device_api_service.dart';
 import '../device_storage_service.dart';
 import '../fcm_notification_service.dart';
+import '../local_storage_service.dart';
 
 export '../../notifications/fcm_background_handler.dart' show firebaseMessagingBackgroundHandler;
 export '../../notifications/notification_content.dart' show BellNotificationContent;
@@ -32,6 +33,7 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
     ResolveIncomingMessageUseCase? resolveIncomingMessage,
     LocalNotificationPresenter? presenter,
     CopyToClipboard? copyToClipboard,
+    LocalStorageService? preferences,
   }) : _deviceStorage = deviceStorageService,
        _deviceApi = deviceApiService,
        _presenter = presenter ?? LocalNotificationPresenter(),
@@ -43,6 +45,7 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
             resolveIncomingMessage: resolve,
             deviceStorage: deviceStorageService,
             presenter: _presenter,
+            preferences: preferences,
           );
   }
 

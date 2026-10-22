@@ -148,3 +148,13 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Trên máy: sửa `device_token` trong SharedPreferences (adb/root) thành chuỗi sai → mở tab Kênh → danh sách vẫn tải (log "Re-registered … after a 401").
 - [ ] Tắt mạng trong lúc 401 → toast "Phiên của thiết bị đã hết hạn…" chỉ 1 lần.
 
+## P3-1 · Tuỳ chọn thông báo cho chính máy relay (BACKLOG 1.8)
+
+**Rà soát**
+- [ ] `StorageKeys.notifyOwnRelayedMessages` (mặc định **tắt** = hành vi hiện tại). `NewMessageNotifier` đọc qua `preferences` ở cả foreground (`FcmNotificationServiceImpl`) và background isolate (`fcm_background_handler` tạo `LocalStorageService` riêng → đọc giá trị mới nhất từ đĩa).
+- [ ] Công tắc trong "Cài đặt & tuỳ chọn" của trang thiết bị (`NotifyOwnRelayedTile`, ẩn nếu không có LocalStorageService).
+
+**Kiểm thử**
+- [ ] Máy Owner: bật công tắc → nhận 1 SMS OTP → máy Owner cũng hiện thông báo OTP. Tắt → không hiện.
+- [ ] Thử khi app bị vuốt tắt (background isolate).
+

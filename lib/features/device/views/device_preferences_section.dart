@@ -7,6 +7,7 @@ import '../../splash/splash_page.dart';
 import '../bloc/device_profile_cubit.dart';
 import '../../../core/l10n/app_l10n.dart';
 import '../../../core/extensions/context_extensions.dart';
+import 'notify_own_relayed_tile.dart';
 
 /// Section cài đặt & tùy chọn: Chế độ hiển thị (Theme) và Xóa dữ liệu thiết bị.
 class DevicePreferencesSection extends StatelessWidget {
@@ -121,6 +122,11 @@ class DevicePreferencesSection extends StatelessWidget {
                   ],
                 ),
               ),
+              Divider(
+                height: 1,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              const NotifyOwnRelayedTile(),
               Divider(
                 height: 1,
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
