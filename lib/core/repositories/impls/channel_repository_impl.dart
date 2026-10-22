@@ -339,9 +339,12 @@ class ChannelRepositoryImpl implements ChannelRepository {
     final newEpoch = detail.currentEpoch + 1;
     final channelKey = _crypto.generateChannelKeyBase64();
 
+    // Envelope set = {Owner} ∪ ACTIVE còn lại — KHÔNG wrap key mới cho máy bị
+    // thu hồi (server cũng từ chối với 422 PACKAGE_INCOMPLETE).
+    final revoked = revokeDeviceIds.toSet();
     final publicKeyByDeviceId = <String, String>{
       for (final member in snapshot.activeMembers)
-        if (member.publicKey.isNotEmpty) member.deviceId: member.publicKey,
+        if (member.publicKey.isNotEmpty && !revoked.contains(member.deviceId)) member.deviceId: member.publicKey,
     };
     publicKeyByDeviceId[deviceId] = identity.publicKeyBase64;
 

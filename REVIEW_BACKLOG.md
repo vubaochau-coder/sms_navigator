@@ -62,3 +62,15 @@ Cần BE `PUT /api/v2/channels/name` (BE REVIEW_BACKLOG P2-1) đã deploy.
 - [ ] Gửi 1 SMS sau khi đổi tên → log relay trên máy Owner hiện "Kênh: <tên mới>".
 - [ ] Tắt mạng rồi đổi tên → toast lỗi, tên cũ giữ nguyên.
 
+## Fix · Thu hồi thành viên luôn thất bại (phát hiện khi làm P2-2)
+
+`ChannelRepositoryImpl.revokeMembers` wrap key epoch mới cho **mọi** member ACTIVE, kể cả máy đang bị thu hồi → server trả `422 PACKAGE_INCOMPLETE` ("Unexpected: [máy bị thu hồi]") → nút Thu hồi luôn báo lỗi xung đột. (Nhờ server chặn nên key mới không lộ cho máy bị thu hồi.)
+
+**Rà soát**
+- [ ] Envelope set khi revoke = {Owner} ∪ ACTIVE − `revokeDeviceIds`.
+- [ ] Test mới trong `channel_repository_rotation_test.dart` kiểm đúng tập device id.
+
+**Kiểm thử**
+- [ ] Trên máy thật: Owner thu hồi 1 member → thành công, member đó nhận thông báo, các member còn lại vẫn đọc được tin mới.
+- [ ] ⚠️ Nên cherry-pick commit này sang `feat/otp-notification` / bản 1.1.x vì lỗi có ở bản đang phát hành.
+
