@@ -30,6 +30,8 @@ class ChannelEvent extends Equatable {
     this.channelName,
     this.sequenceNumber,
     this.senderDeviceId,
+    this.actorName,
+    this.reason,
     this.openedFromNotification = false,
   });
 
@@ -45,6 +47,8 @@ class ChannelEvent extends Equatable {
       channelName: nonEmpty(data['channel_name']),
       sequenceNumber: DataConverter.cvToInt(data['sequence_number']),
       senderDeviceId: nonEmpty(data['sender_device_id']),
+      actorName: nonEmpty(data['requester_device_name']) ?? nonEmpty(data['device_name']),
+      reason: nonEmpty(data['reason']),
     );
   }
 
@@ -53,6 +57,12 @@ class ChannelEvent extends Equatable {
   final String? channelName;
   final int? sequenceNumber;
   final String? senderDeviceId;
+
+  /// Tên máy liên quan: người xin vào (`JOIN_REQUEST`) / người rời (`MEMBER_LEFT`).
+  final String? actorName;
+
+  /// Lý do kèm theo, vd `ARCHIVED` khi `REVOKED` do Owner giải tán kênh.
+  final String? reason;
 
   /// `true` khi sự kiện đến từ thao tác chạm/nút trên thông báo.
   final bool openedFromNotification;
@@ -70,6 +80,8 @@ class ChannelEvent extends Equatable {
     channelName,
     sequenceNumber,
     senderDeviceId,
+    actorName,
+    reason,
     openedFromNotification,
   ];
 }

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
+import '../repositories/activity_repository.dart';
+import '../repositories/impls/activity_repository_impl.dart';
+import '../services/impls/channel_activity_log_store_impl.dart';
 import '../repositories/app_update_repository.dart';
 import '../repositories/backup_repository.dart';
 import '../repositories/impls/backup_repository_impl.dart';
@@ -272,6 +275,16 @@ class AppBootstrap extends StatelessWidget {
             channelEvents: context.read<FcmNotificationService>().channelEvents,
             cache: MessageCacheStore(context.read<LocalStorageService>()),
           ),
+        ),
+        // Không lazy: phải nghe sự kiện kênh ngay từ đầu để ghi cho tab Hoạt động
+        RepositoryProvider<ActivityRepository>(
+          lazy: false,
+          create: (context) => ActivityRepositoryImpl(
+            nativeRelayService: context.read<NativeRelayService>(),
+            logStore: ChannelActivityLogStoreImpl(context.read<LocalStorageService>()),
+            channelEvents: context.read<FcmNotificationService>().channelEvents,
+          ),
+          dispose: (repository) => (repository as ActivityRepositoryImpl).dispose(),
         ),
         RepositoryProvider<StartupReconcileService>(
           create: (context) => StartupReconcileServiceImpl(

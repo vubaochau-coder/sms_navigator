@@ -241,7 +241,7 @@ void main() {
 
       expect(find.text('Nhật ký tiếp nhận SMS'), findsOneWidget);
       expect(find.text('SSO'), findsOneWidget);
-      expect(find.text('FAILED'), findsOneWidget);
+      expect(find.text('Lỗi'), findsOneWidget);
       expect(find.text('HTTP 401: Unauthorized'), findsOneWidget);
       expect(find.text('Nội dung phát hiện: 123456'), findsOneWidget);
     });

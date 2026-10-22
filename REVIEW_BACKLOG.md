@@ -245,3 +245,18 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 **Kiểm thử**
 - [ ] `widget_test.dart` (tab Thiết bị), `home_tab_cubit_test.dart`.
 - [ ] Trên máy: tắt quyền SMS → chấm cam trên tab Thiết bị; cấp lại → xanh. Đổi tên máy, sao lưu, đổi giao diện ngay trong tab.
+
+## Bổ sung D · Tab "Hoạt động"
+
+**Rà soát**
+- [ ] Thanh điều hướng: SMS · Kênh · (QR) · **Hoạt động** · Thiết bị. Mở tab → tự tải lại; có nút làm mới + kéo để làm mới; lọc Tất cả / SMS chuyển tiếp / Kênh.
+- [ ] Nguồn 1 — nhật ký relay native (`getRecentLogs`, 30 mục, chỉ có trên máy relay). Trạng thái hiện tiếng Việt (Đã chuyển tiếp / Đang gửi / Đang thử lại / Chờ mở app / Lỗi / Bị lọc / Bỏ qua). `RelayLogTile` dùng chung với trang Bộ lọc.
+- [ ] Nguồn 2 — sự kiện kênh (`ChannelActivityLogStore`, SharedPreferences, 50 mục): xin tham gia (kèm tên máy), được duyệt, bị thu hồi, kênh bị giải tán (`REVOKED` + `reason=ARCHIVED`), thành viên rời (kèm tên máy). **Không** ghi tin nhắn mới (đã có tab SMS) và thao tác chạm thông báo (tránh trùng).
+- [ ] Ghi ở cả hai nơi: isolate chính (`ActivityRepositoryImpl` nghe `channelEvents`, provider `lazy: false`) và isolate FCM nền (`firebaseMessagingBackgroundHandler` ghi **trước** khi kiểm tra notification block — chuông của server luôn có notification block). Đọc luôn `reload()` SharedPreferences để thấy dữ liệu isolate nền vừa ghi.
+- [ ] ⚠️ Chỉ ghi các sự kiện **từ lúc cài bản này**; đổi tên kênh không có chuông FCM nên không xuất hiện. Hai isolate cùng ghi đúng lúc có thể mất 1 sự kiện (chỉ ảnh hưởng hiển thị).
+
+**Kiểm thử**
+- [ ] Unit: `channel_activity_log_store_test.dart`, `activity_test.dart` (repo, cubit, page), `widget_test.dart`.
+- [ ] Máy Owner: nhận 1 SMS OTP + 1 SMS từ đầu số không có trong bộ lọc → tab Hoạt động có "Đã chuyển tiếp" và "Bị lọc".
+- [ ] Máy khác xin vào kênh khi app Owner **đã vuốt tắt** → mở app → tab Hoạt động có "… xin tham gia kênh …".
+- [ ] Member rời kênh / Owner duyệt / thu hồi / giải tán → máy liên quan thấy dòng tương ứng.

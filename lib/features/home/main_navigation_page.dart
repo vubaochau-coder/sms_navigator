@@ -7,6 +7,9 @@ import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import '../../core/utils/qr_link_parser.dart';
 import '../../core/ui/toast_utils.dart';
+import '../../core/repositories/activity_repository.dart';
+import '../activity/activity_page.dart';
+import '../activity/bloc/activity_cubit.dart';
 import '../channel/channel_page.dart';
 import '../../core/bloc/qr_ingress/qr_ingress_cubit.dart';
 import '../qr_entry/qr_entry_page.dart';
@@ -25,7 +28,8 @@ import '../../core/extensions/context_extensions.dart';
 /// Main navigation (kiến trúc mới):
 /// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);
 /// - Tab 1: Kênh (2 nhóm "Kênh của bạn" / "Kênh bạn tham gia", 2.1);
-/// - Tab 2: Thiết bị (hồ sơ, tình trạng quyền, sao lưu, tuỳ chọn);
+/// - Tab 2: Hoạt động (nhật ký relay SMS + sự kiện kênh);
+/// - Tab 3: Thiết bị (hồ sơ, tình trạng quyền, sao lưu, tuỳ chọn);
 /// - FAB: quét QR mời (3.1);
 /// - Khi mở app: startup reconcile ngầm (SRD 7.3) + gate SMS permission.
 class MainNavigationPage extends StatelessWidget {
@@ -42,6 +46,9 @@ class MainNavigationPage extends StatelessWidget {
           },
         ),
         BlocProvider(create: (_) => HomeTabCubit()),
+        BlocProvider(
+          create: (_) => ActivityCubit(repository: context.read<ActivityRepository>()),
+        ),
       ],
       child: const _MainNavigationView(),
     );
@@ -150,6 +157,10 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
             });
           },
         ),
+        BlocListener<HomeTabCubit, HomeTab>(
+          listenWhen: (previous, current) => current == HomeTab.activity,
+          listener: (context, _) => context.read<ActivityCubit>().refresh(),
+        ),
         BlocListener<QrIngressCubit, QrIngressState>(
           listenWhen: (previous, current) =>
               current.pending != null && current.pendingSeq != previous.pendingSeq,
@@ -186,6 +197,7 @@ class _MainScaffold extends StatelessWidget {
         children: const [
           SmsPage(),
           ChannelPage(),
+          ActivityPage(),
           DeviceProfilePage(),
         ],
       ),
@@ -249,6 +261,14 @@ class _MainBottomBar extends StatelessWidget {
             ),
             // Chừa chỗ cho FAB quét QR
             const SizedBox(width: 56),
+            Expanded(
+              child: MainNavTab(
+                icon: Icons.timeline_rounded,
+                label: context.l10n.activityTabTitle,
+                selected: tab == HomeTab.activity,
+                onTap: () => tabs.select(HomeTab.activity),
+              ),
+            ),
             Expanded(
               child: _DeviceNavTab(
                 selected: tab == HomeTab.device,

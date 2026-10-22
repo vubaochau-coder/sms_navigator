@@ -73,6 +73,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.byIcon(Icons.phone_android_rounded), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(BottomAppBar), matching: find.text('Hoạt động')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Thiết bị'));
     await tester.pump(const Duration(milliseconds: 400));

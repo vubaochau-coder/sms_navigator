@@ -2937,6 +2937,138 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Thiết bị'**
   String get deviceTabTitle;
+
+  /// No description provided for @relayStatusSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chuyển tiếp'**
+  String get relayStatusSuccess;
+
+  /// No description provided for @relayStatusEnqueued.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get relayStatusEnqueued;
+
+  /// No description provided for @relayStatusRetrying.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang thử lại'**
+  String get relayStatusRetrying;
+
+  /// No description provided for @relayStatusParked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ mở app'**
+  String get relayStatusParked;
+
+  /// No description provided for @relayStatusFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi'**
+  String get relayStatusFailed;
+
+  /// No description provided for @relayStatusBlocked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bị lọc'**
+  String get relayStatusBlocked;
+
+  /// No description provided for @relayStatusSkipped.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ qua'**
+  String get relayStatusSkipped;
+
+  /// No description provided for @relayStatusUnknown.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không rõ'**
+  String get relayStatusUnknown;
+
+  /// No description provided for @activityTabTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoạt động'**
+  String get activityTabTitle;
+
+  /// No description provided for @activityFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get activityFilterAll;
+
+  /// No description provided for @activityFilterRelay.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS chuyển tiếp'**
+  String get activityFilterRelay;
+
+  /// No description provided for @activityFilterChannels.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh'**
+  String get activityFilterChannels;
+
+  /// No description provided for @activityEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có hoạt động'**
+  String get activityEmptyTitle;
+
+  /// No description provided for @activityEmptyMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.'**
+  String get activityEmptyMessage;
+
+  /// No description provided for @activityUnknownChannel.
+  ///
+  /// In vi, this message translates to:
+  /// **'(không rõ tên)'**
+  String get activityUnknownChannel;
+
+  /// No description provided for @activityJoinRequest.
+  ///
+  /// In vi, this message translates to:
+  /// **'{device} xin tham gia kênh \"{channel}\"'**
+  String activityJoinRequest(String device, String channel);
+
+  /// No description provided for @activityJoinRequestAnonymous.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có yêu cầu tham gia kênh \"{channel}\"'**
+  String activityJoinRequestAnonymous(String channel);
+
+  /// No description provided for @activityApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã được duyệt vào kênh \"{channel}\"'**
+  String activityApproved(String channel);
+
+  /// No description provided for @activityRevoked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã bị thu hồi quyền ở kênh \"{channel}\"'**
+  String activityRevoked(String channel);
+
+  /// No description provided for @activityArchived.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh \"{channel}\" đã bị giải tán'**
+  String activityArchived(String channel);
+
+  /// No description provided for @activityMemberLeft.
+  ///
+  /// In vi, this message translates to:
+  /// **'{device} đã rời kênh \"{channel}\"'**
+  String activityMemberLeft(String device, String channel);
+
+  /// No description provided for @activityMemberLeftAnonymous.
+  ///
+  /// In vi, this message translates to:
+  /// **'Một thành viên đã rời kênh \"{channel}\"'**
+  String activityMemberLeftAnonymous(String channel);
 }
 
 class _AppLocalizationsDelegate

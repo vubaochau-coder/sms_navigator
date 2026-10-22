@@ -54,6 +54,8 @@ class _Prefs implements LocalStorageService {
   Future<void> setBool(String key, bool value) async => data[key] = value;
   @override
   Future<void> remove(String key) async => data.remove(key);
+  @override
+  Future<void> reload() async {}
 }
 
 void main() {

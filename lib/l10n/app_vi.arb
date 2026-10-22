@@ -967,5 +967,82 @@
   },
   "whitelistPillOtpAllowed": "Được gửi OTP",
   "whitelistNoSenders": "Chưa có người gửi nào trong bộ lọc",
-  "deviceTabTitle": "Thiết bị"
+  "deviceTabTitle": "Thiết bị",
+  "relayStatusSuccess": "Đã chuyển tiếp",
+  "relayStatusEnqueued": "Đang gửi",
+  "relayStatusRetrying": "Đang thử lại",
+  "relayStatusParked": "Chờ mở app",
+  "relayStatusFailed": "Lỗi",
+  "relayStatusBlocked": "Bị lọc",
+  "relayStatusSkipped": "Bỏ qua",
+  "relayStatusUnknown": "Không rõ",
+  "activityTabTitle": "Hoạt động",
+  "activityFilterAll": "Tất cả",
+  "activityFilterRelay": "SMS chuyển tiếp",
+  "activityFilterChannels": "Kênh",
+  "activityEmptyTitle": "Chưa có hoạt động",
+  "activityEmptyMessage": "SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.",
+  "activityUnknownChannel": "(không rõ tên)",
+  "activityJoinRequest": "{device} xin tham gia kênh \"{channel}\"",
+  "@activityJoinRequest": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityJoinRequestAnonymous": "Có yêu cầu tham gia kênh \"{channel}\"",
+  "@activityJoinRequestAnonymous": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityApproved": "Bạn đã được duyệt vào kênh \"{channel}\"",
+  "@activityApproved": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityRevoked": "Bạn đã bị thu hồi quyền ở kênh \"{channel}\"",
+  "@activityRevoked": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityArchived": "Kênh \"{channel}\" đã bị giải tán",
+  "@activityArchived": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityMemberLeft": "{device} đã rời kênh \"{channel}\"",
+  "@activityMemberLeft": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "activityMemberLeftAnonymous": "Một thành viên đã rời kênh \"{channel}\"",
+  "@activityMemberLeftAnonymous": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  }
 }

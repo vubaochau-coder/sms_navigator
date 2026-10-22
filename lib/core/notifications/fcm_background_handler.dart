@@ -5,6 +5,7 @@ import '../crypto/channel_crypto_helper.dart';
 import '../models/channel_event.dart';
 import '../network/api_client.dart';
 import '../services/crashlytics_service.dart';
+import '../services/impls/channel_activity_log_store_impl.dart';
 import '../services/impls/channel_key_store_impl.dart';
 import '../services/impls/device_storage_service_impl.dart';
 import '../services/impls/message_api_service_impl.dart';
@@ -21,8 +22,11 @@ import 'notification_content.dart';
 /// - Data-only `NEW_MESSAGE` (Android, API spec §7) → tải tin (§6.4), giải mã
 ///   bằng key trên máy và hiện OTP + nút "Sao chép"; lỗi → thông báo chung.
 /// - Data-only kind khác → thông báo chung.
+/// - Mọi sự kiện kênh (trừ tin mới) được ghi cho tab Hoạt động.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Tab Hoạt động: ghi sự kiện kênh kể cả khi OS tự hiện banner
+  await _recordActivity(ChannelEvent.fromData(message.data));
   try {
     if (message.notification != null) return;
 
@@ -50,6 +54,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       stack,
       reason: 'FCM background handler failed for message ${message.messageId}',
     );
+  }
+}
+
+Future<void> _recordActivity(ChannelEvent event) async {
+  try {
+    final localStorage = await LocalStorageService.create();
+    await ChannelActivityLogStoreImpl(localStorage).record(event);
+  } catch (_) {
+    // Chỉ phục vụ hiển thị — không được chặn thông báo.
   }
 }
 

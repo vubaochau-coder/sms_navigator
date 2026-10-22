@@ -1663,4 +1663,85 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deviceTabTitle => 'Thiết bị';
+
+  @override
+  String get relayStatusSuccess => 'Đã chuyển tiếp';
+
+  @override
+  String get relayStatusEnqueued => 'Đang gửi';
+
+  @override
+  String get relayStatusRetrying => 'Đang thử lại';
+
+  @override
+  String get relayStatusParked => 'Chờ mở app';
+
+  @override
+  String get relayStatusFailed => 'Lỗi';
+
+  @override
+  String get relayStatusBlocked => 'Bị lọc';
+
+  @override
+  String get relayStatusSkipped => 'Bỏ qua';
+
+  @override
+  String get relayStatusUnknown => 'Không rõ';
+
+  @override
+  String get activityTabTitle => 'Hoạt động';
+
+  @override
+  String get activityFilterAll => 'Tất cả';
+
+  @override
+  String get activityFilterRelay => 'SMS chuyển tiếp';
+
+  @override
+  String get activityFilterChannels => 'Kênh';
+
+  @override
+  String get activityEmptyTitle => 'Chưa có hoạt động';
+
+  @override
+  String get activityEmptyMessage =>
+      'SMS máy này chuyển tiếp và các sự kiện của kênh (yêu cầu tham gia, duyệt, rời kênh…) sẽ hiện ở đây.';
+
+  @override
+  String get activityUnknownChannel => '(không rõ tên)';
+
+  @override
+  String activityJoinRequest(String device, String channel) {
+    return '$device xin tham gia kênh \"$channel\"';
+  }
+
+  @override
+  String activityJoinRequestAnonymous(String channel) {
+    return 'Có yêu cầu tham gia kênh \"$channel\"';
+  }
+
+  @override
+  String activityApproved(String channel) {
+    return 'Bạn đã được duyệt vào kênh \"$channel\"';
+  }
+
+  @override
+  String activityRevoked(String channel) {
+    return 'Bạn đã bị thu hồi quyền ở kênh \"$channel\"';
+  }
+
+  @override
+  String activityArchived(String channel) {
+    return 'Kênh \"$channel\" đã bị giải tán';
+  }
+
+  @override
+  String activityMemberLeft(String device, String channel) {
+    return '$device đã rời kênh \"$channel\"';
+  }
+
+  @override
+  String activityMemberLeftAnonymous(String channel) {
+    return 'Một thành viên đã rời kênh \"$channel\"';
+  }
 }

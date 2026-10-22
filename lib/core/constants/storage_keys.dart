@@ -37,4 +37,8 @@ abstract final class StorageKeys {
   /// JSON `{at, channels}` của lần sao lưu / khôi phục gần nhất.
   static const String lastBackupRecord = 'backup_last_record';
   static const String backupReminderSnoozedUntil = 'backup_reminder_snoozed_until';
+
+  // --- Activity tab ---
+  /// JSON list các sự kiện kênh gần nhất (mới nhất trước) cho tab Hoạt động.
+  static const String channelActivityLog = 'channel_activity_log';
 }

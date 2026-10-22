@@ -18,4 +18,7 @@ abstract class LocalStorageService {
   Future<void> setBool(String key, bool value);
 
   Future<void> remove(String key);
+
+  /// Đọc lại từ đĩa — thấy được dữ liệu isolate khác (FCM nền) vừa ghi.
+  Future<void> reload();
 }
