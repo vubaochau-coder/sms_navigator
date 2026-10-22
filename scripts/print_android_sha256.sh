@@ -54,18 +54,62 @@ if [ -f "$KEY_PROPERTIES" ]; then
   STORE_FILE="$(prop storeFile)"
   # storeFile tương đối được Gradle resolve theo android/app/
   case "$STORE_FILE" in
-    /*) ;;
+    /* | [A-Za-z]:*) ;;
     *) STORE_FILE="$PROJECT_DIR/android/app/$STORE_FILE" ;;
   esac
-  add "Release ($STORE_FILE)" "$(keytool -list -v -keystore "$STORE_FILE" \
+  RELEASE_SHA="$(keytool -list -v -keystore "$STORE_FILE" \
     -alias "$(prop keyAlias)" -storepass "$(prop storePassword)" 2>/dev/null | extract_sha256)"
+  add "Release ($STORE_FILE)" "$RELEASE_SHA"
 else
   echo "• Release: chưa có android/key.properties → bản release đang ký bằng debug key"
 fi
 
-# 3. APK
+# apksigner trong build-tools mới nhất của Android SDK (sdk.dir trong
+# local.properties do Flutter ghi, rồi tới biến môi trường / vị trí mặc định).
+find_apksigner() {
+  local sdk dir
+  for sdk in \
+    "$(grep -E '^sdk\.dir=' "$PROJECT_DIR/android/local.properties" 2>/dev/null | sed 's/^sdk\.dir=//; s/\\:/:/g; s/\\\\/\//g')" \
+    "$ANDROID_HOME" "$ANDROID_SDK_ROOT" \
+    "$HOME/Library/Android/sdk" "$HOME/Android/Sdk" "${LOCALAPPDATA:+$LOCALAPPDATA/Android/Sdk}"; do
+    [ -n "$sdk" ] && [ -d "$sdk/build-tools" ] || continue
+    for dir in $(ls -1 "$sdk/build-tools" | sort -t. -k1,1nr -k2,2nr -k3,3nr); do
+      for bin in apksigner apksigner.bat; do
+        if [ -f "$sdk/build-tools/$dir/$bin" ]; then
+          echo "$sdk/build-tools/$dir/$bin"
+          return
+        fi
+      done
+    done
+  done
+}
+
+# 3. APK — Flutter đặt minSdk 24 nên APK chỉ có chữ ký v2/v3: `keytool
+# -printcert -jarfile` báo "Not a signed jar file", phải dùng apksigner.
 if [ -n "$1" ]; then
-  add "APK ($1)" "$(keytool -printcert -jarfile "$1" 2>/dev/null | extract_sha256)"
+  if [ ! -f "$1" ]; then
+    echo "❌ Không thấy APK: $1" >&2
+    exit 1
+  fi
+  APKSIGNER="$(find_apksigner)"
+  if [ -n "$APKSIGNER" ]; then
+    APK_SHA="$("$APKSIGNER" verify --print-certs "$1" 2>/dev/null \
+      | grep -E 'Signer #1 certificate SHA-256 digest:' | head -1 | awk '{print $NF}' \
+      | tr 'a-f' 'A-F' | sed -E 's/(..)/\1:/g; s/:$//')"
+  else
+    # APK cũ có chữ ký v1 vẫn đọc được bằng keytool
+    APK_SHA="$(keytool -printcert -jarfile "$1" 2>/dev/null | extract_sha256)"
+  fi
+  if [ -z "$APK_SHA" ]; then
+    echo "❌ Không đọc được chữ ký của $1 (không tìm thấy apksigner trong Android SDK build-tools)." >&2
+    exit 1
+  fi
+  add "APK ($1)" "$APK_SHA"
+  if [ -n "$RELEASE_SHA" ] && [ "$APK_SHA" = "$RELEASE_SHA" ]; then
+    echo "  ✅ APK ký bằng release keystore"
+  elif [ -n "$RELEASE_SHA" ]; then
+    echo "  ⚠️  APK KHÔNG ký bằng release keystore trong android/key.properties"
+  fi
 fi
 
 if [ ${#FINGERPRINTS[@]} -eq 0 ]; then
