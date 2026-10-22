@@ -57,7 +57,10 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "release" else "debug")
+            // Nhánh release/1.0.1-export: CỐ Ý ký bằng debug key cũ (bỏ qua
+            // key.properties) để cài đè lên app đang chạy và giữ dữ liệu, rồi
+            // sao lưu. Bản 1.1.0 trên main mới ký bằng release keystore.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
