@@ -74,6 +74,47 @@ class ChannelRepositoryImpl implements ChannelRepository {
   Future<List<ChannelModel>> listChannels() => _channelApi.listChannels();
 
   @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() async {
+    final channels = await listChannels();
+    return Future.wait(channels.map((channel) async {
+      final whitelist = await readWhitelist(
+        channelId: channel.channelId,
+        isOwner: channel.isOwner,
+        blob: channel.whitelistBlob,
+      );
+      return whitelist == null ? channel : channel.copyWith(whitelist: whitelist);
+    }));
+  }
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async {
+    final whitelistRepo = _whitelistRepository;
+    if (whitelistRepo == null) return null;
+    try {
+      if (blob != null) {
+        final key = await _keyStore.getChannelKey(channelId: channelId, epoch: blob.keyEpoch);
+        if (key != null && key.isNotEmpty) {
+          final config = await whitelistRepo.decryptWhitelist(
+            channelId: channelId,
+            channelKeyBase64: key,
+            blob: blob,
+          );
+          if (config != null) return config;
+        }
+      }
+      // Server chưa trả blob (bản cũ) / giải mã lỗi → Owner vẫn còn cache native
+      return isOwner ? await whitelistRepo.getWhitelist(channelId) : null;
+    } catch (e) {
+      AppLogger.w('ChannelRepository', 'Cannot read whitelist of $channelId', e);
+      return null;
+    }
+  }
+
+  @override
   Future<ChannelDetailModel> getChannelDetail(String channelId) =>
       _channelApi.getChannelDetail(channelId: channelId);
 

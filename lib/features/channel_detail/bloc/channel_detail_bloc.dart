@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/whitelist_config_model.dart';
 import '../../../core/models/channel_detail_model.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
@@ -55,11 +56,25 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       }
     }
 
+    // Chỉ để xem — không bao giờ làm hỏng màn chi tiết
+    WhitelistConfigModel? whitelist;
+    try {
+      whitelist = await _repository.readWhitelist(
+        channelId: state.channelId,
+        isOwner: detail.isOwner,
+        blob: detail.whitelist,
+      );
+    } catch (_) {
+      whitelist = null;
+    }
+
     emit(
       state.copyWith(
         detail: detail,
         members: members,
         pendingRequests: pending,
+        whitelist: whitelist,
+        clearWhitelist: whitelist == null,
         isLoading: false,
       ),
     );

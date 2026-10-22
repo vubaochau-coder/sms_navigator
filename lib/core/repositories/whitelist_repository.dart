@@ -14,6 +14,13 @@ abstract class WhitelistRepository {
     required String channelKeyBase64,
   });
 
+  /// Chỉ giải mã blob (không ghi native cache) — dùng để hiển thị. Lỗi → null.
+  Future<WhitelistConfigModel?> decryptWhitelist({
+    required String channelId,
+    required String channelKeyBase64,
+    required ChannelWhitelistBlobModel blob,
+  });
+
   /// Đồng bộ whitelist từ server (blob) xuống native cache.
   Future<WhitelistConfigModel?> syncWhitelistFromServer({
     required String channelId,

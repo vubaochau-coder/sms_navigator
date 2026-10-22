@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../../core/models/channel_detail_model.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
+import '../../../core/models/whitelist_config_model.dart';
 
 /// Trạng thái màn chi tiết kênh của Owner: members + hàng đợi duyệt (2.3, 4.1–4.4). Badge = pendingCount.
 class ChannelDetailState extends Equatable {
@@ -10,6 +11,9 @@ class ChannelDetailState extends Equatable {
   final ChannelDetailModel? detail;
   final List<ChannelMemberModel> members;
   final List<PairingRequestModel> pendingRequests;
+
+  /// White-list đã giải mã (chỉ xem); null = chưa cấu hình / không đọc được.
+  final WhitelistConfigModel? whitelist;
   final bool isLoading;
   final bool isMutating;
 
@@ -21,6 +25,7 @@ class ChannelDetailState extends Equatable {
     this.detail,
     this.members = const [],
     this.pendingRequests = const [],
+    this.whitelist,
     this.isLoading = false,
     this.isMutating = false,
     this.isClosed = false,
@@ -34,6 +39,8 @@ class ChannelDetailState extends Equatable {
     ChannelDetailModel? detail,
     List<ChannelMemberModel>? members,
     List<PairingRequestModel>? pendingRequests,
+    WhitelistConfigModel? whitelist,
+    bool clearWhitelist = false,
     bool? isLoading,
     bool? isMutating,
     bool? isClosed,
@@ -43,6 +50,7 @@ class ChannelDetailState extends Equatable {
       detail: detail ?? this.detail,
       members: members ?? this.members,
       pendingRequests: pendingRequests ?? this.pendingRequests,
+      whitelist: clearWhitelist ? null : (whitelist ?? this.whitelist),
       isLoading: isLoading ?? this.isLoading,
       isMutating: isMutating ?? this.isMutating,
       isClosed: isClosed ?? this.isClosed,
@@ -55,6 +63,7 @@ class ChannelDetailState extends Equatable {
     detail,
     members,
     pendingRequests,
+    whitelist,
     isLoading,
     isMutating,
     isClosed,

@@ -955,5 +955,16 @@
       }
     }
   },
-  "splashMaintenanceDefault": "Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút."
+  "splashMaintenanceDefault": "Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.",
+  "whitelistPillAllSenders": "Mọi người gửi",
+  "whitelistPillOverflow": "+{count}",
+  "@whitelistPillOverflow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whitelistPillOtpAllowed": "Được gửi OTP",
+  "whitelistNoSenders": "Chưa có người gửi nào trong bộ lọc"
 }

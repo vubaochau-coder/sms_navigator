@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/channel_detail_model.dart';
+import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/models/pairing_request_model.dart';
@@ -12,6 +14,16 @@ import 'package:sms_navigator/core/services/impls/startup_reconcile_service_impl
 class _Channels implements ChannelRepository {
   List<ChannelModel> channels = [];
   int detailCalls = 0;
+
+  @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() => listChannels();
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async => null;
 
   @override
   Future<List<ChannelModel>> listChannels() async => channels;

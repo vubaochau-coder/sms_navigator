@@ -1646,4 +1646,18 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get splashMaintenanceDefault =>
       'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.';
+
+  @override
+  String get whitelistPillAllSenders => 'Mọi người gửi';
+
+  @override
+  String whitelistPillOverflow(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get whitelistPillOtpAllowed => 'Được gửi OTP';
+
+  @override
+  String get whitelistNoSenders => 'Chưa có người gửi nào trong bộ lọc';
 }

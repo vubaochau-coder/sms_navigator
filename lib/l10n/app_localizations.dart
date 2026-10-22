@@ -2907,6 +2907,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.'**
   String get splashMaintenanceDefault;
+
+  /// No description provided for @whitelistPillAllSenders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mọi người gửi'**
+  String get whitelistPillAllSenders;
+
+  /// No description provided for @whitelistPillOverflow.
+  ///
+  /// In vi, this message translates to:
+  /// **'+{count}'**
+  String whitelistPillOverflow(int count);
+
+  /// No description provided for @whitelistPillOtpAllowed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Được gửi OTP'**
+  String get whitelistPillOtpAllowed;
+
+  /// No description provided for @whitelistNoSenders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có người gửi nào trong bộ lọc'**
+  String get whitelistNoSenders;
 }
 
 class _AppLocalizationsDelegate

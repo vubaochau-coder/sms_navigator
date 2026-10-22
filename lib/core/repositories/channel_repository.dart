@@ -4,10 +4,23 @@ import '../models/channel_model.dart';
 import '../models/pairing_request_model.dart';
 import '../models/pairing_session_model.dart';
 import '../models/request_history_result.dart';
+import '../models/whitelist_config_model.dart';
 
 abstract class ChannelRepository {
   /// `GET /channels` — nguồn cho ChannelPage 2 nhóm theo `role` (2.1).
   Future<List<ChannelModel>> listChannels();
+
+  /// Như [listChannels] nhưng gắn white-list đã giải mã vào từng kênh để hiện
+  /// pill trên danh sách. Best-effort: kênh không giải mã được → `whitelist` null.
+  Future<List<ChannelModel>> listChannelsWithWhitelist();
+
+  /// Giải mã white-list của một kênh để hiển thị (chỉ xem). Ưu tiên blob từ
+  /// server; Owner fallback về cache native khi server chưa trả blob. Lỗi → null.
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  });
 
   /// `GET /channels/detail` — chi tiết kênh + trạng thái caller (2.3/2.4).
   Future<ChannelDetailModel> getChannelDetail(String channelId);

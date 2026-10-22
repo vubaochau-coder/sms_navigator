@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/channel_detail_model.dart';
+import 'package:sms_navigator/core/models/whitelist_config_model.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/models/pairing_request_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
@@ -15,6 +17,16 @@ class _FakeChannelRepository implements ChannelRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() => listChannels();
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async => null;
 
   @override
   Future<List<ChannelModel>> listChannels() async {

@@ -42,6 +42,13 @@ class _FakeWhitelistRepository implements WhitelistRepository {
   }
 
   @override
+  Future<WhitelistConfigModel?> decryptWhitelist({
+    required String channelId,
+    required String channelKeyBase64,
+    required ChannelWhitelistBlobModel blob,
+  }) async => stored;
+
+  @override
   Future<WhitelistConfigModel?> syncWhitelistFromServer({
     required String channelId,
     required int keyEpoch,
@@ -65,6 +72,16 @@ class _FakeChannelRepository implements ChannelRepository {
       myStatus: 'ACTIVE',
     );
   }
+
+  @override
+  Future<List<ChannelModel>> listChannelsWithWhitelist() => listChannels();
+
+  @override
+  Future<WhitelistConfigModel?> readWhitelist({
+    required String channelId,
+    required bool isOwner,
+    ChannelWhitelistBlobModel? blob,
+  }) async => null;
 
   @override
   Future<List<ChannelModel>> listChannels() async => [];

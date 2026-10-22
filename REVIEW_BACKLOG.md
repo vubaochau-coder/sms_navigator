@@ -218,3 +218,19 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 **Kiểm thử**
 - [ ] Unit: `test/features/sms/views/sms_tile_view_test.dart`.
 - [ ] Trên máy: tin dài (thông báo ngân hàng nhiều dòng) → trên danh sách chỉ 2 dòng + "…"; chạm → đọc đủ, bôi chọn được; nút sao chép vẫn chép **toàn bộ** nội dung.
+
+## Bổ sung B · Pill white-list trên thẻ kênh + danh sách trong chi tiết kênh
+
+**Rà soát**
+- [ ] BE: `GET /channels` trả thêm `whitelist` (blob E2EE y hệt `/channels/detail`, server không đọc) — commit `8470af8` trên BE `feat/backlog-sweep`. App cũ bỏ qua field này.
+- [ ] `ChannelRepository.listChannelsWithWhitelist()` giải mã blob bằng channel key (keystore) — **không** ghi native cache. Owner fallback cache native khi server chưa trả blob (BE chưa deploy). Lỗi / thiếu key → kênh không có pill, danh sách vẫn tải.
+- [ ] `WhitelistPillData.fromConfig`: chế độ "Nhận từ mọi địa chỉ" là pill "Mọi người gửi" đứng đầu; tối đa 3 pill, vượt quá → 2 pill + "+N" (N = số còn lại).
+- [ ] Chi tiết kênh: `ChannelWhitelistEntries` hiện **đủ** danh sách (chỉ xem) cho cả Owner lẫn Member, 🔑 = được gửi OTP; danh sách trống → "Chưa có người gửi nào trong bộ lọc". Owner vẫn sửa qua nút "Cấu hình".
+- [ ] ⚠️ Member giờ **thấy được** danh sách brandname / SĐT Owner lọc (trước chỉ thấy số phiên bản). Dữ liệu vốn đã gửi cho Member dạng mã hoá bằng channel key; đây là thay đổi về hiển thị — xác nhận có ổn về quyền riêng tư không.
+
+**Kiểm thử**
+- [ ] Unit: `channel_repository_whitelist_test.dart`, `whitelist_pills_test.dart`; BE: `channel-whitelist.test.ts` (list có blob).
+- [ ] Owner cấu hình 5 địa chỉ → tab Kênh: 2 pill + "+3"; chi tiết: đủ 5, địa chỉ có OTP có 🔑.
+- [ ] Member (cùng kênh) thấy đúng như trên sau khi kéo làm mới.
+- [ ] Bật "Nhận từ mọi địa chỉ" → pill đầu "Mọi người gửi".
+- [ ] App mới + BE cũ (chưa deploy): Owner vẫn thấy pill (từ cache), Member chưa thấy — bình thường.
