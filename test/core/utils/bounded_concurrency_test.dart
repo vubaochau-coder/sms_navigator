@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/utils/bounded_concurrency.dart';

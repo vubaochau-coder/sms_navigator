@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/repositories/backup_repository.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';
 import 'package:sms_navigator/core/repositories/device_setup_repository.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/theme/theme_cubit.dart';
+import 'package:sms_navigator/features/backup/views/device_backup_section.dart';
 import 'package:sms_navigator/features/device/bloc/device_profile_cubit.dart';
 import 'package:sms_navigator/features/device/bloc/device_setup_bloc.dart';
 import 'package:sms_navigator/features/device/bloc/device_setup_event.dart';
@@ -24,6 +26,11 @@ class _FakeDeviceStorageService implements DeviceStorageService {
 
   @override
   Future<String?> getDeviceName() async => 'Pixel 8 Pro';
+}
+
+class _FakeBackupRepository implements BackupRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeChannelRepository implements ChannelRepository {
@@ -49,9 +56,9 @@ class _FakeDeviceSetupRepository implements DeviceSetupRepository {
 
   @override
   Future<Map<String, dynamic>> getAggressiveRomInfo() async => {
-        'isAggressive': false,
-        'oem': 'google',
-      };
+    'isAggressive': false,
+    'oem': 'google',
+  };
 
   @override
   Future<bool> shouldPromptSmsPermission() async => false;
@@ -104,21 +111,26 @@ void main() {
   });
 
   Widget buildTestWidget() {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: profileCubit),
-        BlocProvider.value(value: setupBloc),
-        BlocProvider.value(value: themeCubit),
-      ],
-      child: const MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: DeviceProfilePage(),
+    return RepositoryProvider<BackupRepository>(
+      create: (_) => _FakeBackupRepository(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: profileCubit),
+          BlocProvider.value(value: setupBloc),
+          BlocProvider.value(value: themeCubit),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DeviceProfilePage(),
+        ),
       ),
     );
   }
 
-  testWidgets('DeviceProfilePage renders all 3 sections and correct title', (tester) async {
+  testWidgets('DeviceProfilePage renders all 3 sections and correct title', (
+    tester,
+  ) async {
     await profileCubit.loadDeviceProfile();
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
@@ -139,5 +151,8 @@ void main() {
     expect(find.text('CÀI ĐẶT & TÙY CHỌN'), findsOneWidget);
     expect(find.text('Bộ lọc SMS (Whitelist)'), findsNothing);
     expect(find.text('Xóa dữ liệu thiết bị'), findsOneWidget);
+
+    // Backup section (BACKLOG 1.1)
+    expect(find.byType(DeviceBackupSection), findsOneWidget);
   });
 }

@@ -20,11 +20,18 @@ class _OfflineHttpOverrides extends HttpOverrides {
   HttpClient createHttpClient(SecurityContext? context) {
     final client = super.createHttpClient(context);
     client.connectionFactory = (uri, proxyHost, proxyPort) {
-      final host = proxyHost ?? uri.host;
-      final port = proxyPort ?? uri.port;
-      if (_isLoopback(host)) return Socket.startConnect(host, port);
+      // Xét host đích, không phải proxy: proxy chạy trên loopback (HTTPS_PROXY)
+      // vẫn chuyển tiếp ra Internet.
+      if (_isLoopback(uri.host)) {
+        return Socket.startConnect(
+          proxyHost ?? uri.host,
+          proxyPort ?? uri.port,
+        );
+      }
       return Future<ConnectionTask<Socket>>.error(
-        SocketException('Network access is disabled in tests (attempted $host:$port)'),
+        SocketException(
+          'Network access is disabled in tests (attempted ${uri.host}:${uri.port})',
+        ),
       );
     };
     return client;

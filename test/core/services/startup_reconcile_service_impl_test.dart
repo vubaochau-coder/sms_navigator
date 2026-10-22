@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
-import 'package:sms_navigator/core/enums/pairing_request_status.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
 import 'package:sms_navigator/core/models/pairing_request_model.dart';
 import 'package:sms_navigator/core/repositories/channel_repository.dart';

@@ -13,10 +13,9 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
-| 0.1 | Chạy `flutter gen-l10n`, `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên nhánh `feat/otp-notification` | Dart được viết khi không có Flutter SDK — chưa compile. Kotlin JVM test (103) đã chạy xanh bằng stub; `BackupFileChannel`, `OtpRelayWorker`, `RelayWorkScheduler` cần Android SDK mới compile được | P0 |
 | 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
-| 0.3 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) trên Render; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
-| 0.4 | Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (không redirect) | Repo Worker nằm ngoài dự án | P0 |
+| 0.3 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) trên Render — lấy bằng `./scripts/print_android_sha256.sh` trên **máy build** (release đang ký bằng debug key của máy đó cho tới khi có `android/key.properties`); kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
+| 0.3b | Tạo upload keystore release + `android/key.properties` (mẫu `android/key.properties.example`) | Gradle đã đọc sẵn; không có file → fallback debug key. Keystore + mật khẩu tự giữ, không commit | P1 |
 | 0.5 | Test thực tế trên máy | Deeplink cold start / mid-splash / warm start; 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal); OTP trong thông báo khi app bị vuốt tắt; **sao lưu → gỡ app → cài lại → khôi phục** (Owner relay tiếp được, Member đọc được tin cũ) | P0 |
 | 0.6 | Roadmap GĐ6 — clean-cut v4: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
 
@@ -55,6 +54,11 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
+- **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
+  - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
+  - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. Production `assetlinks.json` vẫn `[]` (xem 0.3).
+  - `flutter_test_config.dart`: chặn theo host đích thay vì proxy (proxy loopback `HTTPS_PROXY` từng làm request lọt ra ngoài) + test bảo vệ.
+  - Release signing đọc `android/key.properties` + `scripts/print_android_sha256.sh`; hướng dẫn chạy test trong `AGENTS.md` §8.
 - **Nhánh `feat/otp-notification`** (chưa merge) — sao lưu & outbox native:
   - 1.1 Sao lưu / khôi phục: file `.smsnav` = AES-256-GCM, key từ PBKDF2-HMAC-SHA256 (310k vòng, salt 16B, chạy ngoài UI isolate), AAD `smsnav-backup|v1`. Chứa identity X25519, mọi channel key theo epoch, `device_id`, `device_token`, tên, server URL. Tạo ở **Hồ sơ thiết bị → Sao lưu**; khôi phục ở **Splash lần đầu** ("Thiết lập thiết bị mới" / "Khôi phục từ bản sao lưu"). Lưu/mở file qua Storage Access Framework (`BackupFileChannel.kt`, không thêm package, không cần quyền bộ nhớ). Ghi device token **sau cùng** khi khôi phục (bị kill giữa chừng → lần sau vẫn được mời khôi phục).
   - Nợ kỹ thuật (không đổi nghiệp vụ): 3.1 `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback (test không chạm server production); 3.4 startup reconcile bỏ qua kênh đã có key cho `current_epoch` (0 request), bỏ `getChannelDetail` trùng, không provision 2 lần kênh vừa duyệt, chạy song song tối đa 4 (`forEachBounded`) — sync whitelist của Owner cũng song song; 3.6 `SplashFailureKind` thay cho đoán lỗi qua chuỗi; 3.7 `AppStrings.defaultDeviceName` + test khớp l10n.
