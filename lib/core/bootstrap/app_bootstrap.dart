@@ -301,7 +301,6 @@ class AppBootstrap extends StatelessWidget {
             syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
-        ),
 
         // 8. Relay V2 Sync (Đồng bộ khóa Owner xuống Native)
         RepositoryProvider<SyncOwnerRelayChannelUseCase>(
