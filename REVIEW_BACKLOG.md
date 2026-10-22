@@ -135,3 +135,16 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Unit: `VaultFallbackLogTest` (Kotlin), `report_vault_fallback_use_case_test.dart`.
 - [ ] (Khó tái hiện trên máy thường) Trên thiết bị/emulator: xoá alias `otp_relay_master_key` trong Keystore bằng debugger → nhận 1 SMS → mở app → toast cảnh báo + event trên Crashlytics.
 
+## P2-6 · Xử lý 401 tập trung (BACKLOG 3.2)
+
+**Rà soát**
+- [ ] `ApiClient.onUnauthorized` (gắn trong `AppBootstrap`, provider `DeviceApiService` giờ `lazy: false`): 401 trên request đã xác thực (không phải `/devices/register`, chưa retry) → `DeviceSessionRecovery` → retry **1 lần** với token mới; vẫn 401 → `UnauthorizedException` như cũ.
+- [ ] `DeviceSessionRecovery`: đăng ký lại với **cùng** `device_id` + public key (server ghi đè `token_hash`, giữ membership/envelope), đẩy token mới xuống native (`setCredentials`); single-flight; lỗi → toast 1 lần + nghỉ 30 s; máy chưa từng đăng ký → bỏ qua (Splash lo).
+- [ ] Native `OtpRelayWorker`: 401 → **park** SMS (trước đây bỏ hẳn), gửi lại khi app sync xong.
+- [ ] ⚠️ Khi nào 401 xảy ra thật: token bị thay do máy khác khôi phục **cùng bản sao lưu** (cùng `device_id`) và đăng ký lại → hai máy sẽ "giành" token của nhau. Không nên khôi phục 1 bản sao lưu lên 2 máy đang chạy cùng lúc — cân nhắc thêm cảnh báo ở màn khôi phục.
+
+**Kiểm thử**
+- [ ] Unit: `api_client_unauthorized_test.dart`, `device_session_recovery_test.dart`.
+- [ ] Trên máy: sửa `device_token` trong SharedPreferences (adb/root) thành chuỗi sai → mở tab Kênh → danh sách vẫn tải (log "Re-registered … after a 401").
+- [ ] Tắt mạng trong lúc 401 → toast "Phiên của thiết bị đã hết hạn…" chỉ 1 lần.
+

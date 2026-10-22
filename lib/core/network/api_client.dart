@@ -13,6 +13,10 @@ typedef DeviceTokenProvider = Future<String?> Function();
 /// Cung cấp server URL động (đọc từ DeviceStorageService).
 typedef ServerUrlProvider = Future<String?> Function();
 
+/// Gọi khi một request bị 401 (BACKLOG 3.2); `true` = phiên đã được khôi phục,
+/// gửi lại request một lần với token mới.
+typedef UnauthorizedHandler = Future<bool> Function();
+
 /// HTTP client đa năng sử dụng Dio cho toàn bộ API.
 ///
 /// - Quản lý baseUrl động qua [ServerUrlProvider] (mặc định trỏ tới
@@ -86,7 +90,7 @@ class ApiClient {
           }
           return handler.next(response);
         },
-        onError: (DioException error, handler) {
+        onError: (DioException error, handler) async {
           if (kDebugMode) {
             final startTime = error.requestOptions.extra['request_start_time'] as int?;
             final durationStr = startTime != null ? ' (${DateTime.now().millisecondsSinceEpoch - startTime}ms)' : '';
@@ -94,6 +98,8 @@ class ApiClient {
             final responseData = error.response?.data != null ? ' -> Data: ${error.response?.data}' : '';
             debugPrint('$_ansiYellow❌ [API ERR] [${error.requestOptions.method}] ${error.requestOptions.uri}$durationStr$statusCode: ${error.message}$responseData$_ansiReset');
           }
+          final retried = await _retryAfterUnauthorized(error);
+          if (retried != null) return handler.resolve(retried);
           return handler.next(error);
         },
       ),
@@ -107,6 +113,34 @@ class ApiClient {
   static const String localBaseUrl = 'http://127.0.0.1:3000';
 
   late final Dio _dio;
+
+  /// Xử lý 401 tập trung — gắn sau khi tạo (phụ thuộc vòng: recovery cần
+  /// DeviceApiService, mà DeviceApiService cần ApiClient).
+  UnauthorizedHandler? onUnauthorized;
+
+  static const String _retriedAfter401 = 'retried_after_401';
+
+  /// 401 trên request đã xác thực (không phải đăng ký, chưa retry) → khôi phục
+  /// phiên rồi gửi lại đúng một lần; null = giữ nguyên lỗi.
+  Future<Response<dynamic>?> _retryAfterUnauthorized(DioException error) async {
+    final handler = onUnauthorized;
+    final options = error.requestOptions;
+    if (handler == null ||
+        error.response?.statusCode != 401 ||
+        options.path.contains('/devices/register') ||
+        options.extra[_retriedAfter401] == true) {
+      return null;
+    }
+    final recovered = await handler().catchError((Object _) => false);
+    if (!recovered) return null;
+    options.extra[_retriedAfter401] = true;
+    try {
+      // onRequest gắn lại Authorization bằng token mới
+      return await _dio.fetch<dynamic>(options);
+    } on DioException {
+      return null;
+    }
+  }
 
   final String _fallbackBaseUrl;
   final ServerUrlProvider? _serverUrlProvider;

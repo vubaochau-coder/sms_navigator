@@ -2877,6 +2877,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.'**
   String get vaultFallbackWarning;
+
+  /// No description provided for @sessionRecoveryFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.'**
+  String get sessionRecoveryFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -1626,4 +1626,8 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get vaultFallbackWarning =>
       'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.';
+
+  @override
+  String get sessionRecoveryFailed =>
+      'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.';
 }

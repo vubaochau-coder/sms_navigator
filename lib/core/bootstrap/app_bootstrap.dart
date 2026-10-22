@@ -7,6 +7,7 @@ import '../network/api_client.dart';
 import '../repositories/app_update_repository.dart';
 import '../repositories/backup_repository.dart';
 import '../repositories/impls/backup_repository_impl.dart';
+import '../services/device_session_recovery.dart';
 import '../services/impls/backup_file_service_impl.dart';
 import '../repositories/channel_repository.dart';
 import '../repositories/device_setup_repository.dart';
@@ -152,13 +153,25 @@ class AppBootstrap extends StatelessWidget {
 
         // 5. Device (register v2 + setup checklist)
         RepositoryProvider<DeviceApiService>(
-          create: (context) => DeviceApiServiceImpl(
-            apiClient: context.read<ApiClient>(),
-            storageService: context.read<DeviceStorageService>(),
-            publicKeyProvider: () async =>
-                (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
-                    .publicKeyBase64,
-          ),
+          lazy: false,
+          create: (context) {
+            final apiClient = context.read<ApiClient>();
+            final storage = context.read<DeviceStorageService>();
+            final deviceApi = DeviceApiServiceImpl(
+              apiClient: apiClient,
+              storageService: storage,
+              publicKeyProvider: () async =>
+                  (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
+                      .publicKeyBase64,
+            );
+            // BACKLOG 3.2: mọi 401 → đăng ký lại (cùng device_id) + retry 1 lần
+            apiClient.onUnauthorized = DeviceSessionRecovery(
+              deviceApi: deviceApi,
+              storage: storage,
+              relayBridge: context.read<RelayChannelBridge>(),
+            ).call;
+            return deviceApi;
+          },
         ),
         RepositoryProvider<DeviceSetupRepository>(
           create: (context) => DeviceSetupRepositoryImpl(

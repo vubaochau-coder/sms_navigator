@@ -151,6 +151,15 @@ class OtpRelayWorker(
                     return Result.failure()
                 }
 
+                result.code == 401 -> {
+                    // Device token hết hạn / bị thay (BACKLOG 3.2): app đăng ký lại
+                    // khi mở và đẩy token mới xuống — giữ SMS lại để gửi sau.
+                    store.park(parked)
+                    Log.w(TAG, "Device token rejected (401). Parked messageId=$messageId until the app re-registers.")
+                    prefs.addRelayLog(sender, "", "PARKED", "[$label] Phiên thiết bị hết hạn — mở app để đăng ký lại")
+                    return Result.success()
+                }
+
                 result.code in 400..499 -> {
                     val errorMsg = "HTTP ${result.code}: ${result.message}"
                     Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg). Dropping.")
