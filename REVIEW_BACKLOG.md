@@ -20,3 +20,14 @@
 - [ ] Bản tải từ App Tester **cài đè** được lên 1.1.0 đang có (không phải gỡ) và `pm get-app-links` vẫn `verified`.
 - [ ] Xoá tạm 1 secret → job đỏ ở bước *Restore release keystore*.
 
+## P1-2 · CI cho pull request (BACKLOG 3.9)
+
+**Rà soát**
+- [ ] `.github/workflows/ci.yml` chạy cho mọi `pull_request` + push `main`; không dùng secret.
+- [ ] Job `flutter`: `gen-l10n` + `git diff --exit-code lib/l10n` (bắt l10n đã commit bị cũ), `analyze`, `test`.
+- [ ] Job `android-unit`: `flutter build apk --config-only` sinh `gradlew`, rồi `:app:testDebugUnitTest`.
+
+**Kiểm thử**
+- [ ] Mở PR của nhánh này → 2 job xanh.
+- [ ] (Tuỳ chọn) Settings → Branches → bảo vệ `main`, bắt buộc 2 check `Analyze & Flutter test`, `Kotlin unit tests`.
+
