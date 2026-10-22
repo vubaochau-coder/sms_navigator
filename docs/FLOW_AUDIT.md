@@ -11,14 +11,14 @@
 
 | Mức | Mã | Phát hiện | Trạng thái |
 |---|---|---|---|
-| **P0** | **S1** | **Chiếm quyền thiết bị**: `POST /devices/register` không cần xác thực, nhận `device_id` đã tồn tại → ghi đè `token_hash` **và** `public_key`. `device_id` không bí mật (danh sách thành viên, `sender_device_id`). Thành viên bất kỳ chiếm được máy Owner → duyệt/thu hồi, cài public key của mình để nhận khoá các epoch sau | Chưa sửa — BE A7, mobile A9 |
+| **P0** | **S1** | **Chiếm quyền thiết bị**: `POST /devices/register` không cần xác thực, nhận `device_id` đã tồn tại → ghi đè `token_hash` **và** `public_key`. `device_id` không bí mật (danh sách thành viên, `sender_device_id`). Thành viên bất kỳ chiếm được máy Owner → duyệt/thu hồi, cài public key của mình để nhận khoá các epoch sau | **Đã sửa** — BE PR #2, mobile PR #3 |
 | **P0** | C1 | Thông báo luôn rơi về nội dung chung: giải mã với AAD chứa `sequence_number` thật, trong khi Owner mã hoá với `0` | **Đã sửa** (`dbbddd3`, nhánh `fix/fast-otp-notification`) |
-| **P0** | K1 | Mở app chỉ lấy key epoch **mới nhất** — lệch SRD §8.4 | Mobile A1, BE A1 |
-| **P0** | K2 | Thông báo không tự lấy key khi thiếu key của epoch tin | Mobile A2 |
+| **P0** | K1 | Mở app chỉ lấy key epoch **mới nhất** — lệch SRD §8.4 | **Đã sửa** — `GET /key-envelopes` + `SyncChannelKeysUseCase` |
+| **P0** | K2 | Thông báo không tự lấy key khi thiếu key của epoch tin | **Đã sửa** — thông báo tự lấy key đúng epoch |
 | P1 | C2 | **KL10 không được thực thi**: AAD của tin luôn có `seq = 0` → server có thể gán lại / phát lại ciphertext cũ với sequence khác mà client không phát hiện | Cần quyết định thiết kế — mobile A10, BE A8 |
-| P1 | K3 | Member được duyệt khi đang mở app: không lấy key cho tới lần reconcile sau → màn SMS hiện "không giải mã được" | Mobile A11 |
-| P1 | P1 | Mỗi lần mở app ≈ **25–35 request** (reconcile chạy 3 lần, sync relay 2 lần, `GET /channels` ~6 lần) — tối thiểu cần ~5 | Mobile A12 |
-| P1 | P2 | Mỗi lần app quay lại foreground: `GET /channels/detail` cho **từng** kênh Owner (chỉ để lấy whitelist) | Mobile A12 |
+| P1 | K3 | Member được duyệt khi đang mở app: không lấy key cho tới lần reconcile sau → màn SMS hiện "không giải mã được" | **Đã sửa** — màn SMS gặp tin thiếu key → đồng bộ key rồi giải mã lại |
+| P1 | P1 | Mỗi lần mở app ≈ **25–35 request** (reconcile chạy 3 lần, sync relay 2 lần, `GET /channels` ~6 lần) — tối thiểu cần ~5 | **Đã sửa** — reconcile / sync relay single-flight, không đọc detail từng kênh |
+| P1 | P2 | Mỗi lần app quay lại foreground: `GET /channels/detail` cho **từng** kênh Owner (chỉ để lấy whitelist) | **Đã sửa** — reconcile / sync relay single-flight, không đọc detail từng kênh |
 | P1 | R1 | Bị thu hồi **không xoá** key của kênh (spec §2 yêu cầu purge) — `purgeChannelKeys` không có nơi gọi | Mobile A13 |
 | P1 | U1 | Worker relay của Owner không `setExpedited` → có thể bị hoãn khi Doze | Mobile A6 |
 | P2 | D1 | SRD §8.2 ("cài lại = danh tính mới, phải join lại") trái với sao lưu/khôi phục 1.1 | Sửa SRD — mobile A7 |
