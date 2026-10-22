@@ -62,4 +62,21 @@ void main() {
 
     expect(find.text('Kênh'), findsWidgets);
   });
+
+  testWidgets('Device tab shows the device profile (moved off the AppBar)', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+
+    expect(
+      find.descendant(of: find.byType(BottomAppBar), matching: find.text('Thiết bị')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.phone_android_rounded), findsOneWidget);
+
+    await tester.tap(find.text('Thiết bị'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Thông tin & Thiết lập thiết bị'), findsOneWidget);
+  });
 }

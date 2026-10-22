@@ -11,7 +11,6 @@ import '../../core/usecases/sync_owner_relay_channel_use_case.dart';
 import '../../core/ui/dialog_utils.dart';
 import '../backup/bloc/backup_reminder_cubit.dart';
 import '../backup/views/backup_reminder_banner.dart';
-import '../device/views/device_profile_button.dart';
 import 'bloc/channel_bloc.dart';
 import 'views/channel_list_view.dart';
 
@@ -81,9 +80,6 @@ class _ChannelPageView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.channelPageTitle),
-          actions: const [
-            DeviceProfileButton(),
-          ],
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.channelOwnedSectionTitle),

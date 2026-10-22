@@ -966,5 +966,6 @@
     }
   },
   "whitelistPillOtpAllowed": "Được gửi OTP",
-  "whitelistNoSenders": "Chưa có người gửi nào trong bộ lọc"
+  "whitelistNoSenders": "Chưa có người gửi nào trong bộ lọc",
+  "deviceTabTitle": "Thiết bị"
 }

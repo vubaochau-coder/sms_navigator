@@ -2931,6 +2931,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chưa có người gửi nào trong bộ lọc'**
   String get whitelistNoSenders;
+
+  /// No description provided for @deviceTabTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết bị'**
+  String get deviceTabTitle;
 }
 
 class _AppLocalizationsDelegate

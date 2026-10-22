@@ -1660,4 +1660,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get whitelistNoSenders => 'Chưa có người gửi nào trong bộ lọc';
+
+  @override
+  String get deviceTabTitle => 'Thiết bị';
 }

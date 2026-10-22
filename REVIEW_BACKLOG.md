@@ -234,3 +234,14 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Member (cùng kênh) thấy đúng như trên sau khi kéo làm mới.
 - [ ] Bật "Nhận từ mọi địa chỉ" → pill đầu "Mọi người gửi".
 - [ ] App mới + BE cũ (chưa deploy): Owner vẫn thấy pill (từ cache), Member chưa thấy — bình thường.
+
+## Bổ sung C · Tab "Thiết bị"
+
+**Rà soát**
+- [ ] `HomeTabCubit` (enum `HomeTab`) thay `_selectedIndex` của `MainNavigationPage`; tab giữ trạng thái qua `IndexedStack`.
+- [ ] `DeviceProfilePage` thành tab thứ 3 (sau FAB QR). Nút điện thoại trên AppBar của tab SMS / Kênh (`DeviceProfileButton`) bị **gỡ** — chấm trạng thái xanh/cam chuyển xuống icon tab.
+- [ ] Banner nhắc sao lưu vẫn mở `DeviceProfilePage` bằng push (quay lại đúng chỗ cũ + kiểm tra lại nhắc nhở) — chủ ý.
+
+**Kiểm thử**
+- [ ] `widget_test.dart` (tab Thiết bị), `home_tab_cubit_test.dart`.
+- [ ] Trên máy: tắt quyền SMS → chấm cam trên tab Thiết bị; cấp lại → xanh. Đổi tên máy, sao lưu, đổi giao diện ngay trong tab.

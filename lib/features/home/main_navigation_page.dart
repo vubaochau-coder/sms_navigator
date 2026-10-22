@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/constants/app_colors.dart';
 import '../../core/repositories/app_update_repository.dart';
 import '../../core/repositories/device_setup_repository.dart';
 import '../../core/services/startup_reconcile_service.dart';
@@ -14,13 +15,17 @@ import '../sms/sms_page.dart';
 import '../device/bloc/device_setup_bloc.dart';
 import '../device/bloc/device_setup_event.dart';
 import '../device/bloc/device_setup_state.dart';
+import '../device/device_profile_page.dart';
 import '../device/views/sms_permission_prompt_dialog.dart';
+import 'bloc/home_tab_cubit.dart';
+import 'views/main_nav_tab.dart';
 import 'views/app_update_dialog.dart';
 import '../../core/extensions/context_extensions.dart';
 
 /// Main navigation (kiến trúc mới):
 /// - Tab 0: SMS theo ngày (gộp mọi kênh, 6.1–6.4);
 /// - Tab 1: Kênh (2 nhóm "Kênh của bạn" / "Kênh bạn tham gia", 2.1);
+/// - Tab 2: Thiết bị (hồ sơ, tình trạng quyền, sao lưu, tuỳ chọn);
 /// - FAB: quét QR mời (3.1);
 /// - Khi mở app: startup reconcile ngầm (SRD 7.3) + gate SMS permission.
 class MainNavigationPage extends StatelessWidget {
@@ -28,11 +33,16 @@ class MainNavigationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        return DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
-            ..add(const DeviceSetupStarted());
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) {
+            return DeviceSetupBloc(repository: context.read<DeviceSetupRepository>())
+                ..add(const DeviceSetupStarted());
+          },
+        ),
+        BlocProvider(create: (_) => HomeTabCubit()),
+      ],
       child: const _MainNavigationView(),
     );
   }
@@ -46,7 +56,6 @@ class _MainNavigationView extends StatefulWidget {
 }
 
 class _MainNavigationViewState extends State<_MainNavigationView> {
-  int _selectedIndex = 0;
   bool _smsPromptShown = false;
   bool _reconcileStarted = false;
 
@@ -100,11 +109,6 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
     });
   }
 
-  void _selectTab(int index) {
-    if (index == _selectedIndex) return;
-    setState(() => _selectedIndex = index);
-  }
-
   Future<void> _openQrScanner() async {
     final result = await Navigator.of(context).push<ScanQrResult>(
       MaterialPageRoute(
@@ -135,7 +139,6 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     _runStartupReconcile();
     _checkAppUpdate();
     return MultiBlocListener(
@@ -160,108 +163,126 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
           },
         ),
       ],
-      child: Scaffold(
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: const [
-            SmsPage(),
-            ChannelPage(),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'main_navigation_qr_scan_fab',
-          onPressed: _openQrScanner,
-          tooltip: context.l10n.scanInviteTooltip,
-          shape: const CircleBorder(),
-          elevation: 8,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          child: const Icon(Icons.qr_code_scanner_rounded),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: DecoratedBox(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 8,
-                offset: const Offset(0, 0),
+      child: BlocBuilder<HomeTabCubit, HomeTab>(
+        builder: (context, tab) => _MainScaffold(tab: tab, onScan: _openQrScanner),
+      ),
+    );
+  }
+}
+
+/// Khung màn chính: các tab giữ trạng thái (IndexedStack), FAB quét QR ở giữa.
+class _MainScaffold extends StatelessWidget {
+  const _MainScaffold({required this.tab, required this.onScan});
+
+  final HomeTab tab;
+  final VoidCallback onScan;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: IndexedStack(
+        index: tab.index,
+        children: const [
+          SmsPage(),
+          ChannelPage(),
+          DeviceProfilePage(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'main_navigation_qr_scan_fab',
+        onPressed: onScan,
+        tooltip: context.l10n.scanInviteTooltip,
+        shape: const CircleBorder(),
+        elevation: 8,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        child: const Icon(Icons.qr_code_scanner_rounded),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _MainBottomBar(tab: tab),
+    );
+  }
+}
+
+class _MainBottomBar extends StatelessWidget {
+  const _MainBottomBar({required this.tab});
+
+  final HomeTab tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs = context.read<HomeTabCubit>();
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 8,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        elevation: 0,
+        child: Row(
+          children: [
+            Expanded(
+              child: MainNavTab(
+                icon: Icons.sms_outlined,
+                label: context.l10n.smsPageTitle,
+                selected: tab == HomeTab.sms,
+                onTap: () => tabs.select(HomeTab.sms),
               ),
-            ],
-          ),
-          child: BottomAppBar(
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            elevation: 0,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _MainNavTab(
-                    icon: Icons.sms_outlined,
-                    label: 'SMS',
-                    selected: _selectedIndex == 0,
-                    onTap: () => _selectTab(0),
-                  ),
-                ),
-                const SizedBox(width: 56),
-                Expanded(
-                  child: _MainNavTab(
-                    icon: Icons.hub_rounded,
-                    label: context.l10n.channelPageTitle,
-                    selected: _selectedIndex == 1,
-                    onTap: () => _selectTab(1),
-                  ),
-                ),
-              ],
             ),
-          ),
+            Expanded(
+              child: MainNavTab(
+                icon: Icons.hub_rounded,
+                label: context.l10n.channelPageTitle,
+                selected: tab == HomeTab.channels,
+                onTap: () => tabs.select(HomeTab.channels),
+              ),
+            ),
+            // Chừa chỗ cho FAB quét QR
+            const SizedBox(width: 56),
+            Expanded(
+              child: _DeviceNavTab(
+                selected: tab == HomeTab.device,
+                onTap: () => tabs.select(HomeTab.device),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
 }
 
-class _MainNavTab extends StatelessWidget {
-  const _MainNavTab({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+/// Tab Thiết bị: chấm xanh = đủ quyền, cam = cần chú ý (thay nút trên AppBar cũ).
+class _DeviceNavTab extends StatelessWidget {
+  const _DeviceNavTab({required this.selected, required this.onTap});
 
-  final IconData icon;
-  final String label;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = selected ? colorScheme.primary : colorScheme.onSurfaceVariant;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-              ),
-            ),
-          ],
-        ),
+    return BlocBuilder<DeviceSetupBloc, DeviceSetupState>(
+      buildWhen: (previous, current) =>
+          previous.isLoading != current.isLoading ||
+          previous.isAllCriticalStepsDone != current.isAllCriticalStepsDone,
+      builder: (context, state) => MainNavTab(
+        icon: Icons.phone_android_rounded,
+        label: context.l10n.deviceTabTitle,
+        selected: selected,
+        onTap: onTap,
+        badgeColor: state.isLoading
+            ? null
+            : (state.isAllCriticalStepsDone ? AppColors.success : AppColors.warning),
       ),
     );
   }
