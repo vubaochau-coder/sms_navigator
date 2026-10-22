@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_navigator/core/bootstrap/app_bootstrap.dart';
 import 'package:sms_navigator/core/services/local_storage_service.dart';
+import 'package:sms_navigator/core/widgets/app_logo_glyph.dart';
 import 'package:sms_navigator/features/home/main_navigation_page.dart';
 import 'package:sms_navigator/features/splash/splash_page.dart';
 import 'package:sms_navigator/l10n/app_localizations.dart';
@@ -33,7 +34,7 @@ void main() {
     expect(find.text('SMS Navigator'), findsOneWidget);
     expect(find.text('Ghép đôi và đồng bộ SMS an toàn'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.byIcon(Icons.sms_rounded), findsOneWidget);
+    expect(find.byType(AppLogoGlyph), findsOneWidget);
   });
 
   testWidgets('SplashPage mounts cleanly with autoStart: true without InheritedWidget error', (

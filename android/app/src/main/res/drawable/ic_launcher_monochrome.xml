@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sinh bởi scripts/generate_app_icons.py — đừng sửa tay. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M40,32 H68 A12,12 0 0 1 80,44 V60 A12,12 0 0 1 68,72 H50 L37,81 L39.5,72 A12,12 0 0 1 28,60 V44 A12,12 0 0 1 40,32 Z M63.19,42.81 L53.65,65.79 L50.46,55.54 L40.21,52.35 Z" />
+</vector>

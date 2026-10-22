@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../constants/app_colors.dart';
 import '../l10n/app_l10n.dart';
 import 'notification_content.dart';
 
@@ -14,11 +15,14 @@ class LocalNotificationPresenter {
   static const String androidChannelName = 'SMS Navigator';
   static const String copyActionId = 'copy_otp';
 
+  /// Icon trắng-trong suốt cho thanh trạng thái (sinh bởi `scripts/generate_app_icons.py`).
+  static const String notificationIcon = '@drawable/ic_stat_notification';
+
   final FlutterLocalNotificationsPlugin _plugin;
 
   Future<void> initialize({DidReceiveNotificationResponseCallback? onResponse}) async {
     const settings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      android: AndroidInitializationSettings(notificationIcon),
     );
     await _plugin.initialize(
       settings: settings,
@@ -60,6 +64,7 @@ class LocalNotificationPresenter {
           channelDescription: AppL10n.current.notificationChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
+          color: AppColors.primary,
         ),
       ),
       payload: payload?.encode(),
@@ -79,6 +84,7 @@ class LocalNotificationPresenter {
           channelDescription: l10n.notificationChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
+          color: AppColors.primary,
           category: AndroidNotificationCategory.message,
           // Màn hình khoá an toàn chỉ hiện "có nội dung bị ẩn", không lộ OTP.
           visibility: NotificationVisibility.private,
