@@ -11,8 +11,7 @@ set -e
 #   3. APK truyền vào làm tham số (nếu có), ví dụ:
 #        ./scripts/print_android_sha256.sh build/app/outputs/flutter-apk/app-release.apk
 #
-# Lưu ý: nếu phát hành qua Google Play, thêm cả SHA-256 "App signing key" trong
-# Play Console → Test and release → App integrity → App signing.
+# Phát hành nội bộ (Firebase App Distribution): chỉ cần các SHA in ra ở đây.
 # ==============================================================================
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -75,5 +74,5 @@ if [ ${#FINGERPRINTS[@]} -eq 0 ]; then
 fi
 
 echo "----------------------------------------------------------"
-echo "ANDROID_CERT_SHA256 (dán vào env của server, thêm SHA Play App Signing nếu có):"
+echo "ANDROID_CERT_SHA256 (dán vào Environment của server trên Render):"
 printf '%s\n' "${FINGERPRINTS[@]}" | awk '!seen[$0]++' | paste -sd, -

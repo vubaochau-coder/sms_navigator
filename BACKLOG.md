@@ -2,7 +2,7 @@
 
 > Tài liệu gom toàn bộ nợ kỹ thuật + roadmap chưa triển khai của phía mobile.
 > Mục đã hoàn thành bị loại khỏi danh sách; hoàn thành mục nào thì xoá mục đó.
-> App chỉ hỗ trợ **Android** — không làm hạng mục iOS.
+> App chỉ hỗ trợ **Android** — không làm hạng mục iOS. Phát hành **nội bộ qua Firebase App Distribution**, không lên Google Play.
 > Cập nhật lần cuối: 22/10/2026.
 
 ---
@@ -14,8 +14,8 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
 | 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
-| 0.3 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) trên Render — lấy bằng `./scripts/print_android_sha256.sh` trên **máy build** (release đang ký bằng debug key của máy đó cho tới khi có `android/key.properties`); kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
-| 0.3b | Tạo upload keystore release + `android/key.properties` (mẫu `android/key.properties.example`) | Gradle đã đọc sẵn; không có file → fallback debug key. Keystore + mật khẩu tự giữ, không commit | P1 |
+| 0.3 | Điền `ANDROID_CERT_SHA256` trên Render — giá trị in ra bởi `./scripts/create_release_keystore.sh` (hoặc `./scripts/print_android_sha256.sh`), gồm SHA release + debug của máy build; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
+| 0.3b | Chuyển sang keystore release riêng: chạy `./scripts/create_release_keystore.sh` trên máy build, **sao lưu** `.jks` + `android/key.properties` | Đổi chữ ký → các máy đã cài phải gỡ app một lần: cài bản PR #1 → **sao lưu trong app** → gỡ → cài bản ký key mới → **khôi phục** (trùng kịch bản test 0.5). Làm trước khi có thêm người dùng | P0 |
 | 0.5 | Test thực tế trên máy | Deeplink cold start / mid-splash / warm start; 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal); OTP trong thông báo khi app bị vuốt tắt; **sao lưu → gỡ app → cài lại → khôi phục** (Owner relay tiếp được, Member đọc được tin cũ) | P0 |
 | 0.6 | Roadmap GĐ6 — clean-cut v4: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
 
