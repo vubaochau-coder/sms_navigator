@@ -74,6 +74,22 @@ class ChannelApiServiceImpl implements ChannelApiService {
   }
 
   @override
+  Future<List<ChannelKeyEnvelopesModel>> listKeyEnvelopes({String? channelId}) async {
+    final data = _asMap(
+      await apiClient.get(
+        ApiEndpoints.keyEnvelopesV2,
+        queryParameters: {'channel_id': ?channelId},
+      ),
+    );
+    final raw = data['channels'];
+    if (raw is! List) return const [];
+    return [
+      for (final item in raw)
+        if (item is Map) ChannelKeyEnvelopesModel.fromMap(Map<String, dynamic>.from(item)),
+    ];
+  }
+
+  @override
   Future<KeyEnvelopeModel> getKeyEnvelope({
     required String channelId,
     int? epoch,

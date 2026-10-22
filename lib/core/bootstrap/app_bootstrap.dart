@@ -61,11 +61,11 @@ import '../services/relay_channel_bridge.dart';
 import '../services/startup_reconcile_service.dart';
 import '../usecases/report_vault_fallback_use_case.dart';
 import '../usecases/resolve_incoming_message_use_case.dart';
+import '../usecases/sync_channel_keys_use_case.dart';
 import '../usecases/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
 import '../crypto/channel_crypto_helper.dart';
 import '../../features/device/bloc/device_profile_cubit.dart';
-import '../l10n/app_l10n.dart';
 import '../models/channel_event.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
@@ -220,11 +220,21 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // FCM chuông (API spec §7) + thông báo OTP đã giải mã (MOBILE_FEATURES 1.2)
+        // Key của mọi epoch, một request (SRD §8.4 — FLOW_AUDIT K1/K2)
+        RepositoryProvider<SyncChannelKeysUseCase>(
+          create: (context) => SyncChannelKeysUseCase(
+            channelApiService: context.read<ChannelApiService>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            deviceStorage: context.read<DeviceStorageService>(),
+            cryptoHelper: context.read<ChannelCryptoHelper>(),
+          ),
+        ),
         RepositoryProvider<ResolveIncomingMessageUseCase>(
           create: (context) => ResolveIncomingMessageUseCase(
             messageApiService: context.read<MessageApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
         RepositoryProvider<FcmNotificationService>(
@@ -271,6 +281,7 @@ class AppBootstrap extends StatelessWidget {
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             channelEvents: context.read<FcmNotificationService>().channelEvents,
             cache: MessageCacheStore(context.read<LocalStorageService>()),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
         // Không lazy: phải nghe sự kiện kênh ngay từ đầu để ghi cho tab Hoạt động
@@ -285,22 +296,11 @@ class AppBootstrap extends StatelessWidget {
         ),
         RepositoryProvider<StartupReconcileService>(
           create: (context) => StartupReconcileServiceImpl(
-            deviceApiService: context.read<DeviceApiService>(),
             deviceStorage: context.read<DeviceStorageService>(),
             keyStore: context.read<ChannelKeyStore>(),
-            channelRepository: context.read<ChannelRepository>(),
-            joinRepository: context.read<JoinChannelRepository>(),
-            deviceNameProvider: () async {
-              try {
-                final nativeName =
-                    await context.read<NativeRelayService>().getDeviceName();
-                if (nativeName != null && nativeName.trim().isNotEmpty) {
-                  return nativeName.trim();
-                }
-              } catch (_) {}
-              return AppL10n.current.splashDefaultDeviceName;
-            },
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
+        ),
         ),
 
         // 8. Relay V2 Sync (Đồng bộ khóa Owner xuống Native)

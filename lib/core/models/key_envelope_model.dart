@@ -33,6 +33,41 @@ class KeyEnvelopeModel extends Equatable {
   List<Object?> get props => [keyEpoch, wrappedKey, nonce, kekAlg];
 }
 
+/// Mọi envelope của máy này trong một kênh — `GET /api/v2/key-envelopes` (§6.1b).
+class ChannelKeyEnvelopesModel extends Equatable {
+  final String channelId;
+  final int currentEpoch;
+
+  /// Public key X25519 của Owner — cần để unwrap (ECDH với Owner).
+  final String ownerPublicKey;
+  final List<KeyEnvelopeModel> envelopes;
+
+  const ChannelKeyEnvelopesModel({
+    required this.channelId,
+    required this.currentEpoch,
+    required this.ownerPublicKey,
+    this.envelopes = const [],
+  });
+
+  factory ChannelKeyEnvelopesModel.fromMap(Map<String, dynamic> map) {
+    final rawEnvelopes = map['envelopes'];
+    return ChannelKeyEnvelopesModel(
+      channelId: DataConverter.cvToString(map['channel_id'], '')!,
+      currentEpoch: DataConverter.cvToInt(map['current_epoch'], 1)!,
+      ownerPublicKey: DataConverter.cvToString(map['owner_public_key'], '')!,
+      envelopes: rawEnvelopes is List
+          ? [
+              for (final item in rawEnvelopes)
+                if (item is Map) KeyEnvelopeModel.fromMap(Map<String, dynamic>.from(item)),
+            ]
+          : const [],
+    );
+  }
+
+  @override
+  List<Object?> get props => [channelId, currentEpoch, ownerPublicKey, envelopes];
+}
+
 /// Một envelope trong Package Pattern (API spec §8) — Owner xây trước khi
 /// POST create/approve/revoke.
 class PackageEnvelopeModel extends Equatable {

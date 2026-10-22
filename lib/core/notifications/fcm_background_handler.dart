@@ -6,11 +6,13 @@ import '../models/channel_event.dart';
 import '../network/api_client.dart';
 import '../services/crashlytics_service.dart';
 import '../services/impls/channel_activity_log_store_impl.dart';
+import '../services/impls/channel_api_service_impl.dart';
 import '../services/impls/channel_key_store_impl.dart';
 import '../services/impls/device_storage_service_impl.dart';
 import '../services/impls/message_api_service_impl.dart';
 import '../services/local_storage_service.dart';
 import '../usecases/resolve_incoming_message_use_case.dart';
+import '../usecases/sync_channel_keys_use_case.dart';
 import 'local_notification_presenter.dart';
 import 'new_message_notifier.dart';
 import 'notification_content.dart';
@@ -72,6 +74,7 @@ Future<NewMessageNotifier> _buildNotifier(LocalNotificationPresenter presenter) 
   final localStorage = await LocalStorageService.create();
   final deviceStorage = DeviceStorageServiceImpl(localStorage);
   final crypto = ChannelCryptoHelper();
+  final keyStore = ChannelKeyStoreImpl(cryptoHelper: crypto);
   final apiClient = ApiClient(
     serverUrlProvider: deviceStorage.getServerUrl,
     tokenProvider: deviceStorage.getDeviceToken,
@@ -82,8 +85,15 @@ Future<NewMessageNotifier> _buildNotifier(LocalNotificationPresenter presenter) 
   return NewMessageNotifier(
     resolveIncomingMessage: ResolveIncomingMessageUseCase(
       messageApiService: MessageApiServiceImpl(apiClient: apiClient),
-      keyStore: ChannelKeyStoreImpl(cryptoHelper: crypto),
+      keyStore: keyStore,
       cryptoHelper: crypto,
+      // Thiếu key của epoch tin → lấy envelope ngay (FLOW_AUDIT K2)
+      syncChannelKeys: SyncChannelKeysUseCase(
+        channelApiService: ChannelApiServiceImpl(apiClient: apiClient),
+        keyStore: keyStore,
+        deviceStorage: deviceStorage,
+        cryptoHelper: crypto,
+      ),
     ),
     deviceStorage: deviceStorage,
     presenter: presenter,

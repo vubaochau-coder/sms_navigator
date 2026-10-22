@@ -24,6 +24,10 @@ abstract class ChannelApiService {
     int? epoch,
   });
 
+  /// `GET /key-envelopes` (§6.1b): mọi envelope của máy này theo kênh ACTIVE —
+  /// một request cho mọi kênh, mọi epoch.
+  Future<List<ChannelKeyEnvelopesModel>> listKeyEnvelopes({String? channelId});
+
   Future<Map<String, dynamic>> revokeMembers({
     required String channelId,
     required List<String> revokeDeviceIds,
