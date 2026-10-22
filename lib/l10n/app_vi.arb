@@ -942,5 +942,6 @@
   "backupReminderTitle": "Chưa sao lưu khóa kênh",
   "backupReminderMessage": "Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.",
   "backupReminderAction": "Sao lưu ngay",
-  "backupReminderLater": "Để sau"
+  "backupReminderLater": "Để sau",
+  "vaultFallbackWarning": "Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành."
 }

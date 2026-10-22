@@ -2871,6 +2871,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Để sau'**
   String get backupReminderLater;
+
+  /// No description provided for @vaultFallbackWarning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.'**
+  String get vaultFallbackWarning;
 }
 
 class _AppLocalizationsDelegate

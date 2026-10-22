@@ -52,6 +52,7 @@ import '../services/native_relay_service.dart';
 import '../services/pairing_api_service.dart';
 import '../services/relay_channel_bridge.dart';
 import '../services/startup_reconcile_service.dart';
+import '../usecases/report_vault_fallback_use_case.dart';
 import '../usecases/resolve_incoming_message_use_case.dart';
 import '../usecases/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
@@ -339,6 +340,11 @@ class _AsyncServicesInitializerState extends State<_AsyncServicesInitializer> {
     analytics.initialize();
     fcm.initialize();
     fcm.syncToken();
+    // BACKLOG 2.2: Keystore fallback của native → Crashlytics + cảnh báo
+    ReportVaultFallbackUseCase(
+      nativeRelay: context.read<NativeRelayService>(),
+      crashlytics: crashlytics,
+    )().catchError((Object _) => null);
     _channelEventSubscription = fcm.channelEvents.listen((_) {
       syncRelay().catchError((_) => false);
     });

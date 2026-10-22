@@ -121,3 +121,17 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Bấm "Để sau" → ẩn; chỉnh giờ máy +3 ngày → hiện lại.
 - [ ] Khôi phục từ bản sao lưu trên máy mới → không hiện banner (trừ khi đã có kênh mới sau bản đó).
 
+## P2-5 · Keystore lỗi → không còn lưu thô âm thầm (BACKLOG 2.2)
+
+**Quyết định** ⚠️: giữ **fail-open** (lưu thô khi `SecureVault` lỗi) vì fail-closed làm dừng hẳn relay trên ROM có Keystore chập chờn — nhưng mỗi lần đều được ghi lại, báo Crashlytics và cảnh báo người dùng. Nếu muốn fail-closed cho riêng nội dung SMS, đổi `RelayChannelStore.encrypt` ở chỗ gọi outbox/parked.
+
+**Rà soát**
+- [ ] Kotlin `VaultFallbackLog`: đếm + site + lỗi + thời điểm trong SharedPreferences; ghi ở `OtpPreferences` (device token, legacy channel key) và `RelayChannelStore.encrypt` (channel key, outbox, parked). `Log.w` được bọc try (JVM test).
+- [ ] MethodChannel `takeVaultFallbackReport` = lấy rồi xoá.
+- [ ] Dart `ReportVaultFallbackUseCase` chạy 1 lần trong `_AsyncServicesInitializer`: Crashlytics non-fatal (`reason: secure_vault_fallback`) + toast cảnh báo.
+- [ ] Không có báo cáo → im lặng; báo cáo đã gửi không lặp lại.
+
+**Kiểm thử**
+- [ ] Unit: `VaultFallbackLogTest` (Kotlin), `report_vault_fallback_use_case_test.dart`.
+- [ ] (Khó tái hiện trên máy thường) Trên thiết bị/emulator: xoá alias `otp_relay_master_key` trong Keystore bằng debugger → nhận 1 SMS → mở app → toast cảnh báo + event trên Crashlytics.
+

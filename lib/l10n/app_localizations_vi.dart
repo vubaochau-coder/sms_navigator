@@ -1622,4 +1622,8 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get backupReminderLater => 'Để sau';
+
+  @override
+  String get vaultFallbackWarning =>
+      'Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.';
 }

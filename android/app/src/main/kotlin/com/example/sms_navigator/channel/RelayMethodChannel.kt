@@ -1,6 +1,7 @@
 package com.example.sms_navigator.channel
 
 import android.content.Context
+import com.example.sms_navigator.data.VaultFallbackLog
 import com.example.sms_navigator.data.OtpPreferences
 import com.example.sms_navigator.data.RelayChannelSnapshot
 import com.example.sms_navigator.data.RelayChannelStore
@@ -34,6 +35,13 @@ class RelayMethodChannel(
                 "setWhitelist" -> handleSetWhitelist(call, result)
 
                 "getRecentLogs" -> result.success(prefs.getRecentLogs())
+
+                // BACKLOG 2.2: lấy rồi xoá báo cáo SecureVault fallback (null nếu không có)
+                "takeVaultFallbackReport" -> {
+                    val report = VaultFallbackLog.snapshot(prefs.prefs)
+                    if (report != null) VaultFallbackLog.clear(prefs.prefs)
+                    result.success(report)
+                }
 
                 // ---- Multi-channel relay (v2.3) ----
                 "setRelayCredentials" -> {
