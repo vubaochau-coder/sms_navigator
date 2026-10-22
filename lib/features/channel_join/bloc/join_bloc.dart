@@ -2,7 +2,6 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/errors/app_exceptions.dart';
-import '../../../core/repositories/join_channel_repository.dart';
 import '../../../core/repositories/qr_repository.dart';
 import '../../../core/utils/qr_error_messages.dart';
 import 'join_event.dart';
@@ -12,23 +11,19 @@ import '../../../core/l10n/app_l10n.dart';
 export 'join_event.dart';
 export 'join_state.dart';
 
-/// Bloc điều khiển luồng xác nhận tham gia kênh độc lập:
-/// Resolve thông tin kênh -> Hiển thị Preview -> Submit Claim -> Pop.
+/// Bloc điều khiển luồng xác nhận tham gia kênh (Universal Opaque QR):
+/// Preview (đã resolve ở `QrEntryPage`) -> Submit Claim bằng `code` -> Pop.
 class JoinBloc extends Bloc<JoinEvent, JoinState> {
   JoinBloc({
-    required JoinChannelRepository repository,
+    required QrRepository qrRepository,
     required String initialDeviceName,
-    QrRepository? qrRepository,
-  }) : _repository = repository,
-       _qrRepository = qrRepository,
+  }) : _qrRepository = qrRepository,
        super(JoinState(deviceName: initialDeviceName)) {
-    on<JoinResolveStarted>(_onResolveStarted, transformer: restartable());
     on<JoinInitializedWithPreview>(_onInitializedWithPreview);
     on<JoinSubmitted>(_onSubmitted, transformer: droppable());
   }
 
-  final JoinChannelRepository _repository;
-  final QrRepository? _qrRepository;
+  final QrRepository _qrRepository;
 
   void _onInitializedWithPreview(
     JoinInitializedWithPreview event,
@@ -44,49 +39,12 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     );
   }
 
-  Future<void> _onResolveStarted(
-    JoinResolveStarted event,
-    Emitter<JoinState> emit,
-  ) async {
-    emit(
-      state.copyWith(
-        phase: JoinPhase.resolving,
-        invite: event.invite,
-        clearError: true,
-      ),
-    );
-
-    try {
-      final preview = await _repository.resolveInvite(event.invite);
-      emit(
-        state.copyWith(
-          phase: JoinPhase.ready,
-          preview: preview,
-          clearError: true,
-        ),
-      );
-    } catch (error) {
-      final code = _extractErrorCode(error);
-      final message = _mapResolveError(error, code);
-      emit(
-        state.copyWith(
-          phase: JoinPhase.resolveFailed,
-          errorMessage: message,
-          errorCode: code,
-        ),
-      );
-    }
-  }
-
   Future<void> _onSubmitted(
     JoinSubmitted event,
     Emitter<JoinState> emit,
   ) async {
-    final invite = state.invite;
     final code = state.code;
-    final qrRepository = _qrRepository;
-    final viaCode = code != null && qrRepository != null;
-    if (!viaCode && invite == null) return;
+    if (code == null) return;
 
     emit(
       state.copyWith(
@@ -97,9 +55,7 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     );
 
     try {
-      final result = viaCode
-          ? await qrRepository.claimPairing(code: code, deviceName: event.deviceName)
-          : await _repository.claim(invite: invite!, deviceName: event.deviceName);
+      final result = await _qrRepository.claimPairing(code: code, deviceName: event.deviceName);
       emit(
         state.copyWith(
           phase: JoinPhase.claimSuccess,
@@ -124,9 +80,6 @@ class JoinBloc extends Bloc<JoinEvent, JoinState> {
     if (error is ApiException) return error.errorCode;
     return null;
   }
-
-  String _mapResolveError(Object error, String? code) =>
-      _mapJoinError(error, code) ?? AppL10n.current.joinResolveFailed;
 
   String _mapClaimError(Object error, String? code) =>
       _mapJoinError(error, code) ?? AppL10n.current.joinClaimFailed;

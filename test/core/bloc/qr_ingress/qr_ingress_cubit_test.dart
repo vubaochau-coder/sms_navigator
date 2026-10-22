@@ -67,9 +67,11 @@ void main() {
     expect(cubit.state.pendingSeq, 2);
   });
 
-  test('legacy v4 invites are passed through for the transition', () async {
+  test('legacy v4 invites are rejected since roadmap phase 6', () async {
     const v4 = 'smsnavigator://pair?v=4&s=session_123&t=token_abc&u=aHR0cHM6Ly9hcGkuaW8&e=1790999999999';
     await cubit.submit(v4);
-    expect(cubit.state.pending, const LegacyInviteLink(v4));
+
+    expect(cubit.state.pending, isNull);
+    expect(cubit.state.rejectionMessage, QrErrorMessages.unsupportedFormat);
   });
 }

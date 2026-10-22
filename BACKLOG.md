@@ -16,7 +16,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 | 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
 | 0.3b | Chuyển các máy sang keystore release: cài **1.0.1+19** (nhánh `release/1.0.1-export`, luôn ký debug key cũ → cài đè, giữ dữ liệu) → **Sao lưu** → gỡ app → cài **1.1.0+20** (`main`, ký release keystore) → **Khôi phục** | Máy build bản 1.0.1 phải là máy đã build bản đang cài (cùng `~/.android/debug.keystore`), nếu không cài đè sẽ báo `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Keystore release: `./scripts/create_release_keystore.sh`, nhớ sao lưu `.jks` + `android/key.properties` | P0 |
 | 0.5 | Test thực tế trên máy | Deeplink cold start / mid-splash / warm start; 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal); OTP trong thông báo khi app bị vuốt tắt; **sao lưu → gỡ app → cài lại → khôi phục** (Owner relay tiếp được, Member đọc được tin cũ) | P0 |
-| 0.6 | Roadmap GĐ6 — clean-cut v4: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
 
 ---
 
@@ -57,6 +56,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 - **Nhánh `feat/backlog-sweep`** (xem `REVIEW_BACKLOG.md` để kiểm thử):
   - `distribute.yml` ký bằng release keystore từ GitHub Secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`), dừng nếu thiếu secret, kiểm tra chữ ký APK trước khi upload; thêm `flutter analyze`, ghim Flutter 3.47.7 — cũ: mục 3.8.
   - CI pull request `.github/workflows/ci.yml`: kiểm l10n đã sinh, `flutter analyze`, `flutter test`, Kotlin `:app:testDebugUnitTest` — cũ: mục 3.9.
+  - Clean-cut v4 phía app: gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted`, resolve/claim bằng token; chỉ còn luồng opaque QR (`QrEntryPage` → `JoinConfirmPage.fromQr`) — cũ: mục 0.6. Phát hành sau force update `app_update_min_build` = 20 và BE clean-cut.
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

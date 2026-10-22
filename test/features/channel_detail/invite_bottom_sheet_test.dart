@@ -29,11 +29,10 @@ void main() {
           channelId: 'ch_001',
           session: PairingSessionModel(
             sessionId: 'ses_001',
-            pairingToken: 'tok_001',
             expiresAt: DateTime.now()
                 .add(const Duration(minutes: 9))
                 .toIso8601String(),
-            inviteUrl: 'smsnav://invite/v4?sid=ses_001',
+            qrUrl: 'https://host/qr/ses_001',
           ),
         ),
       );

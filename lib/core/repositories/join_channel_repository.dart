@@ -1,16 +1,7 @@
-import '../models/invite_preview_model.dart';
 import '../models/pairing_request_model.dart';
-import '../models/pairing_session_model.dart';
 
 abstract class JoinChannelRepository {
-  /// Xem trước thông tin kênh từ QR invite trước khi gửi yêu cầu tham gia (API spec §4.6).
-  Future<InvitePreviewModel> resolveInvite(InvitePayload invite);
-
-  /// Claim với tên thiết bị user nhập/sửa trong dialog xác nhận (3.2).
-  Future<ClaimRequestResultModel> claim({
-    required InvitePayload invite,
-    required String deviceName,
-  });
+  // Preview + claim bằng opaque QR code: xem `QrRepository`.
 
   /// Trạng thái các request mình đã gửi.
   Future<List<PairingRequestModel>> listMyRequests();

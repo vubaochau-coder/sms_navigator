@@ -1154,23 +1154,12 @@ class AppLocalizationsVi extends AppLocalizations {
       'Kênh này đã bị lưu trữ, không thể tham gia.';
 
   @override
-  String get joinResolveFailed =>
-      'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.';
-
-  @override
-  String get joinResolveFailedShort => 'Không thể kiểm tra thông tin kênh.';
-
-  @override
   String get joinClaimFailed =>
       'Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.';
 
   @override
   String get joinClaimFailedRetry =>
       'Không gửi được yêu cầu. Vui lòng thử lại sau.';
-
-  @override
-  String get joinInvalidQrFormat =>
-      'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.';
 
   @override
   String get joinChannelFallbackName => 'kênh';

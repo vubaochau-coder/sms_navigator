@@ -31,3 +31,19 @@
 - [ ] Mở PR của nhánh này → 2 job xanh.
 - [ ] (Tuỳ chọn) Settings → Branches → bảo vệ `main`, bắt buộc 2 check `Analyze & Flutter test`, `Kotlin unit tests`.
 
+## P1-3 · Clean-cut v4 phía app (BACKLOG 0.6)
+
+⚠️ **Thứ tự phát hành bắt buộc**: (1) mọi máy đã lên **1.1.0+20** → (2) Remote Config `app_update_min_build` = **20** (force update) → (3) deploy BE "clean-cut v4" → (4) phát bản app có commit này. Đảo thứ tự → máy cũ không join được kênh.
+
+**Rà soát**
+- [ ] Đã gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted`, `JoinPhase.resolving/resolveFailed`, `JoinSkeletonView`/`JoinErrorView`, `JoinChannelRepository.resolveInvite/claim`, `PairingApiService.resolveSession/claimPairingRequest`, endpoint `channelSessionsResolveV2`.
+- [ ] `PairingSessionModel` chỉ còn `code`/`qrUrl` (`shareUrl == qrUrl`); bỏ qua `pairing_token`/`invite_url` nếu server cũ còn trả.
+- [ ] `JoinBloc` bắt buộc `QrRepository`; `JoinConfirmPage` chỉ còn `.fromQr` (preview do `QrEntryPage` resolve).
+- [ ] QR v4 (`smsnavigator://pair?v=4…`) giờ bị từ chối với toast "Mã QR này không được SMS Navigator hỗ trợ".
+- [ ] Gỡ 3 chuỗi l10n không dùng (`joinResolveFailed`, `joinResolveFailedShort`, `joinInvalidQrFormat`).
+
+**Kiểm thử**
+- [ ] Owner tạo QR → Member quét bằng camera / chọn ảnh / bấm link / dán mã → màn xác nhận → gửi yêu cầu → Owner duyệt.
+- [ ] Quét QR v4 cũ (ảnh chụp từ bản ≤ 1.0.x) → toast không hỗ trợ, không crash.
+- [ ] Claim lỗi (mã đã dùng / hết hạn) → toast đúng thông điệp, ở lại màn xác nhận.
+

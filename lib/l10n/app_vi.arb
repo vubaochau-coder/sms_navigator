@@ -683,11 +683,8 @@
   "joinErrorExpired": "Mã mời đã hết hạn. Hãy xin Chủ kênh một mã mời mới.",
   "joinErrorUsed": "Mã mời đã được sử dụng. Hãy xin Chủ kênh một mã mời mới.",
   "joinErrorChannelArchived": "Kênh này đã bị lưu trữ, không thể tham gia.",
-  "joinResolveFailed": "Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.",
-  "joinResolveFailedShort": "Không thể kiểm tra thông tin kênh.",
   "joinClaimFailed": "Không gửi được yêu cầu. Kiểm tra kết nối và thử lại.",
   "joinClaimFailedRetry": "Không gửi được yêu cầu. Vui lòng thử lại sau.",
-  "joinInvalidQrFormat": "Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.",
   "joinChannelFallbackName": "kênh",
   "joinRequestSent": "Đã gửi yêu cầu tham gia {channelName}",
   "@joinRequestSent": {

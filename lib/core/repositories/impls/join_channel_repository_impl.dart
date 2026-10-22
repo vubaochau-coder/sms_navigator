@@ -1,6 +1,4 @@
-import '../../models/invite_preview_model.dart';
 import '../../models/pairing_request_model.dart';
-import '../../models/pairing_session_model.dart';
 import '../../services/channel_api_service.dart';
 import '../../services/channel_key_store.dart';
 import '../../services/device_storage_service.dart';
@@ -26,23 +24,6 @@ class JoinChannelRepositoryImpl implements JoinChannelRepository {
   final ChannelKeyStore _keyStore;
   final ChannelCryptoHelper _crypto;
   final DeviceStorageService _deviceStorage;
-
-  @override
-  Future<InvitePreviewModel> resolveInvite(InvitePayload invite) =>
-      _pairingApi.resolveSession(
-        sessionId: invite.sessionId,
-        pairingToken: invite.pairingToken,
-      );
-
-  @override
-  Future<ClaimRequestResultModel> claim({
-    required InvitePayload invite,
-    required String deviceName,
-  }) => _pairingApi.claimPairingRequest(
-    sessionId: invite.sessionId,
-    pairingToken: invite.pairingToken,
-    deviceName: deviceName,
-  );
 
   @override
   Future<List<PairingRequestModel>> listMyRequests() => _pairingApi.listMyRequests();

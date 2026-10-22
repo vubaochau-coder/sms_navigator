@@ -19,8 +19,7 @@ class _FakeScannerController extends MobileScannerController {
       analyzeResult;
 }
 
-const String _validPairingQr =
-    'smsnavigator://pair?v=4&s=session_123&t=token_abc&u=aHR0cHM6Ly9hcGkuaW8%3D&e=1790999999999';
+const String _validPairingQr = 'smsnavigator://qr?code=AbCdEfGhIjKlMnOpQrSt_-';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

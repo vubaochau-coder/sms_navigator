@@ -1,40 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../core/extensions/context_extensions.dart';
 import '../../core/models/invite_preview_model.dart';
-import '../../core/models/pairing_session_model.dart';
-import '../../core/repositories/join_channel_repository.dart';
 import '../../core/repositories/qr_repository.dart';
 import '../../core/ui/toast_utils.dart';
 import '../device/bloc/device_profile_cubit.dart';
 import 'bloc/join_bloc.dart';
-import '../../core/l10n/app_l10n.dart';
 
 export 'bloc/join_bloc.dart';
 
-/// Màn hình xác nhận tham gia kênh độc lập sau khi quét QR invite v4:
-/// 1. Mount -> Tự động gọi resolve preview metadata (tên kênh, chủ kênh);
-/// 2. Hiển thị thông tin kênh và tên thiết bị hiện tại (Read-only, không rename);
-/// 3. Bấm [Gửi yêu cầu kết nối] -> claim QR;
-/// 4. Thành công hoặc đã có pending request -> Toast & pop về Tab Kênh.
+/// Màn hình xác nhận tham gia kênh sau khi quét Universal Opaque QR (v3.3):
+/// 1. Preview (tên kênh, chủ kênh) đã resolve sẵn ở `QrEntryPage`;
+/// 2. Hiển thị thông tin kênh và tên thiết bị hiện tại (read-only);
+/// 3. Bấm [Gửi yêu cầu kết nối] -> claim bằng [code];
+/// 4. Thành công -> Toast & pop về Tab Kênh.
 class JoinConfirmPage extends StatelessWidget {
-  /// Invite v4 (giai đoạn chuyển tiếp — gỡ ở roadmap GĐ6).
-  const JoinConfirmPage({super.key, required String this.inviteRaw})
-    : code = null,
-      preview = null;
-
-  /// Universal Opaque QR (v3.3): preview đã resolve sẵn, claim bằng [code].
   const JoinConfirmPage.fromQr({
     super.key,
-    required String this.code,
-    required InvitePreviewModel this.preview,
-  }) : inviteRaw = null;
+    required this.code,
+    required this.preview,
+  });
 
-  final String? inviteRaw;
-  final String? code;
-  final InvitePreviewModel? preview;
+  final String code;
+  final InvitePreviewModel preview;
 
   @override
   Widget build(BuildContext context) {
@@ -46,57 +35,16 @@ class JoinConfirmPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => JoinBloc(
-        repository: context.read<JoinChannelRepository>(),
+        qrRepository: context.read<QrRepository>(),
         initialDeviceName: initialName,
-        qrRepository: code != null ? context.read<QrRepository>() : null,
-      ),
-      child: JoinConfirmView(inviteRaw: inviteRaw, code: code, preview: preview),
+      )..add(JoinInitializedWithPreview(preview: preview, code: code)),
+      child: const JoinConfirmView(),
     );
   }
 }
 
-class JoinConfirmView extends StatefulWidget {
-  const JoinConfirmView({super.key, this.inviteRaw, this.code, this.preview});
-
-  final String? inviteRaw;
-  final String? code;
-  final InvitePreviewModel? preview;
-
-  @override
-  State<JoinConfirmView> createState() => _JoinConfirmViewState();
-}
-
-class _JoinConfirmViewState extends State<JoinConfirmView> {
-  String? _parseError;
-
-  @override
-  void initState() {
-    super.initState();
-    _initInvite();
-  }
-
-  void _initInvite() {
-    final code = widget.code;
-    final preview = widget.preview;
-    if (code != null && preview != null) {
-      // Universal Opaque QR: preview đã có, vào thẳng ready.
-      context.read<JoinBloc>().add(JoinInitializedWithPreview(preview: preview, code: code));
-      return;
-    }
-    final invite = InvitePayload.tryParse(widget.inviteRaw ?? '');
-    if (invite == null) {
-      _parseError = AppL10n.current.joinInvalidQrFormat;
-      return;
-    }
-    if (invite.isExpired) {
-      _parseError = AppL10n.current.joinErrorExpired;
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<JoinBloc>().add(JoinResolveStarted(invite));
-    });
-  }
+class JoinConfirmView extends StatelessWidget {
+  const JoinConfirmView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -108,14 +56,6 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
       ),
       body: BlocConsumer<JoinBloc, JoinState>(
         listener: (context, state) {
-          if (state.phase == JoinPhase.resolveFailed && state.isAlreadyPending) {
-            ToastUtils.showInfo(
-              state.errorMessage ?? context.l10n.joinErrorAlreadyPending,
-            );
-            Navigator.of(context).pop();
-            return;
-          }
-
           if (state.phase == JoinPhase.claimSuccess) {
             final name = state.channelName.isNotEmpty ? state.channelName : context.l10n.joinChannelFallbackName;
             ToastUtils.showSuccess(context.l10n.joinRequestSent(name));
@@ -129,197 +69,7 @@ class _JoinConfirmViewState extends State<JoinConfirmView> {
             );
           }
         },
-        builder: (context, state) {
-          if (_parseError != null) {
-            return JoinErrorView(message: _parseError!);
-          }
-
-          return switch (state.phase) {
-            JoinPhase.resolving => const JoinSkeletonView(),
-            JoinPhase.resolveFailed => JoinErrorView(
-                message: state.errorMessage ?? context.l10n.joinResolveFailedShort,
-              ),
-            _ => JoinReadyView(state: state),
-          };
-        },
-      ),
-    );
-  }
-
-
-
-}
-
-/// Shimmer trong lúc resolve thông tin kênh (luồng invite v4).
-class JoinSkeletonView extends StatelessWidget {
-  const JoinSkeletonView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
-    final highlightColor =
-        isDark ? Colors.grey.shade700 : Colors.grey.shade100;
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Shimmer.fromColors(
-            baseColor: baseColor,
-            highlightColor: highlightColor,
-            period: const Duration(milliseconds: 1400),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerLow,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 32),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          width: 140,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          width: 100,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerLow,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                width: 120,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Center(
-            child: Text(
-              context.l10n.joinLoadingChannelInfo,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-}
-
-/// Lỗi không thể tiếp tục (mã sai định dạng, hết hạn, resolve thất bại).
-class JoinErrorView extends StatelessWidget {
-  const JoinErrorView({super.key, required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer.withValues(alpha: 0.4),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 48,
-                color: theme.colorScheme.error,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 28),
-            FilledButton.tonal(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.l10n.back),
-            ),
-          ],
-        ),
+        builder: (context, state) => JoinReadyView(state: state),
       ),
     );
   }

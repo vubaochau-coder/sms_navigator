@@ -2068,18 +2068,6 @@ abstract class AppLocalizations {
   /// **'Kênh này đã bị lưu trữ, không thể tham gia.'**
   String get joinErrorChannelArchived;
 
-  /// No description provided for @joinResolveFailed.
-  ///
-  /// In vi, this message translates to:
-  /// **'Không thể kiểm tra thông tin kênh. Vui lòng thử lại sau.'**
-  String get joinResolveFailed;
-
-  /// No description provided for @joinResolveFailedShort.
-  ///
-  /// In vi, this message translates to:
-  /// **'Không thể kiểm tra thông tin kênh.'**
-  String get joinResolveFailedShort;
-
   /// No description provided for @joinClaimFailed.
   ///
   /// In vi, this message translates to:
@@ -2091,12 +2079,6 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không gửi được yêu cầu. Vui lòng thử lại sau.'**
   String get joinClaimFailedRetry;
-
-  /// No description provided for @joinInvalidQrFormat.
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã QR không đúng định dạng. Hãy xin Chủ kênh một mã mời mới.'**
-  String get joinInvalidQrFormat;
 
   /// No description provided for @joinChannelFallbackName.
   ///

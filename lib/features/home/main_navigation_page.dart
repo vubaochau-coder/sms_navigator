@@ -7,7 +7,6 @@ import '../../core/services/startup_reconcile_service.dart';
 import '../../core/utils/qr_link_parser.dart';
 import '../../core/ui/toast_utils.dart';
 import '../channel/channel_page.dart';
-import '../channel_join/join_confirm_page.dart';
 import '../../core/bloc/qr_ingress/qr_ingress_cubit.dart';
 import '../qr_entry/qr_entry_page.dart';
 import '../scanner/qr_scan_page.dart';
@@ -130,7 +129,6 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
     if (link == null) return;
     final route = switch (link) {
       OpaqueQrLink(:final code) => MaterialPageRoute<void>(builder: (_) => QrEntryPage(code: code)),
-      LegacyInviteLink(:final raw) => MaterialPageRoute<void>(builder: (_) => JoinConfirmPage(inviteRaw: raw)),
     };
     Navigator.of(context).push(route);
   }

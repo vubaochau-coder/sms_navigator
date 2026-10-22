@@ -29,9 +29,9 @@ void main() {
       expect(QrLinkParser.parse('  $code  '), const OpaqueQrLink(code));
     });
 
-    test('legacy v4 invite is still recognised during the transition', () {
+    test('legacy v4 invite is no longer recognised (roadmap phase 6)', () {
       const v4 = 'smsnavigator://pair?v=4&s=session_123&t=token_abc&u=aHR0cHM6Ly9hcGkuaW8&e=1790999999999';
-      expect(QrLinkParser.parse(v4), const LegacyInviteLink(v4));
+      expect(QrLinkParser.parse(v4), isNull);
     });
 
     test('rejects malformed codes and unrelated content', () {
