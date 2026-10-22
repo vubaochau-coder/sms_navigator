@@ -1642,4 +1642,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String smsOfflineCached(String time) {
     return 'Ngoại tuyến — đang xem bản lưu lúc $time';
   }
+
+  @override
+  String get splashMaintenanceDefault =>
+      'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.';
 }

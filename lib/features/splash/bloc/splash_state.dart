@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../../core/enums/splash_status.dart';
 
 /// Loại lỗi khởi động — quyết định icon/hướng dẫn, không đoán qua nội dung chuỗi.
-enum SplashFailureKind { network, server, unknown }
+enum SplashFailureKind { network, server, maintenance, unknown }
 
 class SplashState extends Equatable {
   final SplashStatus status;

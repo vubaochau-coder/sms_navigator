@@ -10,6 +10,7 @@ import '../../core/services/device_api_service.dart';
 import '../../core/services/device_storage_service.dart';
 import '../../core/services/fcm_notification_service.dart';
 import '../../core/services/native_relay_service.dart';
+import '../../core/services/startup_gate.dart';
 import '../../core/services/startup_reconcile_service.dart';
 import 'bloc/splash_bloc.dart';
 import 'bloc/splash_event.dart';
@@ -48,6 +49,7 @@ class SplashPage extends StatelessWidget {
             deviceApiService: ctx.read<DeviceApiService>(),
             startupReconcileService: ctx.read<StartupReconcileService>(),
             nativeRelayService: ctx.read<NativeRelayService>(),
+            startupGate: ctx.read<StartupGate>(),
           ),
           offerRestoreOnFirstRun: true,
         );

@@ -47,7 +47,9 @@ import '../services/deep_link_service.dart';
 import '../services/qr_api_service.dart';
 import '../bloc/qr_ingress/qr_ingress_cubit.dart';
 import '../services/impls/pairing_api_service_impl.dart';
+import '../services/impls/remote_config_startup_gate.dart';
 import '../services/impls/startup_reconcile_service_impl.dart';
+import '../services/startup_gate.dart';
 import '../services/local_storage_service.dart';
 import '../services/message_api_service.dart';
 import '../services/native_relay_service.dart';
@@ -107,6 +109,9 @@ class AppBootstrap extends StatelessWidget {
           create: (context) => AppUpdateServiceImpl(
             localStorage: context.read<LocalStorageService>(),
           ),
+        ),
+        RepositoryProvider<StartupGate>(
+          create: (_) => RemoteConfigStartupGate(),
         ),
         RepositoryProvider<NativeRelayService>(
           create: (_) => NativeRelayServiceImpl(),

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/splash_status.dart';
 import '../../../core/errors/app_exceptions.dart';
 import '../../../core/repositories/startup_repository.dart';
+import '../../../core/services/startup_gate.dart';
 import '../../../core/utils/app_logger.dart';
 import 'splash_event.dart';
 import 'splash_state.dart';
@@ -106,6 +107,13 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       emit(state.copyWith(status: SplashStatus.ready));
     } on RequestCancelledException {
       AppLogger.d('SplashBloc', 'Bootstrap was cancelled for retry');
+    } on StartupBlockedException catch (blocked) {
+      // Bảo trì có chủ đích (BACKLOG 3.5) — không phải lỗi, không ghi Crashlytics
+      emit(state.copyWith(
+        status: SplashStatus.failure,
+        errorMessage: blocked.message.isNotEmpty ? blocked.message : AppL10n.current.splashMaintenanceDefault,
+        failureKind: SplashFailureKind.maintenance,
+      ));
     } catch (error, stack) {
       AppLogger.e('SplashBloc', 'Bootstrap error', error, stack);
       await startupRepository.recordFailure(error, stack);

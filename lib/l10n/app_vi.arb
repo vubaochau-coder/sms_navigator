@@ -954,5 +954,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "splashMaintenanceDefault": "Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút."
 }

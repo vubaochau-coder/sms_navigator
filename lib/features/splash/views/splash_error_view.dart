@@ -38,7 +38,11 @@ class SplashErrorView extends StatelessWidget {
     final l10n = context.l10n;
 
     final msg = errorMessage ?? '';
-    final isNetwork = failureKind == SplashFailureKind.network;
+    final icon = switch (failureKind) {
+      SplashFailureKind.network => Icons.wifi_off_rounded,
+      SplashFailureKind.maintenance => Icons.construction_rounded,
+      _ => Icons.cloud_off_rounded,
+    };
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -53,7 +57,7 @@ class SplashErrorView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isNetwork ? Icons.wifi_off_rounded : Icons.cloud_off_rounded,
+            icon,
             color: colorScheme.error,
             size: 36,
           ),

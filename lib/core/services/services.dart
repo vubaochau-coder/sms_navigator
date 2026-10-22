@@ -12,6 +12,7 @@ export 'native_relay_service.dart';
 export 'pairing_api_service.dart';
 export 'receiver_storage_service.dart';
 export 'secure_storage_service.dart';
+export 'startup_gate.dart';
 export 'startup_reconcile_service.dart';
 
 export 'app_update_service.dart';
@@ -30,4 +31,5 @@ export 'impls/native_relay_service_impl.dart';
 export 'impls/pairing_api_service_impl.dart';
 export 'impls/receiver_storage_service_impl.dart';
 export 'impls/secure_storage_service_impl.dart';
+export 'impls/remote_config_startup_gate.dart';
 export 'impls/startup_reconcile_service_impl.dart';

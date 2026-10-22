@@ -2901,6 +2901,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Ngoại tuyến — đang xem bản lưu lúc {time}'**
   String smsOfflineCached(String time);
+
+  /// No description provided for @splashMaintenanceDefault.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.'**
+  String get splashMaintenanceDefault;
 }
 
 class _AppLocalizationsDelegate

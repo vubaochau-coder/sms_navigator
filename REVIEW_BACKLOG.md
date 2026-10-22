@@ -182,3 +182,16 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 **Kiểm thử**
 - [ ] `splash_bloc_test.dart` (giữ nguyên kịch bản, chỉ đổi cách dựng bloc).
 - [ ] Trên máy: cài mới (thấy lựa chọn Khôi phục / Máy mới), mở lại app đã đăng ký, mở khi mất mạng → nút Thử lại.
+
+## P3-4 · Cổng khởi động / bảo trì (BACKLOG 3.5)
+
+**Rà soát**
+- [ ] Phạm vi cố ý thu gọn: chỉ một `StartupGate` (bảo trì) chạy trong `StartupRepositoryImpl` ngay sau khi khởi tạo FCM, **trước mọi gọi API**. Không làm `CapabilitySet` / `StartupCoordinator` — chưa có nhu cầu thật, cổng cập nhật bắt buộc đã có ở `AppUpdateService` (home).
+- [ ] `RemoteConfigStartupGate` đọc `maintenance_enabled` (bool) + `maintenance_message` (string). **Fail-open**: Firebase chưa init / fetch lỗi / quá 4s → mở cổng (fetch lỗi vẫn dùng giá trị đã kích hoạt lần trước). `minimumFetchInterval` 1 phút → bấm Thử lại liên tục không bị throttle tới server.
+- [ ] Bị chặn → `StartupBlockedException` → `SplashFailureKind.maintenance` (icon công trường, nút Thử lại), **không** ghi Crashlytics. Message rỗng → `splashMaintenanceDefault`.
+- [ ] ⚠️ Chỉ chặn ở màn khởi động; app đang mở không bị đá ra. Relay SMS chạy native vẫn tiếp tục (đúng ý: bảo trì UI/server, không làm mất OTP — tin sẽ vào outbox và gửi lại).
+
+**Kiểm thử**
+- [ ] Unit: nhóm `startup gate (maintenance, 3.5)` trong `splash_bloc_test.dart`.
+- [ ] Firebase Console → Remote Config: thêm `maintenance_enabled=true`, `maintenance_message="Bảo trì tới 22h"` → Publish → mở lại app → thấy thông điệp; tắt cờ → Thử lại (sau ≥ 1 phút) → vào app.
+- [ ] Bật máy bay + cờ đang bật từ lần trước → vẫn thấy bảo trì (giá trị cache); xoá dữ liệu app + máy bay → lỗi mạng như cũ (fail-open).

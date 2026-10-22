@@ -9,6 +9,7 @@ import '../../services/device_api_service.dart';
 import '../../services/device_storage_service.dart';
 import '../../services/fcm_notification_service.dart';
 import '../../services/native_relay_service.dart';
+import '../../services/startup_gate.dart';
 import '../../services/startup_reconcile_service.dart';
 import '../../utils/app_logger.dart';
 import '../startup_repository.dart';
@@ -23,6 +24,7 @@ class StartupRepositoryImpl implements StartupRepository {
     required this.deviceApiService,
     required this.startupReconcileService,
     this.nativeRelayService,
+    this.startupGate,
     TargetPlatform? platform,
   }) : platform = platform ?? defaultTargetPlatform;
 
@@ -34,6 +36,9 @@ class StartupRepositoryImpl implements StartupRepository {
   final DeviceApiService deviceApiService;
   final StartupReconcileService startupReconcileService;
   final NativeRelayService? nativeRelayService;
+
+  /// Cổng bảo trì (BACKLOG 3.5); null → bỏ qua.
+  final StartupGate? startupGate;
   final TargetPlatform platform;
 
   String get _platformName => platform == TargetPlatform.iOS ? 'ios' : 'android';
@@ -52,6 +57,12 @@ class StartupRepositoryImpl implements StartupRepository {
 
     // 2. Dịch vụ chuông FCM
     await fcmService.initialize();
+
+    // 2b. Cổng khởi động từ xa (bảo trì) — fail-open, trước mọi gọi API
+    final gate = await startupGate?.check();
+    if (gate != null && gate.blocked) {
+      throw StartupBlockedException(gate.message);
+    }
 
     // 3. Khởi tạo & kiểm tra cặp khóa định danh thiết bị (Identity Key)
     yield SplashStatus.checkingIdentityKey;
