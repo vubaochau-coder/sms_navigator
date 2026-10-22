@@ -8,6 +8,7 @@ import '../../models/channel_model.dart';
 import '../../models/key_envelope_model.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../models/request_history_result.dart';
 import '../../errors/app_exceptions.dart';
 import '../../models/whitelist_config_model.dart';
 import '../../services/channel_api_service.dart';
@@ -83,6 +84,10 @@ class ChannelRepositoryImpl implements ChannelRepository {
   @override
   Future<List<PairingRequestModel>> listPendingRequests(String channelId) =>
       _pairingApi.listChannelRequests(channelId: channelId);
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory(String channelId, {String? before}) =>
+      _pairingApi.listRequestHistory(channelId: channelId, before: before);
 
   Future<_MutationSnapshot> _loadSnapshot(String channelId) async {
     final detail = await _channelApi.getChannelDetail(channelId: channelId);

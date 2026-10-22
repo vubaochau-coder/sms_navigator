@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/request_history_result.dart';
 import 'package:sms_navigator/core/models/channel_detail_model.dart';
 import 'package:sms_navigator/core/models/channel_member_model.dart';
 import 'package:sms_navigator/core/models/channel_model.dart';
@@ -88,6 +89,10 @@ class FakeChannelRepository implements ChannelRepository {
 
   @override
   Future<void> renameChannel({required String channelId, required String name}) async {}
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory(String channelId, {String? before}) async =>
+      const RequestHistoryResult();
 
   @override
   Future<void> leaveChannel(String channelId) async {}

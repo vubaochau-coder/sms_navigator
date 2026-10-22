@@ -929,5 +929,14 @@
       }
     }
   },
-  "channelArchiveFailed": "Không giải tán được kênh. Vui lòng thử lại."
+  "channelArchiveFailed": "Không giải tán được kênh. Vui lòng thử lại.",
+  "requestHistoryAction": "Lịch sử yêu cầu",
+  "requestHistoryTitle": "Lịch sử yêu cầu kết nối",
+  "requestHistoryEmpty": "Chưa có yêu cầu nào được xử lý.",
+  "requestHistoryLoadMore": "Xem thêm",
+  "requestHistoryLoadFailed": "Không tải được lịch sử yêu cầu.",
+  "requestHistoryRetry": "Thử lại",
+  "requestStatusApproved": "Đã duyệt",
+  "requestStatusRejected": "Đã từ chối",
+  "requestStatusCancelled": "Đã huỷ"
 }

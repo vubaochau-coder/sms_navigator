@@ -3,6 +3,7 @@ import '../models/channel_member_model.dart';
 import '../models/channel_model.dart';
 import '../models/pairing_request_model.dart';
 import '../models/pairing_session_model.dart';
+import '../models/request_history_result.dart';
 
 abstract class ChannelRepository {
   /// `GET /channels` — nguồn cho ChannelPage 2 nhóm theo `role` (2.1).
@@ -16,6 +17,9 @@ abstract class ChannelRepository {
 
   /// `GET /channels/requests?status=PENDING` — hàng đợi duyệt (4.1).
   Future<List<PairingRequestModel>> listPendingRequests(String channelId);
+
+  /// Lịch sử request đã xử lý của kênh (BACKLOG 1.6), mới nhất trước.
+  Future<RequestHistoryResult> listRequestHistory(String channelId, {String? before});
 
   /// Tạo kênh (2.2): Owner sinh channel_id + CK_1 + self-envelope -> POST.
   Future<ChannelModel> createChannel(String name);

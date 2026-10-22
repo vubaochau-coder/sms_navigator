@@ -1,6 +1,7 @@
 import '../../constants/api_endpoints.dart';
 import '../../models/pairing_request_model.dart';
 import '../../models/pairing_session_model.dart';
+import '../../models/request_history_result.dart';
 import '../../network/api_client.dart';
 import '../../utils/data_converter.dart';
 import '../pairing_api_service.dart';
@@ -54,6 +55,29 @@ class PairingApiServiceImpl implements PairingApiService {
     return _asListOfMaps(data['requests'])
         .map(PairingRequestModel.fromMap)
         .toList();
+  }
+
+  @override
+  Future<RequestHistoryResult> listRequestHistory({
+    required String channelId,
+    String? before,
+    int limit = 30,
+  }) async {
+    final data = _asMap(
+      await apiClient.get(
+        ApiEndpoints.channelRequestsV2,
+        queryParameters: {
+          'channel_id': channelId,
+          'status': 'HISTORY',
+          'limit': '$limit',
+          'before': ?before,
+        },
+      ),
+    );
+    return RequestHistoryResult(
+      items: _asListOfMaps(data['requests']).map(PairingRequestModel.fromMap).toList(),
+      nextBefore: DataConverter.cvToString(data['next_before']),
+    );
   }
 
   @override

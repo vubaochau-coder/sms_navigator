@@ -4,8 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/ui/dialog_utils.dart';
 import '../bloc/channel_detail_bloc.dart';
+import '../request_history_page.dart';
 
-enum _ChannelMenuAction { rename, archive, leave }
+enum _ChannelMenuAction { rename, history, archive, leave }
 
 /// Menu "⋮" trên AppBar chi tiết kênh: Owner (đổi tên, giải tán), Member (rời kênh).
 class ChannelDetailMenuButton extends StatelessWidget {
@@ -20,7 +21,7 @@ class ChannelDetailMenuButton extends StatelessWidget {
     if (!hasDetail) return const SizedBox.shrink();
 
     final actions = isOwner
-        ? const [_ChannelMenuAction.rename, _ChannelMenuAction.archive]
+        ? const [_ChannelMenuAction.rename, _ChannelMenuAction.history, _ChannelMenuAction.archive]
         : const [_ChannelMenuAction.leave];
 
     return PopupMenuButton<_ChannelMenuAction>(
@@ -28,6 +29,7 @@ class ChannelDetailMenuButton extends StatelessWidget {
       enabled: !isBusy,
       onSelected: (action) => switch (action) {
         _ChannelMenuAction.rename => _rename(context),
+        _ChannelMenuAction.history => _openHistory(context),
         _ChannelMenuAction.archive => _archive(context),
         _ChannelMenuAction.leave => _leave(context),
       },
@@ -58,6 +60,13 @@ class ChannelDetailMenuButton extends StatelessWidget {
     if (name != null && name.trim().isNotEmpty) {
       bloc.add(ChannelDetailRenamed(name));
     }
+  }
+
+  Future<void> _openHistory(BuildContext context) {
+    final channelId = context.read<ChannelDetailBloc>().state.channelId;
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => RequestHistoryPage(channelId: channelId)),
+    );
   }
 
   Future<void> _archive(BuildContext context) async {
@@ -102,6 +111,7 @@ class _MenuRow extends StatelessWidget {
     final danger = Theme.of(context).colorScheme.error;
     final (icon, label, color) = switch (action) {
       _ChannelMenuAction.rename => (Icons.edit_outlined, l10n.channelRenameAction, null),
+      _ChannelMenuAction.history => (Icons.history_rounded, l10n.requestHistoryAction, null),
       _ChannelMenuAction.archive => (Icons.delete_forever_outlined, l10n.channelArchiveAction, danger),
       _ChannelMenuAction.leave => (Icons.logout_rounded, l10n.channelLeaveAction, danger),
     };

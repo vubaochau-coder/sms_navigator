@@ -1582,4 +1582,31 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get channelArchiveFailed =>
       'Không giải tán được kênh. Vui lòng thử lại.';
+
+  @override
+  String get requestHistoryAction => 'Lịch sử yêu cầu';
+
+  @override
+  String get requestHistoryTitle => 'Lịch sử yêu cầu kết nối';
+
+  @override
+  String get requestHistoryEmpty => 'Chưa có yêu cầu nào được xử lý.';
+
+  @override
+  String get requestHistoryLoadMore => 'Xem thêm';
+
+  @override
+  String get requestHistoryLoadFailed => 'Không tải được lịch sử yêu cầu.';
+
+  @override
+  String get requestHistoryRetry => 'Thử lại';
+
+  @override
+  String get requestStatusApproved => 'Đã duyệt';
+
+  @override
+  String get requestStatusRejected => 'Đã từ chối';
+
+  @override
+  String get requestStatusCancelled => 'Đã huỷ';
 }

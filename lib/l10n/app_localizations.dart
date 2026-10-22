@@ -2793,6 +2793,60 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không giải tán được kênh. Vui lòng thử lại.'**
   String get channelArchiveFailed;
+
+  /// No description provided for @requestHistoryAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử yêu cầu'**
+  String get requestHistoryAction;
+
+  /// No description provided for @requestHistoryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử yêu cầu kết nối'**
+  String get requestHistoryTitle;
+
+  /// No description provided for @requestHistoryEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có yêu cầu nào được xử lý.'**
+  String get requestHistoryEmpty;
+
+  /// No description provided for @requestHistoryLoadMore.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem thêm'**
+  String get requestHistoryLoadMore;
+
+  /// No description provided for @requestHistoryLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được lịch sử yêu cầu.'**
+  String get requestHistoryLoadFailed;
+
+  /// No description provided for @requestHistoryRetry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get requestHistoryRetry;
+
+  /// No description provided for @requestStatusApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã duyệt'**
+  String get requestStatusApproved;
+
+  /// No description provided for @requestStatusRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã từ chối'**
+  String get requestStatusRejected;
+
+  /// No description provided for @requestStatusCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã huỷ'**
+  String get requestStatusCancelled;
 }
 
 class _AppLocalizationsDelegate

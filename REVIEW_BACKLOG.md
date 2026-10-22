@@ -93,3 +93,16 @@ Cần BE `POST /channels/leave|rotate|archive` (BE REVIEW_BACKLOG P2-2). Xem ph�
 - [ ] Owner: ⋮ → Giải tán kênh → member (cả bản 1.1.0) nhận "Kênh đã giải tán", kênh biến mất ở cả hai bên; SMS khớp whitelist kênh đó không còn relay.
 - [ ] Tắt mạng rồi rời / giải tán → toast lỗi, ở lại màn chi tiết.
 
+## P2-3 · Lịch sử yêu cầu kết nối (BACKLOG 1.6)
+
+Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
+
+**Rà soát**
+- [ ] Menu ⋮ (Owner) → "Lịch sử yêu cầu" → `RequestHistoryPage`: tên máy, thời điểm xử lý, nhãn Đã duyệt / Đã từ chối / Đã huỷ.
+- [ ] `RequestHistoryCubit`: trang 30 mục, "Xem thêm" theo `next_before`, kéo để làm mới, màn lỗi có nút Thử lại.
+- [ ] Model `RequestHistoryResult` (tên khác màn `RequestHistoryPage` để tránh trùng).
+
+**Kiểm thử**
+- [ ] Owner duyệt 1, từ chối 1; member huỷ 1 → lịch sử hiện đủ 3, mới nhất trên cùng.
+- [ ] Kênh chưa có request đã xử lý → màn trống "Chưa có yêu cầu nào được xử lý."
+

@@ -110,13 +110,14 @@ void main() {
         ChannelDetailBloc(repository: _RenameRepository(role: role), channelId: channelId)
           ..add(const ChannelDetailLoaded(channelId));
 
-    testWidgets('owner sees "Đổi tên kênh" and "Giải tán kênh"', (tester) async {
+    testWidgets('owner sees rename, history and dissolve', (tester) async {
       final bloc = blocFor(ChannelRole.owner);
       await pump(tester, bloc);
 
       await tester.tap(find.byTooltip('Tùy chọn kênh'));
       await tester.pumpAndSettle();
       expect(find.text('Đổi tên kênh'), findsOneWidget);
+      expect(find.text('Lịch sử yêu cầu'), findsOneWidget);
       expect(find.text('Giải tán kênh'), findsOneWidget);
       expect(find.text('Rời kênh'), findsNothing);
     });
@@ -129,6 +130,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Rời kênh'), findsOneWidget);
       expect(find.text('Đổi tên kênh'), findsNothing);
+      expect(find.text('Lịch sử yêu cầu'), findsNothing);
       expect(find.text('Giải tán kênh'), findsNothing);
     });
   });
