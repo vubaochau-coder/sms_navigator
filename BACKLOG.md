@@ -23,7 +23,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
-| 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE (BE BACKLOG 2.2). | P2 |
 | 1.6 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Xem lại request `APPROVED` / `REJECTED` / `CANCELLED`. | P2 |
 | 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
 | 1.8 | Bỏ thông báo cho chính máy relay có thể cấu hình | 1.2 bỏ qua `NEW_MESSAGE` do chính máy gửi (Owner đã có SMS gốc). Nếu cần: thêm tuỳ chọn bật lại. | P3 |
@@ -57,6 +56,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
   - CI pull request `.github/workflows/ci.yml`: kiểm l10n đã sinh, `flutter analyze`, `flutter test`, Kotlin `:app:testDebugUnitTest` — cũ: mục 3.9.
   - Clean-cut v4 phía app: gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted`, resolve/claim bằng token; chỉ còn luồng opaque QR (`QrEntryPage` → `JoinConfirmPage.fromQr`) — cũ: mục 0.6. Phát hành sau force update `app_update_min_build` = 20 và BE clean-cut.
   - Đổi tên kênh (Owner): menu ⋮ trên chi tiết kênh → dialog → `PUT /channels/name` → refresh + đồng bộ tên xuống native relay — cũ: mục 1.5.
+  - Rời kênh (member) / giải tán kênh (owner) từ menu ⋮; Owner tự xoay khóa khi có member rời (`rotation_pending` trong `SyncOwnerRelayChannelUseCase`); danh sách kênh tự làm mới khi quay về — cũ: mục 1.4.
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

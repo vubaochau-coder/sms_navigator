@@ -51,7 +51,10 @@ class _ChannelDetailPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Scaffold(
+    return BlocListener<ChannelDetailBloc, ChannelDetailState>(
+      listenWhen: (previous, current) => !previous.isClosed && current.isClosed,
+      listener: (context, _) => Navigator.of(context).maybePop(),
+      child: Scaffold(
       appBar: AppBar(
         title: BlocSelector<ChannelDetailBloc, ChannelDetailState, String?>(
           selector: (state) => state.detail?.name,
@@ -109,6 +112,7 @@ class _ChannelDetailPageView extends StatelessWidget {
             ),
           );
         },
+      ),
       ),
     );
   }

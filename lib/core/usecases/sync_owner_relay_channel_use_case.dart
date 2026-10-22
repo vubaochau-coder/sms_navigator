@@ -15,7 +15,8 @@ import '../services/relay_channel_bridge.dart';
 /// mutation membership. Mỗi lần chạy cũng tự phục hồi:
 /// - thiếu key epoch hiện tại → unwrap lại self-envelope từ server;
 /// - whitelist blob còn mã hóa ở epoch cũ → mã hóa lại ở epoch hiện tại;
-/// - SMS bị "park" vì thiếu key → gửi lại.
+/// - SMS bị "park" vì thiếu key → gửi lại;
+/// - có member tự rời (`rotation_pending`) → xoay khóa (BACKLOG 1.4).
 class SyncOwnerRelayChannelUseCase {
   final ChannelRepository _channelRepository;
   final ChannelKeyStore _keyStore;
@@ -58,7 +59,8 @@ class SyncOwnerRelayChannelUseCase {
       final retain = <String>[];
       final details = <String, ChannelDetailModel>{};
       for (final channel in ownerChannels) {
-        final hint = channel.channelId == channelId ? expectedEpoch : null;
+        final rotated = await _settlePendingRotation(channel.channelId, details);
+        final hint = rotated ?? (channel.channelId == channelId ? expectedEpoch : null);
         final snapshot = await _snapshotFor(channel, hint, details);
         if (snapshot != null) {
           snapshots.add(snapshot);
@@ -183,6 +185,23 @@ class SyncOwnerRelayChannelUseCase {
       }
     } catch (e) {
       AppLogger.w('SyncOwnerRelayChannel', 'Best-effort whitelist sync failed (continuing)', e);
+    }
+  }
+
+  /// Member đã tự rời mà chưa xoay khóa → Owner xoay ngay (người rời vẫn giữ
+  /// key epoch hiện tại). Trả về epoch mới, hoặc null nếu không cần / lỗi —
+  /// lỗi để lần sync sau thử lại, relay vẫn chạy ở epoch cũ.
+  Future<int?> _settlePendingRotation(String channelId, Map<String, ChannelDetailModel> details) async {
+    try {
+      final detail = await _detail(channelId, details);
+      if (!detail.rotationPending) return null;
+      final epoch = await _channelRepository.rotateChannelKey(channelId);
+      details.remove(channelId); // detail cũ đã lỗi thời (epoch, whitelist)
+      AppLogger.i('SyncOwnerRelayChannel', 'Rotated $channelId to epoch $epoch after a member left');
+      return epoch;
+    } catch (e) {
+      AppLogger.w('SyncOwnerRelayChannel', 'Pending rotation of $channelId failed (retry next sync)', e);
+      return null;
     }
   }
 

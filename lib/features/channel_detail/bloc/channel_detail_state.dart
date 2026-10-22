@@ -13,6 +13,9 @@ class ChannelDetailState extends Equatable {
   final bool isLoading;
   final bool isMutating;
 
+  /// Đã rời / giải tán kênh — màn chi tiết tự đóng.
+  final bool isClosed;
+
   const ChannelDetailState({
     required this.channelId,
     this.detail,
@@ -20,6 +23,7 @@ class ChannelDetailState extends Equatable {
     this.pendingRequests = const [],
     this.isLoading = false,
     this.isMutating = false,
+    this.isClosed = false,
   });
 
   int get pendingCount => pendingRequests.length;
@@ -32,6 +36,7 @@ class ChannelDetailState extends Equatable {
     List<PairingRequestModel>? pendingRequests,
     bool? isLoading,
     bool? isMutating,
+    bool? isClosed,
   }) {
     return ChannelDetailState(
       channelId: channelId ?? this.channelId,
@@ -40,6 +45,7 @@ class ChannelDetailState extends Equatable {
       pendingRequests: pendingRequests ?? this.pendingRequests,
       isLoading: isLoading ?? this.isLoading,
       isMutating: isMutating ?? this.isMutating,
+      isClosed: isClosed ?? this.isClosed,
     );
   }
 
@@ -51,6 +57,7 @@ class ChannelDetailState extends Equatable {
     pendingRequests,
     isLoading,
     isMutating,
+    isClosed,
   ];
 }
 

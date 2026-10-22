@@ -2733,6 +2733,66 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không đổi được tên kênh. Vui lòng thử lại.'**
   String get channelRenameFailed;
+
+  /// No description provided for @channelLeaveAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rời kênh'**
+  String get channelLeaveAction;
+
+  /// No description provided for @channelLeaveConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rời kênh này?'**
+  String get channelLeaveConfirmTitle;
+
+  /// No description provided for @channelLeaveConfirmMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn sẽ không nhận và không xem được tin nhắn của \"{channelName}\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.'**
+  String channelLeaveConfirmMessage(String channelName);
+
+  /// No description provided for @channelLeaveSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã rời kênh \"{channelName}\".'**
+  String channelLeaveSuccess(String channelName);
+
+  /// No description provided for @channelLeaveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không rời được kênh. Vui lòng thử lại.'**
+  String get channelLeaveFailed;
+
+  /// No description provided for @channelArchiveAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giải tán kênh'**
+  String get channelArchiveAction;
+
+  /// No description provided for @channelArchiveConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giải tán kênh?'**
+  String get channelArchiveConfirmTitle;
+
+  /// No description provided for @channelArchiveConfirmMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh \"{channelName}\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.'**
+  String channelArchiveConfirmMessage(String channelName);
+
+  /// No description provided for @channelArchiveSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã giải tán kênh \"{channelName}\".'**
+  String channelArchiveSuccess(String channelName);
+
+  /// No description provided for @channelArchiveFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không giải tán được kênh. Vui lòng thử lại.'**
+  String get channelArchiveFailed;
 }
 
 class _AppLocalizationsDelegate

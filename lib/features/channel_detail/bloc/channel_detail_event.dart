@@ -59,6 +59,16 @@ class ChannelDetailRenamed extends ChannelDetailEvent {
   List<Object?> get props => [name];
 }
 
+/// Member tự rời kênh (BACKLOG 1.4) — đã xác nhận qua dialog.
+class ChannelDetailLeft extends ChannelDetailEvent {
+  const ChannelDetailLeft();
+}
+
+/// Owner giải tán kênh (BACKLOG 1.4) — đã xác nhận qua dialog đỏ.
+class ChannelDetailArchived extends ChannelDetailEvent {
+  const ChannelDetailArchived();
+}
+
 // Backward-compatibility aliases
 typedef ApprovalEvent = ChannelDetailEvent;
 typedef ApprovalLoaded = ChannelDetailLoaded;

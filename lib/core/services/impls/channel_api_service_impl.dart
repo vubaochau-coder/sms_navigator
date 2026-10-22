@@ -117,6 +117,29 @@ class ChannelApiServiceImpl implements ChannelApiService {
   }
 
   @override
+  Future<void> leaveChannel({required String channelId}) async {
+    await apiClient.post(ApiEndpoints.channelLeaveV2, body: <String, dynamic>{'channel_id': channelId});
+  }
+
+  @override
+  Future<Map<String, dynamic>> rotateChannel({
+    required String channelId,
+    required Map<String, dynamic> package,
+  }) async {
+    return _asMap(
+      await apiClient.post(
+        ApiEndpoints.channelRotateV2,
+        body: <String, dynamic>{'channel_id': channelId, 'package': package},
+      ),
+    );
+  }
+
+  @override
+  Future<void> archiveChannel({required String channelId}) async {
+    await apiClient.post(ApiEndpoints.channelArchiveV2, body: <String, dynamic>{'channel_id': channelId});
+  }
+
+  @override
   Future<Map<String, dynamic>> updateChannelWhitelist({
     required String channelId,
     required int keyEpoch,

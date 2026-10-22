@@ -20,6 +20,11 @@ class FakeChannelRepository implements ChannelRepository {
   String recoverKey = 'recovered-key';
   final List<String> provisionCalls = [];
 
+  /// Channels whose detail reports `rotation_pending`; rotating saves `rotated-<id>` at epoch+1.
+  final Set<String> rotationPending = {};
+  final List<String> rotateCalls = [];
+  Object? rotateError;
+
   @override
   Future<List<ChannelModel>> listChannels() async => channels;
 
@@ -30,6 +35,7 @@ class FakeChannelRepository implements ChannelRepository {
         name: 'detail-$channelId',
         ownerPublicKey: 'owner-pk',
         myRole: ChannelRole.owner,
+        rotationPending: rotationPending.contains(channelId),
       );
 
   @override
@@ -82,6 +88,22 @@ class FakeChannelRepository implements ChannelRepository {
 
   @override
   Future<void> renameChannel({required String channelId, required String name}) async {}
+
+  @override
+  Future<void> leaveChannel(String channelId) async {}
+
+  @override
+  Future<void> archiveChannel(String channelId) async {}
+
+  @override
+  Future<int> rotateChannelKey(String channelId) async {
+    rotateCalls.add(channelId);
+    if (rotateError != null) throw rotateError!;
+    final epoch = channels.firstWhere((c) => c.channelId == channelId).currentEpoch + 1;
+    recoverInto?.keys['${channelId}_$epoch'] = 'rotated-$channelId';
+    rotationPending.remove(channelId);
+    return epoch;
+  }
 }
 
 class FakeChannelKeyStore implements ChannelKeyStore {
@@ -291,6 +313,34 @@ void main() {
 
     expect(bridge.replaced!.map((s) => s.channelId), ['ch-b']);
     expect(bridge.retained, ['ch-a']);
+  });
+
+  test('rotates a channel a member left (rotation_pending) and relays on the new epoch', () async {
+    channelRepo.channels = [owner('ch-a', epoch: 3), owner('ch-b', epoch: 1)];
+    channelRepo.rotationPending.add('ch-a');
+    channelRepo.recoverInto = keyStore;
+    keyStore.keys['ch-a_3'] = 'key-a-3';
+    keyStore.keys['ch-b_1'] = 'key-b-1';
+
+    await useCase();
+
+    expect(channelRepo.rotateCalls, ['ch-a']);
+    expect(bridge.replaced, const [
+      RelayChannelSnapshot(channelId: 'ch-a', channelName: 'Kênh ch-a', keyEpoch: 4, channelKeyBase64: 'rotated-ch-a'),
+      RelayChannelSnapshot(channelId: 'ch-b', channelName: 'Kênh ch-b', keyEpoch: 1, channelKeyBase64: 'key-b-1'),
+    ]);
+  });
+
+  test('a failed pending rotation keeps relaying on the current epoch', () async {
+    channelRepo.channels = [owner('ch-a', epoch: 3)];
+    channelRepo.rotationPending.add('ch-a');
+    channelRepo.rotateError = Exception('offline');
+    keyStore.keys['ch-a_3'] = 'key-a-3';
+
+    await useCase();
+
+    expect(channelRepo.rotateCalls, ['ch-a']);
+    expect(bridge.replaced!.single.keyEpoch, 3);
   });
 
   test('does nothing without a device token', () async {

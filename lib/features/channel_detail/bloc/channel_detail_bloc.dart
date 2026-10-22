@@ -30,6 +30,8 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     on<ChannelDetailRejected>(_onRejected, transformer: droppable());
     on<ChannelDetailMemberRevoked>(_onRevoked, transformer: droppable());
     on<ChannelDetailRenamed>(_onRenamed, transformer: droppable());
+    on<ChannelDetailLeft>(_onLeft, transformer: droppable());
+    on<ChannelDetailArchived>(_onArchived, transformer: droppable());
   }
 
   final ChannelRepository _repository;
@@ -161,6 +163,36 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       ToastUtils.showError(AppL10n.current.channelRenameFailed);
     }
     emit(state.copyWith(isMutating: false));
+  }
+
+  String get _channelName => state.detail?.name ?? '';
+
+  Future<void> _onLeft(ChannelDetailLeft event, Emitter<ChannelDetailState> emit) async {
+    emit(state.copyWith(isMutating: true));
+    try {
+      await _repository.leaveChannel(state.channelId);
+      ToastUtils.showSuccess(AppL10n.current.channelLeaveSuccess(_channelName));
+      emit(state.copyWith(isMutating: false, isClosed: true));
+    } catch (error) {
+      ToastUtils.showError(AppL10n.current.channelLeaveFailed);
+      emit(state.copyWith(isMutating: false));
+    }
+  }
+
+  Future<void> _onArchived(ChannelDetailArchived event, Emitter<ChannelDetailState> emit) async {
+    emit(state.copyWith(isMutating: true));
+    try {
+      await _repository.archiveChannel(state.channelId);
+      // Kênh không còn trong danh sách → native ngừng relay cho kênh này.
+      if (_syncUseCase != null) {
+        await _syncUseCase();
+      }
+      ToastUtils.showSuccess(AppL10n.current.channelArchiveSuccess(_channelName));
+      emit(state.copyWith(isMutating: false, isClosed: true));
+    } catch (error) {
+      ToastUtils.showError(AppL10n.current.channelArchiveFailed);
+      emit(state.copyWith(isMutating: false));
+    }
   }
 }
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_model.dart';
 import '../../channel_detail/channel_detail_page.dart';
+import '../bloc/channel_bloc.dart';
 
 class ChannelCardView extends StatelessWidget {
   const ChannelCardView({super.key, required this.channel});
@@ -34,12 +36,19 @@ class ChannelCardView extends StatelessWidget {
                 ),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          await Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => ChannelDetailPage(channelId: channel.channelId),
             ),
           );
+          // Tên kênh / thành viên có thể đã đổi, hoặc kênh đã bị rời / giải tán.
+          if (!context.mounted) return;
+          try {
+            context.read<ChannelBloc>().add(const ChannelLoadDataEvent());
+          } on ProviderNotFoundException {
+            // Card dựng ngoài ChannelPage (test / preview) — không có list để làm mới.
+          }
         },
       ),
     );

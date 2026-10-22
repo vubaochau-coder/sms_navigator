@@ -891,5 +891,43 @@
       }
     }
   },
-  "channelRenameFailed": "Không đổi được tên kênh. Vui lòng thử lại."
+  "channelRenameFailed": "Không đổi được tên kênh. Vui lòng thử lại.",
+  "channelLeaveAction": "Rời kênh",
+  "channelLeaveConfirmTitle": "Rời kênh này?",
+  "channelLeaveConfirmMessage": "Bạn sẽ không nhận và không xem được tin nhắn của \"{channelName}\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.",
+  "@channelLeaveConfirmMessage": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelLeaveSuccess": "Đã rời kênh \"{channelName}\".",
+  "@channelLeaveSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelLeaveFailed": "Không rời được kênh. Vui lòng thử lại.",
+  "channelArchiveAction": "Giải tán kênh",
+  "channelArchiveConfirmTitle": "Giải tán kênh?",
+  "channelArchiveConfirmMessage": "Kênh \"{channelName}\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.",
+  "@channelArchiveConfirmMessage": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelArchiveSuccess": "Đã giải tán kênh \"{channelName}\".",
+  "@channelArchiveSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelArchiveFailed": "Không giải tán được kênh. Vui lòng thử lại."
 }

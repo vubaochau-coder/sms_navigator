@@ -1543,4 +1543,43 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get channelRenameFailed =>
       'Không đổi được tên kênh. Vui lòng thử lại.';
+
+  @override
+  String get channelLeaveAction => 'Rời kênh';
+
+  @override
+  String get channelLeaveConfirmTitle => 'Rời kênh này?';
+
+  @override
+  String channelLeaveConfirmMessage(String channelName) {
+    return 'Bạn sẽ không nhận và không xem được tin nhắn của \"$channelName\" nữa. Muốn quay lại phải xin Chủ kênh mã mời mới.';
+  }
+
+  @override
+  String channelLeaveSuccess(String channelName) {
+    return 'Đã rời kênh \"$channelName\".';
+  }
+
+  @override
+  String get channelLeaveFailed => 'Không rời được kênh. Vui lòng thử lại.';
+
+  @override
+  String get channelArchiveAction => 'Giải tán kênh';
+
+  @override
+  String get channelArchiveConfirmTitle => 'Giải tán kênh?';
+
+  @override
+  String channelArchiveConfirmMessage(String channelName) {
+    return 'Kênh \"$channelName\" sẽ bị xoá khỏi mọi thành viên, tin nhắn cũ không còn xem được và SMS sẽ ngừng chuyển tiếp. Không thể hoàn tác.';
+  }
+
+  @override
+  String channelArchiveSuccess(String channelName) {
+    return 'Đã giải tán kênh \"$channelName\".';
+  }
+
+  @override
+  String get channelArchiveFailed =>
+      'Không giải tán được kênh. Vui lòng thử lại.';
 }

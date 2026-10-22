@@ -33,6 +33,18 @@ abstract class ChannelApiService {
   /// `PUT /channels/name` — Owner đổi tên kênh (display-only).
   Future<void> renameChannel({required String channelId, required String name});
 
+  /// `POST /channels/leave` — member tự rời kênh.
+  Future<void> leaveChannel({required String channelId});
+
+  /// `POST /channels/rotate` — Owner xoay khóa, không đổi membership.
+  Future<Map<String, dynamic>> rotateChannel({
+    required String channelId,
+    required Map<String, dynamic> package,
+  });
+
+  /// `POST /channels/archive` — Owner giải tán kênh (không hoàn tác).
+  Future<void> archiveChannel({required String channelId});
+
   Future<Map<String, dynamic>> updateChannelWhitelist({
     required String channelId,
     required int keyEpoch,

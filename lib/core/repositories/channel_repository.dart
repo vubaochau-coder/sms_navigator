@@ -38,6 +38,15 @@ abstract class ChannelRepository {
   /// Owner đổi tên kênh (BACKLOG 1.5) — chỉ là metadata, không rotate key.
   Future<void> renameChannel({required String channelId, required String name});
 
+  /// Member tự rời kênh (BACKLOG 1.4) — xoá luôn key của kênh trên máy.
+  Future<void> leaveChannel(String channelId);
+
+  /// Owner giải tán kênh (BACKLOG 1.4) — không hoàn tác.
+  Future<void> archiveChannel(String channelId);
+
+  /// Owner xoay khóa sau khi có member tự rời (`rotation_pending`) → epoch mới.
+  Future<int> rotateChannelKey(String channelId);
+
   /// Tạo QR invitation (deeplink v4, countdown 10').
   Future<PairingSessionModel> createPairingSession(String channelId);
 

@@ -88,6 +88,15 @@ class _FakeChannelRepository implements ChannelRepository {
 
   @override
   Future<void> renameChannel({required String channelId, required String name}) async {}
+
+  @override
+  Future<void> leaveChannel(String channelId) async {}
+
+  @override
+  Future<void> archiveChannel(String channelId) async {}
+
+  @override
+  Future<int> rotateChannelKey(String channelId) async => 1;
 }
 
 class _FakeChannelKeyStore implements ChannelKeyStore {

@@ -74,3 +74,22 @@ Cần BE `PUT /api/v2/channels/name` (BE REVIEW_BACKLOG P2-1) đã deploy.
 - [ ] Trên máy thật: Owner thu hồi 1 member → thành công, member đó nhận thông báo, các member còn lại vẫn đọc được tin mới.
 - [ ] ⚠️ Nên cherry-pick commit này sang `feat/otp-notification` / bản 1.1.x vì lỗi có ở bản đang phát hành.
 
+## P2-2 · Rời kênh / giải tán kênh (BACKLOG 1.4)
+
+Cần BE `POST /channels/leave|rotate|archive` (BE REVIEW_BACKLOG P2-2). Xem phần **Thiết kế** ở BE — leave không đổi epoch, Owner tự rotate.
+
+**Rà soát**
+- [ ] Menu ⋮: Owner = Đổi tên + **Giải tán kênh** (đỏ); Member = **Rời kênh** (đỏ). Cả hai qua `DialogUtils.showConfirmDialog(isDestructive: true)`.
+- [ ] `ChannelRepositoryImpl.leaveChannel` purge key của kênh sau khi server xác nhận; `archiveChannel` rồi `SyncOwnerRelayChannelUseCase()` để native bỏ kênh.
+- [ ] `rotateChannelKey` dùng chung `_rotate` (lưu + stage key trước, retry đúng package, discard khi 4xx) + re-encrypt whitelist.
+- [ ] `SyncOwnerRelayChannelUseCase` gặp `rotation_pending` → rotate trước khi snapshot; lỗi thì giữ epoch cũ, thử lại lần sync sau. Kích hoạt khi: khởi động, resume, **mọi FCM foreground** (kể cả `MEMBER_LEFT`). App bị kill → rotate ở lần mở kế tiếp (relay vẫn chạy ở epoch cũ trong lúc chờ).
+- [ ] `ChannelDetailState.isClosed` → màn chi tiết tự `maybePop`; `ChannelCardView` refresh danh sách khi quay về.
+- [ ] `ChannelEventKind.memberLeft` (`MEMBER_LEFT`).
+
+**Kiểm thử**
+- [ ] Member: ⋮ → Rời kênh → xác nhận → về danh sách, kênh biến mất; SMS mới của kênh không còn hiện.
+- [ ] Owner (app mở): nhận thông báo "X đã rời kênh" → epoch tăng 1 (xem tiêu đề thẻ kênh) → member còn lại vẫn đọc tin mới.
+- [ ] Owner (app đã vuốt tắt) khi member rời → SMS vẫn relay; mở app → tự rotate.
+- [ ] Owner: ⋮ → Giải tán kênh → member (cả bản 1.1.0) nhận "Kênh đã giải tán", kênh biến mất ở cả hai bên; SMS khớp whitelist kênh đó không còn relay.
+- [ ] Tắt mạng rồi rời / giải tán → toast lỗi, ở lại màn chi tiết.
+

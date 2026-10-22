@@ -24,6 +24,9 @@ class ApiEndpoints {
   static const String channelRevokeV2 = '/api/v2/channels/revoke';
   static const String channelWhitelistV2 = '/api/v2/channels/whitelist';
   static const String channelNameV2 = '/api/v2/channels/name';
+  static const String channelLeaveV2 = '/api/v2/channels/leave';
+  static const String channelRotateV2 = '/api/v2/channels/rotate';
+  static const String channelArchiveV2 = '/api/v2/channels/archive';
 
   // --- Pairing v2 ---
   static const String pairingClaimV2 = '/api/v2/pairing/requests';

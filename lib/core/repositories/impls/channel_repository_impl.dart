@@ -327,6 +327,66 @@ class ChannelRepositoryImpl implements ChannelRepository {
       _channelApi.renameChannel(channelId: channelId, name: name);
 
   @override
+  Future<void> leaveChannel(String channelId) async {
+    await _channelApi.leaveChannel(channelId: channelId);
+    // KL12: không còn là member → xoá key material của kênh trên máy.
+    await _keyStore.purgeChannelKeys(channelId);
+  }
+
+  @override
+  Future<void> archiveChannel(String channelId) => _channelApi.archiveChannel(channelId: channelId);
+
+  @override
+  Future<int> rotateChannelKey(String channelId) async {
+    final identity = await _requireIdentity();
+    final deviceId = await _requireDeviceId();
+    final snapshot = await _loadSnapshot(channelId);
+    final detail = snapshot.detail;
+
+    final newEpoch = detail.currentEpoch + 1;
+    final channelKey = _crypto.generateChannelKeyBase64();
+
+    // {Owner} ∪ ACTIVE — người đã rời có status REVOKED nên không có ở đây.
+    final publicKeyByDeviceId = <String, String>{
+      for (final member in snapshot.activeMembers)
+        if (member.publicKey.isNotEmpty) member.deviceId: member.publicKey,
+    };
+    publicKeyByDeviceId[deviceId] = identity.publicKeyBase64;
+
+    final envelopes = await _buildEnvelopes(
+      channelId: channelId,
+      keyEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+      ownerPrivateKeyBase64: identity.privateKeyBase64,
+      publicKeyByDeviceId: publicKeyByDeviceId,
+    );
+
+    // Built once: retries must resend the byte-identical package.
+    final package = PackageModel(
+      baseEpoch: detail.currentEpoch,
+      baseMembershipVersion: detail.membershipVersion,
+      envelopes: envelopes,
+    ).toMap();
+
+    final committedEpoch = await _rotate(
+      channelId: channelId,
+      channelName: detail.name,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+      commit: () => _channelApi.rotateChannel(channelId: channelId, package: package),
+    );
+
+    await _reEncryptWhitelistAfterRotation(
+      channelId: channelId,
+      detail: detail,
+      newEpoch: newEpoch,
+      channelKeyBase64: channelKey,
+    );
+
+    return committedEpoch;
+  }
+
+  @override
   Future<int> revokeMembers({
     required String channelId,
     required List<String> revokeDeviceIds,

@@ -8,6 +8,7 @@ enum ChannelEventKind {
   approved,
   revoked,
   newMessage,
+  memberLeft,
   unknown;
 
   static ChannelEventKind fromWire(String? kind) => switch (kind) {
@@ -15,6 +16,7 @@ enum ChannelEventKind {
     'APPROVED' => ChannelEventKind.approved,
     'REVOKED' => ChannelEventKind.revoked,
     'NEW_MESSAGE' => ChannelEventKind.newMessage,
+    'MEMBER_LEFT' => ChannelEventKind.memberLeft,
     _ => ChannelEventKind.unknown,
   };
 }
