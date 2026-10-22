@@ -7,6 +7,9 @@ import androidx.work.Data
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.sms_navigator.data.OtpPreferences
+import com.example.sms_navigator.data.ParkedMessage
+import com.example.sms_navigator.data.RelayChannelStore
 import java.util.concurrent.TimeUnit
 
 /**
@@ -15,6 +18,10 @@ import java.util.concurrent.TimeUnit
  *
  * Worker chỉ nhận channelId: key và epoch được đọc từ RelayChannelStore lúc
  * worker chạy, nên một rotation xảy ra sau khi enqueue vẫn dùng đúng key mới.
+ *
+ * Nội dung SMS + sender KHÔNG đi qua inputData (lưu thô trong SQLite của
+ * WorkManager): được ghi mã hóa vào outbox của RelayChannelStore, worker đọc
+ * theo messageId rồi xóa khi xong.
  */
 object RelayWorkScheduler {
     const val TAG_RELAY = "otp_relay"
@@ -26,11 +33,13 @@ object RelayWorkScheduler {
         sender: String,
         messageText: String
     ) {
+        RelayChannelStore(OtpPreferences(context)).putOutgoing(
+            ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
+        )
+
         val inputData = Data.Builder()
             .putString(OtpRelayWorker.KEY_MESSAGE_ID, messageId)
             .putString(OtpRelayWorker.KEY_CHANNEL_ID, channelId)
-            .putString(OtpRelayWorker.KEY_MESSAGE_TEXT, messageText)
-            .putString(OtpRelayWorker.KEY_SENDER, sender)
             .build()
 
         val constraints = Constraints.Builder()

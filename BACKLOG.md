@@ -39,7 +39,6 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 2.1 | Nội dung SMS nằm plaintext trong DB của WorkManager | `RelayWorkScheduler` đưa toàn văn SMS vào `inputData` (SQLite của WorkManager) cho tới khi worker xong (tối đa 5 lần retry). Chuyển sang lưu trong store mã hóa (như parked queue của `RelayChannelStore`), worker chỉ nhận `messageId`. | P1 |
 | 2.2 | Fallback lưu plaintext khi Keystore lỗi | `OtpPreferences` (device token) và `RelayChannelStore` (channel key) lưu thô nếu `SecureVault` ném lỗi. Ít nhất log/Crashlytics + cảnh báo; cân nhắc fail-closed. | P2 |
 
 ---
@@ -63,6 +62,7 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 - **Đợt 22/10/2026**:
   - Đã chạy `flutter analyze` (sạch), `flutter test` (271/271), `:app:testDebugUnitTest` (99/99) — cũ: mục 0.1.
   - Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.3.
+  - SMS relay không còn nằm plaintext trong DB WorkManager: nội dung + sender ghi mã hóa vào outbox `RelayChannelStore`, worker chỉ nhận `messageId`/`channelId`, xóa khi xong; parked queue mã hóa cả sender (cũ: mục 2.1).
   - Release signing đọc `android/key.properties` (fallback debug key) + `scripts/print_android_sha256.sh`.
 - **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.

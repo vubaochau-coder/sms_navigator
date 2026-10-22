@@ -167,4 +167,60 @@ class RelayChannelStoreTest {
         assertEquals("k-a-2", store.get("a")?.activeKey)
         assertEquals(2, store.all().size)
     }
+
+    @Test
+    fun `outbox stores text and sender encrypted and returns them by messageId`() {
+        store.putOutgoing(ParkedMessage("m1", "a", "VCB", "OTP 123456", parkedAt = now))
+
+        val raw = otpPrefs.prefs.all.values.filterIsInstance<String>().joinToString()
+        assertFalse(raw.contains("\"OTP 123456\""))
+        assertFalse(raw.contains("\"VCB\""))
+        assertTrue(raw.contains("enc:OTP 123456"))
+
+        val out = store.getOutgoing("m1")!!
+        assertEquals("a", out.channelId)
+        assertEquals("VCB", out.sender)
+        assertEquals("OTP 123456", out.messageText)
+    }
+
+    @Test
+    fun `outbox entries are removed individually and do not leak into the parked queue`() {
+        store.putOutgoing(ParkedMessage("m1", "a", "VCB", "one", parkedAt = now))
+        store.putOutgoing(ParkedMessage("m2", "b", "MB", "two", parkedAt = now))
+
+        store.removeOutgoing("m1")
+
+        assertNull(store.getOutgoing("m1"))
+        assertEquals("two", store.getOutgoing("m2")?.messageText)
+        assertEquals(0, store.parkedCount())
+    }
+
+    @Test
+    fun `outbox drops expired entries and caps its size`() {
+        store.putOutgoing(ParkedMessage("old", "a", "VCB", "stale", parkedAt = now - RelayChannelStore.PARKED_TTL_MS - 1))
+        store.putOutgoing(ParkedMessage("fresh", "a", "VCB", "ok", parkedAt = now))
+        assertNull(store.getOutgoing("old"))
+
+        repeat(RelayChannelStore.MAX_OUTBOX + 5) { i ->
+            store.putOutgoing(ParkedMessage("m$i", "a", "VCB", "t$i", parkedAt = now))
+        }
+        assertNull(store.getOutgoing("m0"))
+        assertEquals("t${RelayChannelStore.MAX_OUTBOX + 4}", store.getOutgoing("m${RelayChannelStore.MAX_OUTBOX + 4}")?.messageText)
+    }
+
+    @Test
+    fun `parked queue encrypts sender and still reads legacy plaintext senders`() {
+        store.park(ParkedMessage("m1", "a", "VCB", "OTP 1", parkedAt = now))
+        assertFalse(otpPrefs.prefs.all.values.filterIsInstance<String>().joinToString().contains("\"VCB\""))
+        assertEquals("VCB", store.drainParked().single().sender)
+
+        // Entry written by the previous app version: sender stored in clear
+        otpPrefs.prefs.edit().putString(
+            "relay_parked_v1",
+            """[{"message_id":"m2","channel_id":"a","sender":"ACB","text":"enc:OTP 2","parked_at":$now}]"""
+        ).commit()
+        val legacy = store.drainParked().single()
+        assertEquals("ACB", legacy.sender)
+        assertEquals("OTP 2", legacy.messageText)
+    }
 }
