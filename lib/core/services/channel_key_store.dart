@@ -27,3 +27,18 @@ abstract class ChannelKeyStore {
   /// Purge toàn bộ key material của 1 kênh (policy khi bị revoke — SRD 8.4).
   Future<void> purgeChannelKeys(String channelId);
 }
+
+/// Xuất / nhập toàn bộ key material cho bản sao lưu (BACKLOG 1.1).
+///
+/// Tách khỏi [ChannelKeyStore] để các luồng thường (relay, giải mã) không
+/// thấy được API đọc-tất-cả-key.
+abstract class ChannelKeyArchive {
+  /// Mọi channel key đang lưu: `channelId → (epoch → key Base64)`.
+  Future<Map<String, Map<int, String>>> exportChannelKeys();
+
+  /// Ghi đè identity X25519 (chỉ dùng khi khôi phục trên bản cài mới).
+  Future<void> restoreIdentityKeyPair(IdentityKeyPair keyPair);
+
+  /// Ghi thêm channel key từ bản sao lưu (không xoá key đang có).
+  Future<void> importChannelKeys(Map<String, Map<int, String>> keys);
+}

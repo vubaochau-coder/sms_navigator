@@ -30,7 +30,13 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   final TargetPlatform platform;
   final Duration minDisplayDuration;
 
+  /// Bản cài chưa đăng ký → dừng ở [SplashStatus.awaitingSetupChoice] để
+  /// người dùng có thể khôi phục từ bản sao lưu thay vì tạo danh tính mới.
+  /// Tắt (mặc định) → tự đăng ký như trước.
+  final bool offerRestoreOnFirstRun;
+
   CancelToken? _cancelToken;
+  bool _newDeviceConfirmed = false;
 
   SplashBloc({
     required this.crashlyticsService,
@@ -43,10 +49,12 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     this.nativeRelayService,
     TargetPlatform? platform,
     this.minDisplayDuration = const Duration(milliseconds: 1200),
+    this.offerRestoreOnFirstRun = false,
   }) : platform = platform ?? defaultTargetPlatform,
        super(const SplashState()) {
     on<SplashStarted>(_onStarted, transformer: droppable());
     on<SplashRetried>(_onRetried, transformer: restartable());
+    on<SplashNewDeviceChosen>(_onNewDeviceChosen, transformer: droppable());
   }
 
   @override
@@ -71,6 +79,19 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     Emitter<SplashState> emit,
   ) async {
     _cancelToken?.cancel('SplashRetried triggered');
+    _cancelToken = CancelToken();
+    await _executeBootstrap(
+      defaultDeviceName: event.defaultDeviceName,
+      emit: emit,
+    );
+  }
+
+  Future<void> _onNewDeviceChosen(
+    SplashNewDeviceChosen event,
+    Emitter<SplashState> emit,
+  ) async {
+    _newDeviceConfirmed = true;
+    _cancelToken?.cancel('SplashNewDeviceChosen triggered');
     _cancelToken = CancelToken();
     await _executeBootstrap(
       defaultDeviceName: event.defaultDeviceName,
@@ -105,6 +126,10 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       emit(state.copyWith(status: SplashStatus.authenticatingDevice));
       final deviceToken = await deviceStorageService.getDeviceToken();
       if (deviceToken == null || deviceToken.isEmpty) {
+        if (offerRestoreOnFirstRun && !_newDeviceConfirmed) {
+          emit(state.copyWith(status: SplashStatus.awaitingSetupChoice));
+          return;
+        }
         final resolvedName = await _resolveDeviceName(defaultDeviceName);
         emit(state.copyWith(status: SplashStatus.registeringDevice));
         await deviceApiService.registerDevice(
@@ -180,21 +205,26 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       );
 
       final String userFriendlyMessage;
+      final SplashFailureKind kind;
       if (error is NetworkException) {
         userFriendlyMessage = error.message;
+        kind = SplashFailureKind.network;
       } else if (error is ApiException) {
         userFriendlyMessage =
             AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
+        kind = SplashFailureKind.server;
       } else if (error is StateError) {
         userFriendlyMessage = error.message;
+        kind = SplashFailureKind.unknown;
       } else {
-        userFriendlyMessage =
-            AppL10n.current.splashStartupFailed;
+        userFriendlyMessage = AppL10n.current.splashStartupFailed;
+        kind = SplashFailureKind.unknown;
       }
 
       emit(state.copyWith(
         status: SplashStatus.failure,
         errorMessage: userFriendlyMessage,
+        failureKind: kind,
       ));
     }
   }

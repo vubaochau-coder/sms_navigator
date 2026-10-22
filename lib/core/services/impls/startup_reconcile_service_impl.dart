@@ -6,6 +6,7 @@ import '../../enums/pairing_request_status.dart';
 import '../../repositories/channel_repository.dart';
 import '../../repositories/join_channel_repository.dart';
 import '../../utils/app_logger.dart';
+import '../../utils/bounded_concurrency.dart';
 import '../channel_key_store.dart';
 import '../device_api_service.dart';
 import '../device_storage_service.dart';
@@ -43,8 +44,8 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
     _running = true;
     try {
       await _ensureIdentityAndRegistration();
-      await _syncJoinRequests();
-      await _provisionChannelKeys();
+      final provisioned = await _syncJoinRequests();
+      await _provisionChannelKeys(skip: provisioned);
     } catch (error, stack) {
       AppLogger.w(
         'StartupReconcile',
@@ -71,7 +72,9 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
     }
   }
 
-  Future<void> _syncJoinRequests() async {
+  /// Trả về các kênh đã được provision ở bước này để bước sau không làm lại.
+  Future<Set<String>> _syncJoinRequests() async {
+    final provisioned = <String>{};
     try {
       final requests = await _joinRepository.listMyRequests();
       final approved = requests
@@ -81,26 +84,46 @@ class StartupReconcileServiceImpl implements StartupReconcileService {
         await _joinRepository.provisionLatestForApproved(
           channelId: request.channelId,
         );
+        provisioned.add(request.channelId);
       }
     } catch (_) {
       // Không chặn phần còn lại của reconcile
     }
+    return provisioned;
   }
 
-  Future<void> _provisionChannelKeys() async {
+  /// BACKLOG 3.4: trước đây mỗi kênh tốn 3 request mỗi lần mở app (detail,
+  /// detail lặp lại trong `provisionLatestForApproved`, envelope) kể cả khi
+  /// key đã có. Giờ:
+  /// - đã có key cho `current_epoch` (lấy từ danh sách kênh) → bỏ qua, 0 request
+  ///   (kết quả y như cũ: `provisionChannelKey` cũng sẽ dừng ở đó);
+  /// - còn lại gọi thẳng `provisionLatestForApproved` (nó tự kiểm tra
+  ///   owner public key), chạy song song tối đa [_concurrency] kênh.
+  Future<void> _provisionChannelKeys({Set<String> skip = const {}}) async {
     final channels = await _channelRepository.listChannels();
+    final pending = <String>[];
     for (final channel in channels) {
-      try {
-        final detail = await _channelRepository.getChannelDetail(
-          channel.channelId,
-        );
-        if (detail.ownerPublicKey.isEmpty) continue;
-        await _joinRepository.provisionLatestForApproved(
-          channelId: channel.channelId,
-        );
-      } catch (error) {
-        debugPrint('Provision key failed for ${channel.channelId}: $error');
-      }
+      if (skip.contains(channel.channelId)) continue;
+      final existing = await _keyStore.getChannelKey(
+        channelId: channel.channelId,
+        epoch: channel.currentEpoch,
+      );
+      if (existing != null && existing.isNotEmpty) continue;
+      pending.add(channel.channelId);
     }
+
+    await forEachBounded<String>(
+      pending,
+      (channelId) async {
+        try {
+          await _joinRepository.provisionLatestForApproved(channelId: channelId);
+        } catch (error) {
+          debugPrint('Provision key failed for $channelId: $error');
+        }
+      },
+      concurrency: _concurrency,
+    );
   }
+
+  static const int _concurrency = 4;
 }

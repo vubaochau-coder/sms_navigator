@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
 import '../repositories/app_update_repository.dart';
+import '../repositories/backup_repository.dart';
+import '../repositories/impls/backup_repository_impl.dart';
+import '../services/impls/backup_file_service_impl.dart';
 import '../repositories/channel_repository.dart';
 import '../repositories/device_setup_repository.dart';
 import '../repositories/impls/app_update_repository_impl.dart';
@@ -47,11 +52,13 @@ import '../services/native_relay_service.dart';
 import '../services/pairing_api_service.dart';
 import '../services/relay_channel_bridge.dart';
 import '../services/startup_reconcile_service.dart';
+import '../usecases/resolve_incoming_message_use_case.dart';
 import '../usecases/sync_owner_relay_channel_use_case.dart';
 import '../theme/theme_cubit.dart';
 import '../crypto/channel_crypto_helper.dart';
 import '../../features/device/bloc/device_profile_cubit.dart';
 import '../l10n/app_l10n.dart';
+import '../models/channel_event.dart';
 
 /// Bootstrap Widget cung cấp toàn bộ Dependency Injection qua cây Widget
 /// sử dụng [MultiRepositoryProvider] để làm phẳng cấu trúc lồng nhau.
@@ -130,6 +137,17 @@ class AppBootstrap extends StatelessWidget {
           ),
         ),
 
+        // Sao lưu & khôi phục (BACKLOG 1.1). Archive là cùng secure storage với
+        // ChannelKeyStore nhưng tách interface: chỉ backup mới đọc được mọi key.
+        RepositoryProvider<BackupRepository>(
+          create: (context) => BackupRepositoryImpl(
+            deviceStorage: context.read<DeviceStorageService>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            keyArchive: ChannelKeyStoreImpl(cryptoHelper: context.read<ChannelCryptoHelper>()),
+            fileService: BackupFileServiceImpl(),
+          ),
+        ),
+
         // 5. Device (register v2 + setup checklist)
         RepositoryProvider<DeviceApiService>(
           create: (context) => DeviceApiServiceImpl(
@@ -151,14 +169,6 @@ class AppBootstrap extends StatelessWidget {
         RepositoryProvider<AppUpdateRepository>(
           create: (context) => AppUpdateRepositoryImpl(
             appUpdateService: context.read<AppUpdateService>(),
-          ),
-        ),
-
-        // 6. FCM chuông (API spec §7)
-        RepositoryProvider<FcmNotificationService>(
-          create: (context) => FcmNotificationServiceImpl(
-            deviceStorageService: context.read<DeviceStorageService>(),
-            deviceApiService: context.read<DeviceApiService>(),
           ),
         ),
 
@@ -186,6 +196,23 @@ class AppBootstrap extends StatelessWidget {
         RepositoryProvider<MessageApiService>(
           create: (context) =>
               MessageApiServiceImpl(apiClient: context.read<ApiClient>()),
+        ),
+
+        // FCM chuông (API spec §7) + thông báo OTP đã giải mã (MOBILE_FEATURES 1.2)
+        RepositoryProvider<ResolveIncomingMessageUseCase>(
+          create: (context) => ResolveIncomingMessageUseCase(
+            messageApiService: context.read<MessageApiService>(),
+            keyStore: context.read<ChannelKeyStore>(),
+            cryptoHelper: context.read<ChannelCryptoHelper>(),
+          ),
+        ),
+        RepositoryProvider<FcmNotificationService>(
+          create: (context) => FcmNotificationServiceImpl(
+            deviceStorageService: context.read<DeviceStorageService>(),
+            deviceApiService: context.read<DeviceApiService>(),
+            resolveIncomingMessage: context.read<ResolveIncomingMessageUseCase>(),
+          ),
+          dispose: (service) => service.dispose(),
         ),
         RepositoryProvider<WhitelistRepository>(
           create: (context) => WhitelistRepositoryImpl(
@@ -220,6 +247,7 @@ class AppBootstrap extends StatelessWidget {
             messageApiService: context.read<MessageApiService>(),
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
+            channelEvents: context.read<FcmNotificationService>().channelEvents,
           ),
         ),
         RepositoryProvider<StartupReconcileService>(
@@ -296,6 +324,8 @@ class _AsyncServicesInitializer extends StatefulWidget {
 }
 
 class _AsyncServicesInitializerState extends State<_AsyncServicesInitializer> {
+  StreamSubscription<ChannelEvent>? _channelEventSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -308,9 +338,15 @@ class _AsyncServicesInitializerState extends State<_AsyncServicesInitializer> {
     analytics.initialize();
     fcm.initialize();
     fcm.syncToken();
-    fcm.setChannelEventListener(() {
+    _channelEventSubscription = fcm.channelEvents.listen((_) {
       syncRelay().catchError((_) => false);
     });
+  }
+
+  @override
+  void dispose() {
+    _channelEventSubscription?.cancel();
+    super.dispose();
   }
 
   @override

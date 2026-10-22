@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../backup/views/device_backup_section.dart';
 import 'views/device_health_section.dart';
 import 'views/device_info_card.dart';
 import 'views/device_preferences_section.dart';
 
 /// Trang quản lý hồ sơ & thiết lập thiết bị.
-/// Tổ chức thành 3 section độc lập: Thông tin thiết bị, Tình trạng hoạt động và Cài đặt tùy chọn.
+/// Tổ chức thành 4 section độc lập: Thông tin thiết bị, Tình trạng hoạt động, Sao lưu và Cài đặt tùy chọn.
 class DeviceProfilePage extends StatelessWidget {
   const DeviceProfilePage({super.key});
 
@@ -30,7 +31,11 @@ class DeviceProfilePage extends StatelessWidget {
             DeviceHealthSection(),
             SizedBox(height: 16),
 
-            // 3. Tùy chọn giao diện & Bộ lọc
+            // 3. Sao lưu danh tính & khoá (BACKLOG 1.1)
+            DeviceBackupSection(),
+            SizedBox(height: 16),
+
+            // 4. Tùy chọn giao diện & Bộ lọc
             DevicePreferencesSection(),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/enums/splash_status.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/services/analytics_service.dart';
@@ -14,6 +15,7 @@ import 'package:sms_navigator/core/services/startup_reconcile_service.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_bloc.dart';
 import 'package:sms_navigator/features/splash/bloc/splash_event.dart';
+import 'package:sms_navigator/features/splash/bloc/splash_state.dart';
 
 class _FakeNativeRelayService implements NativeRelayService {
   _FakeNativeRelayService({this.deviceName});
@@ -84,7 +86,7 @@ class _FakeFcmService implements FcmNotificationService {
   }
 
   @override
-  void setChannelEventListener(void Function() listener) {}
+  Stream<ChannelEvent> get channelEvents => const Stream.empty();
 
   @override
   void dispose() {}
@@ -204,7 +206,7 @@ void main() {
       reconcile = _FakeStartupReconcileService();
     });
 
-    SplashBloc buildBloc({NativeRelayService? nativeRelayService}) {
+    SplashBloc buildBloc({NativeRelayService? nativeRelayService, bool offerRestore = false}) {
       return SplashBloc(
         crashlyticsService: crashlytics,
         analyticsService: analytics,
@@ -216,8 +218,63 @@ void main() {
         nativeRelayService: nativeRelayService,
         platform: TargetPlatform.android,
         minDisplayDuration: Duration.zero,
+        offerRestoreOnFirstRun: offerRestore,
       );
     }
+
+    group('first-run setup choice (backup restore, 1.1)', () {
+      test('stops at awaitingSetupChoice instead of registering a new identity', () async {
+        final bloc = buildBloc(offerRestore: true);
+
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.status, SplashStatus.awaitingSetupChoice);
+        expect(bloc.state.isLoading, isFalse);
+        expect(bloc.state.isAwaitingSetupChoice, isTrue);
+        expect(deviceApi.registered, isFalse);
+        expect(reconcile.reconciled, isFalse);
+        await bloc.close();
+      });
+
+      test('SplashNewDeviceChosen registers and completes', () async {
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        bloc.add(const SplashNewDeviceChosen(defaultDeviceName: 'Test Phone'));
+        await pumpEventQueue();
+
+        expect(deviceApi.registered, isTrue);
+        expect(deviceApi.lastRegisteredName, 'Test Phone');
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+
+      test('after a restore (token now present) a retry verifies instead of registering', () async {
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        storage.deviceToken = 'restored_token';
+        bloc.add(const SplashRetried());
+        await pumpEventQueue();
+
+        expect(deviceApi.registered, isFalse);
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+
+      test('a registered device never sees the choice', () async {
+        storage.deviceToken = 'existing';
+        final bloc = buildBloc(offerRestore: true);
+        bloc.add(const SplashStarted());
+        await pumpEventQueue();
+
+        expect(bloc.state.isReady, isTrue);
+        await bloc.close();
+      });
+    });
 
     test('initial state has status initial and null error', () {
       final bloc = buildBloc();
@@ -310,6 +367,7 @@ void main() {
       expect(bloc.state.isFailure, isTrue);
       expect(bloc.state.status, SplashStatus.failure);
       expect(bloc.state.errorMessage, contains('Network connection timeout'));
+      expect(bloc.state.failureKind, SplashFailureKind.network);
       expect(states, isNot(contains(SplashStatus.ready)));
 
       await sub.cancel();
@@ -363,6 +421,7 @@ void main() {
 
       expect(bloc.state.isReady, isTrue);
       expect(bloc.state.errorMessage, isNull);
+      expect(bloc.state.failureKind, isNull);
 
       await bloc.close();
     });

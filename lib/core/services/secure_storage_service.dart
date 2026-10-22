@@ -3,4 +3,5 @@ abstract class SecureStorageService {
   Future<void> write(String key, String value);
   Future<void> delete(String key);
   Future<bool> containsKey(String key);
+  Future<Map<String, String>> readAll();
 }

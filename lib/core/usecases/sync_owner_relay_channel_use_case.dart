@@ -5,6 +5,7 @@ import '../repositories/whitelist_repository.dart';
 import '../services/channel_key_store.dart';
 import '../services/device_storage_service.dart';
 import '../utils/app_logger.dart';
+import '../utils/bounded_concurrency.dart';
 import '../services/relay_channel_bridge.dart';
 
 /// Đồng bộ **toàn bộ** kênh Owner ACTIVE và Channel Key mới nhất xuống native
@@ -78,9 +79,13 @@ class SyncOwnerRelayChannelUseCase {
         AppLogger.i('SyncOwnerRelayChannel', 'Re-enqueued $flushed parked SMS');
       }
 
-      for (final snapshot in snapshots) {
-        await _syncWhitelist(snapshot, details);
-      }
+      // Mỗi kênh cần 1 detail (whitelist blob chỉ có ở đó) — song song có
+      // giới hạn thay vì tuần tự (BACKLOG 3.4).
+      await forEachBounded<RelayChannelSnapshot>(
+        snapshots,
+        (snapshot) => _syncWhitelist(snapshot, details),
+        concurrency: 4,
+      );
 
       return snapshots.isNotEmpty;
     } catch (e, stack) {

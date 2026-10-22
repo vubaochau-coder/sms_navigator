@@ -1,0 +1,10 @@
+# Cách nhanh: ./scripts/create_release_keystore.sh (tạo keystore + file này).
+# Hoặc copy thành android/key.properties (đã gitignore) — KHÔNG commit file thật.
+# Tạo upload keystore (giữ file .jks + mật khẩu ở nơi an toàn, mất là không update app được):
+#   keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA -keysize 2048 \
+#     -validity 10000 -alias upload
+storePassword=<mật khẩu keystore>
+keyPassword=<mật khẩu key>
+keyAlias=upload
+# Đường dẫn tuyệt đối, hoặc tương đối so với android/app/
+storeFile=/Users/<you>/upload-keystore.jks

@@ -47,7 +47,9 @@ class ChannelWhitelistSection extends StatelessWidget {
                       TextButton.icon(
                         style: TextButton.styleFrom(
                           visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          // Bỏ vùng tap 48px mặc định để không đẩy cao Row header
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
                         ),
                         icon: const Icon(Icons.settings_outlined, size: 16),
                         label: Text(context.l10n.whitelistConfigureButton),

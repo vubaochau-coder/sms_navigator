@@ -1074,6 +1074,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Có tin nhắn SMS mới vừa được chia sẻ. Chạm để xem.';
 
   @override
+  String notificationOtpTitle(String code) {
+    return 'Mã OTP: $code';
+  }
+
+  @override
+  String get notificationCopyAction => 'Sao chép';
+
+  @override
   String get relativeJustNow => 'Vừa xong';
 
   @override
@@ -1407,4 +1415,125 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get splashStartupFailed =>
       'Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.';
+
+  @override
+  String get backupSectionTitle => 'SAO LƯU & KHÔI PHỤC';
+
+  @override
+  String get backupExportTitle => 'Tạo bản sao lưu';
+
+  @override
+  String get backupExportSubtitle =>
+      'Lưu danh tính và khoá kênh ra file .smsnav để cài lại app hoặc chuyển máy';
+
+  @override
+  String get backupPassphraseTitle => 'Đặt mật khẩu cho bản sao lưu';
+
+  @override
+  String get backupPassphraseMessage =>
+      'Bản sao lưu được mã hoá bằng mật khẩu này. Quên mật khẩu là không mở được file — hãy cất ở nơi an toàn.';
+
+  @override
+  String get backupExportWarning =>
+      'File chứa khoá giải mã mọi tin nhắn của bạn. Đừng gửi file kèm mật khẩu cho người khác.';
+
+  @override
+  String get backupPassphraseLabel => 'Mật khẩu';
+
+  @override
+  String get backupPassphraseConfirmLabel => 'Nhập lại mật khẩu';
+
+  @override
+  String backupPassphraseTooShort(int min) {
+    return 'Tối thiểu $min ký tự';
+  }
+
+  @override
+  String get backupPassphraseMismatch => 'Mật khẩu nhập lại không khớp';
+
+  @override
+  String get backupShowPassphrase => 'Hiện mật khẩu';
+
+  @override
+  String get backupHidePassphrase => 'Ẩn mật khẩu';
+
+  @override
+  String get backupExportConfirm => 'Tạo & lưu file';
+
+  @override
+  String get backupExporting => 'Đang mã hoá bản sao lưu…';
+
+  @override
+  String backupExportSuccess(String fileName) {
+    return 'Đã lưu $fileName';
+  }
+
+  @override
+  String get backupRestoreTitle => 'Khôi phục từ bản sao lưu';
+
+  @override
+  String get backupRestoreIntro =>
+      'Chọn file .smsnav đã tạo trên máy cũ rồi nhập mật khẩu. Máy này sẽ dùng lại đúng danh tính, các kênh và khoá cũ.';
+
+  @override
+  String get backupRestoreOldDeviceWarning =>
+      'Sau khi khôi phục, đừng dùng app trên máy cũ nữa — hai máy chung một danh tính sẽ tranh nhau nhận thông báo và relay SMS.';
+
+  @override
+  String get backupPickFile => 'Chọn file sao lưu';
+
+  @override
+  String get backupFileSelected => 'Đã chọn file sao lưu';
+
+  @override
+  String get backupChangeFile => 'Chọn file khác';
+
+  @override
+  String get backupRestoreAction => 'Khôi phục';
+
+  @override
+  String get backupRestoring => 'Đang giải mã và khôi phục…';
+
+  @override
+  String backupRestoreSuccess(int count) {
+    return 'Đã khôi phục danh tính và khoá của $count kênh';
+  }
+
+  @override
+  String get backupErrorWrongPassphrase =>
+      'Sai mật khẩu, hoặc file đã bị chỉnh sửa.';
+
+  @override
+  String get backupErrorInvalidFile =>
+      'File này không phải bản sao lưu SMS Navigator hợp lệ.';
+
+  @override
+  String get backupErrorUnsupportedVersion =>
+      'Bản sao lưu được tạo bởi phiên bản app mới hơn. Hãy cập nhật app rồi thử lại.';
+
+  @override
+  String get backupErrorIncomplete => 'Bản sao lưu thiếu dữ liệu danh tính.';
+
+  @override
+  String get backupErrorNotRegistered =>
+      'Thiết bị chưa đăng ký — chưa có gì để sao lưu.';
+
+  @override
+  String get backupErrorStorage =>
+      'Không đọc/ghi được file. Thử lại hoặc chọn vị trí khác.';
+
+  @override
+  String get splashSetupChoiceTitle => 'Bạn muốn bắt đầu thế nào?';
+
+  @override
+  String get splashSetupNewDevice => 'Thiết lập thiết bị mới';
+
+  @override
+  String get splashSetupNewDeviceSubtitle => 'Tạo danh tính mới cho máy này';
+
+  @override
+  String get splashSetupRestore => 'Khôi phục từ bản sao lưu';
+
+  @override
+  String get splashSetupRestoreSubtitle => 'Dùng file .smsnav từ máy cũ';
 }

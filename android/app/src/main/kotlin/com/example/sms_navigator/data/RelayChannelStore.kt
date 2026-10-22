@@ -173,6 +173,35 @@ class RelayChannelStore(
 
     fun parkedCount(): Int = synchronized(LOCK) { readParked().size }
 
+    // ------------------------------------------------------------- outbox (2.1)
+    //
+    // Nội dung SMS đang chờ worker gửi. Trước đây text nằm thẳng trong
+    // `inputData` của WorkManager (SQLite không mã hoá) cho tới khi worker
+    // xong — tối đa 5 lần retry. Giờ text + sender được mã hoá bằng [vault]
+    // ở đây, worker chỉ nhận [outboxId].
+
+    /** Lưu tin chờ gửi; trả về id để đưa vào WorkManager. Ghi đè nếu đã có. */
+    fun putOutbox(message: ParkedMessage): String = synchronized(LOCK) {
+        val id = outboxId(message.channelId, message.messageId)
+        val now = clock()
+        val entries = readOutbox().filterValues { now - it.parkedAt < PARKED_TTL_MS }.toMutableMap()
+        entries.remove(id)
+        entries[id] = message
+        // Giữ [MAX_OUTBOX] tin mới nhất (LinkedHashMap giữ thứ tự chèn).
+        val trimmed = entries.entries.toList().takeLast(MAX_OUTBOX).associate { it.key to it.value }
+        writeOutbox(trimmed)
+        id
+    }
+
+    fun getOutbox(id: String): ParkedMessage? = synchronized(LOCK) { readOutbox()[id] }
+
+    fun removeOutbox(id: String) = synchronized(LOCK) {
+        val entries = readOutbox()
+        if (entries.remove(id) != null) writeOutbox(entries)
+    }
+
+    fun outboxCount(): Int = synchronized(LOCK) { readOutbox().size }
+
     // ------------------------------------------------------------- internals
 
     /** Giữ key active, pending và tối đa [KEEP_PREVIOUS_EPOCHS] epoch cũ ngay trước active. */
@@ -292,6 +321,47 @@ class RelayChannelStore(
         prefs.edit().putString(KEY_PARKED, array.toString()).commit()
     }
 
+    private fun readOutbox(): LinkedHashMap<String, ParkedMessage> {
+        val result = LinkedHashMap<String, ParkedMessage>()
+        val raw = prefs.getString(KEY_OUTBOX, null) ?: return result
+        try {
+            val array = JSONArray(raw)
+            for (i in 0 until array.length()) {
+                val obj = array.optJSONObject(i) ?: continue
+                val id = obj.optString("id")
+                val text = decryptOrNull(obj.optString("text")) ?: continue
+                if (id.isBlank()) continue
+                result[id] = ParkedMessage(
+                    messageId = obj.optString("message_id"),
+                    channelId = obj.optString("channel_id"),
+                    sender = decryptOrNull(obj.optString("sender")) ?: "",
+                    messageText = text,
+                    parkedAt = obj.optLong("created_at")
+                )
+            }
+        } catch (_: Exception) {
+            // Hỏng → rỗng; worker sẽ báo thiếu nội dung và dừng.
+        }
+        return result
+    }
+
+    private fun writeOutbox(entries: Map<String, ParkedMessage>) {
+        val array = JSONArray()
+        entries.forEach { (id, m) ->
+            array.put(
+                JSONObject().apply {
+                    put("id", id)
+                    put("message_id", m.messageId)
+                    put("channel_id", m.channelId)
+                    put("sender", encrypt(m.sender))
+                    put("text", encrypt(m.messageText))
+                    put("created_at", m.parkedAt)
+                }
+            )
+        }
+        prefs.edit().putString(KEY_OUTBOX, array.toString()).commit()
+    }
+
     // Cùng chính sách với OtpPreferences: nếu Keystore lỗi thì lưu thô thay vì
     // làm hỏng relay (một số ROM có Keystore không ổn định).
     private fun encrypt(value: String): String = try { vault.encrypt(value) } catch (_: Exception) { value }
@@ -304,6 +374,10 @@ class RelayChannelStore(
         private val LOCK = Any()
         private const val KEY_CHANNELS = "relay_channels_v1"
         private const val KEY_PARKED = "relay_parked_v1"
+        private const val KEY_OUTBOX = "relay_outbox_v1"
+        const val MAX_OUTBOX = 200
+
+        fun outboxId(channelId: String, messageId: String): String = "$channelId|$messageId"
         const val KEEP_PREVIOUS_EPOCHS = 1
         const val MAX_PARKED = 50
         const val PARKED_TTL_MS = 24 * 60 * 60 * 1000L

@@ -2,23 +2,21 @@
 
 > Tài liệu gom toàn bộ nợ kỹ thuật + roadmap chưa triển khai của phía mobile.
 > Mục đã hoàn thành bị loại khỏi danh sách; hoàn thành mục nào thì xoá mục đó.
-> Cập nhật lần cuối: 21/10/2026.
+> App chỉ hỗ trợ **Android** — không làm hạng mục iOS. Phát hành **nội bộ qua Firebase App Distribution**, không lên Google Play.
+> Cập nhật lần cuối: 22/10/2026.
 
 ---
 
-## 0. Việc dở dang của đợt cập nhật lớn (QR v3.3 + relay đa kênh)
+## 0. Kiểm thử & phát hành
 
-Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque-qr` → `chore/l10n-backlog`
-(BE: `refactor/idempotent-rotation` → `feat/opaque-qr`). Còn lại:
+Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 1.2, 1.3, 1.1, 2.1 và dọn backlog).
 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
-| 0.1 | Chạy `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên các nhánh mới | Code được viết khi không có Flutter SDK — chưa compile | P0 |
-| 0.2 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) cho server; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
-| 0.3 | Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (không redirect) | Repo Worker nằm ngoài dự án | P0 |
-| 0.4 | iOS Universal Links: thêm capability Associated Domains (`applinks:<host>`) trong Xcode + `IOS_APP_IDS` cho server | Custom scheme `smsnavigator://` đã có | P1 |
-| 0.5 | Test thực tế ADB: cold start / mid-splash / warm start (ROADMAP_DEEPLINK_QR_V2 §6.2); 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal) | | P0 |
-| 0.6 | **Roadmap GĐ6 — clean-cut v4**: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
+| 0.2 | Thứ tự phát hành: cài app mới lên các máy Android **rồi** mới merge BE `feat/otp-notification` vào `main` (Render tự deploy) | App cũ không hiện thông báo khi chạy nền nếu BE gửi `NEW_MESSAGE` data-only | P0 |
+| 0.3b | Chuyển các máy sang keystore release: cài **1.0.1+19** (nhánh `release/1.0.1-export`, luôn ký debug key cũ → cài đè, giữ dữ liệu) → **Sao lưu** → gỡ app → cài **1.1.0+20** (`main`, ký release keystore) → **Khôi phục** | Máy build bản 1.0.1 phải là máy đã build bản đang cài (cùng `~/.android/debug.keystore`), nếu không cài đè sẽ báo `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Keystore release: `./scripts/create_release_keystore.sh`, nhớ sao lưu `.jks` + `android/key.properties` | P0 |
+| 0.5 | Test thực tế trên máy | Deeplink cold start / mid-splash / warm start; 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal); OTP trong thông báo khi app bị vuốt tắt; **sao lưu → gỡ app → cài lại → khôi phục** (Owner relay tiếp được, Member đọc được tin cũ) | P0 |
+| 0.6 | Roadmap GĐ6 — clean-cut v4: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
 
 ---
 
@@ -26,13 +24,12 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
-| 1.1 | **Export / Import Backup (khôi phục danh tính & khóa)** | Gỡ app = mất X25519 identity key → Owner mất kênh vĩnh viễn (server chỉ giữ envelope wrap bằng key đó). Export file `.smsnav` mã hóa bằng passphrase (Argon2/PBKDF2 + AES-256-GCM) chứa identity keypair, channel keys theo epoch, deviceId, deviceToken. Splash lần đầu: *"Thiết lập thiết bị mới"* / *"Khôi phục từ bản sao lưu"*. Loại QR `BACKUP` của QR v3.3 có thể dùng để chuyển máy. | P1 |
-| 1.2 | **OTP hiển thị ngay trong thông báo** | Hiện thông báo chỉ "Có tin nhắn SMS mới" → member phải mở app, chọn ngày, chờ giải mã. FCM gửi data-only `{channel_id, sequence}` → app lấy ciphertext, giải mã cục bộ, hiện OTP + action **"Sao chép"**. Vẫn E2EE. Android trước (background handler); iOS cần Notification Service Extension. | P1 |
-| 1.3 | FCM bell refresh màn SMS đang mở | `SmsPage` chỉ load khi khởi tạo. Wire channel event → `SmsBloc.add(SmsLoadDataEvent())`. Làm cùng 1.2. | P1 |
-| 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE. | P2 |
-| 1.5 | Đổi tên kênh | Owner, dialog 1–50 ký tự, `PUT /api/v2/channels/name` (BE chưa có). Cập nhật `RelayChannelStore` qua `SyncOwnerRelayChannelUseCase`. | P2 |
+| 1.4 | Quản lý vòng đời kênh | Member tự rời kênh (`leave`); Owner lưu trữ / giải tán kênh (`archive`). Cần endpoint BE (BE BACKLOG 2.2). | P2 |
+| 1.5 | Đổi tên kênh | Owner, dialog 1–50 ký tự, `PUT /api/v2/channels/name` (BE BACKLOG 2.1, chưa có). Cập nhật `RelayChannelStore` qua `SyncOwnerRelayChannelUseCase`. | P2 |
 | 1.6 | Lịch sử yêu cầu kết nối đã xử lý (Owner) | Xem lại request `APPROVED` / `REJECTED` / `CANCELLED`. | P2 |
 | 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
+| 1.8 | Bỏ thông báo cho chính máy relay có thể cấu hình | 1.2 bỏ qua `NEW_MESSAGE` do chính máy gửi (Owner đã có SMS gốc). Nếu cần: thêm tuỳ chọn bật lại. | P3 |
+| 1.9 | Nhắc tạo bản sao lưu | Owner chưa từng sao lưu (hoặc vừa tạo/tham gia kênh mới sau lần sao lưu cuối) → banner nhắc. Bản sao lưu cũ không chứa key của epoch mới, nhưng vẫn khôi phục được danh tính → `StartupReconcile` tự lấy lại envelope epoch mới. | P2 |
 
 ---
 
@@ -40,8 +37,7 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 2.1 | Nội dung SMS nằm plaintext trong DB của WorkManager | `RelayWorkScheduler` đưa toàn văn SMS vào `inputData` (SQLite của WorkManager) cho tới khi worker xong (tối đa 5 lần retry). Chuyển sang lưu trong store mã hóa (như parked queue của `RelayChannelStore`), worker chỉ nhận `messageId`. | P1 |
-| 2.2 | Fallback lưu plaintext khi Keystore lỗi | `OtpPreferences` (device token) và `RelayChannelStore` (channel key) lưu thô nếu `SecureVault` ném lỗi. Ít nhất log/Crashlytics + cảnh báo; cân nhắc fail-closed. | P2 |
+| 2.2 | Fallback lưu plaintext khi Keystore lỗi | `OtpPreferences` (device token) và `RelayChannelStore` (channel key, parked queue, outbox SMS) lưu thô nếu `SecureVault` ném lỗi. Ít nhất log/Crashlytics + cảnh báo; cân nhắc fail-closed. | P2 |
 
 ---
 
@@ -49,24 +45,39 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.1 | **TD-4 — Test hermetic** | Widget test tích hợp (`widget_test.dart`, `MainNavigationPage`) gọi `ApiClient` với baseUrl production. Thêm `flutter_test_config.dart` với `HttpOverrides.global` chặn socket ngoài loopback + inject fake repository. Điều kiện để chạy test trên CI. | P2 |
 | 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
 | 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
-| 3.4 | Startup reconcile N+1 | `startup_reconcile_service_impl.dart` `_provisionChannelKeys()` gọi `getChannelDetail` + `provisionLatestForApproved` từng kênh. `SyncOwnerRelayChannelUseCase` cũng gọi `getChannelDetail` mỗi kênh Owner (whitelist heal). Batch hoá. | P2 |
 | 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
-| 3.6 | Splash phân loại lỗi bằng nội dung chuỗi | `splash_page.dart` đoán lỗi mạng bằng `msg.contains('kết nối' / 'mạng')`. Chuyển sang loại lỗi trong state (`SplashFailureKind`). | P3 |
-| 3.7 | Giá trị mặc định tên thiết bị trùng l10n | `SplashStarted/SplashRetried.defaultDeviceName` và `DeviceProfileState.deviceName` còn hằng `'Thiết bị của tôi'` (bắt buộc `const`) — phải khớp `splashDefaultDeviceName`. | P3 |
+| 3.8 | **`distribute.yml` ký APK sai key** | Workflow chạy khi push tag `v*` / bấm tay: runner không có `android/key.properties` → ký bằng debug key **mới sinh mỗi lần chạy** → APK không cài đè được lên 1.1.0 (khác chữ ký) và App Links mất `verified`. Trước khi dùng lại: thêm secret `ANDROID_KEYSTORE_BASE64` + mật khẩu, bước giải mã ra `.jks` và ghi `key.properties`, rồi kiểm tra chữ ký bằng `scripts/print_android_sha256.sh` (phải ✅). Tới lúc đó: **chỉ phát hành bằng `scripts/distribute_android.sh` trên máy build** | P1 |
+| 3.9 | CI cho pull request | Chưa có workflow chạy khi mở PR (chỉ có `distribute.yml`). Thêm job `pull_request`: `flutter analyze`, `flutter test`, `flutter build apk --config-only` + `cd android && ./gradlew :app:testDebugUnitTest`. Ghim cùng Flutter với máy dev (`distribute.yml` đang ghim 3.47.5). Lý do: đợt 22/10 có code chưa từng compile nằm trên nhánh và một widget test hỏng | P1 |
+| 3.10 | Nâng Gradle / AGP / Kotlin | Flutter cảnh báo sắp ngừng hỗ trợ Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20 → cần Gradle ≥ 9.1, AGP ≥ 9.0.1, Kotlin ≥ 2.3.20. Nâng trên nhánh riêng, chạy đủ test + build APK release và kiểm tra chữ ký không đổi | P3 |
 
 ---
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
-- **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
+- **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
+  - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
+  - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 
+  - `flutter_test_config.dart`: chặn theo host đích thay vì proxy (proxy loopback `HTTPS_PROXY` từng làm request lọt ra ngoài) + test bảo vệ.
+  - App Links: `ANDROID_CERT_SHA256` (release `4C:A4:…:C3:42` + debug máy build) trên Render; máy test cài APK release báo `verified` cho `sms-relay.hirusakunasaga.workers.dev` — cũ: mục 0.3. `print_android_sha256.sh` đọc chữ ký APK bằng `apksigner` (APK minSdk 24 chỉ có chữ ký v2/v3).
+  - Release signing đọc `android/key.properties` + `scripts/print_android_sha256.sh`; hướng dẫn chạy test trong `AGENTS.md` §8.
+- **Nhánh `feat/otp-notification`** (chưa merge) — sao lưu & outbox native:
+  - 1.1 Sao lưu / khôi phục: file `.smsnav` = AES-256-GCM, key từ PBKDF2-HMAC-SHA256 (310k vòng, salt 16B, chạy ngoài UI isolate), AAD `smsnav-backup|v1`. Chứa identity X25519, mọi channel key theo epoch, `device_id`, `device_token`, tên, server URL. Tạo ở **Hồ sơ thiết bị → Sao lưu**; khôi phục ở **Splash lần đầu** ("Thiết lập thiết bị mới" / "Khôi phục từ bản sao lưu"). Lưu/mở file qua Storage Access Framework (`BackupFileChannel.kt`, không thêm package, không cần quyền bộ nhớ). Ghi device token **sau cùng** khi khôi phục (bị kill giữa chừng → lần sau vẫn được mời khôi phục).
+  - Nợ kỹ thuật (không đổi nghiệp vụ): 3.1 `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback (test không chạm server production); 3.4 startup reconcile bỏ qua kênh đã có key cho `current_epoch` (0 request), bỏ `getChannelDetail` trùng, không provision 2 lần kênh vừa duyệt, chạy song song tối đa 4 (`forEachBounded`) — sync whitelist của Owner cũng song song; 3.6 `SplashFailureKind` thay cho đoán lỗi qua chuỗi; 3.7 `AppStrings.defaultDeviceName` + test khớp l10n.
+  - 2.1 SMS không còn nằm plaintext trong DB của WorkManager: text + sender vào outbox mã hoá của `RelayChannelStore`, worker chỉ nhận `outbox_id`; xoá khi job kết thúc, giữ khi retry; TTL 24h + giới hạn 200. Job do bản cũ enqueue vẫn chạy.
+- **Nhánh `feat/otp-notification`** (mobile + BE, chưa merge):
+  - 1.2 OTP ngay trong thông báo (Android): BE gửi `NEW_MESSAGE` **data-only** kèm `sequence_number`, `sender_device_id` (vẫn không có ciphertext — I5); app gọi `GET /api/v2/channels/message` (§6.4), giải mã cục bộ, hiện "Mã OTP: …" + nút **"Sao chép"** (`OtpCodeExtractor` tách mã; không tách được thì chép cả tin). Lỗi bất kỳ → thông báo chung. Bỏ qua tin do chính máy relay. Màn hình khoá: `visibility: private`.
+  - 1.3 `SmsPage` tự làm mới ngầm (không shimmer, không toast lỗi) khi có `NEW_MESSAGE` (chỉ khi đang xem hôm nay), `APPROVED` / `REVOKED` (mọi ngày), khi chạm thông báo, và khi app quay lại foreground.
+  - `FcmNotificationService.channelEvents` (Stream) thay cho `setChannelEventListener`.
+
+- **Đợt 21/10/2026** (đã merge `main`):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.
   - Universal Opaque QR v3.3: `QrLinkParser`, `QrIngressCubit` (pending deeplink one-shot), `QrEntryPage`, claim bằng `code`, App Links + custom scheme, nút "Dán mã" (không đọc clipboard tự động), Owner render `qr_url`.
   - Whitelist theo từng kênh + định tuyến SMS native theo kênh (cũ: mục 4.3).
   - Deeplink App Links & custom scheme (cũ: mục 4.1).
   - Gom chuỗi hardcode về `app_vi.arb`; `AppL10n.current` cho BLoC/service/FCM background.
+  - Tổ chức lại `lib/core` (`ui/`, `crypto/`, `usecases/`, `bloc/qr_ingress/`); giải mã SMS theo lô + cache key, lô lớn chạy `Isolate.run`; giảm rebuild BLoC.
 - Kiến trúc V2 channel 1-to-N E2EE (đập bỏ V1 pairing/relay) — xem `../sms_navigator_server/SERVER_API_SPEC.md`.
 - Xoá toàn bộ tàn dư V1 + dead code (`isRelayEnabled`, method channel chết, banner orphan, endpoints V1).
 - FCM chuông V2: notification block cho `NEW_MESSAGE` / `JOIN_REQUEST` / `APPROVED` / `REVOKED` kèm `channel_name`.

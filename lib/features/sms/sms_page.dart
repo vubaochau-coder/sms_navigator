@@ -12,6 +12,7 @@ import 'views/message_list_view.dart';
 /// - Chọn ngày trên calendar (6.1);
 /// - SMS/OTP gộp của TẤT CẢ kênh đang tham gia, mỗi dòng ghi rõ kênh nguồn (6.2);
 /// - Thông báo tin nhắn SMS mới (FCM chuông) mở thẳng màn này (6.3);
+/// - Tự làm mới ngầm khi có tin mới / app quay lại foreground (1.3);
 /// - Trạng thái rỗng hiển thị rõ ràng (6.4).
 class SmsPage extends StatelessWidget {
   const SmsPage({super.key});
@@ -28,8 +29,31 @@ class SmsPage extends StatelessWidget {
   }
 }
 
-class _SmsView extends StatelessWidget {
+class _SmsView extends StatefulWidget {
   const _SmsView();
+
+  @override
+  State<_SmsView> createState() => _SmsViewState();
+}
+
+class _SmsViewState extends State<_SmsView> {
+  /// Tin đến khi app ở nền được isolate nền hiện thông báo, nhưng màn này
+  /// không biết → làm mới ngầm mỗi lần app quay lại foreground (1.3).
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onResume: () => context.read<SmsBloc>().add(const SmsAppResumed()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -23,6 +23,21 @@ class _FakeApiClient extends ApiClient {
     lastPostBody = body;
     return postResponse;
   }
+
+  dynamic getResponse;
+  String? lastGetPath;
+  Map<String, String>? lastGetQuery;
+
+  @override
+  Future<dynamic> get(
+    String path, {
+    Map<String, String>? queryParameters,
+    CancelToken? cancelToken,
+  }) async {
+    lastGetPath = path;
+    lastGetQuery = queryParameters;
+    return getResponse;
+  }
 }
 
 void main() {
@@ -53,6 +68,34 @@ void main() {
       });
       expect(result.messageId, 'msg-123');
       expect(result.sequenceNumber, 42);
+    });
+
+    test('fetchMessage GETs one message by channel + sequence (§6.4)', () async {
+      final fakeApi = _FakeApiClient();
+      fakeApi.getResponse = <String, dynamic>{
+        'success': true,
+        'message': <String, dynamic>{
+          'channel_id': 'ch-abc',
+          'channel_name': 'Kênh nhà',
+          'sequence_number': 42,
+          'key_epoch': 3,
+          'ciphertext': 'Y2lwaGVy',
+          'nonce': 'bm9uY2U=',
+          'sender_device_id': 'owner-1',
+          'sent_at': '2026-10-21T10:00:00.000Z',
+          'server_received_at': '2026-10-21T10:00:00.000Z',
+        },
+      };
+
+      final message = await MessageApiServiceImpl(apiClient: fakeApi)
+          .fetchMessage(channelId: 'ch-abc', sequenceNumber: 42);
+
+      expect(fakeApi.lastGetPath, ApiEndpoints.channelMessageV2);
+      expect(fakeApi.lastGetQuery, {'channel_id': 'ch-abc', 'sequence_number': '42'});
+      expect(message.channelName, 'Kênh nhà');
+      expect(message.sequenceNumber, 42);
+      expect(message.keyEpoch, 3);
+      expect(message.ciphertext, 'Y2lwaGVy');
     });
   });
 }

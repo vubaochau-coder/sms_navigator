@@ -20,4 +20,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
 
   @override
   Future<bool> containsKey(String key) => _storage.containsKey(key: key);
+
+  @override
+  Future<Map<String, String>> readAll() => _storage.readAll();
 }

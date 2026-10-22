@@ -16,4 +16,12 @@ abstract class MessageApiService {
     int tzOffset = 0,
     CancelToken? cancelToken,
   });
+
+  /// `GET /channels/message` (§6.4) — đúng một tin, dùng khi nhận FCM
+  /// `NEW_MESSAGE` để giải mã và hiện OTP trên thông báo.
+  Future<ChannelMessageModel> fetchMessage({
+    required String channelId,
+    required int sequenceNumber,
+    CancelToken? cancelToken,
+  });
 }
