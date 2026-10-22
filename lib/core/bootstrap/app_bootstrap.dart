@@ -173,12 +173,9 @@ class AppBootstrap extends StatelessWidget {
                   (await context.read<ChannelKeyStore>().getOrCreateIdentityKeyPair())
                       .publicKeyBase64,
             );
-            // BACKLOG 3.2: mọi 401 → đăng ký lại (cùng device_id) + retry 1 lần
-            apiClient.onUnauthorized = DeviceSessionRecovery(
-              deviceApi: deviceApi,
-              storage: storage,
-              relayBridge: context.read<RelayChannelBridge>(),
-            ).call;
+            // BACKLOG 3.2: 401 → báo phiên đã mất (KHÔNG tự đăng ký lại cùng
+            // device_id — FLOW_AUDIT S1); Splash lần mở sau cho khôi phục/thiết lập lại.
+            apiClient.onUnauthorized = DeviceSessionRecovery(storage: storage).call;
             return deviceApi;
           },
         ),

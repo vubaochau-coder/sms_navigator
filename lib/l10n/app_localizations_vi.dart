@@ -1629,7 +1629,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sessionRecoveryFailed =>
-      'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.';
+      'Máy chủ không còn chấp nhận phiên của thiết bị này. Mở lại ứng dụng để khôi phục từ bản sao lưu hoặc thiết lập như máy mới.';
 
   @override
   String get notifyOwnRelayedTitle => 'Thông báo cả tin máy này chuyển tiếp';

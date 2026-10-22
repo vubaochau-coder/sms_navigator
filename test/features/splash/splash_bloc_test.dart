@@ -363,6 +363,20 @@ void main() {
       await bloc.close();
     });
 
+    test('401 with the setup choice enabled: token dropped, no silent re-register (FLOW_AUDIT S1)', () async {
+      storage.deviceToken = 'invalid_device_token';
+      deviceApi.tokenValid = false;
+      final bloc = buildBloc(offerRestore: true);
+
+      bloc.add(const SplashStarted());
+      await pumpEventQueue();
+
+      expect(bloc.state.status, SplashStatus.awaitingSetupChoice);
+      expect(deviceApi.registered, isFalse);
+      expect(storage.deviceToken, isNull);
+      await bloc.close();
+    });
+
     test('SplashStarted blocks and emits failure when token verification fails due to network error', () async {
       storage.deviceToken = 'any_token';
       deviceApi.verifyShouldThrow = true;

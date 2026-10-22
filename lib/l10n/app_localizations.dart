@@ -2881,7 +2881,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionRecoveryFailed.
   ///
   /// In vi, this message translates to:
-  /// **'Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.'**
+  /// **'Máy chủ không còn chấp nhận phiên của thiết bị này. Mở lại ứng dụng để khôi phục từ bản sao lưu hoặc thiết lập như máy mới.'**
   String get sessionRecoveryFailed;
 
   /// No description provided for @notifyOwnRelayedTitle.

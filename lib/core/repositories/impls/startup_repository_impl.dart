@@ -86,8 +86,16 @@ class StartupRepositoryImpl implements StartupRepository {
     } else {
       final isValid = await deviceApiService.verifyDeviceToken(cancelToken: cancelToken);
       if (!isValid) {
-        AppLogger.w('StartupRepository', 'Device token không hợp lệ (401), tiến hành đăng ký mới thiết bị');
+        // 401: server không còn nhận token này. KHÔNG đăng ký lại cùng
+        // device_id (server từ chối — 409 DEVICE_EXISTS, FLOW_AUDIT S1). Bỏ
+        // token cũ rồi cho người dùng chọn: khôi phục từ bản sao lưu, hoặc
+        // thiết lập như máy mới (device_id mới, phải tham gia lại kênh).
+        AppLogger.w('StartupRepository', 'Device token không hợp lệ (401) — cần khôi phục hoặc thiết lập lại');
         await deviceStorageService.clearDeviceToken();
+        if (offerSetupChoice) {
+          yield SplashStatus.awaitingSetupChoice;
+          return;
+        }
         final resolvedName = await _resolveDeviceName(defaultDeviceName);
         yield SplashStatus.registeringDevice;
         await deviceApiService.registerDevice(

@@ -186,8 +186,8 @@ void main() {
       expect(apiClient.lastPostPath, ApiEndpoints.registerDeviceV2);
     });
 
-    test('generates new UUID v4 if existing storage deviceId is not a valid UUID', () async {
-      storage.deviceId = 'legacy_non_uuid_123';
+    test('always sends a fresh UUID v4, never a stored device_id (server 409 DEVICE_EXISTS — FLOW_AUDIT S1)', () async {
+      storage.deviceId = '11111111-1111-4111-8111-111111111111';
       apiClient.postResponse = {
         'success': true,
         'device_id': '00000000-0000-4000-8000-000000000000',
@@ -201,7 +201,7 @@ void main() {
 
       final postedBody = apiClient.lastPostBody as Map<String, dynamic>;
       final sentDeviceId = postedBody['device_id'] as String;
-      expect(sentDeviceId, isNot('legacy_non_uuid_123'));
+      expect(sentDeviceId, isNot('11111111-1111-4111-8111-111111111111'));
       expect(sentDeviceId.length, 36);
       expect(sentDeviceId[14], '4');
     });
