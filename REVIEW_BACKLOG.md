@@ -158,3 +158,16 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Máy Owner: bật công tắc → nhận 1 SMS OTP → máy Owner cũng hiện thông báo OTP. Tắt → không hiện.
 - [ ] Thử khi app bị vuốt tắt (background isolate).
 
+## P3-2 · Cache tin nhắn offline (BACKLOG 1.7)
+
+**Rà soát**
+- [ ] `MessageCacheStore` lưu **đúng payload E2EE** (`toCipherMap`: ciphertext, nonce, epoch, metadata) — không bao giờ lưu nội dung đã giải mã; giữ 14 ngày xem gần nhất (`sms_cache_v1_*` trong SharedPreferences).
+- [ ] `SmsByDateRepositoryImpl`: online → lưu cache rồi giải mã; `NetworkException` + có bản lưu → giải mã lại bản lưu, **bỏ** tin không giải mã được (kênh đã rời / bị thu hồi → key đã purge), trả `cachedAt`. Lỗi khác (4xx/5xx) vẫn ném như cũ.
+- [ ] `SmsState.cachedAt` → dòng "Ngoại tuyến — đang xem bản lưu lúc …" trên danh sách.
+- [ ] ⚠️ Kênh Owner đã **giải tán** vẫn còn key trên máy Owner → tin cũ của kênh đó vẫn hiện trong bản lưu offline của Owner tới khi bị đẩy khỏi 14 ngày. Chấp nhận được (là tin của chính Owner).
+
+**Kiểm thử**
+- [ ] Mở tab SMS hôm nay (có mạng) → bật máy bay → kéo làm mới → vẫn thấy tin + dòng ngoại tuyến.
+- [ ] Ngày chưa từng mở → máy bay → toast lỗi như cũ.
+- [ ] Rời 1 kênh → máy bay → tin của kênh đó không còn trong bản lưu.
+

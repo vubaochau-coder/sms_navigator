@@ -18,7 +18,8 @@ class MessageListView extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.isLoading != current.isLoading ||
           previous.messages != current.messages ||
-          previous.selectedDate != current.selectedDate,
+          previous.selectedDate != current.selectedDate ||
+          previous.cachedAt != current.cachedAt,
       builder: (context, state) {
         if (state.isLoading) {
           return const ShimmerLoadingList(
@@ -52,6 +53,7 @@ class MessageListView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (state.cachedAt != null) SmsOfflineNotice(cachedAt: state.cachedAt!),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: Text(
@@ -73,6 +75,33 @@ class MessageListView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// "Ngoại tuyến — đang xem bản lưu lúc …" (BACKLOG 1.7).
+class SmsOfflineNotice extends StatelessWidget {
+  const SmsOfflineNotice({super.key, required this.cachedAt});
+
+  final DateTime cachedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 14, color: scheme.tertiary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              context.l10n.smsOfflineCached(DateTimeUtils.formatDateTime(cachedAt)),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.tertiary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

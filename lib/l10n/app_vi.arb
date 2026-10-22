@@ -946,5 +946,13 @@
   "vaultFallbackWarning": "Kho khóa an toàn của máy đang lỗi nên một số dữ liệu nhạy cảm tạm lưu không mã hoá. Hãy khởi động lại máy; nếu vẫn báo lỗi, cập nhật hệ điều hành.",
   "sessionRecoveryFailed": "Phiên của thiết bị đã hết hạn và chưa đăng ký lại được. Kiểm tra kết nối rồi mở lại ứng dụng.",
   "notifyOwnRelayedTitle": "Thông báo cả tin máy này chuyển tiếp",
-  "notifyOwnRelayedSubtitle": "Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng."
+  "notifyOwnRelayedSubtitle": "Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.",
+  "smsOfflineCached": "Ngoại tuyến — đang xem bản lưu lúc {time}",
+  "@smsOfflineCached": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

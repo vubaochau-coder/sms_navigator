@@ -2895,6 +2895,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.'**
   String get notifyOwnRelayedSubtitle;
+
+  /// No description provided for @smsOfflineCached.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngoại tuyến — đang xem bản lưu lúc {time}'**
+  String smsOfflineCached(String time);
 }
 
 class _AppLocalizationsDelegate

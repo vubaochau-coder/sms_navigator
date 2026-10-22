@@ -95,6 +95,7 @@ class SmsBloc extends Bloc<SmsEvent, SmsState> {
           messages: result.messages,
           truncated: result.truncated,
           hasFetchedOnce: true,
+          cachedAt: () => result.cachedAt,
         ),
       );
     } catch (error) {

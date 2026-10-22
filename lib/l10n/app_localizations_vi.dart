@@ -1637,4 +1637,9 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get notifyOwnRelayedSubtitle =>
       'Mặc định tắt: máy chủ kênh đã có SMS gốc nên không cần thông báo trùng.';
+
+  @override
+  String smsOfflineCached(String time) {
+    return 'Ngoại tuyến — đang xem bản lưu lúc $time';
+  }
 }

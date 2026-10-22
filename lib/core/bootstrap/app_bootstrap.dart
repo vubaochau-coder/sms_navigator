@@ -7,6 +7,7 @@ import '../network/api_client.dart';
 import '../repositories/app_update_repository.dart';
 import '../repositories/backup_repository.dart';
 import '../repositories/impls/backup_repository_impl.dart';
+import '../services/message_cache_store.dart';
 import '../services/device_session_recovery.dart';
 import '../services/impls/backup_file_service_impl.dart';
 import '../repositories/channel_repository.dart';
@@ -264,6 +265,7 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             cryptoHelper: context.read<ChannelCryptoHelper>(),
             channelEvents: context.read<FcmNotificationService>().channelEvents,
+            cache: MessageCacheStore(context.read<LocalStorageService>()),
           ),
         ),
         RepositoryProvider<StartupReconcileService>(

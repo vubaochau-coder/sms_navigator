@@ -23,7 +23,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết kỹ thuật & Hướng giải quyết | Ưu tiên |
 |---|---|---|---|
-| 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
 
 ---
 
@@ -57,6 +56,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
   - Keystore lỗi: native ghi lại mỗi lần lưu thô (`VaultFallbackLog`), app báo Crashlytics non-fatal + cảnh báo lúc khởi động (vẫn fail-open để relay không dừng) — cũ: mục 2.2.
   - Xử lý 401 tập trung: `ApiClient.onUnauthorized` → `DeviceSessionRecovery` (đăng ký lại cùng device_id, cập nhật native, retry 1 lần); worker native park SMS khi 401 — cũ: mục 3.2.
   - Tuỳ chọn "Thông báo cả tin máy này chuyển tiếp" (mặc định tắt) trong trang thiết bị, áp dụng cả foreground lẫn background handler — cũ: mục 1.8.
+  - Cache tin nhắn offline: lưu ciphertext (E2EE at rest) 14 ngày, mất mạng thì giải mã lại bản lưu và hiện "Ngoại tuyến — đang xem bản lưu lúc …" — cũ: mục 1.7.
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

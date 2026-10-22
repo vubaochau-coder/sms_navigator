@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/errors/app_exceptions.dart';
 import 'package:sms_navigator/core/models/channel_message_model.dart';
 import 'package:sms_navigator/core/repositories/impls/sms_by_date_repository_impl.dart';
 import 'package:sms_navigator/core/services/channel_key_store.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/services/message_api_service.dart';
+import 'package:sms_navigator/core/services/message_cache_store.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 
 class _KeyStore implements ChannelKeyStore {
@@ -22,16 +25,35 @@ class _KeyStore implements ChannelKeyStore {
 
 class _MessageApi implements MessageApiService {
   List<ChannelMessageModel> messages = [];
+  bool offline = false;
 
   @override
   Future<({List<ChannelMessageModel> messages, bool truncated})> fetchMessagesByDate({
     required String date,
     int tzOffset = 0,
     CancelToken? cancelToken,
-  }) async => (messages: messages, truncated: false);
+  }) async {
+    if (offline) throw const NetworkException('offline');
+    return (messages: messages, truncated: false);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
+class _Prefs implements LocalStorageService {
+  final Map<String, Object> data = {};
+
+  @override
+  String? getString(String key) => data[key] as String?;
+  @override
+  Future<void> setString(String key, String value) async => data[key] = value;
+  @override
+  bool? getBool(String key) => data[key] as bool?;
+  @override
+  Future<void> setBool(String key, bool value) async => data[key] = value;
+  @override
+  Future<void> remove(String key) async => data.remove(key);
 }
 
 void main() {
@@ -109,5 +131,59 @@ void main() {
     expect(result.messages[0].decryptFailed, isFalse);
     expect(result.messages[1].decryptFailed, isTrue);
     expect(result.messages[2].decryptFailed, isTrue);
+  });
+
+  group('offline cache (BACKLOG 1.7)', () {
+    late _Prefs prefs;
+    late SmsByDateRepositoryImpl cached;
+
+    setUp(() {
+      prefs = _Prefs();
+      cached = SmsByDateRepositoryImpl(
+        messageApiService: api,
+        keyStore: keyStore,
+        cryptoHelper: crypto,
+        cache: MessageCacheStore(prefs, clock: () => DateTime(2026, 10, 22, 8, 30)),
+      );
+    });
+
+    test('online fetch stores ciphertext only; offline replays it decrypted', () async {
+      keyStore.keys['a#1'] = crypto.generateChannelKeyBase64();
+      api.messages = [await encrypted('a', 1, 1, 'OTP 482913')];
+
+      final online = await cached.fetchByDate(date: DateTime(2026, 10, 22), tzOffsetMinutes: 420);
+      expect(online.cachedAt, isNull);
+      expect(prefs.data.values.whereType<String>().join(), isNot(contains('482913')));
+
+      api.offline = true;
+      final offline = await cached.fetchByDate(date: DateTime(2026, 10, 22), tzOffsetMinutes: 420);
+      expect(offline.cachedAt, DateTime(2026, 10, 22, 8, 30));
+      expect(offline.messages.single.decryptedOtp, 'OTP 482913');
+    });
+
+    test('offline without a cached day still throws; purged channels drop out', () async {
+      api.offline = true;
+      await expectLater(cached.fetchByDate(date: DateTime(2026, 10, 1)), throwsA(isA<NetworkException>()));
+
+      api.offline = false;
+      keyStore.keys['a#1'] = crypto.generateChannelKeyBase64();
+      api.messages = [await encrypted('a', 1, 1, 'OTP 1')];
+      await cached.fetchByDate(date: DateTime(2026, 10, 2));
+      keyStore.keys.remove('a#1'); // left the channel → keys purged
+
+      api.offline = true;
+      final offline = await cached.fetchByDate(date: DateTime(2026, 10, 2));
+      expect(offline.messages, isEmpty);
+    });
+
+    test('keeps at most maxDays days', () async {
+      final store = MessageCacheStore(prefs, maxDays: 2);
+      for (final day in ['d1', 'd2', 'd3']) {
+        await store.save(day, const [], truncated: false);
+      }
+      expect(store.load('d1'), isNull);
+      expect(store.load('d2'), isNotNull);
+      expect(store.load('d3'), isNotNull);
+    });
   });
 }
