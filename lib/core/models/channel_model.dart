@@ -28,6 +28,14 @@ class ChannelModel extends Equatable {
   /// White-list đã giải mã để hiện pill trên danh sách — do repository gắn vào.
   final WhitelistConfigModel? whitelist;
 
+  /// Owner: có member tự rời mà chưa xoay khoá. `null` = server cũ chưa trả
+  /// field này (danh sách khi đó cũng chưa chắc có whitelist) → caller phải
+  /// đọc `GET /channels/detail` như trước.
+  final bool? rotationPending;
+
+  /// Danh sách đã mang đủ `whitelist` + `rotation_pending` — không cần detail.
+  bool get hasRelayMetadata => rotationPending != null;
+
   const ChannelModel({
     required this.channelId,
     required this.name,
@@ -40,6 +48,7 @@ class ChannelModel extends Equatable {
     this.ownerDeviceName = '',
     this.whitelistBlob,
     this.whitelist,
+    this.rotationPending,
   });
 
   bool get isOwner => role == ChannelRole.owner;
@@ -57,6 +66,7 @@ class ChannelModel extends Equatable {
       ownerDeviceName: ownerDeviceName,
       whitelistBlob: whitelistBlob,
       whitelist: whitelist ?? this.whitelist,
+      rotationPending: rotationPending,
     );
   }
 
@@ -75,6 +85,7 @@ class ChannelModel extends Equatable {
       myJoinedEpoch: DataConverter.cvToInt(map['my_joined_epoch'], 1)!,
       ownerDeviceName: DataConverter.cvToString(map['owner_device_name'], '')!,
       whitelistBlob: rawWhitelist != null ? ChannelWhitelistBlobModel.fromMap(rawWhitelist) : null,
+      rotationPending: map.containsKey('rotation_pending') ? map['rotation_pending'] == true : null,
     );
   }
 
@@ -91,5 +102,6 @@ class ChannelModel extends Equatable {
     ownerDeviceName,
     whitelistBlob,
     whitelist,
+    rotationPending,
   ];
 }

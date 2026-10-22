@@ -311,6 +311,7 @@ class AppBootstrap extends StatelessWidget {
             deviceStorage: context.read<DeviceStorageService>(),
             relayBridge: context.read<RelayChannelBridge>(),
             whitelistRepository: context.read<WhitelistRepository>(),
+            syncChannelKeys: context.read<SyncChannelKeysUseCase>(),
           ),
         ),
       ],

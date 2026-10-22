@@ -11,6 +11,7 @@ import 'package:sms_navigator/core/services/channel_key_store.dart';
 import 'package:sms_navigator/core/services/device_storage_service.dart';
 import 'package:sms_navigator/core/services/relay_channel_bridge.dart';
 import 'package:sms_navigator/core/usecases/sync_owner_relay_channel_use_case.dart';
+import 'package:sms_navigator/core/usecases/sync_channel_keys_use_case.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 
 class FakeChannelRepository implements ChannelRepository {
@@ -40,8 +41,15 @@ class FakeChannelRepository implements ChannelRepository {
   @override
   Future<List<ChannelModel>> listChannels() async => channels;
 
+  int detailCalls = 0;
+
   @override
-  Future<ChannelDetailModel> getChannelDetail(String channelId) async =>
+  Future<ChannelDetailModel> getChannelDetail(String channelId) async {
+    detailCalls++;
+    return _detail(channelId);
+  }
+
+  ChannelDetailModel _detail(String channelId) =>
       ChannelDetailModel(
         channelId: channelId,
         name: 'detail-$channelId',
@@ -231,6 +239,23 @@ class FakeRelayBridge implements RelayChannelBridge {
   }
 }
 
+class FakeKeySync implements SyncChannelKeysUseCase {
+  FakeKeySync(this.keyStore);
+  final FakeChannelKeyStore keyStore;
+  final Map<String, String> provides = {};
+  final List<String?> calls = [];
+
+  @override
+  Future<ChannelKeySyncResult> call({String? channelId}) async {
+    calls.add(channelId);
+    keyStore.keys.addAll(provides);
+    return ChannelKeySyncResult(added: provides.length);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
 void main() {
   late FakeChannelRepository channelRepo;
   late FakeChannelKeyStore keyStore;
@@ -379,4 +404,90 @@ void main() {
 
     expect(bridge.flushCalls, 1);
   });
+
+  group('FLOW_AUDIT P1/P2 — fewer requests', () {
+    ChannelModel listed(String id, {int epoch = 1, bool pending = false}) => ChannelModel(
+      channelId: id,
+      name: 'Kênh $id',
+      role: ChannelRole.owner,
+      status: 'ACTIVE',
+      currentEpoch: epoch,
+      rotationPending: pending,
+    );
+
+    test('list with relay metadata → no GET /channels/detail at all', () async {
+      channelRepo.channels = [listed('ch-a', epoch: 2), listed('ch-b')];
+      keyStore.keys['ch-a_2'] = 'key-a-2';
+      keyStore.keys['ch-b_1'] = 'key-b-1';
+
+      await useCase();
+
+      expect(channelRepo.detailCalls, 0);
+      expect(bridge.replaced, hasLength(2));
+    });
+
+    test('rotation_pending from the list still triggers the rotation', () async {
+      channelRepo.channels = [listed('ch-a', epoch: 3, pending: true)];
+      channelRepo.recoverInto = keyStore;
+      keyStore.keys['ch-a_3'] = 'key-a-3';
+
+      await useCase();
+
+      expect(channelRepo.rotateCalls, ['ch-a']);
+      expect(bridge.replaced!.single.keyEpoch, 4);
+      expect(channelRepo.detailCalls, 0);
+    });
+
+    test('missing owner key → one key sync for that channel, no detail', () async {
+      final keySync = FakeKeySync(keyStore)..provides['ch-a_3'] = 'synced-a-3';
+      final withSync = SyncOwnerRelayChannelUseCase(
+        channelRepository: channelRepo,
+        keyStore: keyStore,
+        deviceStorage: deviceStorage,
+        relayBridge: bridge,
+        syncChannelKeys: keySync,
+      );
+      channelRepo.channels = [listed('ch-a', epoch: 3)];
+
+      await withSync();
+
+      expect(keySync.calls, ['ch-a']);
+      expect(bridge.replaced!.single.channelKeyBase64, 'synced-a-3');
+      expect(channelRepo.provisionCalls, isEmpty);
+      expect(channelRepo.detailCalls, 0);
+    });
+
+    test('untargeted calls right after each other share one run; targeted calls always run', () async {
+      channelRepo.channels = [listed('ch-a')];
+      keyStore.keys['ch-a_1'] = 'key-a-1';
+      var listCalls = 0;
+      final counting = _CountingRepo(channelRepo, () => listCalls++);
+      final shared = SyncOwnerRelayChannelUseCase(
+        channelRepository: counting,
+        keyStore: keyStore,
+        deviceStorage: deviceStorage,
+        relayBridge: bridge,
+      );
+
+      await Future.wait([shared(), shared()]);
+      await shared();
+      expect(listCalls, 1);
+
+      await shared(channelId: 'ch-a', expectedEpoch: 1);
+      expect(listCalls, 2);
+    });
+  });
+}
+
+/// Đếm `listChannels`, uỷ quyền phần còn lại cho [FakeChannelRepository].
+class _CountingRepo extends FakeChannelRepository {
+  _CountingRepo(this.inner, this.onList);
+  final FakeChannelRepository inner;
+  final void Function() onList;
+
+  @override
+  Future<List<ChannelModel>> listChannels() {
+    onList();
+    return inner.listChannels();
+  }
 }
