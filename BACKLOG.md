@@ -48,6 +48,9 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 | 3.2 | Xử lý 401 tập trung | `ApiClient` chỉ ném `UnauthorizedException`; chưa có luồng tự đăng ký lại / báo người dùng thống nhất ngoài Splash. | P2 |
 | 3.3 | **TD-3 — Tách luồng khởi động** | `SplashBloc` inject trực tiếp 7 services. Gom vào `StartupRepository.bootstrap(...)`; `SplashBloc` chỉ phụ thuộc repository. Nên làm cùng startup capability gate (3.5). | P3 |
 | 3.5 | Startup capability gate (`MaintenanceGate`, …) | Phần còn lại của roadmap startup cũ: `CapabilitySet`, `StartupGate`, `StartupCoordinator`. (Pending deeplink đã có qua `QrIngressCubit`.) | P3 |
+| 3.8 | **`distribute.yml` ký APK sai key** | Workflow chạy khi push tag `v*` / bấm tay: runner không có `android/key.properties` → ký bằng debug key **mới sinh mỗi lần chạy** → APK không cài đè được lên 1.1.0 (khác chữ ký) và App Links mất `verified`. Trước khi dùng lại: thêm secret `ANDROID_KEYSTORE_BASE64` + mật khẩu, bước giải mã ra `.jks` và ghi `key.properties`, rồi kiểm tra chữ ký bằng `scripts/print_android_sha256.sh` (phải ✅). Tới lúc đó: **chỉ phát hành bằng `scripts/distribute_android.sh` trên máy build** | P1 |
+| 3.9 | CI cho pull request | Chưa có workflow chạy khi mở PR (chỉ có `distribute.yml`). Thêm job `pull_request`: `flutter analyze`, `flutter test`, `flutter build apk --config-only` + `cd android && ./gradlew :app:testDebugUnitTest`. Ghim cùng Flutter với máy dev (`distribute.yml` đang ghim 3.47.5). Lý do: đợt 22/10 có code chưa từng compile nằm trên nhánh và một widget test hỏng | P1 |
+| 3.10 | Nâng Gradle / AGP / Kotlin | Flutter cảnh báo sắp ngừng hỗ trợ Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20 → cần Gradle ≥ 9.1, AGP ≥ 9.0.1, Kotlin ≥ 2.3.20. Nâng trên nhánh riêng, chạy đủ test + build APK release và kiểm tra chữ ký không đổi | P3 |
 
 ---
 
