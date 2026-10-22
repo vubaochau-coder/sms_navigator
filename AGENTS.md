@@ -250,3 +250,6 @@ lib/
 
 - Dự án sử dụng **FVM (Flutter Version Management)** để đồng bộ SDK.
 - Khi chạy các lệnh Flutter/Dart, ưu tiên sử dụng `fvm flutter ...` (ví dụ: `fvm flutter pub get`, `fvm flutter analyze`).
+- **Chạy test** (cả 3 phải xanh trước khi push):
+  - `fvm flutter analyze` và `fvm flutter test`. Test phải hermetic: `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback — cần HTTP thì inject fake repository / `Dio` adapter.
+  - Unit test Kotlin: `gradlew` + `gradle-wrapper.jar` **không commit** (quy ước Flutter, đã gitignore) — sinh bằng `fvm flutter build apk --config-only` (chỉ cần một lần), rồi `cd android && ./gradlew :app:testDebugUnitTest`. Dùng `:app:` để không chạy test của plugin bên thứ ba.

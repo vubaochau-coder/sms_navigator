@@ -63,6 +63,7 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
   - Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.3.
   - SMS relay không còn nằm plaintext trong DB WorkManager: nội dung + sender ghi mã hóa vào outbox `RelayChannelStore`, worker chỉ nhận `messageId`/`channelId`, xóa khi xong; parked queue mã hóa cả sender (cũ: mục 2.1).
   - Test hermetic (cũ: mục 3.1 / TD-4): `test/flutter_test_config.dart` chặn mọi kết nối ra ngoài loopback (kể cả qua proxy), có test bảo vệ. `testWidgets` vốn đã được `TestWidgetsFlutterBinding` trả 400 cho mọi HTTP; đo thực tế: không test `test()` nào tạo `HttpClient`.
+  - Hướng dẫn chạy test (Flutter + `./gradlew :app:testDebugUnitTest` sau `flutter build apk --config-only`) trong `AGENTS.md` §8.
   - Release signing đọc `android/key.properties` (fallback debug key) + `scripts/print_android_sha256.sh`.
 - **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.
