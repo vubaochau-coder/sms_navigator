@@ -2,7 +2,7 @@
 
 > Tài liệu gom toàn bộ nợ kỹ thuật + roadmap chưa triển khai của phía mobile.
 > Mục đã hoàn thành bị loại khỏi danh sách; hoàn thành mục nào thì xoá mục đó.
-> Cập nhật lần cuối: 21/10/2026.
+> Cập nhật lần cuối: 22/10/2026.
 
 ---
 
@@ -13,9 +13,8 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 | # | Hạng mục | Ghi chú | Ưu tiên |
 |---|---|---|---|
-| 0.1 | Chạy `flutter analyze`, `flutter test`, `./gradlew testDebugUnitTest` trên các nhánh mới | Code được viết khi không có Flutter SDK — chưa compile | P0 |
-| 0.2 | Điền `ANDROID_CERT_SHA256` (debug + release + Play App Signing) cho server; kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
-| 0.3 | Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (không redirect) | Repo Worker nằm ngoài dự án | P0 |
+| 0.2 | Điền `ANDROID_CERT_SHA256` cho server (production hiện trả `assetlinks.json` = `[]`); kiểm tra `adb shell pm get-app-links com.example.sms_navigator` | Lấy giá trị bằng `./scripts/print_android_sha256.sh` (debug keystore + release keystore trong `android/key.properties` + APK tuỳ chọn), cộng SHA "App signing key" trong Play Console nếu phát hành qua Play. Lưu ý: chưa có `key.properties` thì release vẫn ký bằng debug key của **máy build** → đổi máy build là đổi SHA. Thiếu → link `https://…/qr/<code>` không tự mở app | P0 |
+| 0.2b | Tạo upload keystore release + `android/key.properties` (mẫu: `android/key.properties.example`) | Cấu hình Gradle đã sẵn; keystore + mật khẩu tự giữ, không commit | P1 |
 | 0.4 | iOS Universal Links: thêm capability Associated Domains (`applinks:<host>`) trong Xcode + `IOS_APP_IDS` cho server | Custom scheme `smsnavigator://` đã có | P1 |
 | 0.5 | Test thực tế ADB: cold start / mid-splash / warm start (ROADMAP_DEEPLINK_QR_V2 §6.2); 2 kênh Owner cùng khớp 1 SMS; revoke khi bật máy bay (pending key + self-heal) | | P0 |
 | 0.6 | **Roadmap GĐ6 — clean-cut v4**: phát hành app mới → bật `min_version` force update → BE gỡ `pairing_token`, `invite_url` v4, `/channels/sessions/resolve`, claim bằng token → app gỡ `InvitePayload`, `LegacyInviteLink`, `JoinResolveStarted` | Thứ tự bắt buộc: không gỡ v4 trước khi force update | P1 |
@@ -61,6 +60,10 @@ Code đã xong trên các nhánh `refactor/multi-channel-relay` → `feat/opaque
 
 ## 4. Hạng mục đã hoàn thành (tham khảo — đừng làm lại)
 
+- **Đợt 22/10/2026**:
+  - Đã chạy `flutter analyze` (sạch), `flutter test` (271/271), `:app:testDebugUnitTest` (99/99) — cũ: mục 0.1.
+  - Xác nhận Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.3.
+  - Release signing đọc `android/key.properties` (fallback debug key) + `scripts/print_android_sha256.sh`.
 - **Đợt 21/10/2026** (nhánh chưa merge, xem §0):
   - Relay đa kênh: `RelayChannelStore`, mỗi SMS áp whitelist từng kênh và có worker riêng; xoay khóa stage → commit → promote, worker tự phục hồi 409 `EPOCH_OUTDATED`, SMS chờ khóa được park + gửi lại.
   - Universal Opaque QR v3.3: `QrLinkParser`, `QrIngressCubit` (pending deeplink one-shot), `QrEntryPage`, claim bằng `code`, App Links + custom scheme, nút "Dán mã" (không đọc clipboard tự động), Owner render `qr_url`.
