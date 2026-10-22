@@ -37,7 +37,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 
 | # | Hạng mục | Chi tiết | Ưu tiên |
 |---|---|---|---|
-| 3.10 | Nâng Gradle / AGP / Kotlin | Flutter cảnh báo sắp ngừng hỗ trợ Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20 → cần Gradle ≥ 9.1, AGP ≥ 9.0.1, Kotlin ≥ 2.3.20. Nâng trên nhánh riêng, chạy đủ test + build APK release và kiểm tra chữ ký không đổi | P3 |
+| 3.11 | Chuyển sang Built-in Kotlin (AGP 9) | Sau 3.10 Flutter cảnh báo app còn áp `kotlin-android` (KGP) và các plugin `firebase_*`, `shared_preferences_android` cũng vậy → sẽ lỗi build ở bản Flutter sau. Đang giữ `android.builtInKotlin=false` / `android.newDsl=false`. Làm khi các plugin ra bản hỗ trợ: bỏ plugin KGP, bật 2 cờ, nâng plugin. | P3 |
 
 ---
 
@@ -57,6 +57,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
   - Cache tin nhắn offline: lưu ciphertext (E2EE at rest) 14 ngày, mất mạng thì giải mã lại bản lưu và hiện "Ngoại tuyến — đang xem bản lưu lúc …" — cũ: mục 1.7.
   - TD-3: luồng khởi động tách vào `StartupRepository`/`StartupRepositoryImpl`; `SplashBloc` chỉ phụ thuộc repository (3.3).
   - Startup gate: `StartupGate`/`RemoteConfigStartupGate` (`maintenance_enabled`, `maintenance_message`, fail-open) chặn khởi động khi bảo trì; CapabilitySet/StartupCoordinator bỏ — chưa có nhu cầu (3.5).
+  - Gradle 9.1.0 / AGP 9.0.1 / Kotlin 2.3.20; `kotlinOptions` → `kotlin { compilerOptions }`. APK release: chữ ký và manifest không đổi (3.10).
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

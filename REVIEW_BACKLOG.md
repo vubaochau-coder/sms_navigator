@@ -195,3 +195,17 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Unit: nhóm `startup gate (maintenance, 3.5)` trong `splash_bloc_test.dart`.
 - [ ] Firebase Console → Remote Config: thêm `maintenance_enabled=true`, `maintenance_message="Bảo trì tới 22h"` → Publish → mở lại app → thấy thông điệp; tắt cờ → Thử lại (sau ≥ 1 phút) → vào app.
 - [ ] Bật máy bay + cờ đang bật từ lần trước → vẫn thấy bảo trì (giá trị cache); xoá dữ liệu app + máy bay → lỗi mạng như cũ (fail-open).
+
+## P3-5 · Nâng Gradle 9.1.0 / AGP 9.0.1 / Kotlin 2.3.20 (BACKLOG 3.10)
+
+**Rà soát**
+- [ ] `gradle-wrapper.properties` → 9.1.0; `settings.gradle.kts` → AGP 9.0.1, KGP 2.3.20. `google-services` 4.4.2 / `crashlytics` 3.0.3 giữ nguyên (build OK).
+- [ ] Kotlin 2.3 nâng `kotlinOptions { jvmTarget }` thành **lỗi** → chuyển sang `kotlin { compilerOptions { jvmTarget = JVM_17 } }` (cùng target 17 như cũ).
+- [ ] Giữ `android.builtInKotlin=false`, `android.newDsl=false` (cờ của Flutter migrator) — bật lên phải bỏ KGP ở app **và** chờ plugin firebase/shared_preferences hỗ trợ → tách thành BACKLOG 3.11.
+- [ ] Đã kiểm trong container (cùng 1 debug keystore): APK release trước/sau có **cùng SHA-256 chữ ký** và `AndroidManifest.xml` (aapt2 xmltree) **giống hệt**; versionCode 20, minSdk 24, targetSdk 36. 105 test Kotlin + 388 test Flutter pass.
+- [ ] CI dùng JDK 17 (đủ cho Gradle 9 / AGP 9).
+
+**Kiểm thử**
+- [ ] Máy local: `flutter clean && flutter build apk --release` với `key.properties` thật → `./scripts/print_android_sha256.sh` vẫn ra `94:74:…:AD:A2` (✅) → cài **đè** lên bản 1.1.0 đang chạy được (không phải gỡ).
+- [ ] Android Studio: Sync project không lỗi (có thể cần cập nhật AS lên bản hỗ trợ AGP 9).
+- [ ] Smoke: nhận SMS OTP → relay (WorkManager + native) chạy bình thường; Crashlytics vẫn nhận mapping/báo cáo.
