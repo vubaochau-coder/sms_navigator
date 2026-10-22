@@ -109,4 +109,4 @@ Kết quả rà soát đầy đủ: `docs/FLOW_AUDIT.md`. Bối cảnh: test 1.1
 - FCM chuông V2: notification block cho `NEW_MESSAGE` / `JOIN_REQUEST` / `APPROVED` / `REVOKED` kèm `channel_name`.
 - Auto device name từ native (`Settings.Global.DEVICE_NAME` → `bluetooth_name` → `Build` fallback) + auto-heal máy cũ (`commit d2b2a14`).
 - Shimmer loading đồng bộ + pull-to-refresh phản hồi tức thì (`commit dde4e5b`, `59c3fb6`).
-- Đóng gói & phân phối APK qua Firebase App Distribution (`scripts/distribute_android.sh`).
+- Đóng gói & phân phối APK qua Firebase App Distribution (`scripts/distribute.sh`).

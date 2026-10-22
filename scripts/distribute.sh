@@ -1,65 +1,30 @@
 #!/bin/bash
-set -e
+# Build APK release và gửi lên Firebase App Distribution.
+# Release notes = tiêu đề commit cuối cùng. Version lấy nguyên từ pubspec.yaml
+# (tăng build number bằng commit riêng trước khi chạy).
+#
+#   ./scripts/distribute.sh                 # nhóm internal-dev
+#   ./scripts/distribute.sh field-testers   # nhóm khác
+set -euo pipefail
+cd "$(dirname "$0")/.."
 
-# Chuyển về đúng thư mục gốc của project sms_navigator
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$DIR"
+GROUPS_="${1:-internal-dev}"
+APK="build/app/outputs/flutter-apk/app-release.apk"
+VERSION=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml)
+NOTES="[v$VERSION] $(git log -1 --pretty=%s)"
 
-PUBSPEC_FILE="pubspec.yaml"
-APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
-PROJECT_ID="sms-navigator-relay-81229"
-TESTER_GROUPS="${1:-"internal-dev"}"
-APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+# Không có keystore → APK ký bằng debug key, không cài đè được bản cũ.
+[ -f android/key.properties ] || { echo "❌ Thiếu android/key.properties (release keystore)"; exit 1; }
 
-# Đọc version hiện tại từ pubspec.yaml
-CURRENT_LINE=$(grep "^version:" "$PUBSPEC_FILE")
-CURRENT_VERSION_RAW=$(echo "$CURRENT_LINE" | sed 's/version:[[:space:]]*//')
+echo "📦 v$VERSION → $GROUPS_"
+echo "📝 $NOTES"
 
-# Tách version name và build number (ví dụ 1.0.0+15)
-VERSION_NAME=$(echo "$CURRENT_VERSION_RAW" | cut -d'+' -f1)
-BUILD_NUMBER=$(echo "$CURRENT_VERSION_RAW" | cut -s -d'+' -f2)
-
-# Tăng build number lên 1
-if [ -z "$BUILD_NUMBER" ]; then
-  NEW_BUILD=1
-else
-  NEW_BUILD=$((BUILD_NUMBER + 1))
-fi
-
-NEW_VERSION="${VERSION_NAME}+$NEW_BUILD"
-
-# Tự động cập nhật phiên bản mới vào pubspec.yaml
-perl -i -pe "s/^version:.*/version: $NEW_VERSION/" "$PUBSPEC_FILE"
-
-# Lấy commit message gần nhất làm release notes
-COMMIT_MSG=$(git log -1 --pretty=%B | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-RELEASE_NOTES="[v${VERSION_NAME}+$NEW_BUILD] $COMMIT_MSG"
-
-echo "=========================================="
-echo "📦 SMS NAVIGATOR - DISTRIBUTE TO FIREBASE"
-echo "=========================================="
-echo "🏷️  Version: ${VERSION_NAME} (Build number: $NEW_BUILD)"
-echo "👥 Nhóm Tester: $TESTER_GROUPS"
-echo "📝 Release Notes:"
-echo "$RELEASE_NOTES"
-echo "------------------------------------------"
-
-echo "🔨 [1/2] Đang build Flutter APK (Release)..."
 fvm flutter build apk --release
 
-if [ ! -f "$APK_PATH" ]; then
-  echo "❌ Lỗi: Không tìm thấy file APK tại $APK_PATH"
-  exit 1
-fi
+npx -y firebase-tools@latest appdistribution:distribute "$APK" \
+  --app "1:510867121628:android:8e0205deb80aa79c565b19" \
+  --project "sms-navigator-relay-81229" \
+  --groups "$GROUPS_" \
+  --release-notes "$NOTES"
 
-echo "🚀 [2/2] Đang tải APK lên Firebase App Distribution & phân phối cho tester ($TESTER_GROUPS)..."
-firebase appdistribution:distribute "$APK_PATH" \
-  --app "$APP_ID" \
-  --project "$PROJECT_ID" \
-  --groups "$TESTER_GROUPS" \
-  --release-notes "$RELEASE_NOTES"
-
-echo "=========================================="
-echo "🎉 PHÂN PHỐI THÀNH CÔNG: v${VERSION_NAME}+$NEW_BUILD"
-echo "👉 Thông báo đã được tự động gửi tới nhóm tester '$TESTER_GROUPS' qua Firebase App Tester!"
-echo "=========================================="
+echo "🎉 Đã phân phối v$VERSION"
