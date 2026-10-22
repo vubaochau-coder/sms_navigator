@@ -85,6 +85,9 @@ class _FakeChannelRepository implements ChannelRepository {
   Future<int?> provisionLatestChannelKey({required String channelId, required String ownerPublicKeyBase64}) async => null;
   @override
   Future<void> renameDevice(String deviceName) async {}
+
+  @override
+  Future<void> renameChannel({required String channelId, required String name}) async {}
 }
 
 class _FakeChannelKeyStore implements ChannelKeyStore {

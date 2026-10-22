@@ -1525,4 +1525,22 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get splashSetupRestoreSubtitle => 'Dùng file .smsnav từ máy cũ';
+
+  @override
+  String get channelDetailMoreTooltip => 'Tùy chọn kênh';
+
+  @override
+  String get channelRenameAction => 'Đổi tên kênh';
+
+  @override
+  String get channelRenameConfirm => 'Lưu';
+
+  @override
+  String channelRenameSuccess(String channelName) {
+    return 'Đã đổi tên kênh thành \"$channelName\".';
+  }
+
+  @override
+  String get channelRenameFailed =>
+      'Không đổi được tên kênh. Vui lòng thử lại.';
 }

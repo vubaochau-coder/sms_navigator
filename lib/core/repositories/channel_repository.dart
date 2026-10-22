@@ -35,6 +35,9 @@ abstract class ChannelRepository {
     required List<String> revokeDeviceIds,
   });
 
+  /// Owner đổi tên kênh (BACKLOG 1.5) — chỉ là metadata, không rotate key.
+  Future<void> renameChannel({required String channelId, required String name});
+
   /// Tạo QR invitation (deeplink v4, countdown 10').
   Future<PairingSessionModel> createPairingSession(String channelId);
 

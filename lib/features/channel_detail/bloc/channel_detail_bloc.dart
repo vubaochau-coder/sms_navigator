@@ -29,6 +29,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     on<ChannelDetailConfirmed>(_onConfirmed, transformer: droppable());
     on<ChannelDetailRejected>(_onRejected, transformer: droppable());
     on<ChannelDetailMemberRevoked>(_onRevoked, transformer: droppable());
+    on<ChannelDetailRenamed>(_onRenamed, transformer: droppable());
   }
 
   final ChannelRepository _repository;
@@ -138,6 +139,28 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       ToastUtils.showError(AppL10n.current.channelDetailRevokeConflict);
       emit(state.copyWith(isMutating: false));
     }
+  }
+
+  Future<void> _onRenamed(
+    ChannelDetailRenamed event,
+    Emitter<ChannelDetailState> emit,
+  ) async {
+    final name = event.name.trim();
+    if (name.isEmpty || name == state.detail?.name) return;
+
+    emit(state.copyWith(isMutating: true));
+    try {
+      await _repository.renameChannel(channelId: state.channelId, name: name);
+      await _refresh(emit);
+      // Native relay hiển thị tên kênh trong log relay — đồng bộ lại.
+      if (_syncUseCase != null) {
+        await _syncUseCase();
+      }
+      ToastUtils.showSuccess(AppL10n.current.channelRenameSuccess(name));
+    } catch (error) {
+      ToastUtils.showError(AppL10n.current.channelRenameFailed);
+    }
+    emit(state.copyWith(isMutating: false));
   }
 }
 

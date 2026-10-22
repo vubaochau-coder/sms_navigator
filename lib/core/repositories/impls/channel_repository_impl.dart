@@ -323,6 +323,10 @@ class ChannelRepositoryImpl implements ChannelRepository {
   // ----------------------------------------------- T4 — revoke (auto-rotate)
 
   @override
+  Future<void> renameChannel({required String channelId, required String name}) =>
+      _channelApi.renameChannel(channelId: channelId, name: name);
+
+  @override
   Future<int> revokeMembers({
     required String channelId,
     required List<String> revokeDeviceIds,

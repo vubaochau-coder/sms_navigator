@@ -79,6 +79,9 @@ class FakeChannelRepository implements ChannelRepository {
 
   @override
   Future<void> renameDevice(String newName) async {}
+
+  @override
+  Future<void> renameChannel({required String channelId, required String name}) async {}
 }
 
 class FakeChannelKeyStore implements ChannelKeyStore {

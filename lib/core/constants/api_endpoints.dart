@@ -23,6 +23,7 @@ class ApiEndpoints {
   static const String channelMessageV2 = '/api/v2/channels/message';
   static const String channelRevokeV2 = '/api/v2/channels/revoke';
   static const String channelWhitelistV2 = '/api/v2/channels/whitelist';
+  static const String channelNameV2 = '/api/v2/channels/name';
 
   // --- Pairing v2 ---
   static const String pairingClaimV2 = '/api/v2/pairing/requests';

@@ -30,6 +30,9 @@ abstract class ChannelApiService {
     required Map<String, dynamic> package,
   });
 
+  /// `PUT /channels/name` — Owner đổi tên kênh (display-only).
+  Future<void> renameChannel({required String channelId, required String name});
+
   Future<Map<String, dynamic>> updateChannelWhitelist({
     required String channelId,
     required int keyEpoch,

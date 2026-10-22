@@ -879,5 +879,17 @@
   "splashSetupNewDevice": "Thiết lập thiết bị mới",
   "splashSetupNewDeviceSubtitle": "Tạo danh tính mới cho máy này",
   "splashSetupRestore": "Khôi phục từ bản sao lưu",
-  "splashSetupRestoreSubtitle": "Dùng file .smsnav từ máy cũ"
+  "splashSetupRestoreSubtitle": "Dùng file .smsnav từ máy cũ",
+  "channelDetailMoreTooltip": "Tùy chọn kênh",
+  "channelRenameAction": "Đổi tên kênh",
+  "channelRenameConfirm": "Lưu",
+  "channelRenameSuccess": "Đã đổi tên kênh thành \"{channelName}\".",
+  "@channelRenameSuccess": {
+    "placeholders": {
+      "channelName": {
+        "type": "String"
+      }
+    }
+  },
+  "channelRenameFailed": "Không đổi được tên kênh. Vui lòng thử lại."
 }

@@ -2703,6 +2703,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Dùng file .smsnav từ máy cũ'**
   String get splashSetupRestoreSubtitle;
+
+  /// No description provided for @channelDetailMoreTooltip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tùy chọn kênh'**
+  String get channelDetailMoreTooltip;
+
+  /// No description provided for @channelRenameAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên kênh'**
+  String get channelRenameAction;
+
+  /// No description provided for @channelRenameConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get channelRenameConfirm;
+
+  /// No description provided for @channelRenameSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đổi tên kênh thành \"{channelName}\".'**
+  String channelRenameSuccess(String channelName);
+
+  /// No description provided for @channelRenameFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không đổi được tên kênh. Vui lòng thử lại.'**
+  String get channelRenameFailed;
 }
 
 class _AppLocalizationsDelegate

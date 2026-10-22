@@ -47,3 +47,18 @@
 - [ ] Quét QR v4 cũ (ảnh chụp từ bản ≤ 1.0.x) → toast không hỗ trợ, không crash.
 - [ ] Claim lỗi (mã đã dùng / hết hạn) → toast đúng thông điệp, ở lại màn xác nhận.
 
+## P2-1 · Đổi tên kênh (BACKLOG 1.5)
+
+Cần BE `PUT /api/v2/channels/name` (BE REVIEW_BACKLOG P2-1) đã deploy.
+
+**Rà soát**
+- [ ] Menu "⋮" mới trên AppBar chi tiết kênh (`ChannelDetailMenuButton`) — chỉ Owner thấy; các mục sau (lịch sử, lưu trữ, rời kênh) cũng nằm ở đây.
+- [ ] Dialog dùng `DialogUtils.showInputDialog`, điền sẵn tên hiện tại, tối đa 100 ký tự (giống tạo kênh).
+- [ ] `ChannelDetailRenamed`: bỏ qua tên rỗng/không đổi; thành công → refresh + `SyncOwnerRelayChannelUseCase()` để native relay cập nhật tên trong log.
+
+**Kiểm thử**
+- [ ] Owner: ⋮ → Đổi tên kênh → Lưu → tiêu đề AppBar + danh sách kênh đổi tên; toast "Đã đổi tên kênh thành …".
+- [ ] Member mở cùng kênh (kéo để làm mới) → thấy tên mới.
+- [ ] Gửi 1 SMS sau khi đổi tên → log relay trên máy Owner hiện "Kênh: <tên mới>".
+- [ ] Tắt mạng rồi đổi tên → toast lỗi, tên cũ giữ nguyên.
+

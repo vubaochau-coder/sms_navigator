@@ -109,6 +109,14 @@ class ChannelApiServiceImpl implements ChannelApiService {
   }
 
   @override
+  Future<void> renameChannel({required String channelId, required String name}) async {
+    await apiClient.put(
+      ApiEndpoints.channelNameV2,
+      body: <String, dynamic>{'channel_id': channelId, 'name': name},
+    );
+  }
+
+  @override
   Future<Map<String, dynamic>> updateChannelWhitelist({
     required String channelId,
     required int keyEpoch,
