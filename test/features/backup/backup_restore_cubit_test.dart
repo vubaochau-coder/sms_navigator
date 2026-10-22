@@ -26,6 +26,9 @@ class _Repo implements BackupRepository {
 
   @override
   Future<BackupSummary> exportToFile({required String passphrase}) => throw UnimplementedError();
+
+  @override
+  BackupRecord? lastBackupRecord() => null;
 }
 
 void main() {

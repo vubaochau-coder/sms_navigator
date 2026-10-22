@@ -1609,4 +1609,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get requestStatusCancelled => 'Đã huỷ';
+
+  @override
+  String get backupReminderTitle => 'Chưa sao lưu khóa kênh';
+
+  @override
+  String get backupReminderMessage =>
+      'Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.';
+
+  @override
+  String get backupReminderAction => 'Sao lưu ngay';
+
+  @override
+  String get backupReminderLater => 'Để sau';
 }

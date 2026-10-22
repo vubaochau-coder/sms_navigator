@@ -25,7 +25,6 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
 |---|---|---|---|
 | 1.7 | Offline encrypted cache tin nhắn | Tin nhắn chỉ fetch online theo ngày; cân nhắc lưu local mã hóa nếu cần xem khi mất mạng. | P3 |
 | 1.8 | Bỏ thông báo cho chính máy relay có thể cấu hình | 1.2 bỏ qua `NEW_MESSAGE` do chính máy gửi (Owner đã có SMS gốc). Nếu cần: thêm tuỳ chọn bật lại. | P3 |
-| 1.9 | Nhắc tạo bản sao lưu | Owner chưa từng sao lưu (hoặc vừa tạo/tham gia kênh mới sau lần sao lưu cuối) → banner nhắc. Bản sao lưu cũ không chứa key của epoch mới, nhưng vẫn khôi phục được danh tính → `StartupReconcile` tự lấy lại envelope epoch mới. | P2 |
 
 ---
 
@@ -57,6 +56,7 @@ Nhánh đang chờ merge: `feat/otp-notification` (cả mobile và BE — gồm 
   - Đổi tên kênh (Owner): menu ⋮ trên chi tiết kênh → dialog → `PUT /channels/name` → refresh + đồng bộ tên xuống native relay — cũ: mục 1.5.
   - Rời kênh (member) / giải tán kênh (owner) từ menu ⋮; Owner tự xoay khóa khi có member rời (`rotation_pending` trong `SyncOwnerRelayChannelUseCase`); danh sách kênh tự làm mới khi quay về — cũ: mục 1.4.
   - Lịch sử yêu cầu kết nối đã xử lý (Owner): menu ⋮ → màn lịch sử, phân trang "Xem thêm" — cũ: mục 1.6.
+  - Nhắc sao lưu: banner trên tab Kênh khi có kênh chưa nằm trong bản sao lưu / khôi phục gần nhất, "Để sau" 3 ngày — cũ: mục 1.9.
 - **22/10/2026** (merge `ccr-41b49984-c6ug2s` → `feat/otp-notification`):
   - Đã chạy trên nhánh này: `flutter gen-l10n` (sinh lại file l10n đã cũ), `flutter analyze` (sạch), `flutter test` (352/352), `./gradlew :app:testDebugUnitTest` (103/103), `flutter build apk --debug` thành công — cũ: mục 0.1. Sửa `device_profile_page_test` thiếu `BackupRepository` sau 1.1.
   - Cloudflare Worker chuyển tiếp nguyên `/.well-known/*` và `/qr/*` (200, không redirect) — cũ: mục 0.4. 

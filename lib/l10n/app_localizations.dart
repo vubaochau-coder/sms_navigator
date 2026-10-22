@@ -2847,6 +2847,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Đã huỷ'**
   String get requestStatusCancelled;
+
+  /// No description provided for @backupReminderTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa sao lưu khóa kênh'**
+  String get backupReminderTitle;
+
+  /// No description provided for @backupReminderMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.'**
+  String get backupReminderMessage;
+
+  /// No description provided for @backupReminderAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sao lưu ngay'**
+  String get backupReminderAction;
+
+  /// No description provided for @backupReminderLater.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get backupReminderLater;
 }
 
 class _AppLocalizationsDelegate

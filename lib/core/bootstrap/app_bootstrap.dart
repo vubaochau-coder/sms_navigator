@@ -145,6 +145,7 @@ class AppBootstrap extends StatelessWidget {
             keyStore: context.read<ChannelKeyStore>(),
             keyArchive: ChannelKeyStoreImpl(cryptoHelper: context.read<ChannelCryptoHelper>()),
             fileService: BackupFileServiceImpl(),
+            localStorage: context.read<LocalStorageService>(),
           ),
         ),
 

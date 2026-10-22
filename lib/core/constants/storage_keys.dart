@@ -28,4 +28,9 @@ abstract final class StorageKeys {
 
   // --- App Update ---
   static const String lastDismissedAppUpdateBuild = 'last_dismissed_app_update_build';
+
+  // --- Backup reminder (BACKLOG 1.9) ---
+  /// JSON `{at, channels}` của lần sao lưu / khôi phục gần nhất.
+  static const String lastBackupRecord = 'backup_last_record';
+  static const String backupReminderSnoozedUntil = 'backup_reminder_snoozed_until';
 }

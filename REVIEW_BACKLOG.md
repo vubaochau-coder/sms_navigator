@@ -106,3 +106,18 @@ Cần BE `GET /channels/requests?status=HISTORY` (BE REVIEW_BACKLOG P2-3).
 - [ ] Owner duyệt 1, từ chối 1; member huỷ 1 → lịch sử hiện đủ 3, mới nhất trên cùng.
 - [ ] Kênh chưa có request đã xử lý → màn trống "Chưa có yêu cầu nào được xử lý."
 
+## P2-4 · Nhắc tạo bản sao lưu (BACKLOG 1.9)
+
+**Rà soát**
+- [ ] `BackupRepositoryImpl` ghi `BackupRecord {at, channels}` vào `LocalStorageService` sau **export thành công** và sau **restore** (máy khôi phục coi như đã có bản sao lưu); huỷ hộp thoại lưu → không ghi.
+- [ ] `BackupReminderCubit`: nhắc khi có ≥1 kênh **và** (chưa từng sao lưu **hoặc** có kênh chưa nằm trong bản gần nhất). Chỉ so **tập kênh**, không so epoch (key epoch mới tự lấy lại từ envelope).
+- [ ] "Để sau" ẩn 3 ngày (`backup_reminder_snoozed_until`); "Sao lưu ngay" mở trang thiết bị, quay về thì đánh giá lại.
+- [ ] Banner (`MaterialBanner`) nằm trên tab Kênh, phía trên 2 tab danh sách.
+- [ ] ⚠️ Máy đang dùng (đã có kênh) sẽ thấy banner ngay sau khi cập nhật, vì trước đây chưa từng ghi lại lần sao lưu — đúng ý đồ (đã sao lưu ở 1.0.1 thì bấm Sao lưu lại một lần).
+
+**Kiểm thử**
+- [ ] Cài mới, tạo kênh → banner hiện. Sao lưu → quay lại → banner ẩn.
+- [ ] Tham gia thêm 1 kênh → banner hiện lại.
+- [ ] Bấm "Để sau" → ẩn; chỉnh giờ máy +3 ngày → hiện lại.
+- [ ] Khôi phục từ bản sao lưu trên máy mới → không hiện banner (trừ khi đã có kênh mới sau bản đó).
+

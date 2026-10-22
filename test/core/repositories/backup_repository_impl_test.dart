@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sms_navigator/core/repositories/backup_repository.dart';
+import 'package:sms_navigator/core/services/local_storage_service.dart';
 import 'package:sms_navigator/core/crypto/backup_crypto.dart';
 import 'package:sms_navigator/core/crypto/channel_crypto_helper.dart';
 import 'package:sms_navigator/core/repositories/impls/backup_repository_impl.dart';
@@ -92,6 +94,21 @@ class _Files implements BackupFileService {
   Future<Uint8List?> openFile() async => saved;
 }
 
+class _Prefs implements LocalStorageService {
+  final Map<String, Object> data = {};
+
+  @override
+  String? getString(String key) => data[key] as String?;
+  @override
+  Future<void> setString(String key, String value) async => data[key] = value;
+  @override
+  bool? getBool(String key) => data[key] as bool?;
+  @override
+  Future<void> setBool(String key, bool value) async => data[key] = value;
+  @override
+  Future<void> remove(String key) async => data.remove(key);
+}
+
 void main() {
   const passphrase = 'correct horse battery';
   final now = DateTime(2026, 10, 22, 4, 15);
@@ -101,11 +118,12 @@ void main() {
   late _Keys oldKeys;
   late _Files files;
 
-  BackupRepositoryImpl repoFor(_DeviceStorage storage, _Keys keys) => BackupRepositoryImpl(
+  BackupRepositoryImpl repoFor(_DeviceStorage storage, _Keys keys, {LocalStorageService? prefs}) => BackupRepositoryImpl(
     deviceStorage: storage,
     keyStore: keys,
     keyArchive: keys,
     fileService: files,
+    localStorage: prefs,
     backupCrypto: crypto,
     clock: () => now,
   );
@@ -149,6 +167,28 @@ void main() {
     // Token là công tắc "đã đăng ký" → phải ghi sau cùng.
     expect(_writes.last, 'deviceToken');
     expect(_writes.indexOf('identity'), lessThan(_writes.indexOf('deviceToken')));
+  });
+
+  test('export and restore remember which channels the backup covers (BACKLOG 1.9)', () async {
+    final oldPrefs = _Prefs();
+    final oldRepo = repoFor(oldDevice, oldKeys, prefs: oldPrefs);
+    expect(oldRepo.lastBackupRecord(), isNull);
+
+    await oldRepo.exportToFile(passphrase: passphrase);
+    expect(oldRepo.lastBackupRecord(), BackupRecord(at: now, channelIds: const {'ch-a', 'ch-b'}));
+
+    final newPrefs = _Prefs();
+    final newRepo = repoFor(_DeviceStorage(), _Keys(), prefs: newPrefs);
+    await newRepo.restore(bytes: files.saved!, passphrase: passphrase);
+    expect(newRepo.lastBackupRecord()?.channelIds, {'ch-a', 'ch-b'});
+  });
+
+  test('a cancelled save records nothing', () async {
+    final prefs = _Prefs();
+    files.cancelSave = true;
+    final repo = repoFor(oldDevice, oldKeys, prefs: prefs);
+    await expectLater(repo.exportToFile(passphrase: passphrase), throwsA(isA<BackupException>()));
+    expect(repo.lastBackupRecord(), isNull);
   });
 
   test('wrong passphrase writes nothing', () async {

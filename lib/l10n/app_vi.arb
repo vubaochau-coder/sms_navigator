@@ -938,5 +938,9 @@
   "requestHistoryRetry": "Thử lại",
   "requestStatusApproved": "Đã duyệt",
   "requestStatusRejected": "Đã từ chối",
-  "requestStatusCancelled": "Đã huỷ"
+  "requestStatusCancelled": "Đã huỷ",
+  "backupReminderTitle": "Chưa sao lưu khóa kênh",
+  "backupReminderMessage": "Gỡ app hoặc đổi máy mà không có bản sao lưu sẽ mất các kênh vĩnh viễn.",
+  "backupReminderAction": "Sao lưu ngay",
+  "backupReminderLater": "Để sau"
 }
