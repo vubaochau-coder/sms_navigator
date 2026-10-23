@@ -67,13 +67,19 @@ fi
 # apksigner trong build-tools mới nhất của Android SDK (sdk.dir trong
 # local.properties do Flutter ghi, rồi tới biến môi trường / vị trí mặc định).
 find_apksigner() {
+  if command -v apksigner >/dev/null 2>&1; then
+    command -v apksigner
+    return
+  fi
   local sdk dir
   for sdk in \
-    "$(grep -E '^sdk\.dir=' "$PROJECT_DIR/android/local.properties" 2>/dev/null | sed 's/^sdk\.dir=//; s/\\:/:/g; s/\\\\/\//g')" \
     "$ANDROID_HOME" "$ANDROID_SDK_ROOT" \
-    "$HOME/Library/Android/sdk" "$HOME/Android/Sdk" "${LOCALAPPDATA:+$LOCALAPPDATA/Android/Sdk}"; do
+    "/usr/local/lib/android/sdk" \
+    "$HOME/Android/Sdk" "$HOME/Library/Android/sdk" \
+    "$(grep -E '^sdk\.dir=' "$PROJECT_DIR/android/local.properties" 2>/dev/null | sed 's/^sdk\.dir=//; s/\\:/:/g; s/\\\\/\//g')" \
+    "${LOCALAPPDATA:+$LOCALAPPDATA/Android/Sdk}"; do
     [ -n "$sdk" ] && [ -d "$sdk/build-tools" ] || continue
-    for dir in $(ls -1 "$sdk/build-tools" | sort -t. -k1,1nr -k2,2nr -k3,3nr); do
+    for dir in $(ls -1 "$sdk/build-tools" 2>/dev/null | sort -t. -k1,1nr -k2,2nr -k3,3nr); do
       for bin in apksigner apksigner.bat; do
         if [ -f "$sdk/build-tools/$dir/$bin" ]; then
           echo "$sdk/build-tools/$dir/$bin"
@@ -82,6 +88,8 @@ find_apksigner() {
       done
     done
   done
+  # Fallback tìm kiếm nhanh trong hệ thống
+  find /usr/local/lib/android/sdk/build-tools -name apksigner 2>/dev/null | head -1
 }
 
 # 3. APK — Flutter đặt minSdk 24 nên APK chỉ có chữ ký v2/v3: `keytool
