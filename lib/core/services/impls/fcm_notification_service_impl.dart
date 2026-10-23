@@ -77,6 +77,9 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
         sound: true,
       );
       _subscriptions
+        // FCM token vẫn là thứ server dùng để gửi push. register()/onRegistered
+        // trả FID — chỉ chuyển khi server hỗ trợ gửi theo FID.
+        // ignore: deprecated_member_use
         ..add(FirebaseMessaging.instance.onTokenRefresh.listen(_onTokenRefreshed))
         ..add(FirebaseMessaging.onMessage.listen(handleForegroundMessage))
         // Chạm vào banner do OS hiện (iOS / notification block)
@@ -105,6 +108,7 @@ class FcmNotificationServiceImpl implements FcmNotificationService {
   @override
   Future<void> syncToken() async {
     try {
+      // ignore: deprecated_member_use — xem ghi chú ở onTokenRefresh.
       final token = await FirebaseMessaging.instance.getToken();
       if (token == null || token.isEmpty) return;
       await _deviceStorage.saveFcmToken(token);
