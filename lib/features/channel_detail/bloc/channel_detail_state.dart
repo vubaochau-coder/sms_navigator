@@ -20,6 +20,9 @@ class ChannelDetailState extends Equatable {
   /// Đã rời / giải tán kênh — màn chi tiết tự đóng.
   final bool isClosed;
 
+  /// Device ID của máy đang xem — đánh dấu "(bạn)" trong danh sách thành viên.
+  final String? selfDeviceId;
+
   const ChannelDetailState({
     required this.channelId,
     this.detail,
@@ -29,6 +32,7 @@ class ChannelDetailState extends Equatable {
     this.isLoading = false,
     this.isMutating = false,
     this.isClosed = false,
+    this.selfDeviceId,
   });
 
   int get pendingCount => pendingRequests.length;
@@ -44,6 +48,7 @@ class ChannelDetailState extends Equatable {
     bool? isLoading,
     bool? isMutating,
     bool? isClosed,
+    String? selfDeviceId,
   }) {
     return ChannelDetailState(
       channelId: channelId ?? this.channelId,
@@ -54,6 +59,7 @@ class ChannelDetailState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isMutating: isMutating ?? this.isMutating,
       isClosed: isClosed ?? this.isClosed,
+      selfDeviceId: selfDeviceId ?? this.selfDeviceId,
     );
   }
 
@@ -67,6 +73,7 @@ class ChannelDetailState extends Equatable {
     isLoading,
     isMutating,
     isClosed,
+    selfDeviceId,
   ];
 }
 

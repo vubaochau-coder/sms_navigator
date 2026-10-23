@@ -67,9 +67,12 @@ class _DeviceBackupView extends StatelessWidget {
               l10n.backupExportTitle,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(
-              l10n.backupExportSubtitle,
-              style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(
+                l10n.backupExportSubtitle,
+                style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+              ),
             ),
             trailing: const Icon(Icons.chevron_right_rounded),
             enabled: !isExporting,

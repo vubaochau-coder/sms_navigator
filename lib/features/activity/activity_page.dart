@@ -5,10 +5,12 @@ import '../../core/extensions/context_extensions.dart';
 import '../../core/models/activity_item.dart';
 import '../../core/widgets/empty_state_view.dart';
 import '../../core/widgets/relay_log_tile.dart';
+import '../../core/widgets/shimmer_loading.dart';
 import 'bloc/activity_cubit.dart';
 import 'bloc/activity_state.dart';
 import 'views/activity_filter_bar.dart';
 import 'views/channel_activity_tile.dart';
+import 'views/relay_sms_tile.dart';
 
 /// Tab Hoạt động: SMS máy này đã chuyển tiếp / chặn + sự kiện của các kênh.
 /// [ActivityCubit] do màn chính cung cấp (làm mới mỗi lần mở tab).
@@ -25,7 +27,7 @@ class ActivityPage extends StatelessWidget {
           IconButton(
             tooltip: l10n.refresh,
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => context.read<ActivityCubit>().refresh(),
+            onPressed: () => context.read<ActivityCubit>().refresh(userInitiated: true, showSkeleton: true),
           ),
         ],
       ),
@@ -48,11 +50,15 @@ class _ActivityList extends StatelessWidget {
     return BlocBuilder<ActivityCubit, ActivityState>(
       builder: (context, state) {
         final items = state.visibleItems;
-        if (!state.hasLoaded) {
-          return const Center(child: CircularProgressIndicator());
+        if (!state.hasLoaded || state.showSkeleton) {
+          return const ShimmerLoadingList(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 96),
+            itemSpacing: 8,
+            cardHeight: 76,
+          );
         }
         return RefreshIndicator(
-          onRefresh: () => context.read<ActivityCubit>().refresh(),
+          onRefresh: () => context.read<ActivityCubit>().refresh(userInitiated: true),
           child: items.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -72,6 +78,7 @@ class _ActivityList extends StatelessWidget {
                   separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) => switch (items[index]) {
                     RelayActivityItem(:final entry) => RelayLogTile(entry: entry),
+                    RelaySmsActivityItem(:final activity) => RelaySmsTile(activity: activity),
                     ChannelActivityItem(:final entry) => ChannelActivityTile(entry: entry),
                   },
                 ),

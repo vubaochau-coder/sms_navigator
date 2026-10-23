@@ -823,12 +823,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String channelDetailOwnerServer(String ownerName) {
-    return 'Máy chủ (Owner): $ownerName';
-  }
-
-  @override
-  String channelDetailMemberCount(int count) {
-    return '$count thành viên';
+    return 'Chủ kênh (admin): $ownerName';
   }
 
   @override
@@ -884,6 +879,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get channelDetailMemberOwner => 'Owner';
+
+  @override
+  String channelDetailMemberSelf(String deviceName) {
+    return '$deviceName (bạn)';
+  }
 
   @override
   String get channelDetailRevokeTooltip => 'Thu hồi';
@@ -1687,6 +1687,30 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get relayStatusUnknown => 'Không rõ';
+
+  @override
+  String get relaySmsSending => 'Đang gửi';
+
+  @override
+  String get relaySmsWaiting => 'Chờ gửi';
+
+  @override
+  String relaySmsDelivered(int count) {
+    return 'Đã gửi tới $count kênh';
+  }
+
+  @override
+  String relaySmsPartial(int delivered, int total) {
+    return 'Đã gửi $delivered/$total kênh';
+  }
+
+  @override
+  String get relaySmsFailed => 'Gửi lỗi';
+
+  @override
+  String relaySmsChannels(String names) {
+    return 'Kênh: $names';
+  }
 
   @override
   String get activityTabTitle => 'Hoạt động';

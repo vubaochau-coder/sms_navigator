@@ -6,6 +6,7 @@ import '../../../core/models/channel_detail_model.dart';
 import '../../../core/models/channel_member_model.dart';
 import '../../../core/models/pairing_request_model.dart';
 import '../../../core/repositories/channel_repository.dart';
+import '../../../core/services/device_storage_service.dart';
 import '../../../core/usecases/sync_owner_relay_channel_use_case.dart';
 import '../../../core/ui/toast_utils.dart';
 import 'channel_detail_event.dart';
@@ -23,8 +24,10 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
     required ChannelRepository repository,
     required String channelId,
     SyncOwnerRelayChannelUseCase? syncUseCase,
+    DeviceStorageService? deviceStorage,
   })  : _repository = repository,
         _syncUseCase = syncUseCase,
+        _deviceStorage = deviceStorage,
         super(ChannelDetailState(channelId: channelId)) {
     on<ChannelDetailLoaded>(_onLoaded, transformer: restartable());
     on<ChannelDetailConfirmed>(_onConfirmed, transformer: droppable());
@@ -37,6 +40,7 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
 
   final ChannelRepository _repository;
   final SyncOwnerRelayChannelUseCase? _syncUseCase;
+  final DeviceStorageService? _deviceStorage;
 
   Future<void> _refresh(Emitter<ChannelDetailState> emit) async {
     final results = await Future.wait([
@@ -68,10 +72,19 @@ class ChannelDetailBloc extends Bloc<ChannelDetailEvent, ChannelDetailState> {
       whitelist = null;
     }
 
+    // Chỉ để gắn nhãn "(bạn)" trong danh sách thành viên.
+    String? selfDeviceId;
+    try {
+      selfDeviceId = await _deviceStorage?.getDeviceId();
+    } catch (_) {
+      selfDeviceId = null;
+    }
+
     emit(
       state.copyWith(
         detail: detail,
         members: members,
+        selfDeviceId: selfDeviceId,
         pendingRequests: pending,
         whitelist: whitelist,
         clearWhitelist: whitelist == null,

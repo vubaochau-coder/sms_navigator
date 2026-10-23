@@ -34,6 +34,9 @@ class RelayLogEntry extends Equatable {
     this.detected = '',
     this.detail = '',
     this.at,
+    this.smsId = '',
+    this.channelId = '',
+    this.channelName = '',
   });
 
   factory RelayLogEntry.fromMap(Map<String, dynamic> map) {
@@ -45,6 +48,9 @@ class RelayLogEntry extends Equatable {
       detected: DataConverter.cvToString(map['otp'], '')!,
       detail: DataConverter.cvToString(map['error'], '')!,
       at: at != null && at.millisecondsSinceEpoch > 0 ? at : null,
+      smsId: DataConverter.cvToString(map['sms_id'], '')!,
+      channelId: DataConverter.cvToString(map['channel_id'], '')!,
+      channelName: DataConverter.cvToString(map['channel_name'], '')!,
     );
   }
 
@@ -59,6 +65,12 @@ class RelayLogEntry extends Equatable {
   final String detail;
   final DateTime? at;
 
+  /// Id của SMS gốc — mọi dòng cùng SMS (từng kênh, từng lần thử) chung id
+  /// này. Rỗng với nhật ký ghi trước khi có trường này.
+  final String smsId;
+  final String channelId;
+  final String channelName;
+
   @override
-  List<Object?> get props => [id, sender, status, detected, detail, at];
+  List<Object?> get props => [id, sender, status, detected, detail, at, smsId, channelId, channelName];
 }

@@ -46,9 +46,12 @@ class _NotifyOwnRelayedTileState extends State<NotifyOwnRelayedTile> {
         context.l10n.notifyOwnRelayedTitle,
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(
-        context.l10n.notifyOwnRelayedSubtitle,
-        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Text(
+          context.l10n.notifyOwnRelayedSubtitle,
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+        ),
       ),
       trailing: AppSwitch(value: _enabled, onChanged: _toggle),
       onTap: () => _toggle(!_enabled),

@@ -16,7 +16,8 @@ class MembersView extends StatelessWidget {
     return BlocBuilder<ChannelDetailBloc, ChannelDetailState>(
       buildWhen: (previous, current) =>
           previous.members != current.members ||
-          previous.detail?.ownerDeviceId != current.detail?.ownerDeviceId,
+          previous.detail?.ownerDeviceId != current.detail?.ownerDeviceId ||
+          previous.selfDeviceId != current.selfDeviceId,
       builder: (context, state) {
         final members = state.members;
         final ownerDeviceId = state.detail?.ownerDeviceId ?? '';
@@ -45,6 +46,7 @@ class MembersView extends StatelessWidget {
                   itemBuilder: (context, index) => MemberItem(
                     member: members[index],
                     isOwner: members[index].deviceId == ownerDeviceId,
+                    isSelf: members[index].deviceId == state.selfDeviceId,
                   ),
                 ),
               ],

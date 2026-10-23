@@ -99,5 +99,36 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await bloc.close();
     });
+
+    testWidgets('máy đang xem được gắn "(bạn)" sau tên', (tester) async {
+      final bloc = _FakeChannelDetailBloc(
+        ChannelDetailState(
+          channelId: 'ch1',
+          detail: const ChannelDetailModel(
+            channelId: 'ch1',
+            name: 'Kênh nhà',
+            ownerDeviceId: _ownerId,
+          ),
+          members: [_member(_ownerId), _member(_memberId)],
+          selfDeviceId: _ownerId,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _wrap(
+          BlocProvider<ChannelDetailBloc>.value(
+            value: bloc,
+            child: const MembersView(),
+          ),
+        ),
+      );
+
+      expect(find.text('Máy chủ (bạn)'), findsOneWidget);
+      expect(find.text('Thành viên B'), findsOneWidget);
+      expect(find.text('Thành viên B (bạn)'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await bloc.close();
+    });
   });
 }

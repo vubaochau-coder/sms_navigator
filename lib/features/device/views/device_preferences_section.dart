@@ -145,11 +145,14 @@ class DevicePreferencesSection extends StatelessWidget {
                     color: colorScheme.error,
                   ),
                 ),
-                subtitle: Text(
-                  context.l10n.deviceResetSubtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Text(
+                    context.l10n.deviceResetSubtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 trailing: Icon(

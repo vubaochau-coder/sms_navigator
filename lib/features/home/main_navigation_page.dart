@@ -159,7 +159,8 @@ class _MainNavigationViewState extends State<_MainNavigationView> {
         ),
         BlocListener<HomeTabCubit, HomeTab>(
           listenWhen: (previous, current) => current == HomeTab.activity,
-          listener: (context, _) => context.read<ActivityCubit>().refresh(),
+          listener: (context, _) =>
+              context.read<ActivityCubit>().refresh(userInitiated: true, showSkeleton: true),
         ),
         BlocListener<QrIngressCubit, QrIngressState>(
           listenWhen: (previous, current) =>

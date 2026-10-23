@@ -4,6 +4,7 @@ import '../../models/activity_item.dart';
 import '../../models/channel_activity_entry.dart';
 import '../../models/channel_event.dart';
 import '../../models/relay_log_entry.dart';
+import '../../models/relay_sms_activity.dart';
 import '../../services/channel_activity_log_store.dart';
 import '../../services/native_relay_service.dart';
 import '../../utils/app_logger.dart';
@@ -49,7 +50,7 @@ class ActivityRepositoryImpl implements ActivityRepository {
     final relayLogs = await relayFuture;
     final channelLogs = await channelFuture;
     final items = <ActivityItem>[
-      for (final log in relayLogs) RelayActivityItem(RelayLogEntry.fromMap(log)),
+      ..._relayItems(relayLogs.map(RelayLogEntry.fromMap)),
       for (final entry in channelLogs) ChannelActivityItem(entry),
     ];
     items.sort((a, b) {
@@ -58,6 +59,24 @@ class ActivityRepositoryImpl implements ActivityRepository {
       if (bAt == null) return -1;
       return bAt.compareTo(aAt);
     });
+    return items;
+  }
+
+  /// Mỗi SMS một mục: các dòng cùng `sms_id` gộp lại; nhật ký cũ (không có
+  /// `sms_id`) giữ nguyên từng dòng.
+  static List<ActivityItem> _relayItems(Iterable<RelayLogEntry> entries) {
+    final bySms = <String, List<RelayLogEntry>>{};
+    final items = <ActivityItem>[];
+    for (final entry in entries) {
+      if (entry.smsId.isEmpty) {
+        items.add(RelayActivityItem(entry));
+      } else {
+        bySms.putIfAbsent(entry.smsId, () => []).add(entry);
+      }
+    }
+    for (final MapEntry(:key, :value) in bySms.entries) {
+      items.add(RelaySmsActivityItem(RelaySmsActivity.fromEntries(key, value)));
+    }
     return items;
   }
 

@@ -160,6 +160,16 @@ class RelayChannelStoreTest {
     }
 
     @Test
+    fun `smsId survives the outbox and the parked queue`() {
+        // Nhật ký tab Hoạt động gom theo smsId — tin gửi lại sau khi park vẫn phải mang nó.
+        val id = store.putOutbox(ParkedMessage("m1", "a", "VCB", "x", parkedAt = now, smsId = "sms-1"))
+        assertEquals("sms-1", store.getOutbox(id)?.smsId)
+
+        store.park(ParkedMessage("m2", "a", "VCB", "y", parkedAt = now, smsId = "sms-2"))
+        assertEquals("sms-2", store.drainParked().single().smsId)
+    }
+
+    @Test
     fun `replaceAll retains channels Dart could not resolve this run`() {
         store.replaceAll(listOf(snap("a", 2), snap("b", 1)))
         store.replaceAll(listOf(snap("b", 1)), retainIds = listOf("a"))
