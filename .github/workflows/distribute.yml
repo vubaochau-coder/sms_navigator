@@ -102,9 +102,15 @@ jobs:
             echo "::error::Không lấy được access token từ service account (FIREBASE_SERVICE_ACCOUNT_CREDENTIALS)."
             exit 1
           fi
-          if ! RESPONSE=$(curl -sS -f -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1"); then
-            echo "::error::Không gọi được Firebase App Distribution API (service account thiếu quyền hoặc API chưa bật) — dừng để không phát hành sai build number."
+          HTTP_CODE=$(curl -sS -o response.json -w '%{http_code}' -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1") || HTTP_CODE=000
+          RESPONSE=$(cat response.json 2>/dev/null || true)
+          rm -f response.json
+          if [ "$HTTP_CODE" != "200" ]; then
+            # Lý do thật (SERVICE_DISABLED / IAM_PERMISSION_DENIED…) nằm trong body.
+            echo "$RESPONSE"
+            REASON=$(echo "$RESPONSE" | jq -r '[.error.status, (.error.details[]?.reason // empty)] | map(select(. != null)) | join(" / ")' 2>/dev/null || true)
+            echo "::error::Firebase App Distribution API trả HTTP $HTTP_CODE ${REASON:+($REASON)} — dừng để không phát hành sai build number."
             exit 1
           fi
           if ! LAST_BUILD=$(echo "$RESPONSE" | jq -er '.releases[0].buildVersion // ""'); then
