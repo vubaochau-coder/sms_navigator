@@ -12,3 +12,8 @@
 -keep class * extends androidx.work.ListenableWorker {
     <init>(android.content.Context, androidx.work.WorkerParameters);
 }
+
+# WorkManager tạo InputMerger (mặc định OverwritingInputMerger) bằng reflection
+# trước khi chạy worker. Mất constructor rỗng → job FAILED ngay, worker không
+# bao giờ chạy (log dừng ở "Đang gửi").
+-keep class * extends androidx.work.InputMerger { <init>(); }

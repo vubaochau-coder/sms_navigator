@@ -64,8 +64,8 @@ else
   echo "• Release: chưa có android/key.properties → bản release đang ký bằng debug key"
 fi
 
-# apksigner trong build-tools mới nhất của Android SDK (sdk.dir trong
-# local.properties do Flutter ghi, rồi tới biến môi trường / vị trí mặc định).
+# apksigner: trên PATH, rồi build-tools mới nhất của Android SDK (biến môi
+# trường, SDK của GitHub runner, vị trí mặc định, sdk.dir trong local.properties).
 find_apksigner() {
   if command -v apksigner >/dev/null 2>&1; then
     command -v apksigner
@@ -101,15 +101,21 @@ if [ -n "$1" ]; then
   fi
   APKSIGNER="$(find_apksigner)"
   if [ -n "$APKSIGNER" ]; then
+    # build-tools ≤ 36: "Signer #1 certificate SHA-256 digest: …"
+    # build-tools 37+:  "V2 Signer: certificate SHA-256 digest: …"
     APK_SHA="$("$APKSIGNER" verify --print-certs "$1" 2>/dev/null \
-      | grep -E 'Signer #1 certificate SHA-256 digest:' | head -1 | awk '{print $NF}' \
+      | grep -E 'certificate SHA-256 digest:' | head -1 | awk '{print $NF}' \
       | tr 'a-f' 'A-F' | sed -E 's/(..)/\1:/g; s/:$//')"
   else
     # APK cũ có chữ ký v1 vẫn đọc được bằng keytool
     APK_SHA="$(keytool -printcert -jarfile "$1" 2>/dev/null | extract_sha256)"
   fi
   if [ -z "$APK_SHA" ]; then
-    echo "❌ Không đọc được chữ ký của $1 (không tìm thấy apksigner trong Android SDK build-tools)." >&2
+    if [ -n "$APKSIGNER" ]; then
+      echo "❌ Không đọc được chữ ký của $1 bằng $APKSIGNER." >&2
+    else
+      echo "❌ Không đọc được chữ ký của $1 (không tìm thấy apksigner trong Android SDK build-tools)." >&2
+    fi
     exit 1
   fi
   add "APK ($1)" "$APK_SHA"
