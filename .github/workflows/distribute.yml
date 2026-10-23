@@ -76,8 +76,42 @@ jobs:
       - name: Run Tests
         run: flutter test
 
+      - name: Authenticate to Google for Firebase API
+        id: google_auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CREDENTIALS }}
+          token_format: 'access_token'
+
+      - name: Determine Version & Auto-Increment Build Number
+        id: version
+        run: |
+          VERSION_NAME=$(grep "^version:" pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d'+' -f1)
+          APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
+          PROJECT_NUMBER="510867121628"
+
+          RESPONSE=$(curl -s -f -H "Authorization: Bearer ${{ steps.google_auth.outputs.access_token }}" \
+            "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1" || true)
+
+          LAST_BUILD=$(echo "$RESPONSE" | jq -r '.releases[0].buildVersion // empty' 2>/dev/null || true)
+
+          if [ -n "$LAST_BUILD" ] && [ "$LAST_BUILD" -gt 0 ] 2>/dev/null; then
+            NEW_BUILD=$((LAST_BUILD + 1))
+            echo "🔥 Firebase latest build = $LAST_BUILD -> New build = $NEW_BUILD"
+          else
+            BASE_BUILD=$(grep "^version:" pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -s -d'+' -f2)
+            NEW_BUILD=$(( ${BASE_BUILD:-0} + ${{ github.run_number }} ))
+            echo "⚠️ Fallback to pubspec + run_number: $NEW_BUILD"
+          fi
+
+          echo "build_number=$NEW_BUILD" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Build Release APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release \
+            --build-name="${{ steps.version.outputs.version_name }}" \
+            --build-number="${{ steps.version.outputs.build_number }}"
 
       - name: Verify APK is signed with the release keystore
         run: |
@@ -94,7 +128,7 @@ jobs:
           appId: 1:510867121628:android:8e0205deb80aa79c565b19
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CREDENTIALS }}
           groups: ${{ github.event.inputs.tester_group || 'internal-dev' }}
-          releaseNotes: ${{ github.event.inputs.release_notes || github.event.head_commit.message }}
+          releaseNotes: "[v${{ steps.version.outputs.version_name }}+${{ steps.version.outputs.build_number }}] ${{ github.event.inputs.release_notes || github.event.head_commit.message || 'Release via GitHub Actions' }}"
           file: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Remove keystore

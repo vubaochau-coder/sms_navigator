@@ -3,6 +3,11 @@
 # → commit pubspec.yaml. Release notes = tiêu đề commit cuối cùng.
 # Build/upload lỗi thì pubspec.yaml được trả về như cũ, không commit gì.
 #
+# Build number mới = max(pubspec, bản mới nhất trên Firebase) + 1, giống
+# distribute.yml, để bản phát hành từ máy và từ CI không trùng số. Hỏi
+# Firebase cần gcloud đã đăng nhập (`gcloud auth login`); không có thì chỉ
+# dựa vào pubspec.yaml.
+#
 #   ./scripts/distribute.sh                 # nhóm internal-dev
 #   ./scripts/distribute.sh field-testers   # nhóm khác
 set -euo pipefail
@@ -18,6 +23,19 @@ git diff --quiet -- pubspec.yaml || { echo "❌ pubspec.yaml đang có thay đ�
 OLD=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml)
 NAME=${OLD%%+*}
 BUILD=${OLD#*+}; [ "$BUILD" = "$OLD" ] && BUILD=0
+
+LATEST=""
+if TOKEN=$(gcloud auth print-access-token 2>/dev/null); then
+  LATEST=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+    "https://firebaseappdistribution.googleapis.com/v1/projects/510867121628/apps/1:510867121628:android:8e0205deb80aa79c565b19/releases?pageSize=1" \
+    | grep -oE '"buildVersion": *"[0-9]+"' | grep -oE '[0-9]+' | head -1 || true)
+fi
+if [ -n "$LATEST" ]; then
+  echo "🔥 Firebase: build mới nhất = $LATEST"
+  [ "$LATEST" -gt "$BUILD" ] && BUILD=$LATEST
+else
+  echo "⚠️  Không hỏi được Firebase (cần gcloud đã đăng nhập) — dùng build number trong pubspec.yaml"
+fi
 VERSION="$NAME+$((BUILD + 1))"
 NOTES="[v$VERSION] $(git log -1 --pretty=%s)"
 
