@@ -1555,14 +1555,8 @@ abstract class AppLocalizations {
   /// No description provided for @channelDetailOwnerServer.
   ///
   /// In vi, this message translates to:
-  /// **'Máy chủ (Owner): {ownerName}'**
+  /// **'Chủ kênh (admin): {ownerName}'**
   String channelDetailOwnerServer(String ownerName);
-
-  /// No description provided for @channelDetailMemberCount.
-  ///
-  /// In vi, this message translates to:
-  /// **'{count} thành viên'**
-  String channelDetailMemberCount(int count);
 
   /// No description provided for @channelDetailCurrentEpoch.
   ///
@@ -1647,6 +1641,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Owner'**
   String get channelDetailMemberOwner;
+
+  /// No description provided for @channelDetailMemberSelf.
+  ///
+  /// In vi, this message translates to:
+  /// **'{deviceName} (bạn)'**
+  String channelDetailMemberSelf(String deviceName);
 
   /// No description provided for @channelDetailRevokeTooltip.
   ///
@@ -2985,6 +2985,42 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không rõ'**
   String get relayStatusUnknown;
+
+  /// No description provided for @relaySmsSending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get relaySmsSending;
+
+  /// No description provided for @relaySmsWaiting.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ gửi'**
+  String get relaySmsWaiting;
+
+  /// No description provided for @relaySmsDelivered.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi tới {count} kênh'**
+  String relaySmsDelivered(int count);
+
+  /// No description provided for @relaySmsPartial.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi {delivered}/{total} kênh'**
+  String relaySmsPartial(int delivered, int total);
+
+  /// No description provided for @relaySmsFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi lỗi'**
+  String get relaySmsFailed;
+
+  /// No description provided for @relaySmsChannels.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kênh: {names}'**
+  String relaySmsChannels(String names);
 
   /// No description provided for @activityTabTitle.
   ///

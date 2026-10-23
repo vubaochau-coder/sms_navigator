@@ -12,10 +12,14 @@ class MemberItem extends StatelessWidget {
     super.key,
     required this.member,
     this.isOwner = false,
+    this.isSelf = false,
   });
 
   final ChannelMemberModel member;
   final bool isOwner;
+
+  /// Thành viên này là chính máy đang xem → thêm "(bạn)" sau tên.
+  final bool isSelf;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +41,9 @@ class MemberItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                member.deviceName,
+                isSelf
+                    ? l10n.channelDetailMemberSelf(member.deviceName)
+                    : member.deviceName,
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   decoration: member.isActive

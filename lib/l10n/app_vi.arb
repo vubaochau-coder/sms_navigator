@@ -419,19 +419,11 @@
   "joinContinueWaitingAction": "Tiếp tục chờ",
   "channelDetailTitle": "Chi tiết kênh",
   "channelDetailInviteTooltip": "Mời thành viên",
-  "channelDetailOwnerServer": "Máy chủ (Owner): {ownerName}",
+  "channelDetailOwnerServer": "Chủ kênh (admin): {ownerName}",
   "@channelDetailOwnerServer": {
     "placeholders": {
       "ownerName": {
         "type": "String"
-      }
-    }
-  },
-  "channelDetailMemberCount": "{count} thành viên",
-  "@channelDetailMemberCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
       }
     }
   },
@@ -491,6 +483,14 @@
   },
   "channelDetailMemberRevokedStatus": "Đã thu hồi",
   "channelDetailMemberOwner": "Owner",
+  "channelDetailMemberSelf": "{deviceName} (bạn)",
+  "@channelDetailMemberSelf": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
   "channelDetailRevokeTooltip": "Thu hồi",
   "channelDetailRevokeDialogTitle": "Thu hồi thành viên?",
   "channelDetailRevokeDialogMessage": "Thu hồi \"{deviceName}\" là hành động vĩnh viễn. Khóa kênh sẽ được xoay ngay để member này không đọc được tin mới.",
@@ -976,6 +976,36 @@
   "relayStatusBlocked": "Bị lọc",
   "relayStatusSkipped": "Bỏ qua",
   "relayStatusUnknown": "Không rõ",
+  "relaySmsSending": "Đang gửi",
+  "relaySmsWaiting": "Chờ gửi",
+  "relaySmsDelivered": "Đã gửi tới {count} kênh",
+  "@relaySmsDelivered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relaySmsPartial": "Đã gửi {delivered}/{total} kênh",
+  "@relaySmsPartial": {
+    "placeholders": {
+      "delivered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "relaySmsFailed": "Gửi lỗi",
+  "relaySmsChannels": "Kênh: {names}",
+  "@relaySmsChannels": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
   "activityTabTitle": "Hoạt động",
   "activityFilterAll": "Tất cả",
   "activityFilterRelay": "SMS chuyển tiếp",

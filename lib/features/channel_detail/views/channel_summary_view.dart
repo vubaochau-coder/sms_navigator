@@ -5,7 +5,7 @@ import '../../../core/extensions/context_extensions.dart';
 import '../../../core/models/channel_detail_model.dart';
 import '../bloc/channel_detail_bloc.dart';
 
-/// Card tóm tắt thông tin kênh: tên, Owner, số thành viên, epoch hiện tại.
+/// Card tóm tắt thông tin kênh: tên, chủ kênh, epoch hiện tại.
 class ChannelSummaryView extends StatelessWidget {
   const ChannelSummaryView({super.key});
 
@@ -33,8 +33,6 @@ class ChannelSummaryView extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(l10n.channelDetailOwnerServer(detail.ownerDeviceName)),
-                const SizedBox(height: 4),
-                Text(l10n.channelDetailMemberCount(detail.memberCount)),
                 const SizedBox(height: 4),
                 Text(l10n.channelDetailCurrentEpoch(detail.currentEpoch)),
               ],
