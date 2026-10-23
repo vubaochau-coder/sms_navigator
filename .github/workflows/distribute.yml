@@ -76,12 +76,14 @@ jobs:
       - name: Run Tests
         run: flutter test
 
+      # Chỉ tạo file credentials + cấu hình gcloud dùng nó. Không dùng
+      # `token_format: access_token`: cách đó đi qua IAM Service Account
+      # Credentials API (phải bật riêng trong project). Với key JSON, gcloud
+      # tự đổi lấy token qua OAuth, không cần API đó.
       - name: Authenticate to Google for Firebase API
-        id: google_auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CREDENTIALS }}
-          token_format: 'access_token'
 
       - name: Determine Version & Auto-Increment Build Number
         id: version
@@ -96,7 +98,11 @@ jobs:
           APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
           PROJECT_NUMBER="510867121628"
 
-          if ! RESPONSE=$(curl -sS -f -H "Authorization: Bearer ${{ steps.google_auth.outputs.access_token }}" \
+          if ! ACCESS_TOKEN=$(gcloud auth print-access-token); then
+            echo "::error::Không lấy được access token từ service account (FIREBASE_SERVICE_ACCOUNT_CREDENTIALS)."
+            exit 1
+          fi
+          if ! RESPONSE=$(curl -sS -f -H "Authorization: Bearer $ACCESS_TOKEN" \
             "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1"); then
             echo "::error::Không gọi được Firebase App Distribution API (service account thiếu quyền hoặc API chưa bật) — dừng để không phát hành sai build number."
             exit 1
