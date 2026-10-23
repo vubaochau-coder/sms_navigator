@@ -86,23 +86,37 @@ jobs:
       - name: Determine Version & Auto-Increment Build Number
         id: version
         run: |
-          VERSION_NAME=$(grep "^version:" pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d'+' -f1)
+          # Build number = max(pubspec, bản mới nhất trên Firebase) + 1 — cùng
+          # quy tắc với scripts/distribute.sh. Không hỏi được Firebase thì DỪNG:
+          # đoán số dễ trùng hoặc nhảy số so với bản tester đang cài.
+          VERSION_RAW=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml)
+          VERSION_NAME=${VERSION_RAW%%+*}
+          PUBSPEC_BUILD=$(echo "$VERSION_RAW" | cut -s -d'+' -f2)
+          PUBSPEC_BUILD=${PUBSPEC_BUILD:-0}
           APP_ID="1:510867121628:android:8e0205deb80aa79c565b19"
           PROJECT_NUMBER="510867121628"
 
-          RESPONSE=$(curl -s -f -H "Authorization: Bearer ${{ steps.google_auth.outputs.access_token }}" \
-            "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1" || true)
-
-          LAST_BUILD=$(echo "$RESPONSE" | jq -r '.releases[0].buildVersion // empty' 2>/dev/null || true)
-
-          if [ -n "$LAST_BUILD" ] && [ "$LAST_BUILD" -gt 0 ] 2>/dev/null; then
-            NEW_BUILD=$((LAST_BUILD + 1))
-            echo "🔥 Firebase latest build = $LAST_BUILD -> New build = $NEW_BUILD"
-          else
-            BASE_BUILD=$(grep "^version:" pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -s -d'+' -f2)
-            NEW_BUILD=$(( ${BASE_BUILD:-0} + ${{ github.run_number }} ))
-            echo "⚠️ Fallback to pubspec + run_number: $NEW_BUILD"
+          if ! RESPONSE=$(curl -sS -f -H "Authorization: Bearer ${{ steps.google_auth.outputs.access_token }}" \
+            "https://firebaseappdistribution.googleapis.com/v1/projects/${PROJECT_NUMBER}/apps/${APP_ID}/releases?pageSize=1"); then
+            echo "::error::Không gọi được Firebase App Distribution API (service account thiếu quyền hoặc API chưa bật) — dừng để không phát hành sai build number."
+            exit 1
           fi
+          if ! LAST_BUILD=$(echo "$RESPONSE" | jq -er '.releases[0].buildVersion // ""'); then
+            echo "::error::Phản hồi của Firebase không đọc được: $RESPONSE"
+            exit 1
+          fi
+
+          if [ -z "$LAST_BUILD" ]; then
+            echo "ℹ️ Firebase chưa có bản nào — dùng pubspec ($PUBSPEC_BUILD)"
+            LAST_BUILD=0
+          elif ! [[ "$LAST_BUILD" =~ ^[0-9]+$ ]]; then
+            echo "::error::buildVersion trên Firebase không phải số: '$LAST_BUILD'"
+            exit 1
+          fi
+
+          BASE_BUILD=$(( LAST_BUILD > PUBSPEC_BUILD ? LAST_BUILD : PUBSPEC_BUILD ))
+          NEW_BUILD=$(( BASE_BUILD + 1 ))
+          echo "🔥 Firebase = $LAST_BUILD, pubspec = $PUBSPEC_BUILD → build $NEW_BUILD"
 
           echo "build_number=$NEW_BUILD" >> "$GITHUB_OUTPUT"
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
