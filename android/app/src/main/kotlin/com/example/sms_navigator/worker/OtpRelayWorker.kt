@@ -54,6 +54,12 @@ class OtpRelayWorker(
         val token = prefs.deviceToken
         val baseUrl = prefs.apiBaseUrl.trimEnd('/')
         val relayUrl = "$baseUrl/api/v2/channels/messages"
+        val smsId = queued?.smsId.orEmpty()
+        var channelLabel: String? = null
+        fun log(status: String, detail: String?) = prefs.addRelayLog(
+            sender, "", status, detail,
+            smsId = smsId, channelId = channelId, channelName = channelLabel
+        )
 
         if (channelId.isNullOrBlank() || messageText.isNullOrEmpty() || token.isNullOrBlank()) {
             val missing = buildList {
@@ -62,7 +68,7 @@ class OtpRelayWorker(
                 if (token.isNullOrBlank()) add("token")
             }.joinToString(", ")
             Log.e(TAG, "Missing required parameters for V2 relay: $missing")
-            prefs.addRelayLog(sender, "", "FAILED", "Missing config: $missing")
+            log("FAILED", "Missing config: $missing")
             return Result.failure()
         }
 
@@ -71,23 +77,24 @@ class OtpRelayWorker(
         val channel = store.get(channelId)
         if (channel == null) {
             Log.w(TAG, "Channel $channelId is no longer relayed. Dropping messageId=$messageId.")
-            prefs.addRelayLog(sender, "", "FAILED", "Kênh không còn được relay")
+            log("FAILED", "Kênh không còn được relay")
             return Result.failure()
         }
         val label = channel.name.ifBlank { channelId }
-        val parked = ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
+        channelLabel = label
+        val parked = ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis(), smsId)
 
         val activeKey = channel.activeKey
         if (activeKey == null) {
             store.park(parked)
-            prefs.addRelayLog(sender, "", "PARKED", "[$label] Chưa có khóa kênh — mở app để đồng bộ")
+            log("PARKED", "[$label] Chưa có khóa kênh — mở app để đồng bộ")
             return Result.success()
         }
 
         // Cap total retries so transient 5xx/network failures never retry forever.
         if (runAttemptCount > MAX_RETRY_ATTEMPTS) {
             Log.e(TAG, "Exceeded max retry attempts ($MAX_RETRY_ATTEMPTS) for messageId=$messageId. Dropping.")
-            prefs.addRelayLog(sender, "", "FAILED", "Max retry attempts exceeded")
+            log("FAILED", "Max retry attempts exceeded")
             return Result.failure()
         }
 
@@ -105,18 +112,18 @@ class OtpRelayWorker(
                 send(relayUrl, token, channelId, epoch, key, payloadToEncrypt)
             } catch (e: IOException) {
                 Log.e(TAG, "Network error during relay: ${e.message}", e)
-                prefs.addRelayLog(sender, "", "RETRYING", e.message)
+                log("RETRYING", e.message)
                 return Result.retry()
             } catch (e: Exception) {
                 Log.e(TAG, "Relay failed for messageId=$messageId: ${e.message}", e)
-                prefs.addRelayLog(sender, "", "FAILED", "Crypto/IO error: ${e.message}")
+                log("FAILED", "Crypto/IO error: ${e.message}")
                 return Result.failure()
             }
 
             when {
                 result.code in 200..299 -> {
                     Log.i(TAG, "Message relayed to V2 channel $channelId (epoch $epoch)")
-                    prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (epoch $epoch)")
+                    log("SUCCESS", "Kênh: $label (epoch $epoch)")
                     return Result.success()
                 }
 
@@ -125,7 +132,7 @@ class OtpRelayWorker(
                     val errorCode = body?.optString("error").orEmpty()
                     if (errorCode == "REPLAY_DETECTED") {
                         // A previous attempt already landed (response lost) — done.
-                        prefs.addRelayLog(sender, "", "SUCCESS", "Kênh: $label (đã nhận trước đó)")
+                        log("SUCCESS", "Kênh: $label (đã nhận trước đó)")
                         return Result.success()
                     }
                     if (errorCode == "EPOCH_OUTDATED") {
@@ -143,11 +150,11 @@ class OtpRelayWorker(
                         }
                         store.park(parked)
                         Log.w(TAG, "No key for server epoch $serverEpoch on $channelId. Parked messageId=$messageId.")
-                        prefs.addRelayLog(sender, "", "PARKED", "[$label] Khóa kênh đã đổi — mở app để đồng bộ")
+                        log("PARKED", "[$label] Khóa kênh đã đổi — mở app để đồng bộ")
                         return Result.success()
                     }
                     val errorMsg = "HTTP 409 ${errorCode.ifBlank { result.message }}"
-                    prefs.addRelayLog(sender, "", "FAILED", errorMsg)
+                    log("FAILED", errorMsg)
                     return Result.failure()
                 }
 
@@ -156,21 +163,21 @@ class OtpRelayWorker(
                     // khi mở và đẩy token mới xuống — giữ SMS lại để gửi sau.
                     store.park(parked)
                     Log.w(TAG, "Device token rejected (401). Parked messageId=$messageId until the app re-registers.")
-                    prefs.addRelayLog(sender, "", "PARKED", "[$label] Phiên thiết bị hết hạn — mở app để đăng ký lại")
+                    log("PARKED", "[$label] Phiên thiết bị hết hạn — mở app để đăng ký lại")
                     return Result.success()
                 }
 
                 result.code in 400..499 -> {
                     val errorMsg = "HTTP ${result.code}: ${result.message}"
                     Log.e(TAG, "Permanent client error relaying to V2 ($errorMsg). Dropping.")
-                    prefs.addRelayLog(sender, "", "FAILED", errorMsg)
+                    log("FAILED", errorMsg)
                     return Result.failure()
                 }
 
                 else -> {
                     val errorMsg = "HTTP ${result.code}: ${result.message}"
                     Log.w(TAG, "Transient server error relaying ($errorMsg). Retrying...")
-                    prefs.addRelayLog(sender, "", "RETRYING", errorMsg)
+                    log("RETRYING", errorMsg)
                     return Result.retry()
                 }
             }

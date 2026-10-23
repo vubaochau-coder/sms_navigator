@@ -284,7 +284,22 @@ class OtpPreferences(
      * Records a relay activity log.
      */
     @Synchronized
-    fun addRelayLog(sender: String, otp: String, status: String, error: String? = null) {
+    /**
+     * [smsId] gom mọi dòng của cùng một SMS (lọc / enqueue / kết quả từng kênh)
+     * thành một mục trên tab Hoạt động; [channelId]/[channelName] cho biết dòng
+     * thuộc kênh nào. Bỏ trống với dòng không gắn với SMS / kênh cụ thể.
+     */
+    fun addRelayLog(
+        sender: String,
+        otp: String,
+        status: String,
+        error: String? = null,
+        smsId: String? = null,
+        channelId: String? = null,
+        channelName: String? = null
+    ) = synchronized(RELAY_LOG_LOCK) {
+        // Receiver và các worker ghi song song — khoá để không mất dòng
+        // (đọc-sửa-ghi trên cùng một key).
         val logsJsonStr = prefs.getString(KEY_RELAY_LOGS, "[]") ?: "[]"
         val jsonArray = JSONArray(logsJsonStr)
 
@@ -297,12 +312,15 @@ class OtpPreferences(
             put("status", status)
             put("error", error ?: "")
             put("timestamp", System.currentTimeMillis())
+            if (!smsId.isNullOrBlank()) put("sms_id", smsId)
+            if (!channelId.isNullOrBlank()) put("channel_id", channelId)
+            if (!channelName.isNullOrBlank()) put("channel_name", channelName)
         }
 
-        // Prepend new item
+        // Prepend new item. Mỗi SMS sinh vài dòng cho mỗi kênh nên giữ rộng tay.
         val newArray = JSONArray()
         newArray.put(item)
-        for (i in 0 until minOf(jsonArray.length(), 29)) {
+        for (i in 0 until minOf(jsonArray.length(), MAX_RELAY_LOGS - 1)) {
             newArray.put(jsonArray.get(i))
         }
 
@@ -328,6 +346,8 @@ class OtpPreferences(
         private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_RECENT_HASHES = "recent_hashes"
         private const val KEY_RELAY_LOGS = "relay_logs"
+        private const val MAX_RELAY_LOGS = 150
+        private val RELAY_LOG_LOCK = Any()
         private const val KEY_ACTIVE_CHANNEL_ID = "active_channel_id"
         private const val KEY_ACTIVE_CHANNEL_NAME = "active_channel_name"
         private const val KEY_ACTIVE_CHANNEL_EPOCH = "active_channel_epoch"

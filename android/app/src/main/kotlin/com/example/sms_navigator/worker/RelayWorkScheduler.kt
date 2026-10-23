@@ -32,11 +32,12 @@ object RelayWorkScheduler {
         messageId: String,
         channelId: String,
         sender: String,
-        messageText: String
+        messageText: String,
+        smsId: String = ""
     ) {
         val store = RelayChannelStore(OtpPreferences(context))
         val outboxId = store.putOutbox(
-            ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis())
+            ParkedMessage(messageId, channelId, sender, messageText, System.currentTimeMillis(), smsId)
         )
         val inputData = buildInputData(messageId, channelId, outboxId)
 

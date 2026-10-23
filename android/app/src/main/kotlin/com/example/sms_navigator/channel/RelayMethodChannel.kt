@@ -101,7 +101,8 @@ class RelayMethodChannel(
                             message.messageId,
                             message.channelId,
                             message.sender,
-                            message.messageText
+                            message.messageText,
+                            message.smsId
                         )
                         enqueued++
                     }

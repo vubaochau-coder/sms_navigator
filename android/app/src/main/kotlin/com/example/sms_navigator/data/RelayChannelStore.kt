@@ -47,7 +47,9 @@ data class ParkedMessage(
     val channelId: String,
     val sender: String,
     val messageText: String,
-    val parkedAt: Long
+    val parkedAt: Long,
+    /** Một SMS nhận được → một smsId, dùng chung cho mọi kênh — nhật ký relay gom theo nó. */
+    val smsId: String = ""
 )
 
 /**
@@ -297,7 +299,8 @@ class RelayChannelStore(
                     channelId = obj.optString("channel_id"),
                     sender = obj.optString("sender"),
                     messageText = text,
-                    parkedAt = obj.optLong("parked_at")
+                    parkedAt = obj.optLong("parked_at"),
+                    smsId = obj.optString("sms_id")
                 )
             }
         } catch (_: Exception) {
@@ -315,6 +318,7 @@ class RelayChannelStore(
                     put("sender", m.sender)
                     put("text", encrypt(m.messageText))
                     put("parked_at", m.parkedAt)
+                    put("sms_id", m.smsId)
                 }
             )
         }
@@ -336,7 +340,8 @@ class RelayChannelStore(
                     channelId = obj.optString("channel_id"),
                     sender = decryptOrNull(obj.optString("sender")) ?: "",
                     messageText = text,
-                    parkedAt = obj.optLong("created_at")
+                    parkedAt = obj.optLong("created_at"),
+                    smsId = obj.optString("sms_id")
                 )
             }
         } catch (_: Exception) {
@@ -356,6 +361,7 @@ class RelayChannelStore(
                     put("sender", encrypt(m.sender))
                     put("text", encrypt(m.messageText))
                     put("created_at", m.parkedAt)
+                    put("sms_id", m.smsId)
                 }
             )
         }

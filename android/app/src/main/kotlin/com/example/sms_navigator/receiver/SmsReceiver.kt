@@ -39,6 +39,8 @@ class SmsReceiver : BroadcastReceiver() {
                 fullBody.append(sms.displayMessageBody)
             }
             val messageText = fullBody.toString()
+            // Một id cho cả SMS: mọi dòng nhật ký (từng kênh, từng lần thử) gom về một mục.
+            val smsId = java.util.UUID.randomUUID().toString()
 
             Log.i(TAG, "Received SMS from: $sender")
 
@@ -49,7 +51,7 @@ class SmsReceiver : BroadcastReceiver() {
             val token = prefs.deviceToken
             if (channels.isEmpty() || token.isNullOrBlank()) {
                 Log.w(TAG, "No relay channel or device token configured. Cannot relay.")
-                prefs.addRelayLog(sender, "", "SKIPPED", "No active channel configured")
+                prefs.addRelayLog(sender, "", "SKIPPED", "No active channel configured", smsId = smsId)
                 finishOnce(pendingResult)
                 return
             }
@@ -82,7 +84,10 @@ class SmsReceiver : BroadcastReceiver() {
                 when (val decision = WhitelistPolicy.evaluate(whitelistMode, whitelistEntries, sender, otpConfidence)) {
                     is RelayDecision.Drop -> {
                         Log.i(TAG, "Dropping SMS from $sender for channel $label: ${decision.reason}")
-                        prefs.addRelayLog(sender, "", "BLOCKED", "[$label] ${decision.reason}")
+                        prefs.addRelayLog(
+                            sender, "", "BLOCKED", "[$label] ${decision.reason}",
+                            smsId = smsId, channelId = channel.channelId, channelName = label
+                        )
                         continue
                     }
                     RelayDecision.Allow -> Unit
@@ -91,15 +96,21 @@ class SmsReceiver : BroadcastReceiver() {
                 // Deduplication per channel (FR-013)
                 if (prefs.isDuplicateAndRecord("${channel.channelId}|$sender", deduplicationKey)) {
                     Log.w(TAG, "Duplicate within TTL window for channel $label. Dropping.")
-                    prefs.addRelayLog(sender, otpEvent.otp, "SKIPPED", "[$label] Duplicate within TTL window")
+                    prefs.addRelayLog(
+                        sender, otpEvent.otp, "SKIPPED", "[$label] Duplicate within TTL window",
+                        smsId = smsId, channelId = channel.channelId, channelName = label
+                    )
                     continue
                 }
 
                 // Reliable delivery via WorkManager (FR-015, NFR-003)
                 val messageId = java.util.UUID.randomUUID().toString()
-                RelayWorkScheduler.enqueue(context, messageId, channel.channelId, sender, messageText)
+                RelayWorkScheduler.enqueue(context, messageId, channel.channelId, sender, messageText, smsId)
                 Log.i(TAG, "Enqueued OtpRelayWorker (messageId: $messageId, channel: $label)")
-                prefs.addRelayLog(sender, otpEvent.otp, "ENQUEUED", "Worker → V2 Kênh $label")
+                prefs.addRelayLog(
+                    sender, otpEvent.otp, "ENQUEUED", "Worker → V2 Kênh $label",
+                    smsId = smsId, channelId = channel.channelId, channelName = label
+                )
             }
         } catch (t: Throwable) {
             Log.e(TAG, "Error in SmsReceiver: ${t.message}", t)
