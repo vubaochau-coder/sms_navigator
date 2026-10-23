@@ -71,11 +71,16 @@ class DeviceInfoCard extends StatelessWidget {
                           tooltip: context.l10n.channelRenameDeviceTooltip,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
+                          // Material 3 mặc định nới vùng chạm lên 48dp → hàng tên
+                          // cao hơn hẳn chữ, đẩy dòng ID xa xuống.
+                          style: const ButtonStyle(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           onPressed: () => _onEditDeviceName(context, state.deviceName),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     InkWell(
                       borderRadius: BorderRadius.circular(4),
                       onTap: deviceId.isNotEmpty
