@@ -1,5 +1,5 @@
 name: sms_navigator
-description: "A new Flutter project."
+description: "Chuyển tiếp SMS/OTP từ máy cắm SIM sang nhiều thiết bị, mã hóa đầu-cuối (E2EE)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
