@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../network/api_client.dart';
+import '../network/server_waker.dart';
 import '../repositories/activity_repository.dart';
 import '../repositories/impls/activity_repository_impl.dart';
 import '../services/impls/channel_activity_log_store_impl.dart';
@@ -134,6 +135,7 @@ class AppBootstrap extends StatelessWidget {
             return ApiClient(
               serverUrlProvider: storage.getServerUrl,
               tokenProvider: storage.getDeviceToken,
+              serverWaker: ServerWaker(),
             );
           },
         ),

@@ -1,12 +1,25 @@
 name: CI
 
-# Chạy cho mọi pull request và push lên main: analyze + Flutter test + unit
+# Chạy cho pull request và push lên main có đổi code: analyze + Flutter test + unit
 # test Kotlin + build release (R8). Không cần secret — release ký debug key.
 
+# Bỏ qua thay đổi chỉ chạm tài liệu / workflow không liên quan tới build.
+# Lưu ý: nếu bật branch protection yêu cầu check CI, PR bị bỏ qua sẽ
+# kẹt ở trạng thái chờ check.
 on:
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/workflows/distribute.yml'
   push:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/workflows/distribute.yml'
 
 concurrency:
   group: ci-${{ github.ref }}

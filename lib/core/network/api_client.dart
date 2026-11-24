@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../errors/app_exceptions.dart';
 import '../utils/app_logger.dart';
 import '../l10n/app_l10n.dart';
+import 'server_waker.dart';
 
 /// Cung cấp device token để đính kèm vào header Authorization.
 typedef DeviceTokenProvider = Future<String?> Function();
@@ -38,7 +39,9 @@ class ApiClient {
     Duration receiveTimeout = const Duration(seconds: 30),
     Duration sendTimeout = const Duration(seconds: 30),
     Duration? requestTimeout,
-  }) : _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
+    ServerWaker? serverWaker,
+  }) : _serverWaker = serverWaker,
+       _fallbackBaseUrl = fallbackBaseUrl ?? defaultBaseUrl,
        _serverUrlProvider = serverUrlProvider,
        _tokenProvider = tokenProvider,
        connectTimeout = requestTimeout ?? connectTimeout,
@@ -100,6 +103,14 @@ class ApiClient {
           }
           final retried = await _retryAfterUnauthorized(error);
           if (retried != null) return handler.resolve(retried);
+          try {
+            final woken = await _retryAfterWake(error);
+            if (woken != null) return handler.resolve(woken);
+          } on DioException catch (retryError) {
+            // Lỗi của lần gửi lại (vd. vẫn bị chặn, hoặc lỗi thật của server)
+            // thay cho lỗi gốc.
+            return handler.next(retryError);
+          }
           return handler.next(error);
         },
       ),
@@ -140,6 +151,36 @@ class ApiClient {
     } on DioException {
       return null;
     }
+  }
+
+  /// Đánh thức Render khi Worker bị chặn ở edge (xem [ServerWaker]); null →
+  /// tắt (vd. handler FCM nền chỉ có ~10 s, không đủ chờ cold start).
+  final ServerWaker? _serverWaker;
+
+  static const String _retriedAfterWake = 'retried_after_wake';
+
+  /// Request qua Worker mặc định bị chặn ở edge → đánh thức Render (gọi thẳng
+  /// `/health`) rồi gửi lại **qua Worker** đúng một lần; null = giữ nguyên lỗi.
+  Future<Response<dynamic>?> _retryAfterWake(DioException error) async {
+    final waker = _serverWaker;
+    final options = error.requestOptions;
+    if (waker == null ||
+        !isEdgeBlockedResponse(error.response) ||
+        options.extra[_retriedAfterWake] == true ||
+        !_isDefaultBaseUrl(options.baseUrl) ||
+        (options.cancelToken?.isCancelled ?? false)) {
+      return null;
+    }
+    AppLogger.w('ApiClient', 'Edge blocked HTTP ${error.response?.statusCode} on ${options.path} — waking server');
+    final awake = await waker.wake();
+    if (!awake || (options.cancelToken?.isCancelled ?? false)) return null;
+    options.extra[_retriedAfterWake] = true;
+    return _dio.fetch<dynamic>(options);
+  }
+
+  bool _isDefaultBaseUrl(String baseUrl) {
+    String norm(String u) => u.trim().replaceAll(RegExp(r'/+$'), '');
+    return norm(baseUrl) == norm(defaultBaseUrl);
   }
 
   final String _fallbackBaseUrl;
@@ -280,6 +321,13 @@ class ApiClient {
           AppL10n.current.networkUnauthorized,
         );
       }
+      if (isEdgeBlockedResponse(response)) {
+        AppLogger.w('ApiClient', 'Request blocked before reaching the server (HTTP ${response.statusCode}) on ${e.requestOptions.uri}');
+        return ServerStartingException(
+          AppL10n.current.networkServerStarting,
+          statusCode: response.statusCode,
+        );
+      }
       if ((response.statusCode ?? 0) >= 500) {
         AppLogger.e(
           'ApiClient',
@@ -294,7 +342,9 @@ class ApiClient {
         if (err is String && err.isNotEmpty) errorCode = err;
       }
       return ApiException(
-        AppL10n.current.networkServerError('${response.statusCode}'),
+        response.statusCode == 429
+            ? AppL10n.current.networkRateLimited
+            : AppL10n.current.networkServerError('${response.statusCode}'),
         statusCode: response.statusCode,
         errorCode: errorCode,
       );

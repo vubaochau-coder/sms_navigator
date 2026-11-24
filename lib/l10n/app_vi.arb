@@ -566,6 +566,8 @@
       }
     }
   },
+  "networkServerStarting": "Máy chủ đang khởi động, vui lòng thử lại sau khoảng 1 phút.",
+  "networkRateLimited": "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.",
   "networkUnreachable": "Không thể kết nối tới máy chủ: {detail}",
   "@networkUnreachable": {
     "placeholders": {
@@ -823,6 +825,8 @@
       }
     }
   },
+  "splashServerStarting": "Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.",
+  "splashRateLimited": "Có quá nhiều yêu cầu tới máy chủ. Vui lòng chờ ít phút rồi bấm Thử lại.",
   "splashStartupFailed": "Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.",
   "backupSectionTitle": "SAO LƯU & KHÔI PHỤC",
   "backupExportTitle": "Tạo bản sao lưu",

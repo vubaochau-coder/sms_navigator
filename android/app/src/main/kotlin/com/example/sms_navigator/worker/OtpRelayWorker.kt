@@ -106,6 +106,7 @@ class OtpRelayWorker(
         var epoch = channel.activeEpoch
         var key: String = activeKey
         var healedOnce = false
+        var wokeOnce = false
 
         while (true) {
             val result = try {
@@ -156,6 +157,32 @@ class OtpRelayWorker(
                     val errorMsg = "HTTP 409 ${errorCode.ifBlank { result.message }}"
                     log("FAILED", errorMsg)
                     return Result.failure()
+                }
+
+                ServerWakeGate.isEdgeBlocked(result.code, result.body) -> {
+                    // Bị chặn ở edge trước khi tới server — thực tế là Render
+                    // free-tier đang ngủ và Cloudflare của Render challenge traffic
+                    // từ Worker. Đánh thức bằng /health trực tiếp (chỉ với Worker
+                    // mặc định), gửi lại ngay một lần; không được thì để
+                    // WorkManager retry. Không bao giờ bỏ SMS vì lỗi này.
+                    val canWake = !wokeOnce && baseUrl == OtpPreferences.DEFAULT_API_BASE_URL.trimEnd('/')
+                    if (canWake && ServerWakeGate(prefs.prefs).wake()) {
+                        Log.i(TAG, "Server woken after edge block (HTTP ${result.code}), resending messageId=$messageId")
+                        wokeOnce = true
+                        continue
+                    }
+                    val errorMsg = "HTTP ${result.code}: máy chủ đang khởi động"
+                    Log.w(TAG, "Edge blocked relaying ($errorMsg). Retrying later...")
+                    log("RETRYING", errorMsg)
+                    return Result.retry()
+                }
+
+                result.code == 429 -> {
+                    // 429 RATE_LIMITED thật của server: tạm thời, thử lại sau.
+                    val errorMsg = "HTTP 429: ${result.message}"
+                    Log.w(TAG, "Rate limited relaying ($errorMsg). Retrying...")
+                    log("RETRYING", errorMsg)
+                    return Result.retry()
                 }
 
                 result.code == 401 -> {

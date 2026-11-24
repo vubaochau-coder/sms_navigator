@@ -142,11 +142,14 @@ class _FakeDeviceApiService implements DeviceApiService {
   bool shouldThrow = false;
   bool tokenValid = true;
   bool verifyShouldThrow = false;
+  Object? verifyError;
   String? lastRegisteredName;
   String? lastUpdatedName;
 
   @override
   Future<bool> verifyDeviceToken({CancelToken? cancelToken}) async {
+    final error = verifyError;
+    if (error != null) throw error;
     if (verifyShouldThrow) {
       throw const NetworkException('Network connection timeout');
     }
@@ -374,6 +377,33 @@ void main() {
       expect(bloc.state.status, SplashStatus.awaitingSetupChoice);
       expect(deviceApi.registered, isFalse);
       expect(storage.deviceToken, isNull);
+      await bloc.close();
+    });
+
+    test('server still asleep after the wake attempt → "server starting" message, not HTTP 429', () async {
+      storage.deviceToken = 'any_token';
+      deviceApi.verifyError = const ServerStartingException('starting', statusCode: 429);
+      final bloc = buildBloc();
+
+      bloc.add(const SplashStarted());
+      await pumpEventQueue();
+
+      expect(bloc.state.status, SplashStatus.failure);
+      expect(bloc.state.errorMessage, AppL10n.current.splashServerStarting);
+      expect(bloc.state.failureKind, SplashFailureKind.server);
+      await bloc.close();
+    });
+
+    test('server JSON 429 RATE_LIMITED → rate-limit message', () async {
+      storage.deviceToken = 'any_token';
+      deviceApi.verifyError = const ApiException('limited', statusCode: 429, errorCode: 'RATE_LIMITED');
+      final bloc = buildBloc();
+
+      bloc.add(const SplashStarted());
+      await pumpEventQueue();
+
+      expect(bloc.state.status, SplashStatus.failure);
+      expect(bloc.state.errorMessage, AppL10n.current.splashRateLimited);
       await bloc.close();
     });
 

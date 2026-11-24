@@ -123,6 +123,14 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       if (error is NetworkException) {
         userFriendlyMessage = error.message;
         kind = SplashFailureKind.network;
+      } else if (error is ServerStartingException) {
+        // Render đang ngủ và lần đánh thức tự động chưa thành công
+        userFriendlyMessage = AppL10n.current.splashServerStarting;
+        kind = SplashFailureKind.server;
+      } else if (error is ApiException && error.statusCode == 429) {
+        // 429 RATE_LIMITED thật của server (envelope JSON)
+        userFriendlyMessage = AppL10n.current.splashRateLimited;
+        kind = SplashFailureKind.server;
       } else if (error is ApiException) {
         userFriendlyMessage = AppL10n.current.splashServerError('${error.statusCode ?? 'Unknown'}');
         kind = SplashFailureKind.server;
