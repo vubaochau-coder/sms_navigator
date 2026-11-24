@@ -35,3 +35,11 @@ class RequestCancelledException extends AppException {
     super.message = 'Yêu cầu mạng đã bị hủy bỏ.',
   ]);
 }
+
+/// Request bị chặn ở tầng edge trước khi tới server (HTTP 429/403/503 không
+/// mang envelope JSON của server) — thực tế là Render free-tier đang ngủ và
+/// Cloudflare của Render trả trang challenge cho traffic từ Worker. Chỉ ném
+/// ra sau khi [ServerWaker] đã thử đánh thức mà request vẫn bị chặn.
+class ServerStartingException extends ApiException {
+  const ServerStartingException(super.message, {super.statusCode});
+}

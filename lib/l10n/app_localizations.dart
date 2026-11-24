@@ -1846,6 +1846,18 @@ abstract class AppLocalizations {
   /// **'Máy chủ trả về lỗi (HTTP {status}).'**
   String networkServerError(String status);
 
+  /// No description provided for @networkServerStarting.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ đang khởi động, vui lòng thử lại sau khoảng 1 phút.'**
+  String get networkServerStarting;
+
+  /// No description provided for @networkRateLimited.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.'**
+  String get networkRateLimited;
+
   /// No description provided for @networkUnreachable.
   ///
   /// In vi, this message translates to:
@@ -2487,6 +2499,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Máy chủ đang gặp sự cố (HTTP {status}). Vui lòng thử lại sau.'**
   String splashServerError(String status);
+
+  /// No description provided for @splashServerStarting.
+  ///
+  /// In vi, this message translates to:
+  /// **'Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.'**
+  String get splashServerStarting;
+
+  /// No description provided for @splashRateLimited.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có quá nhiều yêu cầu tới máy chủ. Vui lòng chờ ít phút rồi bấm Thử lại.'**
+  String get splashRateLimited;
 
   /// No description provided for @splashStartupFailed.
   ///

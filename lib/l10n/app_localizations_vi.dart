@@ -1004,6 +1004,14 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get networkServerStarting =>
+      'Máy chủ đang khởi động, vui lòng thử lại sau khoảng 1 phút.';
+
+  @override
+  String get networkRateLimited =>
+      'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút.';
+
+  @override
   String networkUnreachable(String detail) {
     return 'Không thể kết nối tới máy chủ: $detail';
   }
@@ -1400,6 +1408,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String splashServerError(String status) {
     return 'Máy chủ đang gặp sự cố (HTTP $status). Vui lòng thử lại sau.';
   }
+
+  @override
+  String get splashServerStarting =>
+      'Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.';
+
+  @override
+  String get splashRateLimited =>
+      'Có quá nhiều yêu cầu tới máy chủ. Vui lòng chờ ít phút rồi bấm Thử lại.';
 
   @override
   String get splashStartupFailed =>
