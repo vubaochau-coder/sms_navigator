@@ -36,3 +36,13 @@ class SplashNewDeviceChosen extends SplashEvent {
   @override
   List<Object?> get props => [defaultDeviceName];
 }
+
+/// ServerWaker bắt đầu / kết thúc đánh thức server (chỉ để hiển thị).
+class SplashServerWakingChanged extends SplashEvent {
+  final bool waking;
+
+  const SplashServerWakingChanged(this.waking);
+
+  @override
+  List<Object?> get props => [waking];
+}

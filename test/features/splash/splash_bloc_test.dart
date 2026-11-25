@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sms_navigator/core/repositories/impls/startup_repository_impl.dart';
+import 'package:sms_navigator/core/repositories/startup_repository.dart';
 import 'package:sms_navigator/core/models/channel_event.dart';
 import 'package:sms_navigator/core/enums/splash_status.dart';
 import 'package:sms_navigator/core/errors/app_exceptions.dart';
@@ -390,8 +391,24 @@ void main() {
 
       expect(bloc.state.status, SplashStatus.failure);
       expect(bloc.state.errorMessage, AppL10n.current.splashServerStarting);
-      expect(bloc.state.failureKind, SplashFailureKind.server);
+      expect(bloc.state.failureKind, SplashFailureKind.serverStarting);
       await bloc.close();
+    });
+
+    test('ServerWaker waking flag is mirrored into state.wakingServer', () async {
+      final waking = ValueNotifier<bool>(false);
+      final bloc = SplashBloc(startupRepository: _NeverRepository(), serverWaking: waking);
+
+      waking.value = true;
+      await pumpEventQueue();
+      expect(bloc.state.wakingServer, isTrue);
+
+      waking.value = false;
+      await pumpEventQueue();
+      expect(bloc.state.wakingServer, isFalse);
+
+      await bloc.close();
+      waking.value = true; // listener removed on close — must not throw
     });
 
     test('server JSON 429 RATE_LIMITED → rate-limit message', () async {
@@ -568,4 +585,16 @@ class _FakeStartupGate implements StartupGate {
     checks++;
     return result;
   }
+}
+
+class _NeverRepository implements StartupRepository {
+  @override
+  Stream<SplashStatus> bootstrap({
+    required String defaultDeviceName,
+    required bool offerSetupChoice,
+    CancelToken? cancelToken,
+  }) => const Stream<SplashStatus>.empty();
+
+  @override
+  Future<void> recordFailure(Object error, StackTrace stack) async {}
 }

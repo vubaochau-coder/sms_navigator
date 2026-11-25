@@ -825,7 +825,10 @@
       }
     }
   },
-  "splashServerStarting": "Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.",
+  "splashServerStarting": "Máy chủ đang ngủ và chưa tự đánh thức được. Bấm \"Đánh thức bằng trình duyệt\", chờ trang hiện \"healthy\" rồi quay lại app.",
+  "splashWakingServer": "Đang đánh thức máy chủ…\nCó thể mất 1–2 phút sau thời gian không hoạt động.",
+  "splashWakeInBrowser": "Đánh thức bằng trình duyệt",
+  "splashWakeInBrowserFailed": "Không mở được trình duyệt.",
   "splashRateLimited": "Có quá nhiều yêu cầu tới máy chủ. Vui lòng chờ ít phút rồi bấm Thử lại.",
   "splashStartupFailed": "Đã xảy ra sự cố trong quá trình khởi động hệ thống. Vui lòng thử lại.",
   "backupSectionTitle": "SAO LƯU & KHÔI PHỤC",

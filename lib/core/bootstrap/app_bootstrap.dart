@@ -129,13 +129,18 @@ class AppBootstrap extends StatelessWidget {
         ),
 
         // 3. Tầng Network (phụ thuộc DeviceStorageService)
+        // ServerWaker dùng chung: ApiClient đánh thức Render, Splash hiển thị
+        // trạng thái "đang đánh thức" và nút mở trình duyệt.
+        RepositoryProvider<ServerWaker>(
+          create: (_) => ServerWaker(),
+        ),
         RepositoryProvider<ApiClient>(
           create: (context) {
             final storage = context.read<DeviceStorageService>();
             return ApiClient(
               serverUrlProvider: storage.getServerUrl,
               tokenProvider: storage.getDeviceToken,
-              serverWaker: ServerWaker(),
+              serverWaker: context.read<ServerWaker>(),
             );
           },
         ),

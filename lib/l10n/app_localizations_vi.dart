@@ -1411,7 +1411,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get splashServerStarting =>
-      'Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.';
+      'Máy chủ đang ngủ và chưa tự đánh thức được. Bấm \"Đánh thức bằng trình duyệt\", chờ trang hiện \"healthy\" rồi quay lại app.';
+
+  @override
+  String get splashWakingServer =>
+      'Đang đánh thức máy chủ…\nCó thể mất 1–2 phút sau thời gian không hoạt động.';
+
+  @override
+  String get splashWakeInBrowser => 'Đánh thức bằng trình duyệt';
+
+  @override
+  String get splashWakeInBrowserFailed => 'Không mở được trình duyệt.';
 
   @override
   String get splashRateLimited =>

@@ -1,5 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/enums/splash_status.dart';
@@ -23,6 +24,9 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   /// Tắt (mặc định) → tự đăng ký như trước.
   final bool offerRestoreOnFirstRun;
 
+  /// Trạng thái "đang đánh thức máy chủ" của ServerWaker; null → bỏ qua.
+  final ValueListenable<bool>? serverWaking;
+
   CancelToken? _cancelToken;
   bool _newDeviceConfirmed = false;
 
@@ -30,14 +34,24 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     required this.startupRepository,
     this.minDisplayDuration = const Duration(milliseconds: 1200),
     this.offerRestoreOnFirstRun = false,
+    this.serverWaking,
   }) : super(const SplashState()) {
     on<SplashStarted>(_onStarted, transformer: droppable());
     on<SplashRetried>(_onRetried, transformer: restartable());
     on<SplashNewDeviceChosen>(_onNewDeviceChosen, transformer: droppable());
+    on<SplashServerWakingChanged>(
+      (event, emit) => emit(state.copyWith(wakingServer: event.waking)),
+    );
+    serverWaking?.addListener(_onServerWakingChanged);
+  }
+
+  void _onServerWakingChanged() {
+    if (!isClosed) add(SplashServerWakingChanged(serverWaking!.value));
   }
 
   @override
   Future<void> close() {
+    serverWaking?.removeListener(_onServerWakingChanged);
     _cancelToken?.cancel('SplashBloc closed');
     return super.close();
   }
@@ -126,7 +140,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       } else if (error is ServerStartingException) {
         // Render đang ngủ và lần đánh thức tự động chưa thành công
         userFriendlyMessage = AppL10n.current.splashServerStarting;
-        kind = SplashFailureKind.server;
+        kind = SplashFailureKind.serverStarting;
       } else if (error is ApiException && error.statusCode == 429) {
         // 429 RATE_LIMITED thật của server (envelope JSON)
         userFriendlyMessage = AppL10n.current.splashRateLimited;
