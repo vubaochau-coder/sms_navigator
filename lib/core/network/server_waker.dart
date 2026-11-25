@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../utils/app_logger.dart';
 
@@ -9,8 +11,8 @@ import '../utils/app_logger.dart';
 ///
 /// Server luôn trả envelope JSON có khoá `success` — kể cả 429 `RATE_LIMITED`
 /// của express-rate-limit. Vì vậy 403/429/503 **không** mang envelope đó
-/// (trang challenge HTML `Just a moment...`, `Too Many Requests` dạng text của
-/// Render) nghĩa là request chưa từng tới server.
+/// (trang challenge HTML `Just a moment...`, `Too Many Requests` dạng text kèm
+/// `x-render-routing: hibernate-rate-limited`) nghĩa là request chưa tới server.
 bool isEdgeBlockedResponse(Response<dynamic>? response) {
   if (response == null) return false;
   const edgeStatuses = {403, 429, 503};
@@ -21,46 +23,73 @@ bool isEdgeBlockedResponse(Response<dynamic>? response) {
 
 /// Đánh thức server Render free-tier khi nó đang ngủ.
 ///
-/// Bối cảnh: app gọi API qua Cloudflare Worker → Render. Khi service ngủ
-/// (15 phút không có request), Cloudflare của Render trả trang challenge
-/// (HTTP 429) cho traffic từ Worker thay vì đánh thức service — app kẹt mãi.
-/// Gọi thẳng URL Render thì (thường) đánh thức được.
+/// Bối cảnh: Render có "hibernation gate" cho service free đang ngủ — thay vì
+/// giữ request tới khi khởi động xong như trước, nó trả 429 ngay
+/// (`x-render-routing: hibernate-rate-limited`, hoặc challenge Cloudflare).
+/// Request qua Worker (IP egress dùng chung của Cloudflare) gần như luôn bị
+/// từ chối; request thẳng tới địa chỉ Render mới đánh thức được, và việc khởi
+/// động mất khoảng 1 phút, trong lúc đó gate vẫn trả 429.
 ///
-/// Chiến lược (cố ý hẹp để URL trực tiếp không trở thành đường đi thứ hai):
-/// 1. **Chỉ một endpoint**: `GET <render>/health` — không token, không body,
-///    không dữ liệu người dùng. Mọi API thật vẫn chỉ đi qua Worker.
+/// Chiến lược:
+/// 1. **Chỉ một endpoint**: `GET <render>/health` — không token, không body.
+///    Mọi API thật vẫn chỉ đi qua Worker.
 /// 2. **Chỉ khi** request qua Worker mặc định bị chặn ở edge
-///    ([isEdgeBlockedResponse]); server tuỳ chỉnh / lỗi JSON của server
-///    không bao giờ kích hoạt.
-/// 3. **Single-flight**: nhiều request bị chặn cùng lúc dùng chung một lần ping.
-/// 4. **Cooldown** [cooldown] sau mỗi lần ping (thành công hay thất bại): trong
-///    khoảng đó trả lại kết quả cũ, không ping thêm — Render cũng rate-limit
-///    traffic dồn dập vào service đang ngủ.
-/// 5. **Có giới hạn thời gian** [pingTimeout] (cold start ~30–60 s).
-/// 6. Ping thành công → caller gửi lại request gốc qua Worker **đúng một lần**.
-///    An toàn cả với POST: bị chặn ở edge nghĩa là server chưa xử lý gì.
-///    Ping thất bại / vẫn bị chặn → báo "máy chủ đang khởi động" cho người dùng.
+///    ([isEdgeBlockedResponse]).
+/// 3. **Polling có giãn cách** ([pollDelays], tôn trọng `Retry-After`) tới khi
+///    `/health` trả `healthy` hoặc hết [wakeDeadline]. 429/503/challenge trong
+///    lúc chờ = "đang khởi động", tiếp tục chờ.
+/// 4. **Single-flight**: mọi request bị chặn dùng chung một vòng polling;
+///    [waking] báo cho UI ("Đang đánh thức máy chủ…").
+/// 5. **Cooldown** sau khi kết thúc: thành công → [successCooldown] trả `true`
+///    luôn; thất bại → [failureCooldown] trả `false` luôn (không spam Render).
+/// 6. Thức → caller gửi lại request gốc qua Worker **đúng một lần**. Không
+///    thức → UI đề nghị mở `/health` bằng trình duyệt ([wakeUri]) — trình
+///    duyệt vượt được bước kiểm tra bot mà HTTP client của app có thể không.
 class ServerWaker {
   ServerWaker({
     Dio? dio,
-    this.wakeUrl = defaultWakeUrl,
-    this.pingTimeout = const Duration(seconds: 60),
-    this.cooldown = const Duration(seconds: 90),
+    String wakeUrl = defaultWakeUrl,
+    this.wakeDeadline = const Duration(seconds: 150),
+    this.attemptTimeout = const Duration(seconds: 60),
+    this.pollDelays = const [
+      Duration(seconds: 3),
+      Duration(seconds: 5),
+      Duration(seconds: 8),
+      Duration(seconds: 10),
+    ],
+    this.successCooldown = const Duration(seconds: 60),
+    this.failureCooldown = const Duration(seconds: 30),
     DateTime Function()? clock,
-  }) : _dio = dio ?? Dio(BaseOptions(connectTimeout: pingTimeout)),
-       _clock = clock ?? DateTime.now;
+    Future<void> Function(Duration)? sleep,
+  }) : wakeUri = Uri.parse(wakeUrl),
+       _dio = dio ?? Dio(BaseOptions(connectTimeout: attemptTimeout)),
+       _clock = clock ?? DateTime.now,
+       _sleep = sleep ?? Future<void>.delayed;
 
   /// Health endpoint gọi thẳng Render (bỏ qua Worker).
   static const String defaultWakeUrl = 'https://sms-navigator-server.onrender.com/health';
 
+  /// Địa chỉ mở bằng trình duyệt khi app không tự đánh thức được.
+  final Uri wakeUri;
+  final Duration wakeDeadline;
+  final Duration attemptTimeout;
+
+  /// Khoảng chờ giữa các lần ping; phần tử cuối lặp lại tới hết hạn.
+  final List<Duration> pollDelays;
+  final Duration successCooldown;
+  final Duration failureCooldown;
+
   final Dio _dio;
-  final String wakeUrl;
-  final Duration pingTimeout;
-  final Duration cooldown;
   final DateTime Function() _clock;
+  final Future<void> Function(Duration) _sleep;
+
+  final ValueNotifier<bool> _waking = ValueNotifier<bool>(false);
+
+  /// `true` trong lúc đang polling đánh thức server.
+  ValueListenable<bool> get waking => _waking;
 
   Future<bool>? _inFlight;
-  DateTime? _lastAttemptAt;
+  DateTime? _finishedAt;
   bool _lastResult = false;
 
   /// `true` khi server đã thức (ping trả `status: healthy`). Không bao giờ ném lỗi.
@@ -68,46 +97,88 @@ class ServerWaker {
     final inFlight = _inFlight;
     if (inFlight != null) return inFlight;
 
-    final last = _lastAttemptAt;
-    if (last != null && _clock().difference(last) < cooldown) {
-      return Future<bool>.value(_lastResult);
+    final finished = _finishedAt;
+    if (finished != null) {
+      final cooldown = _lastResult ? successCooldown : failureCooldown;
+      if (_clock().difference(finished) < cooldown) {
+        return Future<bool>.value(_lastResult);
+      }
     }
 
-    final attempt = _ping().then((ok) {
-      _lastAttemptAt = _clock();
+    _waking.value = true;
+    final attempt = _poll().then((ok) {
+      _finishedAt = _clock();
       _lastResult = ok;
       _inFlight = null;
+      _waking.value = false;
       return ok;
     });
     _inFlight = attempt;
     return attempt;
   }
 
-  Future<bool> _ping() async {
+  /// Quên kết quả cũ — vd. người dùng vừa đánh thức bằng trình duyệt.
+  void resetCooldown() => _finishedAt = null;
+
+  Future<bool> _poll() async {
     final started = _clock();
-    try {
-      final response = await _dio.get<dynamic>(
-        wakeUrl,
-        options: Options(
-          sendTimeout: pingTimeout,
-          receiveTimeout: pingTimeout,
-          responseType: ResponseType.json,
-          headers: <String, dynamic>{'Accept': 'application/json'},
-          validateStatus: (_) => true,
-        ),
-      ).timeout(pingTimeout);
-      final data = response.data;
-      final ok = response.statusCode == 200 && data is Map && data['status'] == 'healthy';
-      final elapsed = _clock().difference(started).inMilliseconds;
-      if (ok) {
-        AppLogger.i('ServerWaker', 'Server is awake after ${elapsed}ms');
-      } else {
-        AppLogger.w('ServerWaker', 'Wake ping got HTTP ${response.statusCode} after ${elapsed}ms');
+    var attempt = 0;
+    while (true) {
+      final result = await _ping();
+      attempt++;
+      final elapsed = _clock().difference(started);
+      if (result.awake) {
+        AppLogger.i('ServerWaker', 'Server is awake after ${elapsed.inSeconds}s ($attempt ping(s))');
+        return true;
       }
-      return ok;
-    } catch (e) {
-      AppLogger.w('ServerWaker', 'Wake ping failed', e);
-      return false;
+      var delay = pollDelays[math.min(attempt - 1, pollDelays.length - 1)];
+      final retryAfter = result.retryAfter;
+      if (retryAfter != null && retryAfter > delay) {
+        delay = retryAfter > const Duration(seconds: 30) ? const Duration(seconds: 30) : retryAfter;
+      }
+      if (elapsed + delay >= wakeDeadline) {
+        AppLogger.w('ServerWaker', 'Server still asleep after ${elapsed.inSeconds}s ($attempt ping(s)), giving up');
+        return false;
+      }
+      await _sleep(delay);
     }
   }
+
+  Future<_PingResult> _ping() async {
+    try {
+      final response = await _dio
+          .get<dynamic>(
+            wakeUri.toString(),
+            options: Options(
+              sendTimeout: attemptTimeout,
+              receiveTimeout: attemptTimeout,
+              responseType: ResponseType.json,
+              headers: <String, dynamic>{'Accept': 'application/json'},
+              validateStatus: (_) => true,
+            ),
+          )
+          .timeout(attemptTimeout);
+      final data = response.data;
+      final awake = response.statusCode == 200 && data is Map && data['status'] == 'healthy';
+      if (!awake) {
+        final routing = response.headers.value('x-render-routing');
+        AppLogger.w('ServerWaker', 'Wake ping: HTTP ${response.statusCode}${routing != null ? ' ($routing)' : ''}');
+      }
+      return _PingResult(awake, _parseRetryAfter(response.headers.value('retry-after')));
+    } catch (e) {
+      AppLogger.w('ServerWaker', 'Wake ping failed', e);
+      return const _PingResult(false, null);
+    }
+  }
+
+  static Duration? _parseRetryAfter(String? raw) {
+    final seconds = int.tryParse(raw?.trim() ?? '');
+    return seconds == null || seconds <= 0 ? null : Duration(seconds: seconds);
+  }
+}
+
+class _PingResult {
+  const _PingResult(this.awake, this.retryAfter);
+  final bool awake;
+  final Duration? retryAfter;
 }

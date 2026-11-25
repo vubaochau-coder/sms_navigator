@@ -2503,8 +2503,26 @@ abstract class AppLocalizations {
   /// No description provided for @splashServerStarting.
   ///
   /// In vi, this message translates to:
-  /// **'Máy chủ đang khởi động sau thời gian không hoạt động. Vui lòng chờ khoảng 1 phút rồi bấm Thử lại.'**
+  /// **'Máy chủ đang ngủ và chưa tự đánh thức được. Bấm \"Đánh thức bằng trình duyệt\", chờ trang hiện \"healthy\" rồi quay lại app.'**
   String get splashServerStarting;
+
+  /// No description provided for @splashWakingServer.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang đánh thức máy chủ…\nCó thể mất 1–2 phút sau thời gian không hoạt động.'**
+  String get splashWakingServer;
+
+  /// No description provided for @splashWakeInBrowser.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh thức bằng trình duyệt'**
+  String get splashWakeInBrowser;
+
+  /// No description provided for @splashWakeInBrowserFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không mở được trình duyệt.'**
+  String get splashWakeInBrowserFailed;
 
   /// No description provided for @splashRateLimited.
   ///

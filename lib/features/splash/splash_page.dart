@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/extensions/context_extensions.dart';
+import '../../core/network/server_waker.dart';
 import '../../core/repositories/impls/startup_repository_impl.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/services/channel_key_store.dart';
@@ -52,6 +53,7 @@ class SplashPage extends StatelessWidget {
             startupGate: ctx.read<StartupGate>(),
           ),
           offerRestoreOnFirstRun: true,
+          serverWaking: ctx.read<ServerWaker>().waking,
         );
         if (autoStart) {
           bloc.add(SplashStarted(

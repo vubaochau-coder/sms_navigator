@@ -60,7 +60,10 @@ class SplashView extends StatelessWidget {
                     if (state.isAwaitingSetupChoice) ...[
                       const SplashSetupChoiceView(),
                     ] else if (!state.isFailure) ...[
-                      SplashProgressView(status: state.status),
+                      SplashProgressView(
+                        status: state.status,
+                        wakingServer: state.wakingServer,
+                      ),
                     ] else ...[
                       SplashErrorView(
                         errorMessage: state.errorMessage,

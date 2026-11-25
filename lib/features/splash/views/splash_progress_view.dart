@@ -7,9 +7,14 @@ import '../../../core/extensions/context_extensions.dart';
 class SplashProgressView extends StatelessWidget {
   final SplashStatus status;
 
+  /// Đang đánh thức server Render — thay dòng trạng thái bằng lời giải thích
+  /// vì sao bước này lâu.
+  final bool wakingServer;
+
   const SplashProgressView({
     super.key,
     required this.status,
+    this.wakingServer = false,
   });
 
   /// Chuyển đổi trạng thái [SplashStatus] sang chuỗi thông báo bản địa hóa.
@@ -56,7 +61,7 @@ class SplashProgressView extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          getStatusText(context, status),
+          wakingServer ? context.l10n.splashWakingServer : getStatusText(context, status),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
           ),

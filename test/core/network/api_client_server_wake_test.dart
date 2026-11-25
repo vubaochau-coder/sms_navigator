@@ -46,6 +46,9 @@ class _WakeAdapter implements HttpClientAdapter {
 
   final _WorkerAdapter worker;
   bool succeeds = true;
+
+  /// Số ping đầu tiên vẫn bị hibernation gate trả 429 (đang khởi động).
+  int asleepForPings = 0;
   int pings = 0;
   final List<RequestOptions> requests = [];
   Completer<void>? gate;
@@ -55,7 +58,11 @@ class _WakeAdapter implements HttpClientAdapter {
     pings++;
     requests.add(options);
     await gate?.future;
-    if (!succeeds) return ResponseBody.fromString('Too Many Requests', 429);
+    if (!succeeds || pings <= asleepForPings) {
+      return ResponseBody.fromString('Too Many Requests', 429, headers: {
+        'x-render-routing': ['hibernate-rate-limited'],
+      });
+    }
     worker.awake = true;
     return _json({'status': 'healthy'}, 200);
   }
@@ -81,7 +88,11 @@ void main() {
     worker = _WorkerAdapter();
     wakeAdapter = _WakeAdapter(worker);
     now = DateTime(2026, 11, 24, 8);
-    waker = ServerWaker(dio: Dio()..httpClientAdapter = wakeAdapter, clock: () => now);
+    waker = ServerWaker(
+      dio: Dio()..httpClientAdapter = wakeAdapter,
+      clock: () => now,
+      sleep: (d) async => now = now.add(d),
+    );
   });
 
   group('isEdgeBlockedResponse', () {
@@ -118,28 +129,46 @@ void main() {
     expect(ping.data, isNull);
   });
 
-  test('failed wake → ServerStartingException, no retry of the API request', () async {
+  test('keeps polling through hibernation 429s until /health is healthy', () async {
+    wakeAdapter.asleepForPings = 3;
+    final client = clientFor(ApiClient.defaultBaseUrl, serverWaker: waker);
+    final started = now;
+    final wakingStates = <bool>[];
+    waker.waking.addListener(() => wakingStates.add(waker.waking.value));
+
+    expect(await client.get('/api/v2/devices/me'), {'success': true});
+    expect(wakeAdapter.pings, 4);
+    expect(now.difference(started), const Duration(seconds: 3 + 5 + 8));
+    expect(wakingStates, [true, false]);
+    expect(worker.requests, hasLength(2));
+  });
+
+  test('never wakes within the deadline → ServerStartingException, API request not retried', () async {
     wakeAdapter.succeeds = false;
     final client = clientFor(ApiClient.defaultBaseUrl, serverWaker: waker);
+    final started = now;
 
     await expectLater(client.get('/api/v2/devices/me'), throwsA(isA<ServerStartingException>()));
-    expect(wakeAdapter.pings, 1);
+    expect(wakeAdapter.pings, greaterThan(5));
+    expect(now.difference(started), lessThan(waker.wakeDeadline));
     expect(worker.requests, hasLength(1));
   });
 
-  test('cooldown: a failed wake is not repeated within 90 s, but is after', () async {
+  test('cooldown: a failed wake is not repeated within 30 s; resetCooldown forces a new attempt', () async {
     wakeAdapter.succeeds = false;
     final client = clientFor(ApiClient.defaultBaseUrl, serverWaker: waker);
 
     await expectLater(client.get('/api/v2/devices/me'), throwsA(isA<ServerStartingException>()));
-    now = now.add(const Duration(seconds: 30));
+    final pingsAfterFirst = wakeAdapter.pings;
+    now = now.add(const Duration(seconds: 10));
     await expectLater(client.get('/api/v2/devices/me'), throwsA(isA<ServerStartingException>()));
-    expect(wakeAdapter.pings, 1);
+    expect(wakeAdapter.pings, pingsAfterFirst);
 
-    now = now.add(const Duration(seconds: 61));
+    // e.g. the user just woke the server in the browser
+    waker.resetCooldown();
     wakeAdapter.succeeds = true;
     expect(await client.get('/api/v2/devices/me'), {'success': true});
-    expect(wakeAdapter.pings, 2);
+    expect(wakeAdapter.pings, pingsAfterFirst + 1);
   });
 
   test('single-flight: concurrent blocked requests share one wake ping', () async {
